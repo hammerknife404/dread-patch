@@ -30,7 +30,7 @@ Read Ice and Fire's source on the `1.21.1` branch of [IAFEnvoy/IceAndFire-CE](ht
 
 - **Unit tests** (`./gradlew test`, part of `build`): `DreadQueenModelTest` bakes her model layer and builds the `HumanoidModel` from it. A missing or misnamed part otherwise only crashes a client while it loads, which neither the build nor a server boot reaches. Game classes are on the test classpath (`addModdingDependenciesTo(sourceSets.test)` in `build.gradle`), but there's no running game: only test code that needs none.
 - **Dev server smoke test**: `tools/devserver/queen_smoke.py` (Python 3, stdlib) drives a running `./gradlew runServer` over RCON: summon, health/armor/held items, tags, 100 ticks of AI, loot, death, and the spawn egg fired from a dispenser. Needs `enable-rcon=true`, `rcon.password=<anything>` and `server-ip=127.0.0.1` in `run/server.properties` (gitignored; set on the owner's machine already). It stops the server when done (`--keep` to leave it up).
-- **Client**: rendering has no automated check. On the owner's machine `./gradlew runClient` opens a window on their desktop (there's no Xvfb), so ask before launching it.
+- **Client**: rendering has no automated check. On the owner's machine `./gradlew runClient` opens a window on their desktop (there's no Xvfb), so ask before launching it. The owner's first look (0.2.0, world `run/saves/Dev_dreadpatch1`, where a queen still stands): texture right, sword and staff in hand, boss bar, attacks nearby mobs, no errors in the log. Eye glow not looked at yet.
 
 ## Working here
 
