@@ -1,0 +1,121 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+// Only the Release workflow (RELEASE=true) builds the plain mod_version. Every other build is tagged
+// as a dev build (with the commit in CI), so a CI artifact can never share a version or file name
+// with a published release.
+def releaseBuild = providers.environmentVariable('RELEASE').map { it == 'true' }.getOrElse(false)
+// BUILD_COMMIT is set by CI to the commit being built (on PRs, the PR's head, not GitHub's merge commit).
+def commit = providers.environmentVariable('BUILD_COMMIT').orElse(providers.environmentVariable('GITHUB_SHA')).map { it.take(7) }.getOrNull()
+version = releaseBuild ? mod_version : (commit ? "${mod_version}-dev.${commit}" : "${mod_version}-dev")
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    // Ice and Fire CE and its libraries, the same files the modpack downloads.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup 'maven.modrinth' }
+    }
+}
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+        configureEach {
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+// localRuntime: mods loaded in the dev runs only (e.g. JEI or Jade for testing), never required.
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    // The mod this patches: compiled against, and loaded in the dev runs.
+    implementation "maven.modrinth:iceandfire-ce:${iceandfire_version}"
+    // Ice and Fire's required libraries. Its Modrinth artifact has no pom, so they're listed here.
+    implementation "maven.modrinth:uranus:${uranus_version}"
+    implementation "maven.modrinth:jupiter:${jupiter_version}"
+    implementation "maven.modrinth:geckolib:${geckolib_version}"
+
+    // Plain JUnit for pure logic (no Minecraft bootstrap).
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+}
+
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version_range : minecraft_version_range,
+            neo_version             : neo_version,
+            loader_version_range    : loader_version_range,
+            iceandfire_version_range: iceandfire_version_range,
+            mod_id                  : mod_id,
+            mod_name                : mod_name,
+            mod_license             : mod_license,
+            mod_version             : project.version.toString(),
+            mod_authors             : mod_authors,
+            mod_description         : mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
