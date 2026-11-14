@@ -10,7 +10,8 @@ Read Ice and Fire's source on the `1.21.1` branch of [IAFEnvoy/IceAndFire-CE](ht
 - **Not registered**: there's no `EntityType` in `IafEntities`, no attributes, no spawn placement, no renderer, no model, no spawn egg. That's this mod's job.
 - Textures (128×64, the same sheet size as the dread knight and lich): `iceandfire:textures/entity/dread/dread_queen.png`, `_eyes`, `_inactive`, `_injured`. Lang `entity.iceandfire.dread_queen` = "Dread Queen".
 - Items, registered: `iceandfire:dread_queen_sword` ("Blade of the Dreaded Queen", tier `IafTiers.DREAD_QUEEN`) and `iceandfire:dread_queen_staff` ("Staff of the Dreaded Queen", a plain `Item` marked "no usage at the moment").
-- Dragon hooks: `DragonBaseEntity` (riding tick) and `IafDragonLogic` (hovering) treat a `DreadQueenEntity` controlling passenger specially; `DragonRiderFeatureRenderer` can exclude her. The original design had her riding a dragon.
+- Dragon hooks: `DragonBaseEntity` (riding tick) and `IafDragonLogic` (hovering) treat a `DreadQueenEntity` controlling passenger specially; `DragonRiderFeatureRenderer` can exclude her. The comment there ("Original logic involves riding") suggests she was meant to ride one.
+- Checked against the 2.1-beta.1 jar (`javap`, JDK at `~/.jdks/java21`): `IafEntities` registers eight dread types (`dread_beast` … `dread_thrall`, `dread_lich_skull`), no `dread_queen`, and there's no queen spawn egg.
 - The other dread mobs render through hand-built models on `DreadBaseModel` (Uranus `HideableModelRenderer` parts), registered in `IafRenderers`.
 
 ## Working here
