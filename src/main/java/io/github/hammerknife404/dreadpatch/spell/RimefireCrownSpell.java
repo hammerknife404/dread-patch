@@ -1,7 +1,7 @@
 package io.github.hammerknife404.dreadpatch.spell;
 
 import io.github.hammerknife404.dreadpatch.DreadPatch;
-import io.github.hammerknife404.dreadpatch.entity.BarrowGlassTomb;
+import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
@@ -23,15 +23,15 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 /**
- * Barrow-Glass Tomb as an Ice spell: raises the tomb where the caster looks (on whoever they look at,
- * or the ground), rooting everyone inside and putting out fires. Her Withering Rime-Bolt shatters it.
- * Only she drops it, like her bolt.
+ * Rimefire Crown as an Ice spell: raises the crown where the caster looks (on whoever they look at,
+ * or the ground), rooting everyone inside while its dread fire drinks every other fire there. Her
+ * Withering Rime-Bolt shatters it. Only she drops it, like her bolt.
  */
-public class BarrowGlassTombSpell extends AbstractSpell {
+public class RimefireCrownSpell extends AbstractSpell {
     /** How far the caster can raise it, in blocks. */
     public static final float RANGE = 24.0F;
 
-    private final ResourceLocation id = DreadPatch.id("barrow_glass_tomb");
+    private final ResourceLocation id = DreadPatch.id("rimefire_crown");
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.ICE_RESOURCE)
@@ -40,7 +40,7 @@ public class BarrowGlassTombSpell extends AbstractSpell {
             .setAllowCrafting(false)
             .build();
 
-    public BarrowGlassTombSpell() {
+    public RimefireCrownSpell() {
         this.baseSpellPower = 1;
         this.spellPowerPerLevel = 0;
         this.baseManaCost = 50;
@@ -48,7 +48,7 @@ public class BarrowGlassTombSpell extends AbstractSpell {
         this.castTime = 0;
     }
 
-    /** Ticks the tomb stands: 3.5 s at level 1 up to 5.5 s at level 5. */
+    /** Ticks the crown stands: 3.5 s at level 1 up to 5.5 s at level 5. */
     public static int lifetime(int spellLevel) {
         return 60 + 10 * spellLevel;
     }
@@ -76,13 +76,13 @@ public class BarrowGlassTombSpell extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.dreadpatch.tomb_seconds", Utils.stringTruncation(lifetime(spellLevel) / 20.0F, 1)),
-                Component.translatable("ui.dreadpatch.radius", Utils.stringTruncation(BarrowGlassTomb.RADIUS, 0)));
+                Component.translatable("ui.dreadpatch.crown_seconds", Utils.stringTruncation(lifetime(spellLevel) / 20.0F, 1)),
+                Component.translatable("ui.dreadpatch.radius", Utils.stringTruncation(RimefireCrown.RADIUS, 0)));
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        level.addFreshEntity(BarrowGlassTomb.create(level, entity, targetPoint(level, entity), lifetime(spellLevel)));
+        level.addFreshEntity(RimefireCrown.create(level, entity, targetPoint(level, entity), lifetime(spellLevel)));
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
