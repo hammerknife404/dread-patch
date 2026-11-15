@@ -82,6 +82,13 @@ def main():
         m = re.search(r"entity data: ([0-9.]+)f", out)
         return float(m.group(1)) if m else -1.0
 
+    court_types = ["iceandfire:dread_thrall", "iceandfire:dread_ghoul", "iceandfire:dread_knight", "iceandfire:dread_scuttler"]
+
+    def clear_court():
+        # Every queen raises a court; clear it with her so it can't wander into later checks.
+        for kind in court_types:
+            rcon.run(f"kill @e[type={kind}]")
+
     def has_effect(selector, effect):
         # The NBT test goes inside the selector's own brackets: "@e[tag=x,limit=1]" -> "@e[tag=x,limit=1,nbt=...]".
         with_nbt = selector[:-1] + f',nbt={{active_effects:[{{id:"{effect}"}}]}}]'
@@ -117,6 +124,7 @@ def main():
     time.sleep(3)
     rcon.run("forceload add 0 0")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
     rcon.run("kill @e[type=item]")
 
     check("summons", surface + "summon dreadpatch:dread_queen ~ ~ ~", "Summoned new Dread Queen")
@@ -154,6 +162,7 @@ def main():
             'HandDropChances:[2.0f,2.0f]}')
     check("summons with drop chances 2.0", surface + "summon dreadpatch:dread_queen ~ ~ ~ " + held, "Summoned new Dread Queen")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
     time.sleep(1.5)
     check_loot("forced hand drops")
 
@@ -164,6 +173,7 @@ def main():
     time.sleep(1.5)
     check("dispensed egg spawns her", "execute if entity @e[type=dreadpatch:dread_queen]", "Test passed, count: 1")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
     rcon.run("kill @e[type=item]")
     rcon.run("setblock 4 199 4 minecraft:air")
     rcon.run("setblock 4 200 4 minecraft:air")
@@ -177,6 +187,7 @@ def main():
     time.sleep(4.0)
     check("moves once risen", spot + "unless entity @e[type=dreadpatch:dread_queen,distance=..0.05]", "Test passed")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
     rcon.run("kill @e[tag=queen_smoke]")
     rcon.run("kill @e[type=item]")
 
@@ -226,6 +237,7 @@ def main():
             break
     record("she bolts a target at range", bolted, "no Withering Rime on the golem within 15 s")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
     tombs = "execute if entity @e[type=dreadpatch:barrow_glass_tomb]"
@@ -281,10 +293,51 @@ def main():
     record("her tomb spares the Dread", entombed and not has_effect("@e[tag=smoke_dread,limit=1]", "dreadpatch:barrow_glass"),
            "the dread thrall was rooted" if entombed else "no tomb to check")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_dread]")
     rcon.run("kill @e[type=item]")
     rcon.run("fill 1 199 2 15 199 6 minecraft:air")
+
+    # Court of the Dread, on a bigger platform: she raises her court against a golem she can't hurt
+    # (Resistance V: an invulnerable one she wouldn't target at all), and burns one for Beater's Decree.
+    def court(extra=""):
+        total = 0
+        for kind in court_types:
+            m = re.search(r"count: (\d+)", rcon.run(f"execute positioned 8 200 8 if entity @e[type={kind},distance=..24{extra}]"))
+            total += int(m.group(1)) if m else 0
+        return total
+
+    rcon.run("fill 1 199 1 15 199 14 minecraft:stone")
+    rcon.run("fill 1 200 1 15 205 14 minecraft:air")
+    rcon.run('summon minecraft:iron_golem 12.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
+    rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
+    rcon.run("summon dreadpatch:dread_queen 2.5 200 7.5")
+    raised = 0
+    for _ in range(30):
+        time.sleep(0.5)
+        raised = court()
+        if raised:
+            break
+    record("she raises her court", 1 <= raised <= 3, f"{raised} dread mobs near her (a wave is up to 3)")
+    queen_id = re.search(r"\[I; [-0-9, ]+\]", rcon.run("data get entity @e[type=dreadpatch:dread_queen,limit=1] UUID"))
+    commanders = [re.search(r"\[I; [-0-9, ]+\]", rcon.run(f"execute positioned 8 200 8 run data get entity @e[type={kind},limit=1,distance=..24] CommanderUUID"))
+                  for kind in court_types]
+    commanders = [c.group(0) for c in commanders if c]
+    record("her court answers to her", bool(queen_id) and bool(commanders) and all(c == queen_id.group(0) for c in commanders),
+           f"queen {queen_id and queen_id.group(0)}, commanders {commanders}")
+    frenzied = 0
+    for _ in range(60):
+        time.sleep(0.5)
+        frenzied = court(',nbt={active_effects:[{id:"minecraft:strength"}]}')
+        if frenzied:
+            break
+    record("Beater's Decree frenzies her court", frenzied >= 1, "no court member got Strength within 30 s")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[type=item]")
+    rcon.run("fill 1 199 1 15 199 14 minecraft:air")
     rcon.run("forceload remove 0 0")
 
     print(f"{sum(results)}/{len(results)} passed")

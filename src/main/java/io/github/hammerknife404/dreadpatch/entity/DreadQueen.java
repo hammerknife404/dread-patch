@@ -39,6 +39,7 @@ public class DreadQueen extends DreadQueenEntity {
 
     private int boltCooldown = 40;
     private int tombCooldown = 100;
+    private final DreadCourt court = new DreadCourt(this);
 
     public DreadQueen(EntityType<? extends DreadQueen> type, Level level) {
         super(type, level);
@@ -64,7 +65,7 @@ public class DreadQueen extends DreadQueenEntity {
         return slot.getType() == EquipmentSlot.Type.HAND ? 0.0F : super.getEquipmentDropChance(slot);
     }
 
-    /** Her spells, on top of Ice and Fire's melee AI. Not called while she's rising ({@link #isImmobile}). */
+    /** Her spells and her court, on top of Ice and Fire's melee AI. Not called while she's rising ({@link #isImmobile}). */
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
@@ -75,7 +76,11 @@ public class DreadQueen extends DreadQueenEntity {
             this.tombCooldown--;
         }
         LivingEntity target = this.getTarget();
-        if (target == null || !target.isAlive()) {
+        if (target != null && !target.isAlive()) {
+            target = null;
+        }
+        this.court.tick(target);
+        if (target == null) {
             return;
         }
         double distance = this.distanceTo(target);
