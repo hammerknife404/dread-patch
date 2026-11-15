@@ -62,8 +62,8 @@ import java.util.WeakHashMap;
  * <li>11.5 attack damage at 1.6 speed, half a block more reach, unbreakable;</li>
  * <li>Thermodynamic Theft: every strike, sweeps included, leaves 4.5 s of Withering Rime (which
  * already stops all healing);</li>
- * <li>Glass-Rime Shatter ({@link RimeCombo}): every third full strike in a row on a chilled or
- * frozen target adds 10% of its max health (capped against bosses) past its armor, and leaves it
+ * <li>Glass-Rime Shatter ({@link RimeCombo}): every third full strike on the same chilled or frozen
+ * target (each within 5 s of the last; strikes on others don't break the count) adds 10% of its max health (capped against bosses) past its armor, and leaves it
  * {@code Brittle} (armor -10%) for 4 s;</li>
  * <li>Fire-Drinking Guard: right-click raises it, as a shield (slowed, no swinging). Raised, it
  * stops fire and magic ({@link #GUARDED}) from the front, puts out fire on its holder and nearby,
@@ -92,7 +92,11 @@ public final class DreadQueenSword {
     public static final TagKey<DamageType> GUARDED = TagKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("fire_drinking_guard"));
 
     private static final ParticleOptions ICE_SHARDS = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.PACKED_ICE.defaultBlockState());
-    /** Server thread only. Combos per wielder, and each player's last swing (whom at, and when) to tell it from the sweep. */
+    /**
+     * Server thread only. Combos per wielder, and each player's last swing (whom at, and when) to
+     * tell it from the vanilla sweep. Better Combat swings go through {@code Player.attack} once per
+     * target, so each of their targets counts as the swing's own.
+     */
     private static final Map<LivingEntity, RimeCombo> COMBOS = new WeakHashMap<>();
     private static final Map<Player, Swing> SWINGS = new WeakHashMap<>();
 
@@ -252,7 +256,7 @@ public final class DreadQueenSword {
             full = player.getAttackStrengthScale(0.5F) >= FULL_STRIKE;
         }
         boolean charged = charged(sword);
-        if (!COMBOS.computeIfAbsent(attacker, a -> new RimeCombo()).strike(target.getUUID(), full, chilled, charged)) {
+        if (!COMBOS.computeIfAbsent(attacker, a -> new RimeCombo()).strike(target.getUUID(), attacker.level().getGameTime(), full, chilled, charged)) {
             return;
         }
         event.setNewDamage(event.getNewDamage() + DreadDamage.maxHealthShare(target.getMaxHealth(), SHATTER_SHARE, target.getType().is(Tags.EntityTypes.BOSSES)));
