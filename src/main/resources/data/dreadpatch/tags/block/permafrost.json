@@ -1,0 +1,15 @@
+{
+  "values": [
+    "#minecraft:ice",
+    "#minecraft:snow",
+    {"id": "iceandfire:dragon_ice", "required": false},
+    {"id": "iceandfire:dragon_ice_spikes", "required": false},
+    {"id": "iceandfire:frozen_cobblestone", "required": false},
+    {"id": "iceandfire:frozen_dirt", "required": false},
+    {"id": "iceandfire:frozen_dirt_path", "required": false},
+    {"id": "iceandfire:frozen_grass", "required": false},
+    {"id": "iceandfire:frozen_gravel", "required": false},
+    {"id": "iceandfire:frozen_splinters", "required": false},
+    {"id": "iceandfire:frozen_stone", "required": false}
+  ]
+}
