@@ -101,6 +101,18 @@ def main():
     rcon.run("kill @e[type=item]")
     rcon.run("setblock 4 199 4 minecraft:air")
     rcon.run("setblock 4 200 4 minecraft:air")
+
+    # Her spawn animation: 30 ticks rising out of the ground, unable to move, with a pig to tempt her.
+    spot = "execute positioned 0 0 0 positioned over world_surface positioned ~0.5 ~ ~0.5 "
+    check("summons for the rise", spot + "run summon dreadpatch:dread_queen ~ ~ ~", "Summoned new Dread Queen")
+    rcon.run('execute positioned 2 0 0 positioned over world_surface run summon minecraft:pig ~0.5 ~ ~0.5 {Tags:["queen_smoke"]}')
+    time.sleep(1.25)  # 25 ticks in: as late as is safe, to give her the most time to move
+    check("holds still while rising", spot + "if entity @e[type=dreadpatch:dread_queen,distance=..0.05]", "Test passed")
+    time.sleep(4.0)
+    check("moves once risen", spot + "unless entity @e[type=dreadpatch:dread_queen,distance=..0.05]", "Test passed")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[tag=queen_smoke]")
+    rcon.run("kill @e[type=item]")
     rcon.run("forceload remove 0 0")
 
     print(f"{sum(results)}/{len(results)} passed")
