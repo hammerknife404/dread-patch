@@ -127,12 +127,17 @@ public class RimefireCrown extends Entity implements TraceableEntity {
             if (!CrownShape.contains(pos.getX() + 0.5 - this.getX(), pos.getY() - this.getY(), pos.getZ() + 0.5 - this.getZ())) {
                 continue;
             }
-            BlockState state = this.level().getBlockState(pos);
-            if (state.is(BlockTags.FIRE)) {
-                this.level().removeBlock(pos, false);
-            } else if (state.hasProperty(CampfireBlock.LIT) && state.getValue(CampfireBlock.LIT)) {
-                this.level().setBlockAndUpdate(pos, state.setValue(CampfireBlock.LIT, false));
-            }
+            drinkFire(this.level(), pos);
+        }
+    }
+
+    /** Dread fire drinking the fire at one spot: a fire block goes out, a lit campfire is snuffed. Her sword's guard does it too. */
+    public static void drinkFire(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (state.is(BlockTags.FIRE)) {
+            level.removeBlock(pos, false);
+        } else if (state.hasProperty(CampfireBlock.LIT) && state.getValue(CampfireBlock.LIT)) {
+            level.setBlockAndUpdate(pos, state.setValue(CampfireBlock.LIT, false));
         }
     }
 

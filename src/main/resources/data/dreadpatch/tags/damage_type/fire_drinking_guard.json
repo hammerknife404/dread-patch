@@ -1,0 +1,10 @@
+{
+  "values": [
+    "#minecraft:is_fire",
+    "#neoforge:is_magic",
+    {
+      "id": "iceandfire:dragon_fire",
+      "required": false
+    }
+  ]
+}

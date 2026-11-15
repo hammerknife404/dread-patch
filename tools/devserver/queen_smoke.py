@@ -142,6 +142,11 @@ def main():
         check("in " + tag, "execute as " + queen + " if entity @s[type=" + tag + "]", "Test passed")
     time.sleep(5)  # 100 ticks of her AI
     check("alive after 5 s of AI", "execute if entity @e[type=dreadpatch:dread_queen]", "Test passed, count: 1")
+    # Her sword as the chat has it: 11.5 attack damage in a player's hand (their base 1 + 10.5), so
+    # her own 5 + 10.5; and unbreakable.
+    check("her sword: +10.5 attack damage", "attribute " + queen + " minecraft:generic.attack_damage get", "is 15.5")
+    check("her sword: unbreakable", "execute if items entity " + queen + " weapon.* iceandfire:dread_queen_sword[minecraft:unbreakable={}]",
+          "Test passed")
 
     rcon.run(surface + 'summon item ~ ~2 ~ {Item:{id:"irons_spellbooks:scroll",count:1}}')
     record("a blank scroll doesn't count as having a spell", count(SPELL_SCROLL) == 0, "the spell check can't tell blank scrolls apart")
@@ -317,6 +322,25 @@ def main():
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_dread]")
+    rcon.run("kill @e[type=item]")
+
+    # Her sword in anyone's hand (here a husk's, which goes for iron golems): every strike leaves
+    # Withering Rime, and the third in a row on a chilled target shatters it, leaving it Brittle.
+    rcon.run(golem.format(x=8.5))
+    rcon.run('summon minecraft:husk 6.5 200 4.5 {PersistenceRequired:1b,Tags:["smoke_wielder"],'
+             'HandItems:[{id:"iceandfire:dread_queen_sword",count:1},{}],HandDropChances:[0.0f,0.0f]}')
+    struck = brittle = False
+    for _ in range(24):
+        time.sleep(0.5)
+        struck = struck or has_effect(target, "dreadpatch:withering_rime")
+        if has_effect(target, "dreadpatch:brittle"):
+            brittle = True
+            break
+    record("her sword's strikes leave Withering Rime", struck, "no Withering Rime on the golem within 12 s")
+    record("her sword's third strike shatters", brittle, "no Brittle on the golem within 12 s")
+    check("Brittle: armor -10%", "attribute " + target + " minecraft:generic.armor modifier value get dreadpatch:brittle_armor", "is -0.1")
+    rcon.run("kill @e[tag=smoke_wielder]")
+    rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
     rcon.run("fill 1 199 2 15 199 6 minecraft:air")
 
