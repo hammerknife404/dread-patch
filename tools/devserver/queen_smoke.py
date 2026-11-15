@@ -75,7 +75,7 @@ def main():
 
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
-    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown"}
+    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step"}
     # Her staff as an Iron's staff: both her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:2,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b}]},'
@@ -128,7 +128,8 @@ def main():
     # server nobody has joined every spell reads max level 1. A reload syncs it.
     rcon.run("reload")
     time.sleep(3)
-    rcon.run("forceload add 0 0")
+    # Chunks x 0-1, z 0: the platforms in the sky, the longest 30 blocks.
+    rcon.run("forceload add 0 0 31 15")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     clear_court()
     rcon.run("kill @e[type=item]")
@@ -342,6 +343,26 @@ def main():
     rcon.run("kill @e[tag=smoke_wielder]")
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
+
+    # Barrow-Step, cast by an armor stand looking down the platform: it's gone from where it stood,
+    # its husk is there instead, and struck, the husk shatters, rooting and riming the golem beside it.
+    rcon.run(golem.format(x=14.5))
+    rcon.run('summon minecraft:armor_stand 13.5 200 4.5 {Tags:["smoke_caster"],Rotation:[90f,0f]}')
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:barrow_step 5")
+    time.sleep(0.3)
+    husk_here = "execute positioned 13.5 200 4.5 if entity @e[type=dreadpatch:barrow_husk,distance=..0.5]"
+    check("Barrow-Step leaves a husk where its caster stood", husk_here, "Test passed")
+    m = re.search(r"entity data: \[([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_caster,limit=1] Pos"))
+    record("Barrow-Step takes its caster up to 15 blocks", m is not None and float(m.group(1)) < 4.0,
+           f"caster at x {m and m.group(1)}, from 13.5")
+    rcon.run("damage @e[type=dreadpatch:barrow_husk,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_target,limit=1]")
+    time.sleep(0.2)
+    check("struck, the husk shatters", husk_here, "Test failed")
+    record("its shatter roots", has_effect(target, "dreadpatch:rimebound"), "no Rimebound on the golem beside it")
+    record("its shatter leaves Withering Rime", has_effect(target, "dreadpatch:withering_rime"), "no Withering Rime on the golem beside it")
+    rcon.run("kill @e[tag=smoke_caster]")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[type=dreadpatch:barrow_husk]")
     rcon.run("fill 1 199 2 15 199 6 minecraft:air")
 
     # Court of the Dread, on a bigger platform: she raises her court against a golem she can't hurt
@@ -384,12 +405,19 @@ def main():
     rcon.run("kill @e[type=item]")
 
     # She keeps her distance, like Iron's necromancer: risen 2 blocks from a golem (one she can't
-    # hurt), she breaks away and stays out of its reach rather than standing in melee.
+    # hurt), she Barrow-Steps away, leaving her husk, and stays out of its reach rather than standing
+    # in melee. The platform runs on to x 30, so she has somewhere to step to.
+    rcon.run("fill 16 199 1 30 199 14 minecraft:stone")
+    rcon.run("fill 16 200 1 30 205 14 minecraft:air")
     rcon.run('summon minecraft:iron_golem 8.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
     rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
     check("summons beside a golem", "summon dreadpatch:dread_queen 10.5 200 7.5", "Summoned new Dread Queen")
     near = "execute positioned 8.5 200 7.5 if entity @e[type=dreadpatch:dread_queen,distance=..4.5]"
-    time.sleep(4.0)
+    stepped = False
+    for _ in range(8):
+        time.sleep(0.5)
+        stepped = stepped or "Test passed" in rcon.run("execute if entity @e[type=dreadpatch:barrow_husk]")
+    record("cornered, she Barrow-Steps away", stepped, "no husk of hers within 4 s")
     close_calls = 0
     for _ in range(12):
         close_calls += "Test passed" in rcon.run(near)
@@ -399,8 +427,9 @@ def main():
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
-    rcon.run("fill 1 199 1 15 199 14 minecraft:air")
-    rcon.run("forceload remove 0 0")
+    rcon.run("kill @e[type=dreadpatch:barrow_husk]")
+    rcon.run("fill 1 199 1 30 199 14 minecraft:air")
+    rcon.run("forceload remove 0 0 31 15")
 
     print(f"{sum(results)}/{len(results)} passed")
     if "--keep" not in sys.argv:

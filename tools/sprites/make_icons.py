@@ -180,6 +180,31 @@ def rimebound_effect():
     return im
 
 
+def robed_figure(im, x, light, mid, dark):
+    """A small robed figure, 5 wide, head at row 2 and hem at row 14, lit from the left."""
+    rows = [(1, 3), (1, 3), (1, 3), (0, 5), (0, 5), (0, 5), (0, 5), (0, 5), (1, 3), (1, 3), (0, 5), (0, 5)]
+    for i, (start, width) in enumerate(rows):
+        y = 2 + i + (1 if i >= 3 else 0)
+        for k in range(width):
+            c = light if k == 0 else (dark if k == width - 1 else mid)
+            im.putpixel((x + start + k, y), rgba(c))
+
+
+def barrow_step():
+    im = dread_background(16, 19)
+    # Her husk left behind in rime-glass, cracked; her, bone-white, stepped away; the cold between.
+    robed_figure(im, 1, ICE_LIGHT, ICE, ICE_DIM)
+    for x, y in [(3, 7), (4, 8), (3, 9), (4, 11)]:
+        im.putpixel((x, y), rgba(ICE_DARK))
+    robed_figure(im, 10, BONE_LIGHT, BONE, BONE_DIM)
+    for x in (11, 13):
+        im.putpixel((x, 3), rgba(DREAD_CYAN))
+    for y, x0, x1 in [(7, 6, 9), (9, 7, 9), (11, 6, 9), (13, 7, 8)]:
+        for x in range(x0, x1 + 1):
+            im.putpixel((x, y), rgba(DREAD_CYAN if x > (x0 + x1) // 2 else FIRE_DEEP))
+    return im
+
+
 def line(im, a, b, c):
     """A 1-pixel line from a to b (Bresenham)."""
     (x0, y0), (x1, y1) = a, b
@@ -286,6 +311,7 @@ def main():
         "gui/spell_icons/rimefire_crown.png": rimefire_crown(),
         "mob_effect/rimebound.png": rimebound_effect(),
         "mob_effect/brittle.png": brittle_effect(),
+        "gui/spell_icons/barrow_step.png": barrow_step(),
         "block/dread_fire_0.png": dread_fire(31),
         "block/dread_fire_1.png": dread_fire(8),
     }

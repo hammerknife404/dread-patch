@@ -13,7 +13,7 @@ import java.util.EnumSet;
  * How she moves in a fight, in place of Ice and Fire's {@code MeleeAttackGoal} (which walked her
  * straight into melee): she keeps her distance like Iron's necromancer and Ice and Fire's Dread
  * Lich ({@link Spacing}), circling at casting range, giving ground when pressed and breaking away
- * when cornered. Her sword is for whoever still reaches her. Her spells and her court act from
+ * when cornered: by Barrow-Step when she can, else on foot. Her sword is for whoever still reaches her. Her spells and her court act from
  * {@link DreadQueen#customServerAiStep}, on whatever she's targeting.
  */
 final class KeepDistanceGoal extends Goal {
@@ -106,9 +106,12 @@ final class KeepDistanceGoal extends Goal {
         this.swingIfReached(target, seen);
     }
 
-    /** Runs to somewhere away from her target; where there's nowhere to run, gives ground instead. */
+    /** Barrow-Steps away from her target, or runs; where there's nowhere to run, gives ground instead. */
     private void flee(LivingEntity target) {
         this.fleeCooldown = FLEE_COOLDOWN;
+        if (this.queen.barrowStep(target)) {
+            return;
+        }
         Vec3 away = DefaultRandomPos.getPosAway(this.queen, FLEE_DISTANCE, 7, target.position());
         if (away != null && this.queen.getNavigation().moveTo(away.x, away.y, away.z, FLEE_SPEED)) {
             this.fleeing = FLEE_TICKS;

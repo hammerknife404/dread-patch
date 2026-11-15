@@ -4,9 +4,11 @@ import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.effect.BrittleEffect;
 import io.github.hammerknife404.dreadpatch.effect.RimeboundEffect;
 import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
+import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
+import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
 import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -56,6 +58,13 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("rimefire_crown").toString()));
 
+    /** Barrow-Step's husk: her shape, her size. */
+    public static final DeferredHolder<EntityType<?>, EntityType<BarrowHusk>> BARROW_HUSK = ENTITY_TYPES.register("barrow_husk",
+            () -> EntityType.Builder.<BarrowHusk>of(BarrowHusk::new, MobCategory.MISC)
+                    .sized(0.6F, 1.95F)
+                    .clientTrackingRange(8)
+                    .build(DreadPatch.id("barrow_husk").toString()));
+
     /** Ice and Fire's dread egg base, spotted with the queen's eye glow. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_QUEEN_SPAWN_EGG = ITEMS.register("dread_queen_spawn_egg",
             () -> new DeferredSpawnEggItem(DREAD_QUEEN, 0xE0E6E6, 0x00CBFF, new Item.Properties()));
@@ -72,6 +81,7 @@ public final class ModRegistries {
 
     public static final DeferredHolder<AbstractSpell, WitheringRimeBoltSpell> WITHERING_RIME_BOLT_SPELL = SPELLS.register("withering_rime_bolt", WitheringRimeBoltSpell::new);
     public static final DeferredHolder<AbstractSpell, RimefireCrownSpell> RIMEFIRE_CROWN_SPELL = SPELLS.register("rimefire_crown", RimefireCrownSpell::new);
+    public static final DeferredHolder<AbstractSpell, BarrowStepSpell> BARROW_STEP_SPELL = SPELLS.register("barrow_step", BarrowStepSpell::new);
 
     private ModRegistries() {
     }
