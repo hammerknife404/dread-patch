@@ -5,6 +5,7 @@ import com.iafenvoy.uranus.animation.AnimationHandler;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -29,6 +30,16 @@ public class DreadQueen extends DreadQueenEntity {
     @Override
     protected boolean isImmobile() {
         return super.isImmobile() || this.isRising();
+    }
+
+    /**
+     * Her loot table always drops her sword and staff, so the ones in her hands never drop as
+     * equipment too (vanilla's 8.5% chance, more with looting, would sometimes give two). Applies
+     * whatever drop chances a saved queen carries.
+     */
+    @Override
+    protected float getEquipmentDropChance(EquipmentSlot slot) {
+        return slot.getType() == EquipmentSlot.Type.HAND ? 0.0F : super.getEquipmentDropChance(slot);
     }
 
     @Override
