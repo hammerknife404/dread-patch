@@ -256,8 +256,12 @@ def main():
     rcon.run("kill @e[tag=smoke_caster]")
 
     # The queen bolts a golem from 12 blocks (her bolt: 8 + 15%; only her bolt leaves Withering Rime),
-    # and its withering feeds her: wounded, she doesn't heal until it's withering.
-    rcon.run(golem.format(x=14.5))
+    # and her Rime leeches it: on Hard, 2% of its max health a tick (a golem given Gate's 320: 6.4),
+    # which she gains. Wounded, she doesn't heal until it's withering.
+    was = re.search(r"The difficulty is (\w+)", rcon.run("difficulty"))
+    rcon.run("difficulty hard")
+    rcon.run('summon minecraft:iron_golem 14.5 200 4.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"],'
+             'attributes:[{id:"minecraft:generic.max_health",base:320.0d}],Health:320.0f}')
     rcon.run("summon dreadpatch:dread_queen 2.5 200 4.5")
     rcon.run("data merge entity " + queen + " {Health:100f}")
     time.sleep(1.0)
@@ -273,7 +277,9 @@ def main():
     fed_from = health(queen)
     time.sleep(3.0)
     fed_to = health(queen)
-    record("its withering feeds her", fed_to >= fed_from + 2, f"her health {fed_from} -> {fed_to} over 3 s of the golem withering")
+    record("her Rime leeches 2% on Hard, and feeds her", fed_to >= fed_from + 12,
+           f"her health {fed_from} -> {fed_to} over 3 s of a 320-health golem withering (6.4 a tick)")
+    rcon.run("difficulty " + (was.group(1).lower() if was else "easy"))
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     rcon.run("kill @e[type=dreadpatch:rimefire_crown]")  # by now she's crowned the golem too
     clear_court()

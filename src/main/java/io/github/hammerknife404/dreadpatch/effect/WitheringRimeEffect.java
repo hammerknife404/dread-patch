@@ -7,15 +7,15 @@ import net.minecraft.world.entity.LivingEntity;
 /**
  * Withering Rime, the mark of pure Dread: cold that takes heat instead of being made of it. It
  * withers (damage that ignores armor), builds up freezing faster than the body thaws, and while it
- * lasts nothing heals the target ({@code DreadEvents}). What it withers feeds the Dread Queen who laid
- * it ({@link RimeSiphon}). The Dread themselves don't take it.
+ * lasts nothing heals the target ({@code DreadEvents}). The Dread Queen's own leeches a share of the
+ * victim's max health instead, and feeds her ({@link RimeSiphon}). The Dread themselves don't take it.
  */
 public class WitheringRimeEffect extends MobEffect {
     /** Abyssal indigo, the colour of her magic in the owner's notes. */
     public static final int COLOR = 0x1E2A4A;
     /** Ticks of freezing added each tick; the body thaws 2 a tick, so it builds 3 a tick. */
     static final int FREEZE_PER_TICK = 5;
-    /** Ticks between withering hits at amplifier 0; each level halves it. */
+    /** Ticks between withering hits at amplifier 0; each level halves it. Each takes 1, or her leech for hers ({@link RimeSiphon}). */
     static final int WITHER_INTERVAL = 20;
 
     public WitheringRimeEffect() {
@@ -39,7 +39,7 @@ public class WitheringRimeEffect extends MobEffect {
         int interval = Math.max(5, WITHER_INTERVAL >> amplifier);
         if (entity.tickCount % interval == 0) {
             float before = entity.getHealth() + entity.getAbsorptionAmount();
-            if (entity.hurt(entity.damageSources().wither(), 1.0F)) {
+            if (entity.hurt(entity.damageSources().wither(), RimeSiphon.witherAmount(entity))) {
                 RimeSiphon.feed(entity, before - (entity.getHealth() + entity.getAbsorptionAmount()));
             }
         }
