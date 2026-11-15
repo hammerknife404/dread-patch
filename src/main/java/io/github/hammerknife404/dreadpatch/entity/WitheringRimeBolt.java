@@ -28,7 +28,8 @@ import java.util.Optional;
 /**
  * Her signature bolt, soot-black and bone-white: flat damage plus a share of the target's max health
  * ({@link DreadDamage}), then Withering Rime. Shot by her and by the Withering Rime-Bolt spell; she
- * takes a bigger share than a player casting it. A queen's bolt passes through the Dread.
+ * takes a bigger share than a player casting it. A queen's bolt passes through the Dread. Into
+ * someone a Barrow-Glass Tomb holds, it shatters the tomb ({@link BarrowGlassTomb#shatterAround}).
  */
 public class WitheringRimeBolt extends AbstractMagicProjectile {
     // Her colours from the owner's notes: charcoal, bone-ash and abyssal indigo.
@@ -70,6 +71,7 @@ public class WitheringRimeBolt extends AbstractMagicProjectile {
             return;
         }
         Entity target = hit.getEntity();
+        boolean entombed = target instanceof LivingEntity living && living.hasEffect(ModRegistries.BARROW_GLASS);
         float amount = this.getDamage();
         if (target instanceof LivingEntity living) {
             amount += DreadDamage.maxHealthShare(living.getMaxHealth(), this.maxHealthShare, living.getType().is(Tags.EntityTypes.BOSSES));
@@ -77,6 +79,9 @@ public class WitheringRimeBolt extends AbstractMagicProjectile {
         boolean hurt = DamageSources.applyDamage(target, amount, ModRegistries.WITHERING_RIME_BOLT_SPELL.get().getDamageSource(this, this.getOwner()));
         if (hurt && target instanceof LivingEntity living && living.isAlive()) {
             living.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, this.rimeTicks), this.getOwner());
+        }
+        if (entombed) {
+            BarrowGlassTomb.shatterAround(this.level(), this, this.getOwner(), (LivingEntity) target);
         }
         this.consumeEntityImpact(hit, true);
     }

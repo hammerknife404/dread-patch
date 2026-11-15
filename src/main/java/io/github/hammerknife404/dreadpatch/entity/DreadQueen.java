@@ -30,7 +30,15 @@ public class DreadQueen extends DreadQueenEntity {
     static final double BOLT_MIN_RANGE = 3.0;
     static final double BOLT_MAX_RANGE = 32.0;
 
+    /** Ticks between her Barrow-Glass Tombs, how long each stands, and how far she casts one. */
+    static final int TOMB_COOLDOWN = 300;
+    static final int TOMB_LIFETIME = 100;
+    static final double TOMB_RANGE = 20.0;
+    /** After a tomb, her next bolt comes this soon, to shatter it. */
+    static final int TOMB_FOLLOW_UP = 25;
+
     private int boltCooldown = 40;
+    private int tombCooldown = 100;
 
     public DreadQueen(EntityType<? extends DreadQueen> type, Level level) {
         super(type, level);
@@ -63,15 +71,31 @@ public class DreadQueen extends DreadQueenEntity {
         if (this.boltCooldown > 0) {
             this.boltCooldown--;
         }
+        if (this.tombCooldown > 0) {
+            this.tombCooldown--;
+        }
         LivingEntity target = this.getTarget();
         if (target == null || !target.isAlive()) {
             return;
         }
         double distance = this.distanceTo(target);
+        if (this.tombCooldown == 0 && distance <= TOMB_RANGE && this.hasLineOfSight(target)) {
+            this.raiseTomb(target);
+            this.tombCooldown = TOMB_COOLDOWN;
+            this.boltCooldown = Math.min(this.boltCooldown, TOMB_FOLLOW_UP);
+            return;
+        }
         if (this.boltCooldown == 0 && distance >= BOLT_MIN_RANGE && distance <= BOLT_MAX_RANGE && this.hasLineOfSight(target)) {
             this.shootBolt(target);
             this.boltCooldown = BOLT_COOLDOWN;
         }
+    }
+
+    /** Barrow-Glass Tomb round her target, then a bolt to shatter it ({@link #TOMB_FOLLOW_UP}). */
+    private void raiseTomb(LivingEntity target) {
+        this.level().addFreshEntity(BarrowGlassTomb.create(this.level(), this, target.position(), TOMB_LIFETIME));
+        this.swing(InteractionHand.OFF_HAND);
+        this.playSound(SoundEvents.EVOKER_PREPARE_ATTACK, 1.0F, 0.5F);
     }
 
     private void shootBolt(LivingEntity target) {

@@ -25,5 +25,6 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.DREAD_QUEEN.get(), DreadQueenRenderer::new);
         // Drawn entirely by its trail particles.
         event.registerEntityRenderer(ModRegistries.WITHERING_RIME_BOLT.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModRegistries.BARROW_GLASS_TOMB.get(), BarrowGlassTombRenderer::new);
     }
 }
