@@ -79,12 +79,12 @@ dependencies {
     implementation "maven.modrinth:uranus:${uranus_version}"
     implementation "maven.modrinth:jupiter:${jupiter_version}"
     implementation "maven.modrinth:geckolib:${geckolib_version}"
-    // Iron's Spells (required: her loot is its inks and scrolls) and the libraries it requires. Only
-    // its items and loot functions are used so far, so it's needed at runtime, not to compile.
-    runtimeOnly "maven.modrinth:irons-spells-n-spellbooks:${irons_spellbooks_version}"
-    runtimeOnly "maven.modrinth:irons-lib:${irons_lib_version}"
-    runtimeOnly "maven.modrinth:playeranimator:${playeranimator_version}"
-    runtimeOnly "maven.modrinth:curios:${curios_version}"
+    // Iron's Spells (required: her spells are Iron's spells, her loot its inks and scrolls) and the
+    // libraries it requires.
+    implementation "maven.modrinth:irons-spells-n-spellbooks:${irons_spellbooks_version}"
+    implementation "maven.modrinth:irons-lib:${irons_lib_version}"
+    implementation "maven.modrinth:playeranimator:${playeranimator_version}"
+    implementation "maven.modrinth:curios:${curios_version}"
 
     // Plain JUnit for pure logic (no Minecraft bootstrap).
     testImplementation platform('org.junit:junit-bom:5.11.4')

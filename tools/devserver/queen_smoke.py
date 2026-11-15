@@ -75,6 +75,20 @@ def main():
 
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
+    HER_SPELLS = {"dreadpatch:withering_rime_bolt"}
+
+    def health(selector):
+        out = rcon.run("data get entity " + selector + " Health")
+        m = re.search(r"entity data: ([0-9.]+)f", out)
+        return float(m.group(1)) if m else -1.0
+
+    def has_effect(selector, effect):
+        # The NBT test goes inside the selector's own brackets: "@e[tag=x,limit=1]" -> "@e[tag=x,limit=1,nbt=...]".
+        with_nbt = selector[:-1] + f',nbt={{active_effects:[{{id:"{effect}"}}]}}]'
+        out = rcon.run("execute if entity " + with_nbt)
+        if "Test passed" not in out and "Test failed" not in out:
+            raise SystemExit("has_effect: bad command: " + out)
+        return "Test passed" in out
 
     def check_loot(where):
         # Her loot table: her sword and staff (exactly one each: the ones she holds never drop too),
@@ -88,6 +102,10 @@ def main():
         with_spell = count(SPELL_SCROLL)
         record(where + ": one or two scrolls, each with a spell", 1 <= scrolls <= 2 and with_spell == scrolls,
                f"{scrolls} scrolls, {with_spell} with a spell")
+        ids = re.findall(r'entity data: "([a-z_:]+)"', rcon.run(
+            'execute as @e[type=item] if items entity @s contents irons_spellbooks:scroll run data get entity @s '
+            'Item.components."irons_spellbooks:spell_container".data[0].id'))
+        record(where + ": the scrolls hold her spells", bool(ids) and all(i in HER_SPELLS for i in ids), f"spells {ids}")
         rcon.run("kill @e[type=item]")
 
     queen = "@e[type=dreadpatch:dread_queen,limit=1]"
@@ -161,6 +179,56 @@ def main():
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     rcon.run("kill @e[tag=queen_smoke]")
     rcon.run("kill @e[type=item]")
+
+    # Her magic, on a stone platform in the sky (inside the force-loaded chunk) so terrain can't get in the way.
+    rcon.run("fill 1 199 2 15 199 6 minecraft:stone")
+    rcon.run("fill 1 200 2 15 204 6 minecraft:air")
+    target = "@e[tag=smoke_target,limit=1]"
+    golem = 'summon minecraft:iron_golem {x} 200 4.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}}'
+
+    # Withering Rime: freezes, withers through armor, and nothing heals under it.
+    rcon.run(golem.format(x=8.5))
+    check("Withering Rime applies", "effect give " + target + " dreadpatch:withering_rime 5", "Applied effect")
+    time.sleep(2.5)
+    frozen = re.search(r"entity data: (\d+)", rcon.run("data get entity " + target + " TicksFrozen"))
+    record("Withering Rime freezes", frozen is not None and int(frozen.group(1)) > 0, f"TicksFrozen {frozen and frozen.group(1)}")
+    before = health(target)
+    record("Withering Rime withers", 0 < before < 100, f"health {before}")
+    rcon.run("effect give " + target + " minecraft:instant_health 1 1")
+    time.sleep(0.3)
+    after = health(target)
+    record("nothing heals under Withering Rime", 0 < after <= before + 0.01, f"{before} -> {after} after Instant Health II")
+    rcon.run("kill @e[tag=smoke_target]")
+    # The Dread don't take it.
+    rcon.run('summon iceandfire:dread_thrall 4.5 200 4.5 {NoAI:1b,Tags:["smoke_target"]}')
+    check("the Dread are immune to Withering Rime", "effect give " + target + " dreadpatch:withering_rime 5", "Unable to apply")
+    rcon.run("kill @e[tag=smoke_target]")
+
+    # Her bolt as a player's spell: an armor stand casts it (level 5: 14 damage + 8% of 100) at a golem 6 blocks off.
+    rcon.run(golem.format(x=8.5))
+    rcon.run('summon minecraft:armor_stand 2.5 200 4.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}')
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:withering_rime_bolt 5")
+    time.sleep(1.0)
+    hp = health(target)
+    record("her bolt (cast) hits for 14 + 8% of max health", 70 <= hp <= 79, f"golem health {hp}, expected about 78")
+    record("her bolt (cast) leaves Withering Rime", has_effect(target, "dreadpatch:withering_rime"), "no Withering Rime on the golem")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[tag=smoke_caster]")
+
+    # The queen bolts a golem from 12 blocks (her bolt: 8 + 15%; only her bolt leaves Withering Rime).
+    rcon.run(golem.format(x=14.5))
+    rcon.run("summon dreadpatch:dread_queen 2.5 200 4.5")
+    bolted = False
+    for _ in range(30):
+        time.sleep(0.5)
+        if has_effect(target, "dreadpatch:withering_rime"):
+            bolted = True
+            break
+    record("she bolts a target at range", bolted, "no Withering Rime on the golem within 15 s")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[type=item]")
+    rcon.run("fill 1 199 2 15 199 6 minecraft:air")
     rcon.run("forceload remove 0 0")
 
     print(f"{sum(results)}/{len(results)} passed")
