@@ -7,10 +7,10 @@
   "spell.dreadpatch.withering_rime_bolt.guide": "The Dread Queen's own bolt of soot-black, bone-white frost. It takes a share of the target's life on top of its damage and leaves Withering Rime: cold that withers through armor, freezes, and lets nothing heal.",
   "ui.dreadpatch.max_health_share": "+%s%% of Target's Max Health",
   "ui.dreadpatch.withering_rime_seconds": "%ss of Withering Rime",
-  "entity.dreadpatch.barrow_glass_tomb": "Barrow-Glass Tomb",
-  "effect.dreadpatch.barrow_glass": "Barrow-Glass",
-  "spell.dreadpatch.barrow_glass_tomb": "Barrow-Glass Tomb",
-  "spell.dreadpatch.barrow_glass_tomb.guide": "Raise a ring of brittle black dread-glass spires where you look. Everyone inside is rooted in place and fires go out. A Withering Rime-Bolt into someone it holds shatters the tomb into shrapnel.",
-  "ui.dreadpatch.tomb_seconds": "%ss Tomb",
+  "entity.dreadpatch.rimefire_crown": "Rimefire Crown",
+  "effect.dreadpatch.rimebound": "Rimebound",
+  "spell.dreadpatch.rimefire_crown": "Rimefire Crown",
+  "spell.dreadpatch.rimefire_crown.guide": "Raise a crown of ice spikes wreathed in cold dread fire where you look. Everyone inside is rooted in place, and the dread fire, which steals heat rather than giving it, drinks every other fire within. A Withering Rime-Bolt into someone it holds shatters the crown into shrapnel.",
+  "ui.dreadpatch.crown_seconds": "%ss Crown",
   "ui.dreadpatch.radius": "%s Block Radius"
 }

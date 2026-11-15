@@ -1,12 +1,12 @@
 package io.github.hammerknife404.dreadpatch.registry;
 
 import io.github.hammerknife404.dreadpatch.DreadPatch;
-import io.github.hammerknife404.dreadpatch.effect.BarrowGlassEffect;
+import io.github.hammerknife404.dreadpatch.effect.RimeboundEffect;
 import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
-import io.github.hammerknife404.dreadpatch.entity.BarrowGlassTomb;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
+import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
-import io.github.hammerknife404.dreadpatch.spell.BarrowGlassTombSpell;
+import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
@@ -44,12 +44,12 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("withering_rime_bolt").toString()));
 
-    /** As wide as its ring, so its spires aren't culled while the centre is off screen. */
-    public static final DeferredHolder<EntityType<?>, EntityType<BarrowGlassTomb>> BARROW_GLASS_TOMB = ENTITY_TYPES.register("barrow_glass_tomb",
-            () -> EntityType.Builder.<BarrowGlassTomb>of(BarrowGlassTomb::new, MobCategory.MISC)
-                    .sized(BarrowGlassTomb.RADIUS * 2, 2.5F)
+    /** As wide as its ring, so its spikes aren't culled while the centre is off screen. */
+    public static final DeferredHolder<EntityType<?>, EntityType<RimefireCrown>> RIMEFIRE_CROWN = ENTITY_TYPES.register("rimefire_crown",
+            () -> EntityType.Builder.<RimefireCrown>of(RimefireCrown::new, MobCategory.MISC)
+                    .sized(RimefireCrown.RADIUS * 2, 2.5F)
                     .clientTrackingRange(8)
-                    .build(DreadPatch.id("barrow_glass_tomb").toString()));
+                    .build(DreadPatch.id("rimefire_crown").toString()));
 
     /** Ice and Fire's dread egg base, spotted with the queen's eye glow. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_QUEEN_SPAWN_EGG = ITEMS.register("dread_queen_spawn_egg",
@@ -57,10 +57,10 @@ public final class ModRegistries {
 
     public static final DeferredHolder<MobEffect, WitheringRimeEffect> WITHERING_RIME = MOB_EFFECTS.register("withering_rime", WitheringRimeEffect::new);
 
-    public static final DeferredHolder<MobEffect, BarrowGlassEffect> BARROW_GLASS = MOB_EFFECTS.register("barrow_glass", BarrowGlassEffect::new);
+    public static final DeferredHolder<MobEffect, RimeboundEffect> RIMEBOUND = MOB_EFFECTS.register("rimebound", RimeboundEffect::new);
 
     public static final DeferredHolder<AbstractSpell, WitheringRimeBoltSpell> WITHERING_RIME_BOLT_SPELL = SPELLS.register("withering_rime_bolt", WitheringRimeBoltSpell::new);
-    public static final DeferredHolder<AbstractSpell, BarrowGlassTombSpell> BARROW_GLASS_TOMB_SPELL = SPELLS.register("barrow_glass_tomb", BarrowGlassTombSpell::new);
+    public static final DeferredHolder<AbstractSpell, RimefireCrownSpell> RIMEFIRE_CROWN_SPELL = SPELLS.register("rimefire_crown", RimefireCrownSpell::new);
 
     private ModRegistries() {
     }

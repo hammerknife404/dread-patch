@@ -75,7 +75,7 @@ def main():
 
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
-    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:barrow_glass_tomb"}
+    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown"}
 
     def health(selector):
         out = rcon.run("data get entity " + selector + " Health")
@@ -240,58 +240,58 @@ def main():
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
-    tombs = "execute if entity @e[type=dreadpatch:barrow_glass_tomb]"
+    crowns = "execute if entity @e[type=dreadpatch:rimefire_crown]"
     caster = 'summon minecraft:armor_stand 2.5 200 4.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}'
 
-    # Barrow-Glass Tomb, cast by an armor stand on a golem 6 blocks off, with a fire burning inside the ring.
+    # Rimefire Crown, cast by an armor stand on a golem 6 blocks off, with a fire burning inside the ring.
     rcon.run(golem.format(x=8.5))
     rcon.run(caster)
     rcon.run("setblock 9 199 5 minecraft:netherrack")
     rcon.run("setblock 9 200 5 minecraft:fire")
-    check("a fire burns before the tomb", "execute if block 9 200 5 minecraft:fire", "Test passed")
-    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:barrow_glass_tomb 5")
+    check("a fire burns before the crown", "execute if block 9 200 5 minecraft:fire", "Test passed")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:rimefire_crown 5")
     time.sleep(0.5)
-    check("the tomb stands", tombs, "Test passed")
-    record("the tomb roots its target", has_effect(target, "dreadpatch:barrow_glass"), "no Barrow-Glass on the golem")
+    check("the crown stands", crowns, "Test passed")
+    record("the crown roots its target", has_effect(target, "dreadpatch:rimebound"), "no Rimebound on the golem")
     check("rooted: no movement speed", "attribute " + target + " minecraft:generic.movement_speed get", "is 0.0")
-    check("the tomb puts the fire out", "execute unless block 9 200 5 minecraft:fire", "Test passed")
+    check("its dread fire drinks the fire", "execute unless block 9 200 5 minecraft:fire", "Test passed")
     before = health(target)
     rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:withering_rime_bolt 5")
     time.sleep(0.6)
     after = health(target)
-    check("a bolt shatters the tomb", tombs, "Test failed")
-    record("shattering frees the target", not has_effect(target, "dreadpatch:barrow_glass"), "still rooted")
+    check("a bolt shatters the crown", crowns, "Test failed")
+    record("shattering frees the target", not has_effect(target, "dreadpatch:rimebound"), "still rooted")
     record("bolt and shrapnel both land (22 + 10)", before - after >= 31, f"health {before} -> {after}")
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")
     rcon.run("setblock 9 200 5 minecraft:air")
     rcon.run("setblock 9 199 5 minecraft:stone")
 
-    # A tomb ends on its own: level 1 stands 3.5 s.
+    # A crown ends on its own: level 1 stands 3.5 s.
     rcon.run(golem.format(x=8.5))
     rcon.run(caster)
-    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:barrow_glass_tomb 1")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:rimefire_crown 1")
     time.sleep(0.5)
-    record("a level 1 tomb roots", has_effect(target, "dreadpatch:barrow_glass"), "no Barrow-Glass on the golem")
+    record("a level 1 crown roots", has_effect(target, "dreadpatch:rimebound"), "no Rimebound on the golem")
     time.sleep(4.0)
-    check("it's gone after 3.5 s", tombs, "Test failed")
+    check("it's gone after 3.5 s", crowns, "Test failed")
     check("and its target walks again", "attribute " + target + " minecraft:generic.movement_speed get", "is 0.25")
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")
 
-    # The queen raises a tomb on her target, and it spares the Dread standing inside it.
+    # The queen raises a crown on her target, and it spares the Dread standing inside it.
     rcon.run(golem.format(x=12.5))
     rcon.run('summon iceandfire:dread_thrall 12.5 200 5.8 {NoAI:1b,Tags:["smoke_dread"]}')
     rcon.run("summon dreadpatch:dread_queen 2.5 200 4.5")
-    entombed = False
+    crowned = False
     for _ in range(50):
         time.sleep(0.5)
-        if has_effect(target, "dreadpatch:barrow_glass"):
-            entombed = True
+        if has_effect(target, "dreadpatch:rimebound"):
+            crowned = True
             break
-    record("she raises a tomb on her target", entombed, "the golem wasn't rooted within 25 s")
-    record("her tomb spares the Dread", entombed and not has_effect("@e[tag=smoke_dread,limit=1]", "dreadpatch:barrow_glass"),
-           "the dread thrall was rooted" if entombed else "no tomb to check")
+    record("she raises a crown on her target", crowned, "the golem wasn't rooted within 25 s")
+    record("her crown spares the Dread", crowned and not has_effect("@e[tag=smoke_dread,limit=1]", "dreadpatch:rimebound"),
+           "the dread thrall was rooted" if crowned else "no crown to check")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")
@@ -333,6 +333,23 @@ def main():
         if frenzied:
             break
     record("Beater's Decree frenzies her court", frenzied >= 1, "no court member got Strength within 30 s")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[type=item]")
+
+    # She keeps her distance, like Iron's necromancer: risen 2 blocks from a golem (one she can't
+    # hurt), she breaks away and stays out of its reach rather than standing in melee.
+    rcon.run('summon minecraft:iron_golem 8.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
+    rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
+    check("summons beside a golem", "summon dreadpatch:dread_queen 10.5 200 7.5", "Summoned new Dread Queen")
+    near = "execute positioned 8.5 200 7.5 if entity @e[type=dreadpatch:dread_queen,distance=..4.5]"
+    time.sleep(4.0)
+    close_calls = 0
+    for _ in range(12):
+        close_calls += "Test passed" in rcon.run(near)
+        time.sleep(0.5)
+    record("she keeps her distance", close_calls == 0, f"within 4.5 blocks of the golem at {close_calls} of 12 looks over 6 s")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")

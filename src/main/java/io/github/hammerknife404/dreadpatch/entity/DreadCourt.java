@@ -169,7 +169,7 @@ final class DreadCourt {
         double closest = DECREE_REACH;
         for (DreadMobEntity member : court) {
             for (LivingEntity enemy : level.getEntitiesOfClass(LivingEntity.class, member.getBoundingBox().inflate(DECREE_REACH),
-                    e -> e.isAlive() && BarrowGlassTomb.canHarm(this.queen, e))) {
+                    e -> e.isAlive() && RimefireCrown.canHarm(this.queen, e))) {
                 double d = member.distanceTo(enemy);
                 if (d <= closest) {
                     closest = d;
@@ -183,7 +183,7 @@ final class DreadCourt {
         Vec3 at = burnt.position();
         burnt.discard();
         for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, burnt.getBoundingBox().inflate(DECREE_RADIUS),
-                e -> e.isAlive() && BarrowGlassTomb.canHarm(this.queen, e))) {
+                e -> e.isAlive() && RimefireCrown.canHarm(this.queen, e))) {
             float amount = DECREE_DAMAGE + DreadDamage.maxHealthShare(victim.getMaxHealth(), DECREE_MAX_HEALTH_SHARE, victim.getType().is(Tags.EntityTypes.BOSSES));
             if (DamageSources.applyDamage(victim, amount, ModRegistries.WITHERING_RIME_BOLT_SPELL.get().getDamageSource(this.queen, this.queen)) && victim.isAlive()) {
                 victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, DECREE_RIME_TICKS), this.queen);
