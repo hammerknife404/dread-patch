@@ -76,6 +76,10 @@ def main():
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown"}
+    # Her staff as an Iron's staff: both her spells locked in at level 3, and right-click casting.
+    STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:2,spellWheel:1b,mustEquip:0b,data:['
+                         '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b}]},'
+                         'irons_spellbooks:casting_implement={}]')
 
     def health(selector):
         out = rcon.run("data get entity " + selector + " Health")
@@ -113,6 +117,8 @@ def main():
             'execute as @e[type=item] if items entity @s contents irons_spellbooks:scroll run data get entity @s '
             'Item.components."irons_spellbooks:spell_container".data[0].id'))
         record(where + ": the scrolls hold her spells", bool(ids) and all(i in HER_SPELLS for i in ids), f"spells {ids}")
+        staffs = count(STAFF_WITH_SPELLS)
+        record(where + ": her staff holds her spells", staffs == 1, f"{staffs} staffs with both spells locked in at level 3")
         rcon.run("kill @e[type=item]")
 
     queen = "@e[type=dreadpatch:dread_queen,limit=1]"
@@ -173,6 +179,21 @@ def main():
     time.sleep(1.5)
     check("dispensed egg spawns her", "execute if entity @e[type=dreadpatch:dread_queen]", "Test passed, count: 1")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+
+    # Her staff in the main hand: +15% Ice Spell Power, +10% Cooldown Reduction, as Iron's staffs give
+    # theirs (and, like theirs, nothing from the off hand). Held items' attributes apply on the
+    # holder's next tick, so wait for it.
+    holder = "@e[tag=staff_holder,limit=1]"
+    check("summons a staff holder", surface + 'summon minecraft:armor_stand ~2 ~ ~ {Tags:["staff_holder"],'
+          'HandItems:[{id:"iceandfire:dread_queen_staff",count:1},{}]}', "Summoned new Armor Stand")
+    time.sleep(0.5)
+    check("her staff: +15% Ice Spell Power", "attribute " + holder + " irons_spellbooks:ice_spell_power get", "is 1.15")
+    check("her staff: +10% Cooldown Reduction", "attribute " + holder + " irons_spellbooks:cooldown_reduction get", "is 1.1")
+    rcon.run("item replace entity " + holder + " weapon.offhand with iceandfire:dread_queen_staff")
+    rcon.run("item replace entity " + holder + " weapon.mainhand with minecraft:air")
+    time.sleep(0.5)
+    check("her staff: nothing from the off hand", "attribute " + holder + " irons_spellbooks:ice_spell_power get", "is 1.0")
+    rcon.run("kill @e[tag=staff_holder]")
     clear_court()
     rcon.run("kill @e[type=item]")
     rcon.run("setblock 4 199 4 minecraft:air")

@@ -12,5 +12,7 @@
   "spell.dreadpatch.rimefire_crown": "Rimefire Crown",
   "spell.dreadpatch.rimefire_crown.guide": "Raise a crown of ice spikes wreathed in cold dread fire where you look. Everyone inside is rooted in place, and the dread fire, which steals heat rather than giving it, drinks every other fire within. A Withering Rime-Bolt into someone it holds shatters the crown into shrapnel.",
   "ui.dreadpatch.crown_seconds": "%ss Crown",
-  "ui.dreadpatch.radius": "%s Block Radius"
+  "ui.dreadpatch.radius": "%s Block Radius",
+  "tooltip.dreadpatch.permafrost_conduit": "Permafrost Conduit",
+  "tooltip.dreadpatch.permafrost_conduit.desc": "Ice spells cost %s%% less mana while you stand on snow or ice"
 }
