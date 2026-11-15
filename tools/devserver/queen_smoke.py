@@ -75,7 +75,7 @@ def main():
 
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
-    HER_SPELLS = {"dreadpatch:withering_rime_bolt"}
+    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:barrow_glass_tomb"}
 
     def health(selector):
         out = rcon.run("data get entity " + selector + " Health")
@@ -227,6 +227,62 @@ def main():
     record("she bolts a target at range", bolted, "no Withering Rime on the golem within 15 s")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[type=item]")
+    tombs = "execute if entity @e[type=dreadpatch:barrow_glass_tomb]"
+    caster = 'summon minecraft:armor_stand 2.5 200 4.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}'
+
+    # Barrow-Glass Tomb, cast by an armor stand on a golem 6 blocks off, with a fire burning inside the ring.
+    rcon.run(golem.format(x=8.5))
+    rcon.run(caster)
+    rcon.run("setblock 9 199 5 minecraft:netherrack")
+    rcon.run("setblock 9 200 5 minecraft:fire")
+    check("a fire burns before the tomb", "execute if block 9 200 5 minecraft:fire", "Test passed")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:barrow_glass_tomb 5")
+    time.sleep(0.5)
+    check("the tomb stands", tombs, "Test passed")
+    record("the tomb roots its target", has_effect(target, "dreadpatch:barrow_glass"), "no Barrow-Glass on the golem")
+    check("rooted: no movement speed", "attribute " + target + " minecraft:generic.movement_speed get", "is 0.0")
+    check("the tomb puts the fire out", "execute unless block 9 200 5 minecraft:fire", "Test passed")
+    before = health(target)
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:withering_rime_bolt 5")
+    time.sleep(0.6)
+    after = health(target)
+    check("a bolt shatters the tomb", tombs, "Test failed")
+    record("shattering frees the target", not has_effect(target, "dreadpatch:barrow_glass"), "still rooted")
+    record("bolt and shrapnel both land (22 + 10)", before - after >= 31, f"health {before} -> {after}")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[tag=smoke_caster]")
+    rcon.run("setblock 9 200 5 minecraft:air")
+    rcon.run("setblock 9 199 5 minecraft:stone")
+
+    # A tomb ends on its own: level 1 stands 3.5 s.
+    rcon.run(golem.format(x=8.5))
+    rcon.run(caster)
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:barrow_glass_tomb 1")
+    time.sleep(0.5)
+    record("a level 1 tomb roots", has_effect(target, "dreadpatch:barrow_glass"), "no Barrow-Glass on the golem")
+    time.sleep(4.0)
+    check("it's gone after 3.5 s", tombs, "Test failed")
+    check("and its target walks again", "attribute " + target + " minecraft:generic.movement_speed get", "is 0.25")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[tag=smoke_caster]")
+
+    # The queen raises a tomb on her target, and it spares the Dread standing inside it.
+    rcon.run(golem.format(x=12.5))
+    rcon.run('summon iceandfire:dread_thrall 12.5 200 5.8 {NoAI:1b,Tags:["smoke_dread"]}')
+    rcon.run("summon dreadpatch:dread_queen 2.5 200 4.5")
+    entombed = False
+    for _ in range(50):
+        time.sleep(0.5)
+        if has_effect(target, "dreadpatch:barrow_glass"):
+            entombed = True
+            break
+    record("she raises a tomb on her target", entombed, "the golem wasn't rooted within 25 s")
+    record("her tomb spares the Dread", entombed and not has_effect("@e[tag=smoke_dread,limit=1]", "dreadpatch:barrow_glass"),
+           "the dread thrall was rooted" if entombed else "no tomb to check")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[tag=smoke_dread]")
     rcon.run("kill @e[type=item]")
     rcon.run("fill 1 199 2 15 199 6 minecraft:air")
     rcon.run("forceload remove 0 0")

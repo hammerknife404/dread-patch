@@ -96,10 +96,54 @@ def withering_rime_effect():
     return im
 
 
+def spire(im, x, base, height, width):
+    """A black dread-glass spire rising from row `base`: soot body, indigo glint on its left edge, bone tip."""
+    top = base - height + 1
+    for y in range(top, base + 1):
+        w = max(1, round(width * (y - top + 1) / height))  # narrows to a point
+        x0 = x - w // 2
+        for xi in range(x0, x0 + w):
+            im.putpixel((xi, y), rgba(DEEP if xi == x0 and w > 1 else SOOT))
+    im.putpixel((x, top), rgba(BONE_LIGHT))
+    if height > 4:
+        im.putpixel((x, top + 1), rgba(BONE))
+
+
+def barrow_glass_tomb():
+    im = dread_background(16, 11)
+    # Frost-crusted ground.
+    for x in range(16):
+        im.putpixel((x, 15), rgba(BONE_DIM if x % 3 else BONE))
+        if x % 2 == 0:
+            im.putpixel((x, 14), rgba(BONE_DIM))
+    # The ring of spires, back row shorter, front row tall.
+    for x, h, w in [(2, 7, 2), (13, 8, 2), (5, 10, 3), (10, 11, 3), (8, 13, 3)]:
+        spire(im, x, 14, h, w)
+    return im
+
+
+def barrow_glass_effect():
+    im = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
+    for x, h, w in [(4, 9, 3), (13, 10, 3), (9, 14, 4)]:
+        spire(im, x, 16, h, w)
+    for x in range(2, 16):
+        im.putpixel((x, 17), rgba(BONE_DIM))
+    # Charcoal outline so it reads on any background.
+    pts = [(x, y) for y in range(18) for x in range(18) if im.getpixel((x, y))[3]]
+    for x, y in pts:
+        for ox, oy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            q = (x + ox, y + oy)
+            if 0 <= q[0] < 18 and 0 <= q[1] < 18 and im.getpixel(q)[3] == 0:
+                im.putpixel(q, rgba(CHARCOAL))
+    return im
+
+
 def main():
     out = {
         "gui/spell_icons/withering_rime_bolt.png": withering_rime_bolt(),
         "mob_effect/withering_rime.png": withering_rime_effect(),
+        "gui/spell_icons/barrow_glass_tomb.png": barrow_glass_tomb(),
+        "mob_effect/barrow_glass.png": barrow_glass_effect(),
     }
     for rel, im in out.items():
         path = ROOT / rel

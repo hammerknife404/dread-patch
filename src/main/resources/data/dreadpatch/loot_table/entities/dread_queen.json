@@ -53,7 +53,8 @@
               },
               "spell_filter": {
                 "spells": [
-                  "dreadpatch:withering_rime_bolt"
+                  "dreadpatch:withering_rime_bolt",
+                  "dreadpatch:barrow_glass_tomb"
                 ],
                 "force": true
               }
