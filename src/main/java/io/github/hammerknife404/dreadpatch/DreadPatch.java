@@ -4,6 +4,7 @@ import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
+import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -26,6 +27,7 @@ public final class DreadPatch {
         modBus.addListener(DreadPatch::onCreativeTabs);
         DreadEvents.register(NeoForge.EVENT_BUS);
         DreadQueenStaff.register(modBus, NeoForge.EVENT_BUS);
+        DreadQueenSword.register(modBus, NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

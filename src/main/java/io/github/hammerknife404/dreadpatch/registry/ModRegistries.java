@@ -1,6 +1,7 @@
 package io.github.hammerknife404.dreadpatch.registry;
 
 import io.github.hammerknife404.dreadpatch.DreadPatch;
+import io.github.hammerknife404.dreadpatch.effect.BrittleEffect;
 import io.github.hammerknife404.dreadpatch.effect.RimeboundEffect;
 import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
@@ -10,7 +11,10 @@ import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Unit;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -26,6 +30,7 @@ public final class ModRegistries {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(DreadPatch.MODID);
     private static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, DreadPatch.MODID);
     private static final DeferredRegister<AbstractSpell> SPELLS = DeferredRegister.create(SpellRegistry.SPELL_REGISTRY_KEY, DreadPatch.MODID);
+    private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, DreadPatch.MODID);
 
     /**
      * Ice and Fire's Dread Queen (which it never registers), through our {@link DreadQueen}. A
@@ -59,6 +64,12 @@ public final class ModRegistries {
 
     public static final DeferredHolder<MobEffect, RimeboundEffect> RIMEBOUND = MOB_EFFECTS.register("rimebound", RimeboundEffect::new);
 
+    public static final DeferredHolder<MobEffect, BrittleEffect> BRITTLE = MOB_EFFECTS.register("brittle", BrittleEffect::new);
+
+    /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",
+            builder -> builder.persistent(Unit.CODEC).networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
+
     public static final DeferredHolder<AbstractSpell, WitheringRimeBoltSpell> WITHERING_RIME_BOLT_SPELL = SPELLS.register("withering_rime_bolt", WitheringRimeBoltSpell::new);
     public static final DeferredHolder<AbstractSpell, RimefireCrownSpell> RIMEFIRE_CROWN_SPELL = SPELLS.register("rimefire_crown", RimefireCrownSpell::new);
 
@@ -70,5 +81,6 @@ public final class ModRegistries {
         ITEMS.register(modBus);
         MOB_EFFECTS.register(modBus);
         SPELLS.register(modBus);
+        DATA_COMPONENTS.register(modBus);
     }
 }

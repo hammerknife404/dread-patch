@@ -180,6 +180,49 @@ def rimebound_effect():
     return im
 
 
+def line(im, a, b, c):
+    """A 1-pixel line from a to b (Bresenham)."""
+    (x0, y0), (x1, y1) = a, b
+    dx, dy = abs(x1 - x0), -abs(y1 - y0)
+    sx, sy = (1 if x0 < x1 else -1), (1 if y0 < y1 else -1)
+    err = dx + dy
+    while True:
+        im.putpixel((x0, y0), rgba(c))
+        if (x0, y0) == (x1, y1):
+            return
+        e2 = 2 * err
+        if e2 >= dy:
+            err += dy
+            x0 += sx
+        if e2 <= dx:
+            err += dx
+            y0 += sy
+
+
+def brittle_effect():
+    """A chunk of ice split by a soot crack, chips flying off it: armor gone brittle after a shatter."""
+    im = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
+    cx, top, bottom = 8, 2, 15
+    for y in range(top, bottom + 1):
+        half = min(y - top, bottom - y, 5)
+        for x in range(cx - half, cx + half + 1):
+            if x < cx - half + 2:
+                c = ICE_LIGHT
+            elif x <= cx:
+                c = ICE
+            elif x < cx + half:
+                c = ICE_DIM
+            else:
+                c = ICE_DARK
+            im.putpixel((x, y), rgba(c))
+    for a, b in [((8, 2), (7, 5)), ((7, 5), (9, 8)), ((9, 8), (7, 11)), ((7, 11), (8, 15)), ((9, 8), (12, 9))]:
+        line(im, a, b, SOOT)
+    for x, y in [(15, 4), (16, 3), (14, 2), (2, 13), (1, 15)]:
+        im.putpixel((x, y), rgba(ICE_LIGHT if (x + y) % 2 else DREAD_CYAN))
+    outline(im)
+    return im
+
+
 def periodic_noise(width, height, cells_x, cells_y, rnd):
     """Smooth value noise that wraps in both directions, so an animation scrolled through it loops."""
     grid = [[rnd.random() for _ in range(cells_x)] for _ in range(cells_y)]
@@ -242,6 +285,7 @@ def main():
         "mob_effect/withering_rime.png": withering_rime_effect(),
         "gui/spell_icons/rimefire_crown.png": rimefire_crown(),
         "mob_effect/rimebound.png": rimebound_effect(),
+        "mob_effect/brittle.png": brittle_effect(),
         "block/dread_fire_0.png": dread_fire(31),
         "block/dread_fire_1.png": dread_fire(8),
     }

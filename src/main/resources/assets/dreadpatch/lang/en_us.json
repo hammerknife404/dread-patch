@@ -14,5 +14,15 @@
   "ui.dreadpatch.crown_seconds": "%ss Crown",
   "ui.dreadpatch.radius": "%s Block Radius",
   "tooltip.dreadpatch.permafrost_conduit": "Permafrost Conduit",
-  "tooltip.dreadpatch.permafrost_conduit.desc": "Ice spells cost %s%% less mana while you stand on snow or ice"
+  "tooltip.dreadpatch.permafrost_conduit.desc": "Ice spells cost %s%% less mana while you stand on snow or ice",
+  "effect.dreadpatch.brittle": "Brittle",
+  "tooltip.dreadpatch.thermodynamic_theft": "Thermodynamic Theft",
+  "tooltip.dreadpatch.thermodynamic_theft.desc": "Strikes leave %ss of Withering Rime",
+  "tooltip.dreadpatch.glass_rime_shatter": "Glass-Rime Shatter",
+  "tooltip.dreadpatch.glass_rime_shatter.desc": "Every third full strike on a chilled foe shatters",
+  "tooltip.dreadpatch.glass_rime_shatter.desc2": "for %s%% of its max health and leaves it Brittle",
+  "tooltip.dreadpatch.fire_drinking_guard": "Fire-Drinking Guard",
+  "tooltip.dreadpatch.fire_drinking_guard.desc": "Hold right-click to stop fire and magic from the front",
+  "tooltip.dreadpatch.fire_drinking_guard.desc2": "A stopped hit charges the blade to shatter next strike",
+  "tooltip.dreadpatch.frost_charged": "Charged: the next full strike shatters"
 }
