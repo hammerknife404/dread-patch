@@ -6,6 +6,7 @@ server-ip=127.0.0.1. Then start `./gradlew runServer`, wait for "RCON running", 
 is done (pass --keep to leave it running) and exits non-zero if anything failed.
 """
 import pathlib
+import re
 import socket
 import struct
 import sys
@@ -64,9 +65,38 @@ def main():
         results.append(ok)
         print(("PASS  " if ok else "FAIL  ") + label + ("" if ok else "\n      > " + command + "\n      < " + out.strip()))
 
+    def record(label, ok, detail):
+        results.append(ok)
+        print(("PASS  " if ok else "FAIL  ") + label + ("" if ok else "\n      " + detail))
+
+    def count(item):
+        out = rcon.run("execute if items entity @e[type=item] contents " + item)
+        return int(out.rsplit(" ", 1)[1]) if "Test passed, count:" in out else 0
+
+    # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
+    SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
+
+    def check_loot(where):
+        # Her loot table: her sword and staff (exactly one each: the ones she holds never drop too),
+        # two inks, epic or legendary, and one or two scrolls with a spell on them.
+        for item in ("iceandfire:dread_queen_sword", "iceandfire:dread_queen_staff"):
+            n = count(item)
+            record(where + ": one " + item.split(":")[1], n == 1, f"found {n}")
+        epic, legendary = count("irons_spellbooks:epic_ink"), count("irons_spellbooks:legendary_ink")
+        record(where + ": two epic/legendary inks", epic + legendary == 2, f"epic {epic}, legendary {legendary}")
+        scrolls = count("irons_spellbooks:scroll")
+        with_spell = count(SPELL_SCROLL)
+        record(where + ": one or two scrolls, each with a spell", 1 <= scrolls <= 2 and with_spell == scrolls,
+               f"{scrolls} scrolls, {with_spell} with a spell")
+        rcon.run("kill @e[type=item]")
+
     queen = "@e[type=dreadpatch:dread_queen,limit=1]"
     surface = "execute positioned 0 0 0 positioned over world_surface run "
 
+    # Iron's Spells builds its spell config (max levels and so on) when datapacks sync to players; on a
+    # server nobody has joined every spell reads max level 1. A reload syncs it.
+    rcon.run("reload")
+    time.sleep(3)
     rcon.run("forceload add 0 0")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     rcon.run("kill @e[type=item]")
@@ -81,15 +111,33 @@ def main():
     time.sleep(5)  # 100 ticks of her AI
     check("alive after 5 s of AI", "execute if entity @e[type=dreadpatch:dread_queen]", "Test passed, count: 1")
 
+    rcon.run(surface + 'summon item ~ ~2 ~ {Item:{id:"irons_spellbooks:scroll",count:1}}')
+    record("a blank scroll doesn't count as having a spell", count(SPELL_SCROLL) == 0, "the spell check can't tell blank scrolls apart")
+    rcon.run("kill @e[type=item]")
     check("loot table rolls", surface + "loot spawn ~ ~2 ~ loot dreadpatch:entities/dread_queen", "Dropped")
-    check("loot has dread shards", "execute if items entity @e[type=item] contents iceandfire:dread_shard", "Test passed")
-    check("loot has bones", "execute if items entity @e[type=item] contents minecraft:bone", "Test passed")
+    check_loot("loot table")
+    # Scrolls at quality 0.5-1: the upper half of each spell's levels (a spell that only has level 1
+    # stays 1), so over five rolls some scroll should be well above 1.
+    for _ in range(5):
+        rcon.run(surface + "loot spawn ~ ~2 ~ loot dreadpatch:entities/dread_queen")
+    out = rcon.run('execute as @e[type=item] if items entity @s contents irons_spellbooks:scroll run data get entity @s '
+                   'Item.components."irons_spellbooks:spell_container".data[0].level')
+    levels = sorted(int(n) for n in re.findall(r"entity data: (\d+)", out))
+    record("scroll spells reach high levels", bool(levels) and levels[-1] >= 3, f"levels {levels}")
     rcon.run("kill @e[type=item]")
 
     check("dies", "kill @e[type=dreadpatch:dread_queen]", "Killed Dread Queen")
     time.sleep(1.5)
-    check("drops loot on death", surface + "execute if entity @e[type=item,distance=..16]", "Test passed")
-    rcon.run("kill @e[type=item]")
+    check_loot("death drops")
+
+    # A queen whose saved drop chances say her held items always drop (2.0) still drops one of each:
+    # those come from her loot table, never from her hands.
+    held = ('{HandItems:[{id:"iceandfire:dread_queen_sword",count:1},{id:"iceandfire:dread_queen_staff",count:1}],'
+            'HandDropChances:[2.0f,2.0f]}')
+    check("summons with drop chances 2.0", surface + "summon dreadpatch:dread_queen ~ ~ ~ " + held, "Summoned new Dread Queen")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    time.sleep(1.5)
+    check_loot("forced hand drops")
 
     # A dispenser only fires a spawn egg that knows its entity type.
     rcon.run("setblock 4 200 4 minecraft:dispenser[facing=up]")

@@ -30,3 +30,10 @@ description='''${mod_description}'''
     versionRange="${iceandfire_version_range}"
     ordering="AFTER"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="irons_spellbooks"
+    type="required"
+    versionRange="${irons_spellbooks_version_range}"
+    ordering="AFTER"
+    side="BOTH"

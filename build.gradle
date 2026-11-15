@@ -79,6 +79,12 @@ dependencies {
     implementation "maven.modrinth:uranus:${uranus_version}"
     implementation "maven.modrinth:jupiter:${jupiter_version}"
     implementation "maven.modrinth:geckolib:${geckolib_version}"
+    // Iron's Spells (required: her loot is its inks and scrolls) and the libraries it requires. Only
+    // its items and loot functions are used so far, so it's needed at runtime, not to compile.
+    runtimeOnly "maven.modrinth:irons-spells-n-spellbooks:${irons_spellbooks_version}"
+    runtimeOnly "maven.modrinth:irons-lib:${irons_lib_version}"
+    runtimeOnly "maven.modrinth:playeranimator:${playeranimator_version}"
+    runtimeOnly "maven.modrinth:curios:${curios_version}"
 
     // Plain JUnit for pure logic (no Minecraft bootstrap).
     testImplementation platform('org.junit:junit-bom:5.11.4')
@@ -92,16 +98,17 @@ tasks.named('test', Test).configure {
 
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     var replaceProperties = [
-            minecraft_version_range : minecraft_version_range,
-            neo_version             : neo_version,
-            loader_version_range    : loader_version_range,
-            iceandfire_version_range: iceandfire_version_range,
-            mod_id                  : mod_id,
-            mod_name                : mod_name,
-            mod_license             : mod_license,
-            mod_version             : project.version.toString(),
-            mod_authors             : mod_authors,
-            mod_description         : mod_description,
+            minecraft_version_range       : minecraft_version_range,
+            neo_version                   : neo_version,
+            loader_version_range          : loader_version_range,
+            iceandfire_version_range      : iceandfire_version_range,
+            irons_spellbooks_version_range: irons_spellbooks_version_range,
+            mod_id                        : mod_id,
+            mod_name                      : mod_name,
+            mod_license                   : mod_license,
+            mod_version                   : project.version.toString(),
+            mod_authors                   : mod_authors,
+            mod_description               : mod_description,
     ]
     inputs.properties replaceProperties
     expand replaceProperties
