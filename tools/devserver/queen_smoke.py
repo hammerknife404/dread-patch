@@ -135,8 +135,10 @@ def main():
     rcon.run("kill @e[type=item]")
 
     check("summons", surface + "summon dreadpatch:dread_queen ~ ~ ~", "Summoned new Dread Queen")
-    check("750 health", "data get entity " + queen + " Health", "750.0f")
-    check("armor 30", "attribute " + queen + " minecraft:generic.armor get", "is 30.0")
+    # Her own numbers, in place of Ice and Fire's 750 health and 30 armor.
+    check("300 health", "data get entity " + queen + " Health", "300.0f")
+    check("armor 20", "attribute " + queen + " minecraft:generic.armor get", "is 20.0")
+    check("toughness 12", "attribute " + queen + " minecraft:generic.armor_toughness get", "is 12.0")
     check("holds her sword", "data get entity " + queen + " HandItems", "iceandfire:dread_queen_sword")
     check("holds her staff", "data get entity " + queen + " HandItems", "iceandfire:dread_queen_staff")
     for tag in ("#minecraft:undead", "#minecraft:freeze_immune_entity_types", "#c:bosses"):
@@ -253,9 +255,14 @@ def main():
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")
 
-    # The queen bolts a golem from 12 blocks (her bolt: 8 + 15%; only her bolt leaves Withering Rime).
+    # The queen bolts a golem from 12 blocks (her bolt: 8 + 15%; only her bolt leaves Withering Rime),
+    # and its withering feeds her: wounded, she doesn't heal until it's withering.
     rcon.run(golem.format(x=14.5))
     rcon.run("summon dreadpatch:dread_queen 2.5 200 4.5")
+    rcon.run("data merge entity " + queen + " {Health:100f}")
+    time.sleep(1.0)
+    unfed = health(queen)
+    record("wounded, she doesn't heal on her own", unfed == 100.0, f"her health {unfed} a second after being set to 100")
     bolted = False
     for _ in range(30):
         time.sleep(0.5)
@@ -263,7 +270,12 @@ def main():
             bolted = True
             break
     record("she bolts a target at range", bolted, "no Withering Rime on the golem within 15 s")
+    fed_from = health(queen)
+    time.sleep(3.0)
+    fed_to = health(queen)
+    record("its withering feeds her", fed_to >= fed_from + 2, f"her health {fed_from} -> {fed_to} over 3 s of the golem withering")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:rimefire_crown]")  # by now she's crowned the golem too
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")

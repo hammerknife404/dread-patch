@@ -7,7 +7,8 @@ import net.minecraft.world.entity.LivingEntity;
 /**
  * Withering Rime, the mark of pure Dread: cold that takes heat instead of being made of it. It
  * withers (damage that ignores armor), builds up freezing faster than the body thaws, and while it
- * lasts nothing heals the target ({@code DreadEvents}). The Dread themselves don't take it.
+ * lasts nothing heals the target ({@code DreadEvents}). What it withers feeds the Dread Queen who laid
+ * it ({@link RimeSiphon}). The Dread themselves don't take it.
  */
 public class WitheringRimeEffect extends MobEffect {
     /** Abyssal indigo, the colour of her magic in the owner's notes. */
@@ -37,7 +38,10 @@ public class WitheringRimeEffect extends MobEffect {
         }
         int interval = Math.max(5, WITHER_INTERVAL >> amplifier);
         if (entity.tickCount % interval == 0) {
-            entity.hurt(entity.damageSources().wither(), 1.0F);
+            float before = entity.getHealth() + entity.getAbsorptionAmount();
+            if (entity.hurt(entity.damageSources().wither(), 1.0F)) {
+                RimeSiphon.feed(entity, before - (entity.getHealth() + entity.getAbsorptionAmount()));
+            }
         }
         return true;
     }

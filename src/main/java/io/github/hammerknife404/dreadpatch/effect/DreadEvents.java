@@ -14,6 +14,7 @@ public final class DreadEvents {
     public static void register(IEventBus gameBus) {
         gameBus.addListener(DreadEvents::onHeal);
         gameBus.addListener(DreadEvents::onEffectApplicable);
+        RimeSiphon.register(gameBus);
     }
 
     /** Nothing heals under Withering Rime: regeneration, potions, food and mod healing alike. */
