@@ -4,10 +4,14 @@ import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.iafenvoy.uranus.animation.AnimationHandler;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Ice and Fire's Dread Queen with what its class leaves out. Ice and Fire's other dread mobs call
@@ -17,6 +21,16 @@ import net.minecraft.world.level.block.state.BlockState;
 public class DreadQueen extends DreadQueenEntity {
     /** Ticks of {@link #ANIMATION_SPAWN} (40 long) she spends coming out of the ground. */
     public static final int RISE_TICKS = 30;
+    /** Her Withering Rime-Bolt: flat damage, then this share of the target's max health (a player's takes 8%). */
+    public static final float BOLT_DAMAGE = 8.0F;
+    public static final float BOLT_MAX_HEALTH_SHARE = 0.15F;
+    public static final int BOLT_RIME_TICKS = 90;
+    /** Ticks between her bolts, and the range (blocks) she shoots them from: not point-blank, where she uses her sword. */
+    static final int BOLT_COOLDOWN = 80;
+    static final double BOLT_MIN_RANGE = 3.0;
+    static final double BOLT_MAX_RANGE = 32.0;
+
+    private int boltCooldown = 40;
 
     public DreadQueen(EntityType<? extends DreadQueen> type, Level level) {
         super(type, level);
@@ -40,6 +54,34 @@ public class DreadQueen extends DreadQueenEntity {
     @Override
     protected float getEquipmentDropChance(EquipmentSlot slot) {
         return slot.getType() == EquipmentSlot.Type.HAND ? 0.0F : super.getEquipmentDropChance(slot);
+    }
+
+    /** Her spells, on top of Ice and Fire's melee AI. Not called while she's rising ({@link #isImmobile}). */
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        if (this.boltCooldown > 0) {
+            this.boltCooldown--;
+        }
+        LivingEntity target = this.getTarget();
+        if (target == null || !target.isAlive()) {
+            return;
+        }
+        double distance = this.distanceTo(target);
+        if (this.boltCooldown == 0 && distance >= BOLT_MIN_RANGE && distance <= BOLT_MAX_RANGE && this.hasLineOfSight(target)) {
+            this.shootBolt(target);
+            this.boltCooldown = BOLT_COOLDOWN;
+        }
+    }
+
+    private void shootBolt(LivingEntity target) {
+        WitheringRimeBolt bolt = new WitheringRimeBolt(this.level(), this, BOLT_DAMAGE, BOLT_MAX_HEALTH_SHARE, BOLT_RIME_TICKS);
+        bolt.setPos(this.getX(), this.getEyeY() - 0.4, this.getZ());
+        Vec3 aim = target.position().add(0, target.getBbHeight() * 0.6, 0).subtract(bolt.position());
+        bolt.shoot(aim.normalize());
+        this.level().addFreshEntity(bolt);
+        this.swing(InteractionHand.OFF_HAND);
+        this.playSound(SoundEvents.ILLUSIONER_CAST_SPELL, 1.0F, 0.6F);
     }
 
     @Override

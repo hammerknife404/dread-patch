@@ -2,12 +2,14 @@ package io.github.hammerknife404.dreadpatch;
 
 import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.mojang.logging.LogUtils;
+import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ public final class DreadPatch {
         ModRegistries.register(modBus);
         modBus.addListener(DreadPatch::onEntityAttributes);
         modBus.addListener(DreadPatch::onCreativeTabs);
+        DreadEvents.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {
