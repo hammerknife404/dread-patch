@@ -25,6 +25,14 @@ import org.jetbrains.annotations.Nullable;
  * sets in {@code finalizeSpawn} stayed at tick 0 and never reached a client.
  */
 public class DreadQueen extends DreadQueenEntity {
+    /**
+     * Hers, in place of Ice and Fire's (its config's 750 health, 30 armor, no toughness): a lean
+     * sovereign, kept alive by her Withering Rime ({@code RimeSiphon}). 20 armor and 12 toughness are
+     * a full netherite set's.
+     */
+    public static final double MAX_HEALTH = 300.0;
+    public static final double ARMOR = 20.0;
+    public static final double ARMOR_TOUGHNESS = 12.0;
     /** Ticks of {@link #ANIMATION_SPAWN} (40 long) she spends coming out of the ground. */
     public static final int RISE_TICKS = 30;
     /** Her Withering Rime-Bolt: flat damage, then this share of the target's max health (a player's takes 8%). */
