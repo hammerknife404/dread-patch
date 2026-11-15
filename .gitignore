@@ -34,6 +34,8 @@ bin/
 
 ### Minecraft Modding ###
 run/
+# Minecraft's log config creates this in the project folder when unit tests load game classes.
+/logs/
 !**/src/**/run/
 **/src/generated/**/.cache/
 repo/
