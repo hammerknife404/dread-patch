@@ -1,7 +1,7 @@
 package io.github.hammerknife404.dreadpatch.registry;
 
-import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
+import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -17,11 +17,12 @@ public final class ModRegistries {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(DreadPatch.MODID);
 
     /**
-     * Ice and Fire's own Dread Queen class, which Ice and Fire never registers. A full-size humanoid
-     * (the zombie's box); tracked from as far as the Wither, so her boss bar shows from afar.
+     * Ice and Fire's Dread Queen (which it never registers), through our {@link DreadQueen}. A
+     * full-size humanoid (the zombie's box); tracked from as far as the Wither, so her boss bar
+     * shows from afar.
      */
-    public static final DeferredHolder<EntityType<?>, EntityType<DreadQueenEntity>> DREAD_QUEEN = ENTITY_TYPES.register("dread_queen",
-            () -> EntityType.Builder.<DreadQueenEntity>of(DreadQueenEntity::new, MobCategory.MONSTER)
+    public static final DeferredHolder<EntityType<?>, EntityType<DreadQueen>> DREAD_QUEEN = ENTITY_TYPES.register("dread_queen",
+            () -> EntityType.Builder.<DreadQueen>of(DreadQueen::new, MobCategory.MONSTER)
                     .sized(0.6F, 1.95F)
                     .clientTrackingRange(10)
                     .build(DreadPatch.id("dread_queen").toString()));
