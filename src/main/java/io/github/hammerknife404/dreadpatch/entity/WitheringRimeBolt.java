@@ -55,7 +55,8 @@ public class WitheringRimeBolt extends AbstractMagicProjectile {
 
     @Override
     protected boolean canHitEntity(Entity target) {
-        return super.canHitEntity(target) && !(this.getOwner() instanceof IDreadMob && target instanceof IDreadMob);
+        return super.canHitEntity(target) && !(this.getOwner() instanceof IDreadMob && target instanceof IDreadMob)
+                && !(target instanceof BarrowHusk husk && husk.getOwner() == this.getOwner());
     }
 
     @Override

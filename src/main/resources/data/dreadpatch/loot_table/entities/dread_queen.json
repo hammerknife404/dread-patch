@@ -54,7 +54,8 @@
               "spell_filter": {
                 "spells": [
                   "dreadpatch:withering_rime_bolt",
-                  "dreadpatch:rimefire_crown"
+                  "dreadpatch:rimefire_crown",
+                  "dreadpatch:barrow_step"
                 ],
                 "force": true
               }

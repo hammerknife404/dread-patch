@@ -14,7 +14,7 @@ class DreadQueenModelTest {
     @Test
     void bakesIntoAHumanoidModel() {
         ModelPart root = DreadQueenModel.createBodyLayer().bakeRoot();
-        assertDoesNotThrow(() -> new DreadQueenModel(root));
+        assertDoesNotThrow(() -> new DreadQueenModel<>(root));
     }
 
     @Test

@@ -11,6 +11,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.world.entity.LivingEntity;
 
 /**
  * The Dread Queen: the geometry of Ice and Fire's ModelDreadQueen (by Alexthe666 and contributors,
@@ -19,8 +20,9 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
  * part; head, arms and legs sit at the root (the original hung them off the body, which only ever
  * moves as a whole, so they land in the same place). Ice and Fire CE's own dread model base can't
  * be extended from outside its package, so its spawn animation is redone here from {@link RisePose}.
+ * Her Barrow-Step husk wears it too, without the animation.
  */
-public final class DreadQueenModel extends HumanoidModel<DreadQueen> {
+public final class DreadQueenModel<T extends LivingEntity> extends HumanoidModel<T> {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(DreadPatch.id("dread_queen"), "main");
     /** The original pose angles each arm this far (radians) away from the body. */
     private static final float ARM_FLARE = 0.10000737F;
@@ -85,12 +87,12 @@ public final class DreadQueenModel extends HumanoidModel<DreadQueen> {
     }
 
     @Override
-    public void setupAnim(DreadQueen queen, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        super.setupAnim(queen, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+    public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+        super.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
         // HumanoidModel straightens the arms every frame; put the original's flare back on top.
         this.rightArm.zRot += ARM_FLARE;
         this.leftArm.zRot -= ARM_FLARE;
-        if (queen.getAnimation() == DreadQueenEntity.ANIMATION_SPAWN) {
+        if (entity instanceof DreadQueen queen && queen.getAnimation() == DreadQueenEntity.ANIMATION_SPAWN) {
             this.rise(queen.getAnimationTick() + (ageInTicks - queen.tickCount), ageInTicks);
         }
     }

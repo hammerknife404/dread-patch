@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch;
 import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
+import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
@@ -37,6 +38,7 @@ public final class DreadPatch {
     /** Ice and Fire's attributes for her; max health is its config's misc.dreadQueenMaxHealth (750). */
     private static void onEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(ModRegistries.DREAD_QUEEN.get(), DreadQueenEntity.bakeAttributes().build());
+        event.put(ModRegistries.BARROW_HUSK.get(), BarrowHusk.createAttributes().build());
     }
 
     private static void onCreativeTabs(BuildCreativeModeTabContentsEvent event) {

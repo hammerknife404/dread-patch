@@ -24,5 +24,10 @@
   "tooltip.dreadpatch.fire_drinking_guard": "Fire-Drinking Guard",
   "tooltip.dreadpatch.fire_drinking_guard.desc": "Hold right-click to stop fire and magic from the front",
   "tooltip.dreadpatch.fire_drinking_guard.desc2": "A stopped hit charges the blade to shatter next strike",
-  "tooltip.dreadpatch.frost_charged": "Charged: the next full strike shatters"
+  "tooltip.dreadpatch.frost_charged": "Charged: the next full strike shatters",
+  "entity.dreadpatch.barrow_husk": "Barrow Husk",
+  "spell.dreadpatch.barrow_step": "Barrow-Step",
+  "spell.dreadpatch.barrow_step.guide": "Step through the barrow-cold to where you look, leaving a husk of rime-glass in your shape where you stood. Whatever was hunting you turns on the husk, and when it's struck, or after 5 seconds, it shatters: everyone near it is rooted and touched by Withering Rime.",
+  "ui.dreadpatch.distance": "%s Block Range",
+  "ui.dreadpatch.root_seconds": "%ss Root"
 }
