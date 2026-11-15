@@ -62,6 +62,9 @@ neoForge {
             sourceSet(sourceSets.main)
         }
     }
+
+    // Tests may use game classes that need no running game (e.g. baking the queen's model).
+    addModdingDependenciesTo(sourceSets.test)
 }
 
 // localRuntime: mods loaded in the dev runs only (e.g. JEI or Jade for testing), never required.
