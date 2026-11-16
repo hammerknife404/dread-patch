@@ -467,6 +467,29 @@ def main():
     clear_court()
     rcon.run("kill @e[type=item]")
 
+    # Sovereign's Eclipse, Syndrigossa's 16-block crown (summoned as hers, 3 s long): it slows heavily
+    # rather than roots and keeps Withering Rime on a golem inside it, spares a dread thrall inside it,
+    # isn't shattered by a Withering Rime-Bolt, and is gone when its time is up.
+    rcon.run('summon dreadpatch:syndrigossa 2.5 200 2.5 {NoAI:1b,AgeTicks:2500000,UUID:[I;7,7,7,7],Tags:["smoke_dragon"]}')
+    rcon.run('summon minecraft:iron_golem 12.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
+    rcon.run('summon iceandfire:dread_thrall 6.5 200 10.5 {NoAI:1b,Tags:["smoke_dread"]}')
+    eclipses = "execute if entity @e[type=dreadpatch:sovereigns_eclipse]"
+    check("Sovereign's Eclipse stands", 'summon dreadpatch:sovereigns_eclipse 8.5 200 7.5 {Owner:[I;7,7,7,7],Lifetime:60}', "Summoned new Sovereign's Eclipse")
+    time.sleep(0.5)
+    slowed = re.search(r"is ([0-9.]+)", rcon.run("attribute " + target + " minecraft:generic.movement_speed get"))
+    record("the Eclipse slows heavily but doesn't root", slowed is not None and 0.05 < float(slowed.group(1)) < 0.15,
+           f"golem movement speed {slowed and slowed.group(1)}, from 0.25")
+    record("the Eclipse keeps Withering Rime on it", has_effect(target, "dreadpatch:withering_rime"), "no Withering Rime on the golem")
+    record("the Eclipse spares the Dread", not has_effect("@e[tag=smoke_dread,limit=1]", "minecraft:slowness"), "the dread thrall was slowed")
+    rcon.run('summon minecraft:armor_stand 2.5 200 7.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}')
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:withering_rime_bolt 5")
+    time.sleep(0.6)
+    check("a bolt doesn't shatter the Eclipse", eclipses, "Test passed")
+    time.sleep(2.5)
+    check("the Eclipse is gone when its time is up", eclipses, "Test failed")
+    for tag in ("smoke_dragon", "smoke_target", "smoke_dread", "smoke_caster"):
+        rcon.run(f"kill @e[tag={tag}]")
+
     rcon.run('summon minecraft:iron_golem 12.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
     rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
     rcon.run("summon dreadpatch:dread_queen 2.5 200 7.5")

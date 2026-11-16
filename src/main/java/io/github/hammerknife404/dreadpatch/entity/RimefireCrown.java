@@ -73,15 +73,38 @@ public class RimefireCrown extends Entity implements TraceableEntity {
         RimefireCrown crown = new RimefireCrown(ModRegistries.RIMEFIRE_CROWN.get(), level);
         crown.setPos(at);
         crown.setLifetime(lifetime);
-        if (owner != null) {
-            crown.ownerId = owner.getUUID();
-            crown.cachedOwner = owner;
-        }
+        crown.setOwner(owner);
         return crown;
     }
 
+    protected void setOwner(@Nullable LivingEntity owner) {
+        this.ownerId = owner == null ? null : owner.getUUID();
+        this.cachedOwner = owner;
+    }
+
+    /** Blocks from its centre to its ring. */
+    public float radius() {
+        return RADIUS;
+    }
+
+    /** How far above its base it holds. */
+    public double height() {
+        return CrownShape.HEIGHT;
+    }
+
     public boolean holds(Entity entity) {
-        return CrownShape.contains(entity.getX() - this.getX(), entity.getY() - this.getY(), entity.getZ() - this.getZ());
+        return CrownShape.contains(entity.getX() - this.getX(), entity.getY() - this.getY(), entity.getZ() - this.getZ(), this.radius(), this.height());
+    }
+
+    /** What it does, each tick, to everyone inside it may harm: roots them (Rimebound) and puts out their burning. */
+    protected void hold(LivingEntity victim, @Nullable Entity owner) {
+        victim.addEffect(new MobEffectInstance(ModRegistries.RIMEBOUND, 10, 0, false, false, true), owner);
+        victim.clearFire();
+    }
+
+    /** The two colours of the smoke it stands in. */
+    protected Vector3f[] smoke() {
+        return new Vector3f[]{CYAN_SMOKE, BLACK_SMOKE};
     }
 
     @Override
@@ -104,8 +127,7 @@ public class RimefireCrown extends Entity implements TraceableEntity {
         Entity owner = this.getOwner();
         for (LivingEntity victim : this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.5, CrownShape.DEPTH, 0.5),
                 e -> e.isAlive() && this.holds(e) && canHarm(owner, e))) {
-            victim.addEffect(new MobEffectInstance(ModRegistries.RIMEBOUND, 10, 0, false, false, true), owner);
-            victim.clearFire();
+            this.hold(victim, owner);
         }
     }
 
@@ -120,10 +142,10 @@ public class RimefireCrown extends Entity implements TraceableEntity {
 
     /** Dread fire steals heat: fire blocks and lit campfires inside it go out. */
     private void drinkFires() {
-        int r = (int) Math.ceil(RADIUS);
+        int r = (int) Math.ceil(this.radius());
         BlockPos base = this.blockPosition();
-        for (BlockPos pos : BlockPos.betweenClosed(base.offset(-r, -1, -r), base.offset(r, (int) Math.ceil(CrownShape.HEIGHT), r))) {
-            if (!CrownShape.contains(pos.getX() + 0.5 - this.getX(), pos.getY() - this.getY(), pos.getZ() + 0.5 - this.getZ())) {
+        for (BlockPos pos : BlockPos.betweenClosed(base.offset(-r, -1, -r), base.offset(r, (int) Math.ceil(this.height()), r))) {
+            if (!CrownShape.contains(pos.getX() + 0.5 - this.getX(), pos.getY() - this.getY(), pos.getZ() + 0.5 - this.getZ(), this.radius(), this.height())) {
                 continue;
             }
             drinkFire(this.level(), pos);
@@ -143,8 +165,9 @@ public class RimefireCrown extends Entity implements TraceableEntity {
     /** Breaks the crown: its ice bursts, its fire gutters, and it's gone. */
     public void shatter() {
         if (this.level() instanceof ServerLevel) {
-            MagicManager.spawnParticles(this.level(), ICE_SHARDS, this.getX(), this.getY() + 1.0, this.getZ(), 60, RADIUS * 0.6, 0.8, RADIUS * 0.6, 0.2, false);
-            MagicManager.spawnParticles(this.level(), IafParticles.DREAD_TORCH.get(), this.getX(), this.getY() + 0.4, this.getZ(), 30, RADIUS * 0.7, 0.3, RADIUS * 0.7, 0.05, false);
+            float radius = this.radius();
+            MagicManager.spawnParticles(this.level(), ICE_SHARDS, this.getX(), this.getY() + 1.0, this.getZ(), Math.round(20 * radius), radius * 0.6, 0.8, radius * 0.6, 0.2, false);
+            MagicManager.spawnParticles(this.level(), IafParticles.DREAD_TORCH.get(), this.getX(), this.getY() + 0.4, this.getZ(), Math.round(10 * radius), radius * 0.7, 0.3, radius * 0.7, 0.05, false);
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.GLASS_BREAK, SoundSource.HOSTILE, 1.5F, 0.6F);
         }
         this.discard();
@@ -156,7 +179,9 @@ public class RimefireCrown extends Entity implements TraceableEntity {
      */
     public static void shatterAround(Level level, Entity bolt, @Nullable Entity owner, LivingEntity target) {
         target.removeEffect(ModRegistries.RIMEBOUND);
-        for (RimefireCrown crown : level.getEntitiesOfClass(RimefireCrown.class, target.getBoundingBox().inflate(RADIUS + 1.0), c -> c.holds(target))) {
+        // Only Rimefire Crowns: a Sovereign's Eclipse doesn't shatter.
+        for (RimefireCrown crown : level.getEntitiesOfClass(RimefireCrown.class, target.getBoundingBox().inflate(RADIUS + 1.0),
+                c -> c.getType() == ModRegistries.RIMEFIRE_CROWN.get() && c.holds(target))) {
             crown.shatter();
         }
         SpellDamageSource source = ModRegistries.RIMEFIRE_CROWN_SPELL.get().getDamageSource(bolt, owner);
@@ -179,20 +204,28 @@ public class RimefireCrown extends Entity implements TraceableEntity {
      * spreads), dread-fire sparks rising off the ring, and a little snow.
      */
     private void smoulder() {
-        double a = this.random.nextDouble() * Math.PI * 2;
-        double r = Math.sqrt(this.random.nextDouble()) * (RADIUS + 0.3);
-        Vector3f smoke = this.random.nextBoolean() ? CYAN_SMOKE : BLACK_SMOKE;
-        this.level().addParticle(new FogParticleOptions(smoke, 0.35F + this.random.nextFloat() * 0.1F),
-                this.getX() + Math.cos(a) * r, this.getY() + 0.1, this.getZ() + Math.sin(a) * r, 0.0, 0.0, 0.0);
-        for (int i = 0; i < 2; i++) {
+        float radius = this.radius();
+        // A crown's worth of each per tick, more for a bigger ring (not in proportion to its area: Iron's fog lingers).
+        int scale = Math.max(1, Math.round(radius / RADIUS));
+        Vector3f[] smoke = this.smoke();
+        for (int i = 0; i < scale; i++) {
+            double a = this.random.nextDouble() * Math.PI * 2;
+            double r = Math.sqrt(this.random.nextDouble()) * (radius + 0.3);
+            this.level().addParticle(new FogParticleOptions(smoke[this.random.nextInt(smoke.length)], 0.35F + this.random.nextFloat() * 0.1F),
+                    this.getX() + Math.cos(a) * r, this.getY() + 0.1, this.getZ() + Math.sin(a) * r, 0.0, 0.0, 0.0);
+        }
+        for (int i = 0; i < 2 * scale; i++) {
             double f = this.random.nextDouble() * Math.PI * 2;
-            double rf = RADIUS + (this.random.nextDouble() - 0.5) * 0.6;
+            double rf = radius + (this.random.nextDouble() - 0.5) * 0.6;
             this.level().addParticle(IafParticles.DREAD_TORCH.get(), this.getX() + Math.cos(f) * rf, this.getY() + 0.1 + this.random.nextDouble() * 0.7,
                     this.getZ() + Math.sin(f) * rf, 0.0, 0.03, 0.0);
         }
-        if (this.tickCount % 2 == 0) {
+        for (int i = 0; i < scale; i++) {
+            if (scale == 1 && this.tickCount % 2 != 0) {
+                break;
+            }
             double s = this.random.nextDouble() * Math.PI * 2;
-            double rs = Math.sqrt(this.random.nextDouble()) * RADIUS;
+            double rs = Math.sqrt(this.random.nextDouble()) * radius;
             this.level().addParticle(ParticleTypes.SNOWFLAKE, this.getX() + Math.cos(s) * rs, this.getY() + this.random.nextDouble() * 2.0,
                     this.getZ() + Math.sin(s) * rs, -Math.sin(s) * 0.04, -0.01, Math.cos(s) * 0.04);
         }
@@ -238,7 +271,9 @@ public class RimefireCrown extends Entity implements TraceableEntity {
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
-        this.setLifetime(tag.getInt("Lifetime"));
+        if (tag.contains("Lifetime")) {
+            this.setLifetime(tag.getInt("Lifetime"));
+        }
         if (tag.hasUUID("Owner")) {
             this.ownerId = tag.getUUID("Owner");
         }

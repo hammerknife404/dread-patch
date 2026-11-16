@@ -1,6 +1,6 @@
 package io.github.hammerknife404.dreadpatch.magic;
 
-/** Game-free: the space a Rimefire Crown holds, a cylinder round its base. */
+/** Game-free: the space a Rimefire Crown holds, a cylinder round its base (and Sovereign's Eclipse's, a bigger one). */
 public final class CrownShape {
     /** Blocks from the centre to the spikes: a six-block ring. */
     public static final float RADIUS = 3.0F;
@@ -13,6 +13,11 @@ public final class CrownShape {
 
     /** Whether a point, relative to the crown's base, is inside it. */
     public static boolean contains(double dx, double dy, double dz) {
-        return dx * dx + dz * dz <= RADIUS * RADIUS && dy >= -DEPTH && dy <= HEIGHT;
+        return contains(dx, dy, dz, RADIUS, HEIGHT);
+    }
+
+    /** Whether a point, relative to the base of a ring of this radius and height, is inside it. */
+    public static boolean contains(double dx, double dy, double dz, double radius, double height) {
+        return dx * dx + dz * dz <= radius * radius && dy >= -DEPTH && dy <= height;
     }
 }
