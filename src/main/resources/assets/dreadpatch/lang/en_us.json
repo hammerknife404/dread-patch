@@ -31,5 +31,13 @@
   "ui.dreadpatch.distance": "%s Block Range",
   "ui.dreadpatch.root_seconds": "%ss Root",
   "entity.dreadpatch.syndrigossa": "Syndrigossa",
-  "item.dreadpatch.syndrigossa_spawn_egg": "Syndrigossa Spawn Egg"
+  "item.dreadpatch.syndrigossa_spawn_egg": "Syndrigossa Spawn Egg",
+  "entity.dreadpatch.shatter_spine": "Shatter-Spine",
+  "entity.dreadpatch.shatter_spine_shard": "Shatter-Spine Shard",
+  "death.attack.dreadpatch.withering_breath": "%1$s withered in %2$s's breath",
+  "death.attack.dreadpatch.withering_breath.item": "%1$s withered in %2$s's breath",
+  "death.attack.dreadpatch.withering_breath.player": "%1$s withered in the breath of a dragon while fighting %2$s",
+  "death.attack.dreadpatch.shatter_spine": "%1$s was cut down by %2$s's Shatter-Spine",
+  "death.attack.dreadpatch.shatter_spine.item": "%1$s was cut down by %2$s's Shatter-Spine",
+  "death.attack.dreadpatch.shatter_spine.player": "%1$s was cut down by a Shatter-Spine while fighting %2$s"
 }

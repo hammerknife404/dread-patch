@@ -7,6 +7,8 @@ import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
+import io.github.hammerknife404.dreadpatch.entity.ShatterSpineCore;
+import io.github.hammerknife404.dreadpatch.entity.ShatterSpineShard;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
 import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
@@ -16,6 +18,12 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Unit;
 import net.minecraft.world.effect.MobEffect;
@@ -73,6 +81,22 @@ public final class ModRegistries {
                     .clientTrackingRange(10)
                     .build(DreadPatch.id("syndrigossa").toString()));
 
+    /** Shatter-Spine, Syndrigossa's charge, and the shards it bursts into. Drawn by their trails. */
+    public static final DeferredHolder<EntityType<?>, EntityType<ShatterSpineCore>> SHATTER_SPINE = ENTITY_TYPES.register("shatter_spine",
+            () -> EntityType.Builder.<ShatterSpineCore>of(ShatterSpineCore::new, MobCategory.MISC)
+                    .sized(0.9F, 0.9F)
+                    .clientTrackingRange(8)
+                    .build(DreadPatch.id("shatter_spine").toString()));
+    public static final DeferredHolder<EntityType<?>, EntityType<ShatterSpineShard>> SHATTER_SPINE_SHARD = ENTITY_TYPES.register("shatter_spine_shard",
+            () -> EntityType.Builder.<ShatterSpineShard>of(ShatterSpineShard::new, MobCategory.MISC)
+                    .sized(0.4F, 0.4F)
+                    .clientTrackingRange(8)
+                    .build(DreadPatch.id("shatter_spine_shard").toString()));
+
+    /** Syndrigossa's breath and her Shatter-Spine's shards (data/dreadpatch/damage_type). */
+    public static final ResourceKey<DamageType> WITHERING_BREATH_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("withering_breath"));
+    public static final ResourceKey<DamageType> SHATTER_SPINE_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("shatter_spine"));
+
     /** Ice and Fire's dread egg base, spotted with the queen's eye glow. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_QUEEN_SPAWN_EGG = ITEMS.register("dread_queen_spawn_egg",
             () -> new DeferredSpawnEggItem(DREAD_QUEEN, 0xE0E6E6, 0x00CBFF, new Item.Properties()));
@@ -96,6 +120,10 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, BarrowStepSpell> BARROW_STEP_SPELL = SPELLS.register("barrow_step", BarrowStepSpell::new);
 
     private ModRegistries() {
+    }
+
+    public static DamageSource damageSource(Level level, ResourceKey<DamageType> type, @Nullable Entity direct, @Nullable Entity causing) {
+        return new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(type), direct, causing);
     }
 
     public static void register(IEventBus modBus) {
