@@ -2,6 +2,8 @@ package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,6 +40,21 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     @Override
     public Entity getCommander() {
         return null;
+    }
+
+    /**
+     * A dragon made from a tag without health (any {@code /summon} with NBT: it skips
+     * {@code finalizeSpawn}) keeps the health it was made with, a hatchling's 20, while Ice and Fire
+     * grows its max health to its age here: summoned full-grown she had 20 of 419 and fell to one
+     * warden hit. Ice and Fire's own ice dragons do the same; she starts whole. A saved dragon always
+     * has its health in its tag.
+     */
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (!tag.contains("Health", Tag.TAG_ANY_NUMERIC)) {
+            this.setHealth(this.getMaxHealth());
+        }
     }
 
     @Override

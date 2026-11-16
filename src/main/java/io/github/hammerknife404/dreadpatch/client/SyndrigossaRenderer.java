@@ -8,7 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * Syndrigossa: Ice and Fire's own dragon renderer (the ice dragon's GeckoLib model and animations,
  * its eyes and saddle layers), wearing her rotted skin ({@link UndeadDragonSkins}) instead of the
- * white ice dragon's. Dead, she's left to Ice and Fire's corpse and skeleton textures.
+ * white ice dragon's. Dead, her body keeps it (eyes shut) until it's down to the bone, which Ice and
+ * Fire draws with its ice dragon skeleton.
  */
 public final class SyndrigossaRenderer extends DragonBaseEntityRenderer<Syndrigossa> {
     public SyndrigossaRenderer(EntityRendererProvider.Context context) {
@@ -18,7 +19,7 @@ public final class SyndrigossaRenderer extends DragonBaseEntityRenderer<Syndrigo
     @Override
     public ResourceLocation getTextureLocation(Syndrigossa dragon) {
         if (dragon.isModelDead()) {
-            return super.getTextureLocation(dragon);
+            return dragon.isSkeletal() ? super.getTextureLocation(dragon) : UndeadDragonSkins.get(dragon.getDragonStage(), true);
         }
         return UndeadDragonSkins.get(dragon.getDragonStage(), dragon.isSleeping() || dragon.isBlinking());
     }
