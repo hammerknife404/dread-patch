@@ -22,6 +22,13 @@ public final class DragonBreath {
     /** The furthest it reaches past where she aims it, and at all. */
     public static final double CONE_OVERSHOOT = 2.0;
     public static final double CONE_MAX_LENGTH = 30.0;
+    /** Ticks of breathing (Ice and Fire's {@code burnProgress}) for the cone to reach its full length; Ice and Fire's stream takes 40. */
+    public static final int CONE_GROWTH_TICKS = 10;
+    /**
+     * How far one of her breath particles goes for each block a tick it's sent at: about 16, slowing
+     * by 4-5% a tick over its 22-40 ticks ({@code RimeBreathParticle}).
+     */
+    public static final double PARTICLE_TRAVEL = 16.0;
 
     private DragonBreath() {
     }
@@ -54,10 +61,18 @@ public final class DragonBreath {
         return across2 <= reach * reach;
     }
 
-    /** How far the cone reaches this tick: grown over Ice and Fire's 40 ticks of breathing, up to just past its aim. */
+    /**
+     * How far the cone reaches this tick: grown over {@link #CONE_GROWTH_TICKS} of breathing, up to just
+     * past its aim. (Grown over Ice and Fire's 40, a short burst only ever showed its first stretch.)
+     */
     public static double coneLength(double toAim, int burnProgress) {
         double full = Math.min(CONE_MAX_LENGTH, toAim + CONE_OVERSHOOT);
-        return full * Math.max(0.15, Math.min(1.0, burnProgress / 40.0));
+        return full * Math.max(0.3, Math.min(1.0, burnProgress / (double) CONE_GROWTH_TICKS));
+    }
+
+    /** The speed (blocks a tick) to send a breath particle at for it to carry {@code distance} blocks. */
+    public static double particleSpeed(double distance) {
+        return Math.max(0.0, distance) / PARTICLE_TRAVEL;
     }
 
     private static int clampStage(int stage) {

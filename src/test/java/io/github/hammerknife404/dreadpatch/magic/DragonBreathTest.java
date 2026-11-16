@@ -52,10 +52,17 @@ class DragonBreathTest {
     }
 
     @Test
-    void theConeGrowsOutToJustPastItsAim() {
+    void theConeGrowsOutToJustPastItsAimInHalfASecond() {
+        assertEquals(12.0, DragonBreath.coneLength(10, 10), EPSILON);
         assertEquals(12.0, DragonBreath.coneLength(10, 40), EPSILON);
-        assertEquals(6.0, DragonBreath.coneLength(10, 20), EPSILON);
+        assertEquals(6.0, DragonBreath.coneLength(10, 5), EPSILON);
         assertEquals(DragonBreath.CONE_MAX_LENGTH, DragonBreath.coneLength(100, 40), EPSILON);
-        assertEquals(1.8, DragonBreath.coneLength(10, 0), EPSILON);
+        assertEquals(3.6, DragonBreath.coneLength(10, 0), EPSILON);
+    }
+
+    @Test
+    void particlesAreSentFastEnoughToCarryTheirDistance() {
+        assertEquals(30.0 / DragonBreath.PARTICLE_TRAVEL, DragonBreath.particleSpeed(30), EPSILON);
+        assertEquals(0.0, DragonBreath.particleSpeed(-1), EPSILON);
     }
 }
