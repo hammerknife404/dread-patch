@@ -24,7 +24,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -49,7 +48,7 @@ final class DreadCourt {
     /** A court member this close to an enemy is pressing it, and can be burnt for the decree. */
     static final double DECREE_REACH = 2.5;
     static final double DECREE_RADIUS = 3.0;
-    /** The decree's rime: flat damage plus a share of max health (capped against bosses), and Withering Rime. */
+    /** The decree's rime: flat damage plus a share of max health (at most 20), and Withering Rime. */
     static final float DECREE_DAMAGE = 2.0F;
     static final float DECREE_MAX_HEALTH_SHARE = 0.12F;
     static final int DECREE_RIME_TICKS = 90;
@@ -184,7 +183,7 @@ final class DreadCourt {
         burnt.discard();
         for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, burnt.getBoundingBox().inflate(DECREE_RADIUS),
                 e -> e.isAlive() && RimefireCrown.canHarm(this.queen, e))) {
-            float amount = DECREE_DAMAGE + DreadDamage.maxHealthShare(victim.getMaxHealth(), DECREE_MAX_HEALTH_SHARE, victim.getType().is(Tags.EntityTypes.BOSSES));
+            float amount = DECREE_DAMAGE + DreadDamage.maxHealthShare(victim.getMaxHealth(), DECREE_MAX_HEALTH_SHARE);
             if (DamageSources.applyDamage(victim, amount, ModRegistries.WITHERING_RIME_BOLT_SPELL.get().getDamageSource(this.queen, this.queen)) && victim.isAlive()) {
                 victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, DECREE_RIME_TICKS), this.queen);
             }
