@@ -214,17 +214,17 @@ def main():
     check("Syndrigossa summons", surface + "summon dreadpatch:syndrigossa ~8 ~ ~", "Summoned new Syndrigossa")
     check("she's a white ice dragon underneath", "data get entity " + dragon + " Variant", '"white"')
     check("she's one of the Dread: no Withering Rime", "effect give " + dragon + " dreadpatch:withering_rime 5", "Unable to apply")
-    check("summons the queen beside her", surface + "summon dreadpatch:dread_queen ~ ~ ~", "Summoned new Dread Queen")
-    dragon_hp, queen_hp = health(dragon), health(queen)
     time.sleep(6.0)
     check("she lives through 6 s of AI", "execute if entity @e[type=dreadpatch:syndrigossa]", "Test passed, count: 1")
-    dragon_after, queen_after = health(dragon), health(queen)
-    record("she and the queen leave each other be", dragon_hp > 0 and dragon_after >= dragon_hp and queen_after >= queen_hp,
-           f"dragon {dragon_hp} -> {dragon_after}, queen {queen_hp} -> {queen_after}")
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
-    rcon.run("kill @e[type=dreadpatch:dread_queen]")
-    clear_court()
-    rcon.run("kill @e[type=item]")
+    # Summoned full-grown from a tag (which skips finalizeSpawn), she starts whole: Ice and Fire's own
+    # ice dragons start at a hatchling's 20 of their 419 and fall to one warden hit.
+    rcon.run(surface + 'summon dreadpatch:syndrigossa ~8 ~ ~ {AgeTicks:2500000}')
+    time.sleep(0.5)
+    grown = re.search(r"is ([0-9.]+)", rcon.run("attribute " + dragon + " minecraft:generic.max_health get"))
+    record("summoned full-grown, she starts at full health", grown is not None and float(grown.group(1)) > 100 and health(dragon) == float(grown.group(1)),
+           f"health {health(dragon)} of {grown and grown.group(1)}")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
 
     # Her spawn animation: 30 ticks rising out of the ground, unable to move, with a pig to tempt her.
     spot = "execute positioned 0 0 0 positioned over world_surface positioned ~0.5 ~ ~0.5 "
@@ -424,6 +424,21 @@ def main():
 
     rcon.run("fill 1 199 1 15 199 14 minecraft:stone")
     rcon.run("fill 1 200 1 15 205 14 minecraft:air")
+
+    # Syndrigossa and the queen, up here away from the wildlife: they leave each other be.
+    dragon = "@e[type=dreadpatch:syndrigossa,limit=1]"
+    rcon.run('summon dreadpatch:syndrigossa 4.5 200 7.5 {AgeTicks:1300000}')
+    check("summons the queen beside Syndrigossa", "summon dreadpatch:dread_queen 12.5 200 7.5", "Summoned new Dread Queen")
+    dragon_hp, queen_hp = health(dragon), health(queen)
+    time.sleep(6.0)
+    dragon_after, queen_after = health(dragon), health(queen)
+    record("Syndrigossa and the queen leave each other be", dragon_hp > 0 and dragon_after >= dragon_hp and queen_after >= queen_hp,
+           f"dragon {dragon_hp} -> {dragon_after}, queen {queen_hp} -> {queen_after}")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
+    rcon.run("kill @e[type=item]")
+
     rcon.run('summon minecraft:iron_golem 12.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
     rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
     rcon.run("summon dreadpatch:dread_queen 2.5 200 7.5")
