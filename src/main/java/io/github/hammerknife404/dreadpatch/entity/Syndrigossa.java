@@ -1,13 +1,24 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import com.iafenvoy.iceandfire.config.IafCommonConfig;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
+import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
+import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -15,8 +26,10 @@ import org.jetbrains.annotations.Nullable;
  * underneath (its model, animations, growth, flight, riding and AI all come with
  * {@link IceDragonEntity}; Ice and Fire's renderer picks the ice dragon model by {@code instanceof}),
  * one of the Dread (allied with the queen and her court, immune to Withering Rime), drawn rotted to
- * the bone by {@code SyndrigossaRenderer}. Her breath, her charge, her drops and her stats are still
- * an ice dragon's; they're next.
+ * the bone by {@code SyndrigossaRenderer}. She breathes Withering Rime instead of frost
+ * ({@link #witheringBreath}, through {@code SyndrigossaEvents}: Ice and Fire's breath stream, aim and
+ * timing, with her damage where it lands), and her charge is Shatter-Spine ({@link ShatterSpineCore}).
+ * Her drops and her stats are still an ice dragon's.
  */
 public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     /**
@@ -43,18 +56,60 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     }
 
     /**
-     * A dragon made from a tag without health (any {@code /summon} with NBT: it skips
-     * {@code finalizeSpawn}) keeps the health it was made with, a hatchling's 20, while Ice and Fire
-     * grows its max health to its age here: summoned full-grown she had 20 of 419 and fell to one
-     * warden hit. Ice and Fire's own ice dragons do the same; she starts whole. A saved dragon always
-     * has its health in its tag.
+     * A dragon made from a tag ({@code /summon} with NBT skips {@code finalizeSpawn}) reads its
+     * health while its max is still a hatchling's 20 (the tag has no saved attributes, which a saved
+     * dragon's does), and Ice and Fire only grows the max to its age afterwards, here: summoned
+     * full-grown she had 20 of 419 and fell to one warden hit, and {@code Health:300} came out 20.
+     * Ice and Fire's own ice dragons do the same. So once her max is set: the tag's health, or whole.
      */
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        if (!tag.contains("Health", Tag.TAG_ANY_NUMERIC)) {
-            this.setHealth(this.getMaxHealth());
+        this.setHealth(tag.contains("Health", Tag.TAG_ANY_NUMERIC) ? tag.getFloat("Health") : this.getMaxHealth());
+    }
+
+    /** Ice and Fire's ice breath multiplier ({@code dragon.attackDamageIce}; 2.1 in the owner's pack). */
+    public static double attackDamageIce() {
+        return IafCommonConfig.INSTANCE.dragon.attackDamageIce.getValue();
+    }
+
+    /**
+     * Her breath where Ice and Fire's stream lands (it calls this instead of freezing the spot):
+     * everyone she may harm and can see within reach takes an ice dragon's breath hit of her stage
+     * and Withering Rime (each hit also siphons {@link DragonBreath#SIPHON} into her, in
+     * {@code SyndrigossaEvents}), and fire there is drunk. Nothing freezes.
+     */
+    void witheringBreath(Vec3 at) {
+        if (!(this.level() instanceof ServerLevel level)) {
+            return;
         }
+        int stage = this.getDragonStage();
+        double radius = DragonBreath.breathRadius(stage);
+        float damage = DragonBreath.breathDamage(stage, attackDamageIce());
+        DamageSource source = ModRegistries.damageSource(level, ModRegistries.WITHERING_BREATH_DAMAGE, this, this);
+        for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, new AABB(at, at).inflate(radius),
+                e -> e != this && e.isAlive() && !this.hasPassenger(e) && RimefireCrown.canHarm(this, e) && this.hasLineOfSight(e))) {
+            if (victim.hurt(source, damage) && victim.isAlive()) {
+                victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, DragonBreath.RIME_TICKS), this);
+            }
+        }
+        BlockPos center = BlockPos.containing(at);
+        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-2, -2, -2), center.offset(2, 2, 2))) {
+            RimefireCrown.drinkFire(level, pos);
+        }
+    }
+
+    /** Soot, cold dread fire and snow, in place of the ice dragon's frost. */
+    @Override
+    public ParticleOptions createBreathParticle() {
+        int pick = this.random.nextInt(4);
+        return pick < 2 ? ParticleTypes.SOUL_FIRE_FLAME : pick == 2 ? ParticleTypes.SNOWFLAKE : ParticleTypes.LARGE_SMOKE;
+    }
+
+    /** Her charge (Ice and Fire's charge attack, hers or a rider's) is Shatter-Spine, bursting over her target. */
+    @Override
+    public Entity createCharge(double x, double y, double z) {
+        return ShatterSpineCore.launch(this.level(), this, this.getHeadPosition(), new Vec3(x, y, z), ShatterSpineCore.aimOver(this.getTarget()));
     }
 
     @Override

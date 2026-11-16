@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
+import io.github.hammerknife404.dreadpatch.entity.SyndrigossaEvents;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
@@ -32,6 +33,7 @@ public final class DreadPatch {
         DreadEvents.register(NeoForge.EVENT_BUS);
         DreadQueenStaff.register(modBus, NeoForge.EVENT_BUS);
         DreadQueenSword.register(modBus, NeoForge.EVENT_BUS);
+        SyndrigossaEvents.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

@@ -92,5 +92,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.RIMEFIRE_CROWN.get(), RimefireCrownRenderer::new);
         event.registerEntityRenderer(ModRegistries.BARROW_HUSK.get(), BarrowHuskRenderer::new);
         event.registerEntityRenderer(ModRegistries.SYNDRIGOSSA.get(), SyndrigossaRenderer::new);
+        event.registerEntityRenderer(ModRegistries.SHATTER_SPINE.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), NoopRenderer::new);
     }
 }

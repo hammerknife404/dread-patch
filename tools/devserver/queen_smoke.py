@@ -392,6 +392,34 @@ def main():
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
 
+    # Syndrigossa's attacks, without waiting on her AI. A Shatter-Spine shard dropped on a golem cuts
+    # it and leaves Withering Rime; a core bursts into 5 to 7 shards; and her breath's damage, dealt
+    # through /damage as hers, takes 0.5 more past armor and heals her that (the siphon).
+    rcon.run(golem.format(x=8.5))
+    rcon.run('summon dreadpatch:shatter_spine_shard 8.5 204 4.5 {Motion:[0.0d,-0.6d,0.0d]}')
+    time.sleep(1.0)
+    cut = health(target)
+    record("a Shatter-Spine shard cuts", 0 < cut < 100, f"golem health {cut}")
+    record("a Shatter-Spine shard leaves Withering Rime", has_effect(target, "dreadpatch:withering_rime"), "no Withering Rime on the golem")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run('summon dreadpatch:shatter_spine 8.5 210 4.5 {Fuse:3}')
+    time.sleep(0.4)
+    shards = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:shatter_spine_shard]"))
+    record("a Shatter-Spine core bursts into 5 to 7 shards", shards is not None and 5 <= int(shards.group(1)) <= 7,
+           f"{shards and shards.group(1)} shards")
+    record("and is gone", "Test failed" in rcon.run("execute positioned 8.5 210 4.5 if entity @e[type=dreadpatch:shatter_spine,distance=..16]"),
+           "the core is still there")
+    time.sleep(2.5)
+    rcon.run("kill @e[type=dreadpatch:shatter_spine_shard]")
+    rcon.run(golem.format(x=4.5))
+    rcon.run('summon dreadpatch:syndrigossa 12.5 200 4.5 {NoAI:1b,AgeTicks:2500000,Health:300.0f,Tags:["smoke_dragon"]}')
+    rcon.run("damage " + target + " 5 dreadpatch:withering_breath by @e[tag=smoke_dragon,limit=1]")
+    siphoned_golem, siphoned_dragon = health(target), health("@e[tag=smoke_dragon,limit=1]")
+    record("her breath siphons 0.5 more, past armor", abs(siphoned_golem - 94.5) < 0.01, f"golem health {siphoned_golem}, expected 94.5")
+    record("into her", abs(siphoned_dragon - 300.5) < 0.01, f"dragon health {siphoned_dragon}, expected 300.5")
+    rcon.run("kill @e[tag=smoke_dragon]")
+    rcon.run("kill @e[tag=smoke_target]")
+
     # Barrow-Step, cast by an armor stand looking down the platform: it's gone from where it stood,
     # its husk is there instead, and struck, the husk shatters, rooting and riming the golem beside it.
     rcon.run(golem.format(x=14.5))
