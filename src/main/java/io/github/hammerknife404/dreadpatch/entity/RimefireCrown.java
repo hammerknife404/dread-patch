@@ -32,7 +32,6 @@ import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -164,7 +163,7 @@ public class RimefireCrown extends Entity implements TraceableEntity {
         source.setIFrames(0);
         for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(SHATTER_RADIUS),
                 e -> e.isAlive() && canHarm(owner, e))) {
-            float amount = SHATTER_DAMAGE + DreadDamage.maxHealthShare(victim.getMaxHealth(), SHATTER_MAX_HEALTH_SHARE, victim.getType().is(Tags.EntityTypes.BOSSES));
+            float amount = SHATTER_DAMAGE + DreadDamage.maxHealthShare(victim.getMaxHealth(), SHATTER_MAX_HEALTH_SHARE);
             victim.invulnerableTime = 0;
             if (DamageSources.applyDamage(victim, amount, source) && victim.isAlive()) {
                 victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, SHATTER_RIME_TICKS), owner);

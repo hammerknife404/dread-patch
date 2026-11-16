@@ -41,7 +41,6 @@ import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
@@ -63,7 +62,7 @@ import java.util.WeakHashMap;
  * <li>Thermodynamic Theft: every strike, sweeps included, leaves 4.5 s of Withering Rime (which
  * already stops all healing);</li>
  * <li>Glass-Rime Shatter ({@link RimeCombo}): every third full strike on the same chilled or frozen
- * target (each within 5 s of the last; strikes on others don't break the count) adds 10% of its max health (capped against bosses) past its armor, and leaves it
+ * target (each within 5 s of the last; strikes on others don't break the count) adds 10% of its max health (at most 20) past its armor, and leaves it
  * {@code Brittle} (armor -10%) for 4 s;</li>
  * <li>Fire-Drinking Guard: right-click raises it, as a shield (slowed, no swinging). Raised, it
  * stops fire and magic ({@link #GUARDED}) from the front, puts out fire on its holder and nearby,
@@ -259,7 +258,7 @@ public final class DreadQueenSword {
         if (!COMBOS.computeIfAbsent(attacker, a -> new RimeCombo()).strike(target.getUUID(), attacker.level().getGameTime(), full, chilled, charged)) {
             return;
         }
-        event.setNewDamage(event.getNewDamage() + DreadDamage.maxHealthShare(target.getMaxHealth(), SHATTER_SHARE, target.getType().is(Tags.EntityTypes.BOSSES)));
+        event.setNewDamage(event.getNewDamage() + DreadDamage.maxHealthShare(target.getMaxHealth(), SHATTER_SHARE));
         target.addEffect(new MobEffectInstance(ModRegistries.BRITTLE, BRITTLE_TICKS), attacker);
         if (charged) {
             sword.remove(ModRegistries.FROST_CHARGE);
