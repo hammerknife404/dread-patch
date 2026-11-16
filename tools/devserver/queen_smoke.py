@@ -207,6 +207,25 @@ def main():
     rcon.run("setblock 4 199 4 minecraft:air")
     rcon.run("setblock 4 200 4 minecraft:air")
 
+    # Syndrigossa (proof of concept): an Ice and Fire ice dragon underneath, always white (our renderer
+    # paints over it), one of the Dread: no Withering Rime, and she and the queen leave each other be.
+    # (Ice and Fire logs "Not a list: null" when any ice dragon is summoned; its own does too.)
+    dragon = "@e[type=dreadpatch:syndrigossa,limit=1]"
+    check("Syndrigossa summons", surface + "summon dreadpatch:syndrigossa ~8 ~ ~", "Summoned new Syndrigossa")
+    check("she's a white ice dragon underneath", "data get entity " + dragon + " Variant", '"white"')
+    check("she's one of the Dread: no Withering Rime", "effect give " + dragon + " dreadpatch:withering_rime 5", "Unable to apply")
+    check("summons the queen beside her", surface + "summon dreadpatch:dread_queen ~ ~ ~", "Summoned new Dread Queen")
+    dragon_hp, queen_hp = health(dragon), health(queen)
+    time.sleep(6.0)
+    check("she lives through 6 s of AI", "execute if entity @e[type=dreadpatch:syndrigossa]", "Test passed, count: 1")
+    dragon_after, queen_after = health(dragon), health(queen)
+    record("she and the queen leave each other be", dragon_hp > 0 and dragon_after >= dragon_hp and queen_after >= queen_hp,
+           f"dragon {dragon_hp} -> {dragon_after}, queen {queen_hp} -> {queen_after}")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
+    rcon.run("kill @e[type=item]")
+
     # Her spawn animation: 30 ticks rising out of the ground, unable to move, with a pig to tempt her.
     spot = "execute positioned 0 0 0 positioned over world_surface positioned ~0.5 ~ ~0.5 "
     check("summons for the rise", spot + "run summon dreadpatch:dread_queen ~ ~ ~", "Summoned new Dread Queen")
