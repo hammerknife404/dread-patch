@@ -56,10 +56,18 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     static final int ECLIPSE_MIN_STAGE = 3;
 
     private int eclipseCooldown = 200;
+    /** Her own Shatter-Spine in the air: ticks between them, the range she looses one at, and how long her charge (Ice and Fire's) runs. */
+    static final int SPINE_COOLDOWN = 200;
+    static final double SPINE_MIN_RANGE = 6.0;
+    static final double SPINE_MAX_RANGE = 32.0;
+    static final int SPINE_CHARGE_TICKS = 24;
+    private int spineCooldown = 60;
+    private int spineCharging;
     /** On the ground with a live target, the chance each tick she takes off: about every 3 s (Ice and Fire: 1 in 1,500, and only after a target 5+ blocks above or below). */
     static final int TAKEOFF_CHANCE = 60;
-    /** Breath particles a tick, through the cone. */
-    static final int BREATH_PARTICLES = 18;
+    /** Breath particles a tick: sent from her mouth to carry along the cone, and set in it, so a short burst shows it whole. */
+    static final int BREATH_PARTICLES_SENT = 10;
+    static final int BREATH_PARTICLES_SET = 10;
 
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
@@ -102,6 +110,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
                 && !this.isSleeping() && this.isAllowedToTriggerFlight() && this.random.nextInt(TAKEOFF_CHANCE) == 0) {
             this.takeOff();
         }
+        this.shatterSpine(hunted);
         if (this.eclipseCooldown > 0) {
             this.eclipseCooldown--;
             return;
@@ -117,8 +126,44 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         }
     }
 
-    /** Up, as Ice and Fire takes a dragon off: hovering first, then flying. */
+    /**
+     * Her own Shatter-Spine, every {@link #SPINE_COOLDOWN} ticks in the air with her target in sight 6-32
+     * blocks off: Ice and Fire's charge attack ({@code performChargeAttack}, called each tick of the
+     * charge: its animation, then {@code createCharge} at its 20th tick), whatever air attack Ice and
+     * Fire has picked. Its Hover Blast came round only now and then (1-2 in 40 s, the first 14-25 s in),
+     * since Ice and Fire swaps air attacks in many places; the owner never saw one.
+     */
+    private void shatterSpine(@Nullable LivingEntity target) {
+        boolean airborne = this.isFlying() || this.isHovering();
+        if (this.spineCharging > 0) {
+            this.spineCharging--;
+            if (target != null && target.isAlive() && airborne) {
+                this.performChargeAttack(target.getX(), target.getY(), target.getZ());
+            } else {
+                this.spineCharging = 0;
+            }
+            return;
+        }
+        if (this.spineCooldown > 0) {
+            this.spineCooldown--;
+            return;
+        }
+        if (target != null && target.isAlive() && airborne && !this.isVehicle()) {
+            double distance = this.distanceTo(target);
+            if (distance >= SPINE_MIN_RANGE && distance <= SPINE_MAX_RANGE && this.hasLineOfSight(target)) {
+                this.spineCharging = SPINE_CHARGE_TICKS;
+                this.spineCooldown = SPINE_COOLDOWN;
+            }
+        }
+    }
+
+    /**
+     * Up, as Ice and Fire takes a dragon off (hovering first, then flying), opening with Shatter-Spine:
+     * Ice and Fire picks again after the charge. Otherwise it rarely showed: it's her only charge and
+     * only in the air, and dragons can't target players in creative or spectator.
+     */
     private void takeOff() {
+        this.airAttack = IafDragonAttacks.Air.HOVER_BLAST;
         this.setHovering(true);
         this.setInSittingPose(false);
         this.flyHovering = 0;
@@ -142,7 +187,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
      * Her breath, a cone from her head where Ice and Fire's is a thin stream: each tick she breathes,
      * particles spread through it, and everyone she may harm and can see in it, up to where it lands,
      * or within reach of where it lands, takes a breath hit ({@link #breathHit}). It grows out over
-     * Ice and Fire's 40 ticks of breathing, as its stream does.
+     * Ice and Fire's breathing, reaching its full length in half a second (its stream takes two).
      */
     @Override
     protected void performNormalBreathAttack(double x, double y, double z) {
@@ -160,9 +205,14 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         }
         Vec3 axis = aim.normalize();
         double length = DragonBreath.coneLength(aim.length(), this.burnProgress);
-        for (int i = 0; i < BREATH_PARTICLES; i++) {
+        for (int i = 0; i < BREATH_PARTICLES_SENT; i++) {
             Vec3 v = this.spread(axis);
-            level.sendParticles(this.createBreathParticle(), head.x, head.y, head.z, 0, v.x, v.y, v.z, 0.9 + this.random.nextDouble() * 0.6);
+            double carry = length * (0.5 + 0.5 * this.random.nextDouble());
+            level.sendParticles(this.createBreathParticle(), head.x, head.y, head.z, 0, v.x, v.y, v.z, DragonBreath.particleSpeed(carry));
+        }
+        for (int i = 0; i < BREATH_PARTICLES_SET; i++) {
+            Vec3 at = head.add(this.spread(axis).scale(length * (0.15 + 0.85 * this.random.nextDouble())));
+            level.sendParticles(this.createBreathParticle(), at.x, at.y, at.z, 0, axis.x, axis.y, axis.z, 0.1 + this.random.nextDouble() * 0.15);
         }
         Vec3 end = head.add(axis.scale(length));
         BlockHitResult block = level.clip(new ClipContext(head, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));

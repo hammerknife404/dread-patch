@@ -11,8 +11,8 @@ import net.minecraft.util.Mth;
 /**
  * Syndrigossa's breath, big enough to see from the ground: vanilla's soul fire flame and campfire
  * smoke sprites, starting several times vanilla's flame size and swelling as they go, flying exactly
- * where they're sent (vanilla's add their own jitter and dust slows to a tenth), slowing, and fading
- * out at the end. The flame burns full-bright from white-cyan to her dread-fire cyan; the smoke is
+ * where they're sent (vanilla's add their own jitter and dust slows to a tenth), slowing a little,
+ * and fading over their last quarter. The flame burns full-bright from white-cyan to her dread-fire cyan; the smoke is
  * soot, rising a little.
  */
 final class RimeBreathParticle extends TextureSheetParticle {
@@ -28,9 +28,11 @@ final class RimeBreathParticle extends TextureSheetParticle {
         this.xd = xd;
         this.yd = yd;
         this.zd = zd;
-        this.friction = smoke ? 0.9F : 0.93F;
-        this.gravity = smoke ? -0.01F : 0.0F;
-        this.lifetime = smoke ? 24 + this.random.nextInt(12) : 16 + this.random.nextInt(9);
+        // Slow to lose speed and long-lived, so one sent from her mouth carries the length of her
+        // breath (DragonBreath.PARTICLE_TRAVEL blocks for each block a tick it's sent at).
+        this.friction = smoke ? 0.95F : 0.96F;
+        this.gravity = smoke ? -0.005F : 0.0F;
+        this.lifetime = smoke ? 28 + this.random.nextInt(13) : 22 + this.random.nextInt(9);
         this.startSize = smoke ? 0.55F + this.random.nextFloat() * 0.2F : 0.4F + this.random.nextFloat() * 0.15F;
         this.growth = smoke ? 3.5F : 3.0F;
         this.quadSize = this.startSize;
@@ -56,7 +58,7 @@ final class RimeBreathParticle extends TextureSheetParticle {
             // White-cyan at the mouth to her dread-fire cyan.
             this.setColor(Mth.lerp(life, 0.85F, 0.1F), Mth.lerp(life, 1.0F, 0.75F), 1.0F);
         }
-        float fade = Mth.clamp((1.0F - life) * 3.0F, 0.0F, 1.0F);
+        float fade = Mth.clamp((1.0F - life) * 4.0F, 0.0F, 1.0F);
         this.alpha = (this.smoke ? 0.85F : 1.0F) * fade;
         this.setSpriteFromAge(this.sprites);
     }
