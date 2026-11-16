@@ -7,6 +7,7 @@ import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
+import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
 import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
 import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
@@ -65,9 +66,20 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("barrow_husk").toString()));
 
+    /** Syndrigossa (proof of concept): an Ice and Fire ice dragon's base size and category; it grows by stage. */
+    public static final DeferredHolder<EntityType<?>, EntityType<Syndrigossa>> SYNDRIGOSSA = ENTITY_TYPES.register("syndrigossa",
+            () -> EntityType.Builder.<Syndrigossa>of(Syndrigossa::new, MobCategory.CREATURE)
+                    .sized(0.78F, 1.2F)
+                    .clientTrackingRange(10)
+                    .build(DreadPatch.id("syndrigossa").toString()));
+
     /** Ice and Fire's dread egg base, spotted with the queen's eye glow. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_QUEEN_SPAWN_EGG = ITEMS.register("dread_queen_spawn_egg",
             () -> new DeferredSpawnEggItem(DREAD_QUEEN, 0xE0E6E6, 0x00CBFF, new Item.Properties()));
+
+    /** Soot spotted with bone. */
+    public static final DeferredItem<DeferredSpawnEggItem> SYNDRIGOSSA_SPAWN_EGG = ITEMS.register("syndrigossa_spawn_egg",
+            () -> new DeferredSpawnEggItem(SYNDRIGOSSA, 0x14161D, 0xD8DEE9, new Item.Properties()));
 
     public static final DeferredHolder<MobEffect, WitheringRimeEffect> WITHERING_RIME = MOB_EFFECTS.register("withering_rime", WitheringRimeEffect::new);
 

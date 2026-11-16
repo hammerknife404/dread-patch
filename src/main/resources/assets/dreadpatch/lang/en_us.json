@@ -29,5 +29,7 @@
   "spell.dreadpatch.barrow_step": "Barrow-Step",
   "spell.dreadpatch.barrow_step.guide": "Step through the barrow-cold to where you look, leaving a husk of rime-glass in your shape where you stood. Whatever was hunting you turns on the husk, and when it's struck, or after 5 seconds, it shatters: everyone near it is rooted and touched by Withering Rime.",
   "ui.dreadpatch.distance": "%s Block Range",
-  "ui.dreadpatch.root_seconds": "%ss Root"
+  "ui.dreadpatch.root_seconds": "%ss Root",
+  "entity.dreadpatch.syndrigossa": "Syndrigossa",
+  "item.dreadpatch.syndrigossa_spawn_egg": "Syndrigossa Spawn Egg"
 }

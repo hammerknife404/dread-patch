@@ -9,11 +9,13 @@ import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -27,6 +29,7 @@ public final class DreadPatchClient {
         modBus.addListener(DreadPatchClient::onRegisterLayers);
         modBus.addListener(DreadPatchClient::onRegisterRenderers);
         modBus.addListener(DreadPatchClient::onClientExtensions);
+        modBus.addListener(DreadPatchClient::onReloadListeners);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
     }
 
@@ -73,6 +76,11 @@ public final class DreadPatchClient {
         }
     }
 
+    /** Syndrigossa's skins are made from Ice and Fire's textures: remake them when textures reload. */
+    private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener((ResourceManagerReloadListener) resources -> UndeadDragonSkins.clear());
+    }
+
     private static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(DreadQueenModel.LAYER, DreadQueenModel::createBodyLayer);
     }
@@ -83,5 +91,6 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.WITHERING_RIME_BOLT.get(), NoopRenderer::new);
         event.registerEntityRenderer(ModRegistries.RIMEFIRE_CROWN.get(), RimefireCrownRenderer::new);
         event.registerEntityRenderer(ModRegistries.BARROW_HUSK.get(), BarrowHuskRenderer::new);
+        event.registerEntityRenderer(ModRegistries.SYNDRIGOSSA.get(), SyndrigossaRenderer::new);
     }
 }

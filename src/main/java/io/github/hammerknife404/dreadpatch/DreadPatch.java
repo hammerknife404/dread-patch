@@ -1,5 +1,6 @@
 package io.github.hammerknife404.dreadpatch;
 
+import com.iafenvoy.iceandfire.entity.DragonBaseEntity;
 import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
@@ -45,11 +46,13 @@ public final class DreadPatch {
                 .add(Attributes.ARMOR_TOUGHNESS, DreadQueen.ARMOR_TOUGHNESS)
                 .build());
         event.put(ModRegistries.BARROW_HUSK.get(), BarrowHusk.createAttributes().build());
+        event.put(ModRegistries.SYNDRIGOSSA.get(), DragonBaseEntity.bakeAttributes().build());
     }
 
     private static void onCreativeTabs(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ModRegistries.DREAD_QUEEN_SPAWN_EGG.get());
+            event.accept(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get());
         }
     }
 }
