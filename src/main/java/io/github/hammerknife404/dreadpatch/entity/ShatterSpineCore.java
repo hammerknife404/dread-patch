@@ -18,6 +18,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import io.redspace.ironsspellbooks.particle.BlastwaveParticleOptions;
+import org.joml.Vector3f;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -25,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
  * black dread-glass that flies to a point {@link DragonBreath#AIRBURST_HEIGHT} blocks over its target
  * and bursts there into {@link ShatterSpineShard}s raining over the ground below. With nothing to aim
  * at it flies on until it hits something. It also bursts on anything it hits, or after
- * {@link #LIFETIME} ticks. Drawn only by its trail.
+ * {@link #LIFETIME} ticks. Drawn as a burr of dark ice spikes ({@code ShatterSpineRenderer}), trailing
+ * cold dread fire and soot, and its burst rings out (Iron's blastwave).
  */
 public class ShatterSpineCore extends AbstractHurtingProjectile {
     static final int LIFETIME = 80;
@@ -69,9 +72,10 @@ public class ShatterSpineCore extends AbstractHurtingProjectile {
     public void tick() {
         super.tick();
         if (this.level().isClientSide) {
-            this.level().addParticle(BONE_DUST, this.getX(), this.getY() + 0.5, this.getZ(), 0.0, 0.0, 0.0);
+            this.level().addParticle(ModRegistries.RIME_SMOKE.get(), this.getX(), this.getY(0.5), this.getZ(), 0.0, 0.0, 0.0);
+            this.level().addParticle(ModRegistries.RIME_FLAME.get(), this.getRandomX(0.5), this.getY(0.5), this.getRandomZ(0.5), 0.0, 0.0, 0.0);
             if (this.tickCount % 2 == 0) {
-                this.level().addParticle(ParticleTypes.SNOWFLAKE, this.getRandomX(0.6), this.getY() + 0.5, this.getRandomZ(0.6), 0.0, 0.0, 0.0);
+                this.level().addParticle(BONE_DUST, this.getRandomX(0.6), this.getY(0.5), this.getRandomZ(0.6), 0.0, 0.0, 0.0);
             }
             return;
         }
@@ -120,9 +124,11 @@ public class ShatterSpineCore extends AbstractHurtingProjectile {
                 shard.setDeltaMovement(Math.cos(angle) * speed, -0.05, Math.sin(angle) * speed);
                 level.addFreshEntity(shard);
             }
-            level.sendParticles(ICE_SHARDS, this.getX(), this.getY(), this.getZ(), 40, 0.8, 0.8, 0.8, 0.25);
+            level.sendParticles(new BlastwaveParticleOptions(new Vector3f(0.25F, 0.75F, 1.0F), 6.0F), this.getX(), this.getY(), this.getZ(), 1, 0.0, 0.0, 0.0, 0.0);
+            level.sendParticles(ModRegistries.RIME_FLAME.get(), this.getX(), this.getY(), this.getZ(), 40, 0.6, 0.6, 0.6, 0.35);
+            level.sendParticles(ModRegistries.RIME_SMOKE.get(), this.getX(), this.getY(), this.getZ(), 20, 0.8, 0.6, 0.8, 0.12);
+            level.sendParticles(ICE_SHARDS, this.getX(), this.getY(), this.getZ(), 60, 1.0, 1.0, 1.0, 0.3);
             level.sendParticles(BONE_DUST, this.getX(), this.getY(), this.getZ(), 30, 0.6, 0.6, 0.6, 0.2);
-            level.sendParticles(IafParticles.DREAD_TORCH.get(), this.getX(), this.getY(), this.getZ(), 25, 1.0, 1.0, 1.0, 0.08);
             level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.GLASS_BREAK, SoundSource.HOSTILE, 3.0F, 0.5F);
             level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.HOSTILE, 1.0F, 1.4F);
         }

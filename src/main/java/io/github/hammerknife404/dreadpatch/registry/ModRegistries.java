@@ -18,6 +18,8 @@ import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.damagesource.DamageSource;
@@ -42,6 +44,7 @@ public final class ModRegistries {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(DreadPatch.MODID);
     private static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, DreadPatch.MODID);
     private static final DeferredRegister<AbstractSpell> SPELLS = DeferredRegister.create(SpellRegistry.SPELL_REGISTRY_KEY, DreadPatch.MODID);
+    private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, DreadPatch.MODID);
     private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, DreadPatch.MODID);
 
     /**
@@ -101,6 +104,10 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("shatter_spine_shard").toString()));
 
+    /** Syndrigossa's breath, big enough to see: a cyan flame and a soot cloud (vanilla sprites, our particle). */
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RIME_FLAME = PARTICLE_TYPES.register("rime_flame", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RIME_SMOKE = PARTICLE_TYPES.register("rime_smoke", () -> new SimpleParticleType(false));
+
     /** Syndrigossa's breath and her Shatter-Spine's shards (data/dreadpatch/damage_type). */
     public static final ResourceKey<DamageType> WITHERING_BREATH_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("withering_breath"));
     public static final ResourceKey<DamageType> SHATTER_SPINE_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("shatter_spine"));
@@ -140,5 +147,6 @@ public final class ModRegistries {
         MOB_EFFECTS.register(modBus);
         SPELLS.register(modBus);
         DATA_COMPONENTS.register(modBus);
+        PARTICLE_TYPES.register(modBus);
     }
 }

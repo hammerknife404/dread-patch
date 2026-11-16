@@ -21,12 +21,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import io.redspace.ironsspellbooks.particle.BlastwaveParticleOptions;
+import org.joml.Vector3f;
 
 /**
  * A shard of Shatter-Spine falling from its burst. Where it lands (on someone or the ground) it cuts
  * everyone within {@link DragonBreath#SHARD_RADIUS} blocks its thrower may harm, lightly, and leaves
  * Withering Rime. Each shard counts on its own (hit cooldowns are cleared for it), so a rain of them
- * on one spot adds up. Drawn only by its trail.
+ * on one spot adds up. Drawn as a pale ice spike ({@code ShatterSpineRenderer}) trailing cold dread fire.
  */
 public class ShatterSpineShard extends ThrowableProjectile {
     private static final ParticleOptions ICE_SHARDS = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.PACKED_ICE.defaultBlockState());
@@ -55,7 +57,9 @@ public class ShatterSpineShard extends ThrowableProjectile {
     public void tick() {
         super.tick();
         if (this.level().isClientSide) {
-            this.level().addParticle(IafParticles.DREAD_TORCH.get(), this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
+            if (this.tickCount % 2 == 0) {
+                this.level().addParticle(ModRegistries.RIME_FLAME.get(), this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
+            }
             if (this.tickCount % 3 == 0) {
                 this.level().addParticle(ParticleTypes.SNOWFLAKE, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
             }
@@ -87,7 +91,10 @@ public class ShatterSpineShard extends ThrowableProjectile {
                     victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, DragonBreath.RIME_TICKS), owner);
                 }
             }
-            level.sendParticles(ICE_SHARDS, this.getX(), this.getY(), this.getZ(), 15, 0.4, 0.2, 0.4, 0.15);
+            level.sendParticles(new BlastwaveParticleOptions(new Vector3f(0.25F, 0.75F, 1.0F), (float) (DragonBreath.SHARD_RADIUS * 1.4)),
+                    this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.0, 0.0, 0.0, 0.0);
+            level.sendParticles(ICE_SHARDS, this.getX(), this.getY(), this.getZ(), 25, 0.5, 0.3, 0.5, 0.2);
+            level.sendParticles(ModRegistries.RIME_SMOKE.get(), this.getX(), this.getY(), this.getZ(), 6, 0.5, 0.2, 0.5, 0.04);
             level.sendParticles(IafParticles.DREAD_TORCH.get(), this.getX(), this.getY(), this.getZ(), 6, 0.4, 0.2, 0.4, 0.03);
             level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.GLASS_BREAK, SoundSource.HOSTILE, 0.8F, 1.2F);
             this.discard();
