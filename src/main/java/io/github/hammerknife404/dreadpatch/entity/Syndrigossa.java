@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch.entity;
 import com.iafenvoy.iceandfire.config.IafCommonConfig;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
+import com.iafenvoy.iceandfire.entity.util.dragon.IafDragonAttacks;
 import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
@@ -18,7 +19,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +50,10 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     static final int ECLIPSE_MIN_STAGE = 3;
 
     private int eclipseCooldown = 200;
+    /** On the ground with a live target, the chance each tick she takes off: about every 3 s (Ice and Fire: 1 in 1,500, and only after a target 5+ blocks above or below). */
+    static final int TAKEOFF_CHANCE = 60;
+    /** Breath particles a tick, through the cone. */
+    static final int BREATH_PARTICLES = 12;
 
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
@@ -83,6 +91,11 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         if (this.level().isClientSide || !this.isAlive() || this.isModelDead()) {
             return;
         }
+        LivingEntity hunted = this.getTarget();
+        if (hunted != null && hunted.isAlive() && !this.isFlying() && !this.isHovering() && !this.isVehicle() && !this.isOrderedToSit()
+                && !this.isSleeping() && this.isAllowedToTriggerFlight() && this.random.nextInt(TAKEOFF_CHANCE) == 0) {
+            this.takeOff();
+        }
         if (this.eclipseCooldown > 0) {
             this.eclipseCooldown--;
             return;
@@ -98,13 +111,103 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         }
     }
 
+    /** Up, as Ice and Fire takes a dragon off: hovering first, then flying. */
+    private void takeOff() {
+        this.setHovering(true);
+        this.setInSittingPose(false);
+        this.flyHovering = 0;
+        this.hoverTicks = 0;
+        this.flyTicks = 0;
+    }
+
+    /**
+     * Her air attacks weighted toward the strafing fly-by (Ice and Fire's Scorch Stream, 50%) and
+     * Shatter-Spine (its Hover Blast, the only air attack that charges, 35%), over the dive (Tackle,
+     * 15%); Ice and Fire picks each a third of the time. Ground attacks stay its own.
+     */
+    @Override
+    public void randomizeAttacks() {
+        super.randomizeAttacks();
+        int roll = this.getRandom().nextInt(20);
+        this.airAttack = roll < 10 ? IafDragonAttacks.Air.SCORCH_STREAM : roll < 17 ? IafDragonAttacks.Air.HOVER_BLAST : IafDragonAttacks.Air.TACKLE;
+    }
+
+    /**
+     * Her breath, a cone from her head where Ice and Fire's is a thin stream: each tick she breathes,
+     * particles spread through it, and everyone she may harm and can see in it, up to where it lands,
+     * or within reach of where it lands, takes a breath hit ({@link #breathHit}). It grows out over
+     * Ice and Fire's 40 ticks of breathing, as its stream does.
+     */
+    @Override
+    protected void performNormalBreathAttack(double x, double y, double z) {
+        this.getNavigation().stop();
+        this.burnParticleX = x;
+        this.burnParticleY = y;
+        this.burnParticleZ = z;
+        if (!(this.level() instanceof ServerLevel level)) {
+            return;
+        }
+        Vec3 head = this.getHeadPosition();
+        Vec3 aim = new Vec3(x, y, z).subtract(head);
+        if (aim.lengthSqr() < 0.25) {
+            return;
+        }
+        Vec3 axis = aim.normalize();
+        double length = DragonBreath.coneLength(aim.length(), this.burnProgress);
+        for (int i = 0; i < BREATH_PARTICLES; i++) {
+            Vec3 v = this.spread(axis);
+            level.sendParticles(this.createBreathParticle(), head.x, head.y, head.z, 0, v.x, v.y, v.z, 0.9 + this.random.nextDouble() * 0.6);
+        }
+        Vec3 end = head.add(axis.scale(length));
+        BlockHitResult block = level.clip(new ClipContext(head, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        Vec3 lands = block.getType() == HitResult.Type.MISS ? end : block.getLocation();
+        double reach = head.distanceTo(lands);
+        int stage = this.getDragonStage();
+        double radius = DragonBreath.breathRadius(stage);
+        float damage = DragonBreath.breathDamage(stage, attackDamageIce());
+        DamageSource source = ModRegistries.damageSource(level, ModRegistries.WITHERING_BREATH_DAMAGE, this, this);
+        AABB box = new AABB(head, lands).inflate(reach * Math.tan(DragonBreath.CONE_HALF_ANGLE) + radius);
+        for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, box, e -> e != this && e.isAlive() && !this.hasPassenger(e) && RimefireCrown.canHarm(this, e))) {
+            Vec3 at = victim.getBoundingBox().getCenter().subtract(head);
+            boolean inCone = DragonBreath.inCone(at.x, at.y, at.z, axis.x, axis.y, axis.z, reach, victim.getBbWidth() / 2.0);
+            boolean splashed = victim.getBoundingBox().distanceToSqr(lands) <= radius * radius;
+            if ((inCone || splashed) && this.hasLineOfSight(victim)) {
+                this.breathHit(victim, source, damage);
+            }
+        }
+        if (this.tickCount % 4 == 0) {
+            BlockPos center = BlockPos.containing(lands);
+            for (BlockPos pos : BlockPos.betweenClosed(center.offset(-2, -2, -2), center.offset(2, 2, 2))) {
+                RimefireCrown.drinkFire(level, pos);
+            }
+        }
+    }
+
+    /** A direction within the breath cone round {@code axis}, spread evenly over it. */
+    private Vec3 spread(Vec3 axis) {
+        Vec3 side = Math.abs(axis.y) < 0.9 ? axis.cross(new Vec3(0, 1, 0)).normalize() : axis.cross(new Vec3(1, 0, 0)).normalize();
+        Vec3 up = axis.cross(side);
+        double cosTheta = 1.0 - this.random.nextDouble() * (1.0 - Math.cos(DragonBreath.CONE_HALF_ANGLE));
+        double sinTheta = Math.sqrt(1.0 - cosTheta * cosTheta);
+        double phi = this.random.nextDouble() * Math.PI * 2.0;
+        return axis.scale(cosTheta).add(side.scale(Math.cos(phi) * sinTheta)).add(up.scale(Math.sin(phi) * sinTheta));
+    }
+
+    /** One breath hit: her breath damage (and its siphon, in {@code SyndrigossaEvents}), then Withering Rime. */
+    private void breathHit(LivingEntity victim, DamageSource source, float damage) {
+        if (victim.hurt(source, damage) && victim.isAlive()) {
+            victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, DragonBreath.RIME_TICKS), this);
+        }
+    }
+
     /** Ice and Fire's ice breath multiplier ({@code dragon.attackDamageIce}; 2.1 in the owner's pack). */
     public static double attackDamageIce() {
         return IafCommonConfig.INSTANCE.dragon.attackDamageIce.getValue();
     }
 
     /**
-     * Her breath where Ice and Fire's stream lands (it calls this instead of freezing the spot):
+     * Her breath's splash where Ice and Fire would have frozen a spot (its {@code DragonFireDamageWorldEvent},
+     * now only from what still reaches Ice and Fire's breath code: her own breath is {@link #performNormalBreathAttack}):
      * everyone she may harm and can see within reach takes an ice dragon's breath hit of her stage
      * and Withering Rime (each hit also siphons {@link DragonBreath#SIPHON} into her, in
      * {@code SyndrigossaEvents}), and fire there is drunk. Nothing freezes.
@@ -119,9 +222,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         DamageSource source = ModRegistries.damageSource(level, ModRegistries.WITHERING_BREATH_DAMAGE, this, this);
         for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, new AABB(at, at).inflate(radius),
                 e -> e != this && e.isAlive() && !this.hasPassenger(e) && RimefireCrown.canHarm(this, e) && this.hasLineOfSight(e))) {
-            if (victim.hurt(source, damage) && victim.isAlive()) {
-                victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, DragonBreath.RIME_TICKS), this);
-            }
+            this.breathHit(victim, source, damage);
         }
         BlockPos center = BlockPos.containing(at);
         for (BlockPos pos : BlockPos.betweenClosed(center.offset(-2, -2, -2), center.offset(2, 2, 2))) {

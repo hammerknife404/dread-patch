@@ -17,6 +17,11 @@ public final class DragonBreath {
     public static final int SHARDS_MAX = 7;
     /** How far from where a shard lands it cuts. */
     public static final double SHARD_RADIUS = 1.5;
+    /** Her breath is a cone from her head, this wide either side of its axis (the owner asked for wider than Ice and Fire's stream). */
+    public static final double CONE_HALF_ANGLE = Math.toRadians(20.0);
+    /** The furthest it reaches past where she aims it, and at all. */
+    public static final double CONE_OVERSHOOT = 2.0;
+    public static final double CONE_MAX_LENGTH = 30.0;
 
     private DragonBreath() {
     }
@@ -33,6 +38,26 @@ public final class DragonBreath {
 
     public static float shardDamage(int stage, double attackDamageIce) {
         return 0.5F * breathDamage(stage, attackDamageIce);
+    }
+
+    /**
+     * Whether a point at {@code (dx, dy, dz)} from the cone's apex lies in a cone along the unit
+     * vector {@code axis}, {@code length} long, {@code pad} wider all round (a body's half-width).
+     */
+    public static boolean inCone(double dx, double dy, double dz, double ax, double ay, double az, double length, double pad) {
+        double along = dx * ax + dy * ay + dz * az;
+        if (along <= 0.0 || along > length + pad) {
+            return false;
+        }
+        double across2 = dx * dx + dy * dy + dz * dz - along * along;
+        double reach = along * Math.tan(CONE_HALF_ANGLE) + pad;
+        return across2 <= reach * reach;
+    }
+
+    /** How far the cone reaches this tick: grown over Ice and Fire's 40 ticks of breathing, up to just past its aim. */
+    public static double coneLength(double toAim, int burnProgress) {
+        double full = Math.min(CONE_MAX_LENGTH, toAim + CONE_OVERSHOOT);
+        return full * Math.max(0.15, Math.min(1.0, burnProgress / 40.0));
     }
 
     private static int clampStage(int stage) {
