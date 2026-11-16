@@ -4,6 +4,7 @@ import com.iafenvoy.iceandfire.config.IafCommonConfig;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import com.iafenvoy.iceandfire.entity.util.dragon.IafDragonAttacks;
+import com.iafenvoy.uranus.animation.Animation;
 import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
@@ -25,6 +26,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 
 /**
  * Syndrigossa, the Dread Queen's undead frost wyrm: proof of concept. An Ice and Fire ice dragon
@@ -53,7 +59,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     /** On the ground with a live target, the chance each tick she takes off: about every 3 s (Ice and Fire: 1 in 1,500, and only after a target 5+ blocks above or below). */
     static final int TAKEOFF_CHANCE = 60;
     /** Breath particles a tick, through the cone. */
-    static final int BREATH_PARTICLES = 12;
+    static final int BREATH_PARTICLES = 18;
 
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
@@ -230,11 +236,115 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         }
     }
 
-    /** Soot, cold dread fire and snow, in place of the ice dragon's frost. */
+    /** Cold dread fire, soot and a little snow, in place of the ice dragon's frost: our own particles, several times vanilla's size. */
     @Override
     public ParticleOptions createBreathParticle() {
-        int pick = this.random.nextInt(4);
-        return pick < 2 ? ParticleTypes.SOUL_FIRE_FLAME : pick == 2 ? ParticleTypes.SNOWFLAKE : ParticleTypes.LARGE_SMOKE;
+        int pick = this.random.nextInt(10);
+        return pick < 6 ? ModRegistries.RIME_FLAME.get() : pick < 9 ? ModRegistries.RIME_SMOKE.get() : ParticleTypes.SNOWFLAKE;
+    }
+
+    /**
+     * Her animations in three layers where Ice and Fire's dragons have one. Its attack animations
+     * move only the head, neck, jaw, claws and wings (held spread), so with one layer, attacking in
+     * the air froze her body, tail and legs in the model's rest pose (the owner saw her "posed still in
+     * a sitting idle animation except the mouth and head"), and Ice and Fire played the hover-in-place
+     * breath even on a fly-by. So: the fly-by breath or charge under her body (the body's flight wins
+     * where both move a bone, so her wings beat and only the jaw and claws take the breath's pose), her
+     * body (Ice and Fire's choice of flight, swimming, ground, walking, sitting, sleeping, dead), and
+     * over it the hovering or standing breath and charge and her other actions (bite, shake, wing blast,
+     * roars, tail), as Ice and Fire plays them.
+     */
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "flyby_attack", 2, this::flybyAttack));
+        controllers.add(new AnimationController<>(this, "body", 2, this::body));
+        controllers.add(new AnimationController<>(this, "attack", 2, this::attack));
+    }
+
+    private boolean airborne() {
+        return this.isFlying() || this.isHovering() || this.flyProgress > 0.0F || this.hoverProgress > 0.0F;
+    }
+
+    /** Flying past, not hovering in place. */
+    private boolean onFlyby() {
+        return this.isFlying() && !this.isHovering();
+    }
+
+    private PlayState flybyAttack(AnimationState<Syndrigossa> state) {
+        if (!this.isModelDead() && this.onFlyby()) {
+            if (this.getAnimation() == ANIMATION_FIRECHARGE) {
+                return once(state, "attack_stream_charge");
+            }
+            if (this.isBreathingFire()) {
+                return loop(state, "attack_stream_breath", 1.0F);
+            }
+        }
+        return PlayState.STOP;
+    }
+
+    private PlayState body(AnimationState<Syndrigossa> state) {
+        if (this.isModelDead()) {
+            return loop(state, "dead", 1.0F);
+        }
+        if ((this.isSwimming || this.isInWater()) && this.swimProgress > 0.0F) {
+            return loop(state, "swim", 1.0F);
+        }
+        if (this.airborne()) {
+            return loop(state, "flight", 0.4F);
+        }
+        if (this.isSleeping() || this.sleepProgress > 0.0F) {
+            return loop(state, "sleeping", 1.0F);
+        }
+        if (this.isOrderedToSit()) {
+            return loop(state, "sitting", 1.0F);
+        }
+        return state.isMoving() ? loop(state, "walk", 0.4F) : loop(state, "ground", 1.0F);
+    }
+
+    private PlayState attack(AnimationState<Syndrigossa> state) {
+        if (this.isModelDead() || this.isSleeping() || this.onFlyby()) {
+            return PlayState.STOP;
+        }
+        Animation action = this.getAnimation();
+        if (action == ANIMATION_FIRECHARGE) {
+            return once(state, "attack_blast_charge");
+        }
+        if (this.isBreathingFire()) {
+            return loop(state, "attack_blast_breath", 1.0F);
+        }
+        String name = this.airborne() ? null : groundAction(action);
+        return name != null ? once(state, name) : PlayState.STOP;
+    }
+
+    /** Ice and Fire's names for its dragons' one-off ground animations. */
+    @Nullable
+    private static String groundAction(Animation action) {
+        if (action == ANIMATION_BITE || action == ANIMATION_EAT || action == ANIMATION_SPEAK) {
+            return "bite";
+        }
+        if (action == ANIMATION_SHAKEPREY) {
+            return "grab_shake";
+        }
+        if (action == ANIMATION_WINGBLAST) {
+            return "wing_blast";
+        }
+        if (action == ANIMATION_ROAR) {
+            return "roar";
+        }
+        if (action == ANIMATION_EPIC_ROAR) {
+            return "epic_roar";
+        }
+        return action == ANIMATION_TAILWHACK ? "tail" : null;
+    }
+
+    private static PlayState loop(AnimationState<Syndrigossa> state, String name, float speed) {
+        state.setControllerSpeed(speed);
+        return state.setAndContinue(RawAnimation.begin().thenLoop("animation.icedragon." + name));
+    }
+
+    private static PlayState once(AnimationState<Syndrigossa> state, String name) {
+        state.setControllerSpeed(1.0F);
+        return state.setAndContinue(RawAnimation.begin().thenPlay("animation.icedragon." + name));
     }
 
     /** Her charge (Ice and Fire's charge attack, hers or a rider's) is Shatter-Spine, bursting over her target. */

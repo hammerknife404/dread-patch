@@ -16,6 +16,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -30,6 +31,7 @@ public final class DreadPatchClient {
         modBus.addListener(DreadPatchClient::onRegisterRenderers);
         modBus.addListener(DreadPatchClient::onClientExtensions);
         modBus.addListener(DreadPatchClient::onReloadListeners);
+        modBus.addListener(DreadPatchClient::onParticles);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
     }
 
@@ -76,6 +78,11 @@ public final class DreadPatchClient {
         }
     }
 
+    private static void onParticles(RegisterParticleProvidersEvent event) {
+        event.registerSpriteSet(ModRegistries.RIME_FLAME.get(), RimeBreathParticle::flame);
+        event.registerSpriteSet(ModRegistries.RIME_SMOKE.get(), RimeBreathParticle::smoke);
+    }
+
     /** Syndrigossa's skins are made from Ice and Fire's textures: remake them when textures reload. */
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener((ResourceManagerReloadListener) resources -> UndeadDragonSkins.clear());
@@ -93,7 +100,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.SOVEREIGNS_ECLIPSE.get(), context -> new RimefireCrownRenderer(context, RimefireCrownRenderer.ECLIPSE));
         event.registerEntityRenderer(ModRegistries.BARROW_HUSK.get(), BarrowHuskRenderer::new);
         event.registerEntityRenderer(ModRegistries.SYNDRIGOSSA.get(), SyndrigossaRenderer::new);
-        event.registerEntityRenderer(ModRegistries.SHATTER_SPINE.get(), NoopRenderer::new);
-        event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModRegistries.SHATTER_SPINE.get(), ShatterSpineRenderer::core);
+        event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), ShatterSpineRenderer::shard);
     }
 }
