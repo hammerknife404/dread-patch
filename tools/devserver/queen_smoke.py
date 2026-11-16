@@ -420,6 +420,20 @@ def main():
     rcon.run("kill @e[tag=smoke_dragon]")
     rcon.run("kill @e[tag=smoke_target]")
 
+    # Ice and Fire's dread scuttlers spit a weakened Withering Rime-Bolt (3 + 4%, 2 s of Withering Rime)
+    # at what they hunt from 3 to 12 blocks: one 9 blocks from a golem it can hunt.
+    rcon.run(golem.format(x=4.5))
+    check("summons a dread scuttler", 'summon iceandfire:dread_scuttler 13.5 200 4.5 {Tags:["smoke_scuttler"]}', "Summoned new")
+    spat = False
+    for _ in range(16):
+        time.sleep(0.5)
+        if has_effect(target, "dreadpatch:withering_rime"):
+            spat = True
+            break
+    record("a dread scuttler spits Withering Rime at its prey", spat, "no Withering Rime on the golem within 8 s")
+    rcon.run("kill @e[tag=smoke_scuttler]")
+    rcon.run("kill @e[tag=smoke_target]")
+
     # Barrow-Step, cast by an armor stand looking down the platform: it's gone from where it stood,
     # its husk is there instead, and struck, the husk shatters, rooting and riming the golem beside it.
     rcon.run(golem.format(x=14.5))
