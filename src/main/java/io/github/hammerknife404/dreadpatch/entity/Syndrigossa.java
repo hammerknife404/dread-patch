@@ -4,6 +4,7 @@ import com.iafenvoy.iceandfire.config.IafCommonConfig;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -28,8 +29,9 @@ import org.jetbrains.annotations.Nullable;
  * one of the Dread (allied with the queen and her court, immune to Withering Rime), drawn rotted to
  * the bone by {@code SyndrigossaRenderer}. She breathes Withering Rime instead of frost
  * ({@link #witheringBreath}, through {@code SyndrigossaEvents}: Ice and Fire's breath stream, aim and
- * timing, with her damage where it lands), and her charge is Shatter-Spine ({@link ShatterSpineCore}).
- * Her drops and her stats are still an ice dragon's.
+ * timing, with her damage where it lands), her charge is Shatter-Spine ({@link ShatterSpineCore}),
+ * and every 30 s she raises Sovereign's Eclipse round her target. Her drops and her stats are still an
+ * ice dragon's.
  */
 public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     /**
@@ -38,6 +40,12 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
      * underneath she's always white, and our renderer paints over it.
      */
     public static final String BASE_COLOR = "white";
+    /** Sovereign's Eclipse: ticks between them, how far off her target may be, and how grown she must be. */
+    static final int ECLIPSE_COOLDOWN = 600;
+    static final double ECLIPSE_RANGE = 24.0;
+    static final int ECLIPSE_MIN_STAGE = 3;
+
+    private int eclipseCooldown = 200;
 
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
@@ -66,6 +74,28 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.setHealth(tag.contains("Health", Tag.TAG_ANY_NUMERIC) ? tag.getFloat("Health") : this.getMaxHealth());
+    }
+
+    /** Every 30 s, grown, with her target in sight within 24 blocks: Sovereign's Eclipse round it. */
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (this.level().isClientSide || !this.isAlive() || this.isModelDead()) {
+            return;
+        }
+        if (this.eclipseCooldown > 0) {
+            this.eclipseCooldown--;
+            return;
+        }
+        LivingEntity target = this.getTarget();
+        if (target != null && target.isAlive() && this.getDragonStage() >= ECLIPSE_MIN_STAGE
+                && this.distanceTo(target) <= ECLIPSE_RANGE && this.hasLineOfSight(target)) {
+            // On the ground under it: a target she's carrying, or one in the air, would leave it floating, holding nothing.
+            Vec3 ground = Utils.moveToRelativeGroundLevel(this.level(), target.position(), 16);
+            this.level().addFreshEntity(SovereignsEclipse.create(this.level(), this, ground));
+            this.playSound(this.getRoarSound(), 3.0F, 0.7F);
+            this.eclipseCooldown = ECLIPSE_COOLDOWN;
+        }
     }
 
     /** Ice and Fire's ice breath multiplier ({@code dragon.attackDamageIce}; 2.1 in the owner's pack). */

@@ -8,6 +8,7 @@ import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineCore;
+import io.github.hammerknife404.dreadpatch.entity.SovereignsEclipse;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineShard;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
@@ -80,6 +81,13 @@ public final class ModRegistries {
                     .sized(0.78F, 1.2F)
                     .clientTrackingRange(10)
                     .build(DreadPatch.id("syndrigossa").toString()));
+
+    /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */
+    public static final DeferredHolder<EntityType<?>, EntityType<SovereignsEclipse>> SOVEREIGNS_ECLIPSE = ENTITY_TYPES.register("sovereigns_eclipse",
+            () -> EntityType.Builder.<SovereignsEclipse>of(SovereignsEclipse::new, MobCategory.MISC)
+                    .sized(SovereignsEclipse.RADIUS * 2, (float) SovereignsEclipse.HEIGHT)
+                    .clientTrackingRange(10)
+                    .build(DreadPatch.id("sovereigns_eclipse").toString()));
 
     /** Shatter-Spine, Syndrigossa's charge, and the shards it bursts into. Drawn by their trails. */
     public static final DeferredHolder<EntityType<?>, EntityType<ShatterSpineCore>> SHATTER_SPINE = ENTITY_TYPES.register("shatter_spine",

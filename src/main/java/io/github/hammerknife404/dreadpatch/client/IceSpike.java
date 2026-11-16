@@ -17,6 +17,12 @@ final class IceSpike {
      * toward the tip; the cyan below is the fire's light.
      */
     static void draw(PoseStack.Pose pose, VertexConsumer out, float u0, float u1, float v0, float v1, float height, float half, int light) {
+        draw(pose, out, u0, u1, v0, v1, height, half, light, 1.0F, 1.0F, 1.0F);
+    }
+
+    /** As {@link #draw(PoseStack.Pose, VertexConsumer, float, float, float, float, float, float, int)}, its colour multiplied by a tint. */
+    static void draw(PoseStack.Pose pose, VertexConsumer out, float u0, float u1, float v0, float v1, float height, float half, int light,
+                     float tintR, float tintG, float tintB) {
         if (height <= 0.0F) {
             return;
         }
@@ -38,19 +44,20 @@ final class IceSpike {
                 float wHigh = half * (1.0F - yHigh / height);
                 float vLow = v1;
                 float vHigh = Mth.lerp(yHigh - yLow, v1, v0);
-                vertex(pose, out, nx, nz, tx, tz, -1, wLow, yLow, Mth.lerp(0.5F - wLow, u0, u1), vLow, light, normalX, normalY, normalZ);
-                vertex(pose, out, nx, nz, tx, tz, 1, wLow, yLow, Mth.lerp(0.5F + wLow, u0, u1), vLow, light, normalX, normalY, normalZ);
-                vertex(pose, out, nx, nz, tx, tz, 1, wHigh, yHigh, Mth.lerp(0.5F + wHigh, u0, u1), vHigh, light, normalX, normalY, normalZ);
-                vertex(pose, out, nx, nz, tx, tz, -1, wHigh, yHigh, Mth.lerp(0.5F - wHigh, u0, u1), vHigh, light, normalX, normalY, normalZ);
+                float[] tint = {tintR, tintG, tintB};
+                vertex(pose, out, nx, nz, tx, tz, -1, wLow, yLow, Mth.lerp(0.5F - wLow, u0, u1), vLow, light, normalX, normalY, normalZ, tint);
+                vertex(pose, out, nx, nz, tx, tz, 1, wLow, yLow, Mth.lerp(0.5F + wLow, u0, u1), vLow, light, normalX, normalY, normalZ, tint);
+                vertex(pose, out, nx, nz, tx, tz, 1, wHigh, yHigh, Mth.lerp(0.5F + wHigh, u0, u1), vHigh, light, normalX, normalY, normalZ, tint);
+                vertex(pose, out, nx, nz, tx, tz, -1, wHigh, yHigh, Mth.lerp(0.5F - wHigh, u0, u1), vHigh, light, normalX, normalY, normalZ, tint);
             }
         }
     }
 
     private static void vertex(PoseStack.Pose pose, VertexConsumer out, int nx, int nz, int tx, int tz, int side, float w, float y,
-                               float u, float v, int light, float normalX, float normalY, float normalZ) {
+                               float u, float v, int light, float normalX, float normalY, float normalZ, float[] tint) {
         float pale = Mth.clamp(y / 1.2F, 0.0F, 1.0F);
         out.addVertex(pose, (nx + tx * side) * w, y, (nz + tz * side) * w)
-                .setColor(Mth.lerp(pale, 0.72F, 1.0F), Mth.lerp(pale, 0.92F, 1.0F), 1.0F, 1.0F)
+                .setColor(Mth.lerp(pale, 0.72F, 1.0F) * tint[0], Mth.lerp(pale, 0.92F, 1.0F) * tint[1], tint[2], 1.0F)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(light)
