@@ -96,7 +96,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     /** Saved, and what makes a summon or a spawn egg's entity data ancient ({@code Ancient:1b}). */
     public static final String ANCIENT_KEY = "Ancient";
 
-    /** Her corpse (Dread: no flesh, blood or heart to take), her bones, and what she leaves in place of a heart. */
+    /** Her corpse (Dread: no flesh, blood or heart to take), her bones, and what she leaves in place of a heart (her egg too, if she's ancient). */
     public static final ResourceLocation CORPSE_LOOT = DreadPatch.id("entities/syndrigossa/corpse");
     public static final ResourceLocation BONES_LOOT = DreadPatch.id("entities/syndrigossa/skeleton");
     public static final ResourceLocation HEART_LOOT = DreadPatch.id("entities/syndrigossa/heart");
@@ -193,7 +193,8 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     /**
      * Her corpse is harvested as Ice and Fire's dragons are (empty hand, a take each click), but she's
      * undead: a bottle draws no blood, her heart is dread ({@link #HEART_LOOT}), and she carries no ice
-     * dragon's egg (her own comes later).
+     * dragon's egg. Her own egg is in her heart's table, for an ancient one only (the owner's call: only
+     * the boss drops it), whatever her gender.
      */
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
