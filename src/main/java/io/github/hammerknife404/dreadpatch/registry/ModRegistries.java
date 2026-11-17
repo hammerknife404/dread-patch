@@ -108,6 +108,9 @@ public final class ModRegistries {
     /** Syndrigossa's breath, big enough to see: a cyan flame and a soot cloud (vanilla sprites, our particle). */
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RIME_FLAME = PARTICLE_TYPES.register("rime_flame", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RIME_SMOKE = PARTICLE_TYPES.register("rime_smoke", () -> new SimpleParticleType(false));
+    /** The same at vanilla's size: the Withering Rime-Bolt's trail and burst. */
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RIME_FLAME_SMALL = PARTICLE_TYPES.register("rime_flame_small", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RIME_SMOKE_SMALL = PARTICLE_TYPES.register("rime_smoke_small", () -> new SimpleParticleType(false));
 
     /** Syndrigossa's breath and her Shatter-Spine's shards (data/dreadpatch/damage_type). */
     public static final ResourceKey<DamageType> WITHERING_BREATH_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("withering_breath"));
