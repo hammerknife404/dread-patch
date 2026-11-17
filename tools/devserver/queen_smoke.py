@@ -641,6 +641,61 @@ def main():
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
     rcon.run("kill @e[type=dreadpatch:barrow_husk]")
+
+    # The queen rising with her dragon, as the boss will (WithSyndrigossa:1b): an ancient Syndrigossa
+    # under her, the two bonded, carrying her in the saddle (not shaking her in its jaws as prey). What
+    # it siphons is shared with her (the Soul Tether), and below half health she gets down off it.
+    rider = "@e[type=dreadpatch:dread_queen,limit=1]"
+    mount = "@e[type=dreadpatch:syndrigossa,limit=1]"
+    check("summons the queen with her dragon", "summon dreadpatch:dread_queen 8.5 200 7.5 {WithSyndrigossa:1b}", "Summoned new Dread Queen")
+    time.sleep(0.3)
+    rcon.run("data merge entity " + mount + " {NoAI:1b}")
+    check("she rides her Syndrigossa", "execute as " + rider + " on vehicle if entity @s[type=dreadpatch:syndrigossa]", "Test passed")
+    # (A wild dragon ages a tick each tick.)
+    record("her dragon is ancient", ANCIENT_TICKS <= age_ticks(mount) < ANCIENT_TICKS + 200, f"AgeTicks {age_ticks(mount)}")
+    queen_uuid = re.search(r"entity data: (\[I;[-0-9, ]+\])", rcon.run("data get entity " + rider + " UUID"))
+    dragon_uuid = re.search(r"entity data: (\[I;[-0-9, ]+\])", rcon.run("data get entity " + mount + " UUID"))
+    bonded_q = re.search(r"entity data: (\[I;[-0-9, ]+\])", rcon.run("data get entity " + rider + " Syndrigossa"))
+    bonded_d = re.search(r"entity data: (\[I;[-0-9, ]+\])", rcon.run("data get entity " + mount + " Queen"))
+    record("the two are bonded", None not in (queen_uuid, dragon_uuid, bonded_q, bonded_d)
+           and bonded_q.group(1) == dragon_uuid.group(1) and bonded_d.group(1) == queen_uuid.group(1),
+           f"queen {queen_uuid and queen_uuid.group(1)} -> {bonded_q and bonded_q.group(1)}, dragon {dragon_uuid and dragon_uuid.group(1)} -> {bonded_d and bonded_d.group(1)}")
+    time.sleep(3.0)
+    record("she rides in the saddle, not in its jaws", health(rider) == 300.0 and "Test passed" in rcon.run(
+        "execute as " + rider + " on vehicle if entity @s[type=dreadpatch:syndrigossa]"), f"queen health {health(rider)} after 3 s riding")
+    rcon.run('summon minecraft:iron_golem 13.5 200 3.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
+    rcon.run("data merge entity " + rider + " {Health:200.0f}")
+    rcon.run("data merge entity " + mount + " {Health:200.0f}")
+    rcon.run("damage " + target + " 5 dreadpatch:withering_breath by " + mount)
+    shared_q, shared_d = health(rider), health(mount)
+    record("its breath's siphon is shared with her", abs(shared_q - 200.25) < 0.01 and abs(shared_d - 200.25) < 0.01,
+           f"queen {shared_q}, dragon {shared_d}, expected 200.25 each")
+    rcon.run("data merge entity " + rider + " {Health:140.0f}")
+    time.sleep(1.0)
+    # With no vehicle, "on vehicle" leaves nothing to test: no output at all.
+    off = "Test passed" not in rcon.run("execute as " + rider + " on vehicle if entity @s")
+    record("below half health she gets down", off, "she's still riding")
+    stepped_down = "Test passed" in rcon.run("execute if entity @e[type=dreadpatch:barrow_husk]") or has_effect(rider, "minecraft:slow_falling")
+    record("by Barrow-Step, or drifting down", stepped_down, "no husk of hers and no Slow Falling")
+    time.sleep(2.0)
+    record("and lands alive", health(rider) > 0, f"queen health {health(rider)}")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    rcon.run("kill @e[type=dreadpatch:barrow_husk]")
+    # Her dragon killed under her, she's thrown clear and lives.
+    rcon.run("summon dreadpatch:dread_queen 8.5 200 7.5 {WithSyndrigossa:1b}")
+    time.sleep(0.3)
+    rcon.run("data merge entity " + mount + " {NoAI:1b}")
+    rcon.run("damage " + mount + " 100000 minecraft:generic")
+    time.sleep(2.0)
+    record("her dragon dead, she's off it and alive", "Test passed" not in rcon.run("execute as " + rider + " on vehicle if entity @s")
+           and health(rider) > 0, f"queen health {health(rider)}")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    clear_court()
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[type=item]")
+    rcon.run("kill @e[type=dreadpatch:barrow_husk]")
     rcon.run("fill 1 199 1 30 199 14 minecraft:air")
     rcon.run("forceload remove 0 0 31 15")
 

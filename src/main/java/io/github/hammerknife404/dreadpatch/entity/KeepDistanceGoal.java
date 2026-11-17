@@ -48,7 +48,8 @@ final class KeepDistanceGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity target = this.queen.getTarget();
-        return target != null && target.isAlive() && this.queen.canAttack(target);
+        // In the saddle her dragon moves her; she only casts (DreadQueen.customServerAiStep).
+        return target != null && target.isAlive() && this.queen.canAttack(target) && !this.queen.isPassenger();
     }
 
     @Override

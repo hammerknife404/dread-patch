@@ -33,6 +33,7 @@ public final class DreadPatchClient {
         modBus.addListener(DreadPatchClient::onReloadListeners);
         modBus.addListener(DreadPatchClient::onParticles);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
+        NeoForge.EVENT_BUS.addListener(SaddleLayer::onRenderLiving);
     }
 
     /**

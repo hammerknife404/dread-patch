@@ -144,13 +144,17 @@ final class DreadCourt {
         return type.create(level);
     }
 
-    /** Solid ground 2-5 blocks from her with room to rise, or null if a few tries find none. */
+    /**
+     * Solid ground 2-5 blocks from her with room to rise, or null if a few tries find none. Riding her
+     * dragon, round the ground under her (up to 64 blocks down).
+     */
     @Nullable
     private Vec3 findSpot(ServerLevel level, DreadMobEntity member) {
+        Vec3 center = this.queen.isPassenger() ? Utils.moveToRelativeGroundLevel(level, this.queen.position(), 64) : this.queen.position();
         for (int attempt = 0; attempt < 12; attempt++) {
             double angle = this.queen.getRandom().nextDouble() * Math.PI * 2;
             double distance = 2.0 + this.queen.getRandom().nextDouble() * 3.0;
-            Vec3 guess = new Vec3(this.queen.getX() + Math.cos(angle) * distance, this.queen.getY(), this.queen.getZ() + Math.sin(angle) * distance);
+            Vec3 guess = new Vec3(center.x + Math.cos(angle) * distance, center.y, center.z + Math.sin(angle) * distance);
             // It lands a hair under the surface (199.996 on a block top at 200); Iron's own spells lift it too.
             Vec3 ground = Utils.moveToRelativeGroundLevel(level, guess, 4).add(0, 0.05, 0);
             BlockPos below = BlockPos.containing(ground).below();

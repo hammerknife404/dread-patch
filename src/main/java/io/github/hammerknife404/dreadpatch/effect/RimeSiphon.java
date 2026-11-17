@@ -2,6 +2,7 @@ package io.github.hammerknife404.dreadpatch.effect;
 
 import com.iafenvoy.iceandfire.registry.IafParticles;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
+import io.github.hammerknife404.dreadpatch.entity.SoulTether;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -22,7 +23,7 @@ import java.util.WeakHashMap;
  * {@link #HEAL_HARD} on Hard, while she's within {@link #RANGE} blocks of them. They lose 1 a tick, as
  * under anyone's Withering Rime. The Rime is hers until someone else lays it on them again. Anyone
  * else's feeds no one. (0.13.0 leeched a share of the victim's max health, up to 10 a tick, and she
- * cut through wardens.)
+ * cut through wardens.) Bonded to a Syndrigossa, she shares it with her dragon ({@link SoulTether}).
  */
 public final class RimeSiphon {
     public static final double RANGE = 32.0;
@@ -72,7 +73,7 @@ public final class RimeSiphon {
             return;
         }
         if (level.getEntity(layer.id()) instanceof DreadQueen queen && queen.isAlive() && queen.distanceToSqr(victim) <= RANGE * RANGE) {
-            queen.heal(heal(level.getDifficulty()));
+            SoulTether.heal(queen, heal(level.getDifficulty()));
             level.sendParticles(IafParticles.DREAD_TORCH.get(), victim.getX(), victim.getY(0.6), victim.getZ(), 3, 0.3, 0.3, 0.3, 0.02);
             level.sendParticles(ParticleTypes.SNOWFLAKE, queen.getX(), queen.getY(0.6), queen.getZ(), 3, 0.3, 0.4, 0.3, 0.01);
         }

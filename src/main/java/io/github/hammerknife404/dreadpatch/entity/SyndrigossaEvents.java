@@ -23,7 +23,8 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
  * <li>an ice charge she looses anyway (Ice and Fire's {@code IceDragonEntity} makes them directly in
  * its private {@code shootIceAtMob} and in {@code riderShootFire}, not through
  * {@code createCharge}) becomes Shatter-Spine as it enters the world;</li>
- * <li>each breath hit siphons {@link DragonBreath#SIPHON} more, past armor, into her;</li>
+ * <li>each breath hit siphons {@link DragonBreath#SIPHON} more, past armor, into her (shared with her
+ * queen, {@link SoulTether});</li>
  * <li>she's undead, and the Wither effect doesn't take (the undead tag already keeps Poison and
  * Regeneration off her, and Withering Rime is refused to all the Dread in {@code DreadEvents}).</li>
  * </ul>
@@ -71,7 +72,7 @@ public final class SyndrigossaEvents {
     private static void onDamage(LivingDamageEvent.Pre event) {
         if (event.getSource().is(ModRegistries.WITHERING_BREATH_DAMAGE) && event.getSource().getEntity() instanceof Syndrigossa dragon) {
             event.setNewDamage(event.getNewDamage() + DragonBreath.SIPHON);
-            dragon.heal(DragonBreath.SIPHON);
+            SoulTether.heal(dragon, DragonBreath.SIPHON);
         }
     }
 }

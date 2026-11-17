@@ -1,6 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.config.IafCommonConfig;
+import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.ai.DragonAITargetNonTamedGoal;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
@@ -13,6 +14,7 @@ import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import java.util.List;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -65,7 +67,7 @@ import software.bernie.geckolib.animation.RawAnimation;
  * and every 30 s she raises Sovereign's Eclipse round her target. She grows as an ice dragon does,
  * but rises ancient, at full strength, as the boss ({@link DragonAge}); she's undead (tagged; no
  * Wither, in {@code SyndrigossaEvents}), hunts players whatever Ice and Fire's config says, and her
- * corpse is Dread.
+ * corpse is Dread. A queen spawned as the boss rises riding one, bonded to it ({@link SoulTether}).
  */
 public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     /**
@@ -101,9 +103,14 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     public static final ResourceLocation BONES_LOOT = DreadPatch.id("entities/syndrigossa/skeleton");
     public static final ResourceLocation HEART_LOOT = DreadPatch.id("entities/syndrigossa/heart");
 
+    /** Saved: the queen she rose under ({@link SoulTether}). */
+    static final String QUEEN_KEY = "Queen";
+
     private boolean ancient;
     /** Set while Ice and Fire takes a harvest from her corpse, so its heart and egg can be swapped. */
     private boolean harvesting;
+    @Nullable
+    private UUID queenId;
 
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
@@ -114,11 +121,59 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         return BASE_COLOR;
     }
 
-    /** Whom she answers to: no one yet. */
+    /** Whom she answers to: the queen she rose under, while that queen is loaded (server side). */
     @Nullable
     @Override
     public Entity getCommander() {
-        return null;
+        return this.queenId != null && this.level() instanceof ServerLevel level ? level.getEntity(this.queenId) : null;
+    }
+
+    @Nullable
+    public UUID getQueenId() {
+        return this.queenId;
+    }
+
+    /** Bound to the queen she rose under: her mount, and the other end of their {@link SoulTether}. */
+    public void bondTo(DreadQueen queen) {
+        this.queenId = queen.getUUID();
+    }
+
+    /**
+     * Ice and Fire seats only a tame dragon's owner; anyone else on a dragon is prey in its jaws, shaken
+     * and bitten ({@code updatePreyInMouth}). A Dread Queen on her back rides in the saddle, where Ice
+     * and Fire would seat a rider. Her own position is only her hitbox and where she casts from; she's
+     * drawn on the dragon's back by {@code SaddleLayer}.
+     */
+    @Override
+    public void positionRider(Entity passenger, Entity.MoveFunction callback) {
+        if (passenger instanceof DreadQueenEntity queen && this.hasPassenger(passenger)) {
+            Vec3 seat = this.getRiderPosition();
+            callback.accept(passenger, seat.x, seat.y, seat.z);
+            // Facing along the dragon, as a rider does (Ice and Fire's riders turn it; she doesn't).
+            queen.setYRot(this.yBodyRot);
+            queen.yRotO = this.yBodyRotO;
+            queen.yBodyRot = this.yBodyRot;
+            queen.yBodyRotO = this.yBodyRotO;
+            return;
+        }
+        super.positionRider(passenger, callback);
+    }
+
+    /** Anyone on her back but a Dread Queen: prey in her jaws, or a rider. */
+    boolean carriesOthers() {
+        for (Entity passenger : this.getPassengers()) {
+            if (!(passenger instanceof DreadQueenEntity)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Ice and Fire's own, except that a queen in the saddle doesn't keep her on the ground (Ice and Fire's needs no passengers at all). */
+    @Override
+    public boolean isAllowedToTriggerFlight() {
+        return (this.hasFlightClearance() && this.onGround() || this.isInWater())
+                && !this.isOrderedToSit() && !this.carriesOthers() && !this.isBaby() && !this.isSleeping() && this.canMove();
     }
 
     public boolean isAncient() {
@@ -149,6 +204,9 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean(ANCIENT_KEY, this.ancient);
+        if (this.queenId != null) {
+            tag.putUUID(QUEEN_KEY, this.queenId);
+        }
     }
 
     /**
@@ -163,6 +221,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
+        this.queenId = tag.hasUUID(QUEEN_KEY) ? tag.getUUID(QUEEN_KEY) : null;
         if (tag.getBoolean(ANCIENT_KEY) && this.getAgeInDays() < DragonAge.ANCIENT_DAYS) {
             this.makeAncient();
             return;
@@ -250,7 +309,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
             return;
         }
         LivingEntity hunted = this.getTarget();
-        if (hunted != null && hunted.isAlive() && !this.isFlying() && !this.isHovering() && !this.isVehicle() && !this.isOrderedToSit()
+        if (hunted != null && hunted.isAlive() && !this.isFlying() && !this.isHovering() && !this.carriesOthers() && !this.isOrderedToSit()
                 && !this.isSleeping() && this.isAllowedToTriggerFlight() && this.random.nextInt(TAKEOFF_CHANCE) == 0) {
             this.takeOff();
         }
@@ -292,7 +351,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
             this.spineCooldown--;
             return;
         }
-        if (target != null && target.isAlive() && airborne && !this.isVehicle()) {
+        if (target != null && target.isAlive() && airborne && !this.carriesOthers()) {
             double distance = this.distanceTo(target);
             if (distance >= SPINE_MIN_RANGE && distance <= SPINE_MAX_RANGE && this.hasLineOfSight(target)) {
                 this.spineCharging = SPINE_CHARGE_TICKS;
