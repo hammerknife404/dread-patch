@@ -86,6 +86,13 @@ dependencies {
     implementation "maven.modrinth:playeranimator:${playeranimator_version}"
     implementation "maven.modrinth:curios:${curios_version}"
 
+    // Dev runs only: Better Combat as the owner's pack has it (swings that hit everyone in an arc, each
+    // target through Player.attack; its mob addon gives mobs those attacks), with Cloth Config, which
+    // both need (playerAnimator is above). Never required.
+    localRuntime "maven.modrinth:better-combat:${bettercombat_version}"
+    localRuntime "maven.modrinth:better-mob-combat-reimagined:${better_mob_combat_version}"
+    localRuntime "maven.modrinth:cloth-config:${cloth_config_version}"
+
     // Plain JUnit for pure logic (no Minecraft bootstrap).
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
