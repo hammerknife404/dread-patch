@@ -33,6 +33,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -119,6 +120,13 @@ public final class ModRegistries {
     /** Soot spotted with bone. */
     public static final DeferredItem<DeferredSpawnEggItem> SYNDRIGOSSA_SPAWN_EGG = ITEMS.register("syndrigossa_spawn_egg",
             () -> new DeferredSpawnEggItem(SYNDRIGOSSA, 0x14161D, 0xD8DEE9, new Item.Properties()));
+
+    /**
+     * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's
+     * heart would be. It doesn't hatch yet (her hatching ritual is still to come).
+     */
+    public static final DeferredItem<Item> SYNDRIGOSSA_EGG = ITEMS.register("syndrigossa_egg",
+            () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
     public static final DeferredHolder<MobEffect, WitheringRimeEffect> WITHERING_RIME = MOB_EFFECTS.register("withering_rime", WitheringRimeEffect::new);
 

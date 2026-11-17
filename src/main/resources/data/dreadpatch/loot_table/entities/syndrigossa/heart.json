@@ -38,6 +38,24 @@
           ]
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "dreadpatch:syndrigossa_egg"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "nbt": "{Ancient:1b}"
+          }
+        }
+      ]
     }
   ]
 }

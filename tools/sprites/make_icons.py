@@ -6,7 +6,7 @@ gives identical files. Her palette, from the owner's notes: charcoal #14161D, bo
 abyssal indigo #1E2A4A; her dread fire is the cyan of Ice and Fire's dread torch and her eye glow,
 #00CBFF. Spell icons are 16x16 and full-bleed like Iron's; effect icons are 18x18 on transparency
 like vanilla's. The dread fire is an animated block-atlas texture (16x16 frames, with its .mcmeta),
-drawn by the Rimefire Crown's renderer.
+drawn by the Rimefire Crown's renderer. Syndrigossa's egg is a 16x16 item texture on transparency.
 """
 import json
 import math
@@ -248,6 +248,40 @@ def brittle_effect():
     return im
 
 
+def syndrigossa_egg():
+    """Her egg (an item, 16x16 on transparency): a soot-black shell lit from the top left, bone-ash
+    scale ridges across it, and a crack down it glowing her dread cyan."""
+    im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    top, bottom, cx = 1, 14, 7.5
+    for y in range(top, bottom + 1):
+        v = (y - top) / (bottom - top)
+        half = 5.6 * math.sqrt(max(0.0, 1.0 - (2.0 * v - 1.0) ** 2)) * (0.78 + 0.3 * v)
+        for x in range(16):
+            dx = x - cx
+            if abs(dx) > half:
+                continue
+            light = -(dx / 6.0) - (y - 6.5) / 8.0  # toward the top left
+            if light > 0.55:
+                c = DEEP
+            elif light > 0.1:
+                c = INDIGO
+            elif light > -0.45:
+                c = CHARCOAL
+            else:
+                c = SOOT
+            # Scale ridges: short bone-ash arcs on alternate rows.
+            if y % 3 == 1 and (x + y // 3) % 3 == 0 and abs(dx) < half - 1:
+                c = BONE_DIM if light < 0.3 else BONE
+            im.putpixel((x, y), rgba(c))
+    for a, b in [((8, 2), (7, 5)), ((7, 5), (9, 8)), ((9, 8), (8, 11))]:
+        line(im, a, b, DREAD_CYAN)
+    for x, y in [(8, 2), (9, 8)]:
+        im.putpixel((x, y), rgba(FIRE_CORE))
+    im.putpixel((5, 4), rgba(BONE_LIGHT))
+    outline(im)
+    return im
+
+
 def periodic_noise(width, height, cells_x, cells_y, rnd):
     """Smooth value noise that wraps in both directions, so an animation scrolled through it loops."""
     grid = [[rnd.random() for _ in range(cells_x)] for _ in range(cells_y)]
@@ -312,6 +346,7 @@ def main():
         "mob_effect/rimebound.png": rimebound_effect(),
         "mob_effect/brittle.png": brittle_effect(),
         "gui/spell_icons/barrow_step.png": barrow_step(),
+        "item/syndrigossa_egg.png": syndrigossa_egg(),
         "block/dread_fire_0.png": dread_fire(31),
         "block/dread_fire_1.png": dread_fire(8),
     }

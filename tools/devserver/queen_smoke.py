@@ -294,10 +294,20 @@ def main():
     heart_shards, heart_bones = item_total("iceandfire:dread_shard"), item_total("iceandfire:witherbone")
     record("her heart is 4-8 dread shards and 2-4 witherbones", 4 <= heart_shards <= 8 and 2 <= heart_bones <= 4,
            f"{heart_shards} shards, {heart_bones} witherbones")
+    eggs = item_total("dreadpatch:syndrigossa_egg")
+    record("an ancient one leaves her egg with it", eggs == 1, f"{eggs} eggs")
     rcon.run("kill @e[type=item]")
     rcon.run("execute as " + dragon + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/syndrigossa/skeleton")
     bones = item_total("iceandfire:dragonbone")
     record("her skeleton gives dragon bones", 1 <= bones <= 6, f"{bones} dragon bones")
+    rcon.run("kill @e[type=item]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    # Only the boss leaves her egg: a grown one that isn't ancient, never, over five hearts.
+    rcon.run(surface + "summon dreadpatch:syndrigossa ~8 ~ ~ {NoAI:1b,AgeTicks:2500000}")
+    for _ in range(5):
+        rcon.run("execute as " + dragon + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/syndrigossa/heart")
+    young_eggs, young_shards = item_total("dreadpatch:syndrigossa_egg"), item_total("iceandfire:dread_shard")
+    record("one that isn't ancient never leaves her egg", young_eggs == 0 and young_shards >= 20, f"{young_eggs} eggs, {young_shards} shards from 5 hearts")
     rcon.run("kill @e[type=item]")
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
 

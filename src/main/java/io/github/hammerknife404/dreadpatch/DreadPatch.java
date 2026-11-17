@@ -64,6 +64,8 @@ public final class DreadPatch {
             event.accept(ModRegistries.DREAD_QUEEN_SPAWN_EGG.get());
             event.accept(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get());
             event.accept(ancientSyndrigossaEgg());
+        } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
         }
     }
 
