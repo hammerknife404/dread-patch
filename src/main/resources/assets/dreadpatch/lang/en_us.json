@@ -32,6 +32,7 @@
   "ui.dreadpatch.root_seconds": "%ss Root",
   "entity.dreadpatch.syndrigossa": "Syndrigossa",
   "item.dreadpatch.syndrigossa_spawn_egg": "Syndrigossa Spawn Egg",
+  "item.dreadpatch.ancient_syndrigossa_spawn_egg": "Ancient Syndrigossa Spawn Egg",
   "entity.dreadpatch.shatter_spine": "Shatter-Spine",
   "entity.dreadpatch.shatter_spine_shard": "Shatter-Spine Shard",
   "death.attack.dreadpatch.withering_breath": "%1$s withered in %2$s's breath",

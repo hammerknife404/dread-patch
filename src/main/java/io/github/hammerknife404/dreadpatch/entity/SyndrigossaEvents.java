@@ -7,10 +7,12 @@ import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 /**
  * Where Syndrigossa's attacks leave the ice dragon's:
@@ -21,7 +23,9 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
  * <li>an ice charge she looses anyway (Ice and Fire's {@code IceDragonEntity} makes them directly in
  * its private {@code shootIceAtMob} and in {@code riderShootFire}, not through
  * {@code createCharge}) becomes Shatter-Spine as it enters the world;</li>
- * <li>each breath hit siphons {@link DragonBreath#SIPHON} more, past armor, into her.</li>
+ * <li>each breath hit siphons {@link DragonBreath#SIPHON} more, past armor, into her;</li>
+ * <li>she's undead, and the Wither effect doesn't take (the undead tag already keeps Poison and
+ * Regeneration off her, and Withering Rime is refused to all the Dread in {@code DreadEvents}).</li>
  * </ul>
  */
 public final class SyndrigossaEvents {
@@ -32,6 +36,13 @@ public final class SyndrigossaEvents {
         gameBus.addListener(SyndrigossaEvents::onDragonFireDamage);
         gameBus.addListener(SyndrigossaEvents::onJoin);
         gameBus.addListener(SyndrigossaEvents::onDamage);
+        gameBus.addListener(SyndrigossaEvents::onEffectApplicable);
+    }
+
+    private static void onEffectApplicable(MobEffectEvent.Applicable event) {
+        if (event.getEntity() instanceof Syndrigossa && event.getEffectInstance().is(MobEffects.WITHER)) {
+            event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
+        }
     }
 
     private static void onDragonFireDamage(DragonFireDamageWorldEvent event) {
