@@ -70,7 +70,11 @@ public class DreadQueen extends DreadQueenEntity {
     static final int BARROW_STEP_COOLDOWN = 240;
     static final double BARROW_STEP_MIN_AWAY = 9.0;
 
-    /** In the saddle until this share of her health is gone (the owner's notes' second phase), then she steps down for good. */
+    /**
+     * In the saddle until this share of her health is gone, then she steps down for good. A backstop:
+     * she can hardly be hit up there (the owner couldn't), so it's her dragon's health that brings her
+     * down ({@code Syndrigossa.bringQueenDown}, at half).
+     */
     static final float DISMOUNT_AT = 0.5F;
     /** Saved: the Syndrigossa she rose with, and whether she's still to call it (a boss spawn, or {@code WithSyndrigossa:1b}). */
     static final String DRAGON_KEY = "Syndrigossa";
@@ -150,8 +154,14 @@ public class DreadQueen extends DreadQueenEntity {
         }
     }
 
+    /** Off her dragon, which has landed to let her down: she Barrow-Steps off ({@link #stepDown}). */
+    public void leaveSaddle() {
+        this.stepDown(this.getTarget());
+    }
+
     /**
-     * Off her dragon below {@link #DISMOUNT_AT} of her health, or thrown off in the air (it died): she
+     * Off her dragon: it's landed at half its health ({@link #leaveSaddle}), she's below {@link #DISMOUNT_AT}
+     * of hers, or she was thrown off in the air (it died). She
      * Barrow-Steps to the ground under it (her husk tumbles from the saddle). With no ground in reach,
      * she drifts down.
      */

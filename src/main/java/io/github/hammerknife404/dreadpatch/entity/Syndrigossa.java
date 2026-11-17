@@ -105,12 +105,21 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
 
     /** Saved: the queen she rose under ({@link SoulTether}). */
     static final String QUEEN_KEY = "Queen";
+    /**
+     * With a queen on her back, at this share of her health she's forced down, and once she lands her
+     * queen steps off for good (the owner's choice, once, at half: the queen can't be hit in the saddle).
+     */
+    static final float QUEEN_OFF_AT = 0.5F;
+    /** Then she can't take off for this long (10 s, the owner's choice): a window to punish her on the ground. */
+    static final int GROUNDED_TICKS = 200;
 
     private boolean ancient;
     /** Set while Ice and Fire takes a harvest from her corpse, so its heart and egg can be swapped. */
     private boolean harvesting;
     @Nullable
     private UUID queenId;
+    private boolean forcedDown;
+    private int groundedTicks;
 
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
@@ -171,11 +180,62 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         return false;
     }
 
-    /** Ice and Fire's own, except that a queen in the saddle doesn't keep her on the ground (Ice and Fire's needs no passengers at all). */
+    /**
+     * Ice and Fire's own, except that a queen in the saddle doesn't keep her on the ground (Ice and Fire's
+     * needs no passengers at all), and not while she's forced down or grounded ({@link #bringQueenDown}).
+     */
     @Override
     public boolean isAllowedToTriggerFlight() {
         return (this.hasFlightClearance() && this.onGround() || this.isInWater())
-                && !this.isOrderedToSit() && !this.carriesOthers() && !this.isBaby() && !this.isSleeping() && this.canMove();
+                && !this.isOrderedToSit() && !this.carriesOthers() && !this.isBaby() && !this.isSleeping() && this.canMove()
+                && !this.mustStayDown();
+    }
+
+    private boolean mustStayDown() {
+        return this.forcedDown || this.groundedTicks > 0;
+    }
+
+    /** Ice and Fire lands a dragon that wants to: hovering, it sinks; near the ground, it stops flying. */
+    @Override
+    public boolean doesWantToLand() {
+        return this.mustStayDown() || super.doesWantToLand();
+    }
+
+    /**
+     * Half her health gone ({@link #QUEEN_OFF_AT}) with a queen on her back: down she goes, flying turned
+     * to hovering so Ice and Fire sinks her ({@link #doesWantToLand}), and once she's on the ground (or
+     * in water) her queen Barrow-Steps off and she's grounded {@link #GROUNDED_TICKS} ticks. Once: her
+     * queen never remounts.
+     */
+    private void bringQueenDown() {
+        if (this.groundedTicks > 0) {
+            this.groundedTicks--;
+        }
+        Entity rider = null;
+        for (Entity passenger : this.getPassengers()) {
+            if (passenger instanceof DreadQueenEntity) {
+                rider = passenger;
+            }
+        }
+        if (rider != null && !this.forcedDown && this.getHealth() <= this.getMaxHealth() * QUEEN_OFF_AT) {
+            this.forcedDown = true;
+        }
+        if (!this.mustStayDown()) {
+            return;
+        }
+        if (this.isFlying()) {
+            this.setFlying(false);
+            this.setHovering(!this.onGround());
+        }
+        if (this.forcedDown && (this.onGround() || this.isInWater())) {
+            this.forcedDown = false;
+            this.groundedTicks = GROUNDED_TICKS;
+            if (rider instanceof DreadQueen queen) {
+                queen.leaveSaddle();
+            } else if (rider != null) {
+                rider.stopRiding();
+            }
+        }
     }
 
     public boolean isAncient() {
@@ -316,6 +376,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         if (current != null && (!current.isAlive() || !this.canAttack(current))) {
             this.setTarget(null);
         }
+        this.bringQueenDown();
         LivingEntity hunted = this.getTarget();
         if (hunted != null && hunted.isAlive() && !this.isFlying() && !this.isHovering() && !this.carriesOthers() && !this.isOrderedToSit()
                 && !this.isSleeping() && this.isAllowedToTriggerFlight() && this.random.nextInt(TAKEOFF_CHANCE) == 0) {

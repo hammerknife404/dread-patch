@@ -695,12 +695,13 @@ def main():
     record("she rides in the saddle, not in its jaws", health(rider) == 300.0 and "Test passed" in rcon.run(
         "execute as " + rider + " on vehicle if entity @s[type=dreadpatch:syndrigossa]"), f"queen health {health(rider)} after 3 s riding")
     rcon.run('summon minecraft:iron_golem 13.5 200 3.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
+    # (The dragon above half its health, or it lands to let her off.)
     rcon.run("data merge entity " + rider + " {Health:200.0f}")
-    rcon.run("data merge entity " + mount + " {Health:200.0f}")
+    rcon.run("data merge entity " + mount + " {Health:400.0f}")
     rcon.run("damage " + target + " 5 dreadpatch:withering_breath by " + mount)
     shared_q, shared_d = health(rider), health(mount)
-    record("its breath's siphon is shared with her", abs(shared_q - 200.25) < 0.01 and abs(shared_d - 200.25) < 0.01,
-           f"queen {shared_q}, dragon {shared_d}, expected 200.25 each")
+    record("its breath's siphon is shared with her", abs(shared_q - 200.25) < 0.01 and abs(shared_d - 400.25) < 0.01,
+           f"queen {shared_q}, dragon {shared_d}, expected 200.25 and 400.25")
     rcon.run("data merge entity " + rider + " {Health:140.0f}")
     time.sleep(1.0)
     # With no vehicle, "on vehicle" leaves nothing to test: no output at all.
@@ -710,6 +711,18 @@ def main():
     record("by Barrow-Step, or drifting down", stepped_down, "no husk of hers and no Slow Falling")
     time.sleep(2.0)
     record("and lands alive", health(rider) > 0, f"queen health {health(rider)}")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    rcon.run("kill @e[type=dreadpatch:barrow_husk]")
+    # Her dragon at half its health (250 of the dev run's 500): it lands (it's on the platform already) and
+    # she steps off, alive. The owner couldn't hit her in the saddle, so this is what brings her down.
+    rcon.run("summon dreadpatch:dread_queen 8.5 200 7.5 {WithSyndrigossa:1b}")
+    time.sleep(0.3)
+    rcon.run("data merge entity " + mount + " {NoAI:1b}")
+    rcon.run("data merge entity " + mount + " {Health:240.0f}")
+    time.sleep(1.5)
+    record("her dragon at half, she's set down", "Test passed" not in rcon.run("execute as " + rider + " on vehicle if entity @s")
+           and health(rider) > 0, f"queen health {health(rider)}")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     rcon.run("kill @e[type=dreadpatch:barrow_husk]")
