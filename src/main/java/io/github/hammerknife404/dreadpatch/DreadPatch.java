@@ -62,11 +62,26 @@ public final class DreadPatch {
     private static void onCreativeTabs(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ModRegistries.DREAD_QUEEN_SPAWN_EGG.get());
+            event.accept(queenWithSyndrigossaEgg());
             event.accept(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get());
             event.accept(ancientSyndrigossaEgg());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
         }
+    }
+
+    /**
+     * The queen's spawn egg carrying {@code WithSyndrigossa:1b}: she rises riding an ancient
+     * Syndrigossa, as the boss will, where the plain egg gives her alone.
+     */
+    private static ItemStack queenWithSyndrigossaEgg() {
+        ItemStack egg = new ItemStack(ModRegistries.DREAD_QUEEN_SPAWN_EGG.get());
+        CompoundTag data = new CompoundTag();
+        data.putString("id", ModRegistries.DREAD_QUEEN.getId().toString());
+        data.putBoolean(DreadQueen.WITH_DRAGON_KEY, true);
+        egg.set(DataComponents.ENTITY_DATA, CustomData.of(data));
+        egg.set(DataComponents.ITEM_NAME, Component.translatable("item.dreadpatch.dread_queen_and_syndrigossa_spawn_egg"));
+        return egg;
     }
 
     /**
