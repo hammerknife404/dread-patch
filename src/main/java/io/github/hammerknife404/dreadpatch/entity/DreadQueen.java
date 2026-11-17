@@ -204,6 +204,10 @@ public class DreadQueen extends DreadQueenEntity {
         LivingEntity target = this.getTarget();
         if (target != null && !target.isAlive()) {
             target = null;
+        } else if (target != null && !this.canAttack(target)) {
+            // One her dragon handed her, or a player gone creative or spectator: no target goal rechecks it.
+            this.setTarget(null);
+            target = null;
         }
         if (this.getVehicle() instanceof Syndrigossa && this.getHealth() <= this.getMaxHealth() * DISMOUNT_AT) {
             this.stepDown(target);

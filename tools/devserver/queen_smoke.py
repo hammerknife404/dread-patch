@@ -128,6 +128,9 @@ def main():
     # server nobody has joined every spell reads max level 1. A reload syncs it.
     rcon.run("reload")
     time.sleep(3)
+    # By day: at night monsters spawn on the dark stone platforms and draw her off her targets (her crown
+    # check failed in alternate runs as the dev world's clock went round), and dragons sleep.
+    rcon.run("time set noon")
     # Chunks x 0-1, z 0: the platforms in the sky, the longest 30 blocks.
     rcon.run("forceload add 0 0 31 15")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
@@ -260,7 +263,8 @@ def main():
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     rcon.run(surface + "summon dreadpatch:syndrigossa ~8 ~ ~ {NoAI:1b,Ancient:1b}")
     old_age, old_max, old_health = age_ticks(dragon), max_health(dragon), health(dragon)
-    record("ancient, she's 125 days old", old_age == ANCIENT_TICKS, f"AgeTicks {old_age}")
+    # (Dragons age a tick each tick, NoAI or not, so the read may come a tick or two later.)
+    record("ancient, she's 125 days old", ANCIENT_TICKS <= old_age < ANCIENT_TICKS + 200, f"AgeTicks {old_age}")
     record("at full strength (Ice and Fire's maxHealth)", old_max == 500.0, f"max health {old_max}")
     record("and whole", old_health == old_max, f"health {old_health} of {old_max}")
     check("she stays ancient", "data get entity " + dragon + " Ancient", "1b")
@@ -444,11 +448,22 @@ def main():
     rcon.run('summon iceandfire:dread_thrall 12.5 200 5.8 {NoAI:1b,Tags:["smoke_dread"]}')
     rcon.run("summon dreadpatch:dread_queen 2.5 200 4.5")
     crowned = False
-    for _ in range(50):
+    trace = []
+    for i in range(50):
         time.sleep(0.5)
         if has_effect(target, "dreadpatch:rimebound"):
             crowned = True
             break
+        about = []
+        for kind in ("dreadpatch:syndrigossa", "iceandfire:dread_thrall", "iceandfire:dread_ghoul", "iceandfire:dread_knight",
+                     "iceandfire:dread_scuttler", "dreadpatch:rimefire_crown", "minecraft:zombie", "minecraft:skeleton"):
+            m = re.search(r"count: (\d+)", rcon.run(f"execute positioned 8 200 4 if entity @e[type={kind},distance=..64]"))
+            if m:
+                about.append(kind.split(":")[1] + "=" + m.group(1))
+        qpos = re.search(r"\[([-0-9.]+)d, ([-0-9.]+)d, ([-0-9.]+)d\]", rcon.run("data get entity @e[type=dreadpatch:dread_queen,limit=1] Pos"))
+        trace.append(f"{(i + 1) / 2:4.1f}s golem {health(target)} queen {qpos and tuple(round(float(v), 1) for v in qpos.groups())} {' '.join(about)}")
+    if not crowned:
+        print("\n".join("      " + line for line in trace))
     record("she raises a crown on her target", crowned, "the golem wasn't rooted within 25 s")
     record("her crown spares the Dread", crowned and not has_effect("@e[tag=smoke_dread,limit=1]", "dreadpatch:rimebound"),
            "the dread thrall was rooted" if crowned else "no crown to check")
@@ -491,7 +506,9 @@ def main():
     time.sleep(0.4)
     shards = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:shatter_spine_shard]"))
     record("a Shatter-Spine core bursts into 5 to 7 shards", shards is not None and 5 <= int(shards.group(1)) <= 7,
-           f"{shards and shards.group(1)} shards")
+           f"{shards and shards.group(1)} shards; at " + str(re.findall(r"\[[-0-9., d]+\]", rcon.run(
+               "execute as @e[type=dreadpatch:shatter_spine_shard] run data get entity @s Pos")))[:400]
+           + "; Syndrigossas loaded: " + rcon.run("execute if entity @e[type=dreadpatch:syndrigossa]").strip())
     record("and is gone", "Test failed" in rcon.run("execute positioned 8.5 210 4.5 if entity @e[type=dreadpatch:shatter_spine,distance=..16]"),
            "the core is still there")
     time.sleep(2.5)
@@ -660,6 +677,14 @@ def main():
     record("the two are bonded", None not in (queen_uuid, dragon_uuid, bonded_q, bonded_d)
            and bonded_q.group(1) == dragon_uuid.group(1) and bonded_d.group(1) == queen_uuid.group(1),
            f"queen {queen_uuid and queen_uuid.group(1)} -> {bonded_q and bonded_q.group(1)}, dragon {dragon_uuid and dragon_uuid.group(1)} -> {bonded_d and bonded_d.group(1)}")
+    # Seated as Ice and Fire seats a rider: her feet at its rider position plus her height, on its back
+    # (full-grown, about 9 blocks up), not inside its body where nothing can reach her.
+    def y_of(selector):
+        m = re.search(r"entity data: \[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity " + selector + " Pos"))
+        return float(m.group(1)) if m else -1000.0
+    time.sleep(0.2)
+    seat = y_of(rider) - y_of(mount)
+    record("she sits on its back", 8.0 <= seat <= 11.0, f"her feet {seat:.2f} above its")
     time.sleep(3.0)
     record("she rides in the saddle, not in its jaws", health(rider) == 300.0 and "Test passed" in rcon.run(
         "execute as " + rider + " on vehicle if entity @s[type=dreadpatch:syndrigossa]"), f"queen health {health(rider)} after 3 s riding")
