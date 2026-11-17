@@ -8,7 +8,6 @@ import io.redspace.ironsspellbooks.damage.DamageSources;
 import io.redspace.ironsspellbooks.entity.spells.AbstractMagicProjectile;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -20,21 +19,17 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
-import org.joml.Vector3f;
 
 import java.util.Optional;
 
 /**
- * Her signature bolt, soot-black and bone-white: flat damage plus a share of the target's max health
+ * Her signature bolt, the cold dread fire and soot of Syndrigossa's breath at a flame's size (the
+ * owner's ask; until 0.25.0 charcoal, bone and indigo dust): flat damage plus a share of the target's max health
  * ({@link DreadDamage}), then Withering Rime. Shot by her and by the Withering Rime-Bolt spell; she
  * takes a bigger share than a player casting it. A queen's bolt passes through the Dread. Into
  * someone a Rimefire Crown holds, it shatters the crown ({@link RimefireCrown#shatterAround}).
  */
 public class WitheringRimeBolt extends AbstractMagicProjectile {
-    // Her colours from the owner's notes: charcoal, bone-ash and abyssal indigo.
-    private static final ParticleOptions CHARCOAL = new DustParticleOptions(new Vector3f(0.078F, 0.086F, 0.114F), 1.2F);
-    private static final ParticleOptions BONE = new DustParticleOptions(new Vector3f(0.847F, 0.871F, 0.914F), 0.9F);
-    private static final ParticleOptions INDIGO = new DustParticleOptions(new Vector3f(0.118F, 0.165F, 0.290F), 1.1F);
 
     private float maxHealthShare;
     private int rimeTicks;
@@ -86,30 +81,29 @@ public class WitheringRimeBolt extends AbstractMagicProjectile {
         this.consumeEntityImpact(hit, true);
     }
 
+    /** Her dragon's breath in small: 60% cold flame, 30% soot, 10% snow, as {@code Syndrigossa.createBreathParticle} picks. */
+    private ParticleOptions rimeParticle() {
+        int pick = this.random.nextInt(10);
+        return pick < 6 ? ModRegistries.RIME_FLAME_SMALL.get() : pick < 9 ? ModRegistries.RIME_SMOKE_SMALL.get() : ParticleTypes.SNOWFLAKE;
+    }
+
     @Override
     public void trailParticles() {
-        for (int i = 0; i < 3; i++) {
-            ParticleOptions particle = switch (this.random.nextInt(3)) {
-                case 0 -> CHARCOAL;
-                case 1 -> BONE;
-                default -> INDIGO;
-            };
+        for (int i = 0; i < 4; i++) {
             double spread = 0.12;
-            this.level().addParticle(particle,
+            this.level().addParticle(this.rimeParticle(),
                     this.getX() + (this.random.nextDouble() - 0.5) * spread,
                     this.getY() + this.getBbHeight() * 0.5 + (this.random.nextDouble() - 0.5) * spread,
-                    this.getZ() + (this.random.nextDouble() - 0.5) * spread, 0, 0, 0);
-        }
-        if (this.random.nextInt(3) == 0) {
-            this.level().addParticle(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + this.getBbHeight() * 0.5, this.getZ(), 0, 0, 0);
+                    this.getZ() + (this.random.nextDouble() - 0.5) * spread,
+                    (this.random.nextDouble() - 0.5) * 0.02, (this.random.nextDouble() - 0.5) * 0.02, (this.random.nextDouble() - 0.5) * 0.02);
         }
     }
 
     @Override
     public void impactParticles(double x, double y, double z) {
-        MagicManager.spawnParticles(this.level(), CHARCOAL, x, y, z, 18, 0.25, 0.25, 0.25, 0.05, true);
-        MagicManager.spawnParticles(this.level(), BONE, x, y, z, 12, 0.2, 0.2, 0.2, 0.05, true);
-        MagicManager.spawnParticles(this.level(), ParticleTypes.SNOWFLAKE, x, y, z, 10, 0.2, 0.2, 0.2, 0.08, false);
+        MagicManager.spawnParticles(this.level(), ModRegistries.RIME_FLAME_SMALL.get(), x, y, z, 18, 0.2, 0.2, 0.2, 0.08, true);
+        MagicManager.spawnParticles(this.level(), ModRegistries.RIME_SMOKE_SMALL.get(), x, y, z, 9, 0.25, 0.25, 0.25, 0.04, true);
+        MagicManager.spawnParticles(this.level(), ParticleTypes.SNOWFLAKE, x, y, z, 6, 0.2, 0.2, 0.2, 0.08, false);
     }
 
     @Override

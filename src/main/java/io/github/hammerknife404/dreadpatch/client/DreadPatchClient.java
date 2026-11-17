@@ -82,6 +82,8 @@ public final class DreadPatchClient {
     private static void onParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModRegistries.RIME_FLAME.get(), RimeBreathParticle::flame);
         event.registerSpriteSet(ModRegistries.RIME_SMOKE.get(), RimeBreathParticle::smoke);
+        event.registerSpriteSet(ModRegistries.RIME_FLAME_SMALL.get(), RimeBreathParticle::smallFlame);
+        event.registerSpriteSet(ModRegistries.RIME_SMOKE_SMALL.get(), RimeBreathParticle::smallSmoke);
     }
 
     /** Syndrigossa's skins are made from Ice and Fire's textures: remake them when textures reload. */

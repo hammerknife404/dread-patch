@@ -13,7 +13,8 @@ import net.minecraft.util.Mth;
  * smoke sprites, starting several times vanilla's flame size and swelling as they go, flying exactly
  * where they're sent (vanilla's add their own jitter and dust slows to a tenth), slowing a little,
  * and fading over their last quarter. The flame burns full-bright from white-cyan to her dread-fire cyan; the smoke is
- * soot, rising a little.
+ * soot, rising a little. The small ones (the Withering Rime-Bolt's, the owner's ask: the dragon's, at
+ * normal size) start at vanilla's flame size, swell less, slow sooner and burn out faster.
  */
 final class RimeBreathParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
@@ -21,20 +22,29 @@ final class RimeBreathParticle extends TextureSheetParticle {
     private final float startSize;
     private final float growth;
 
-    private RimeBreathParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites, boolean smoke) {
+    private RimeBreathParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet sprites, boolean smoke, boolean small) {
         super(level, x, y, z);
         this.sprites = sprites;
         this.smoke = smoke;
         this.xd = xd;
         this.yd = yd;
         this.zd = zd;
-        // Slow to lose speed and long-lived, so one sent from her mouth carries the length of her
-        // breath (DragonBreath.PARTICLE_TRAVEL blocks for each block a tick it's sent at).
-        this.friction = smoke ? 0.95F : 0.96F;
-        this.gravity = smoke ? -0.005F : 0.0F;
-        this.lifetime = smoke ? 28 + this.random.nextInt(13) : 22 + this.random.nextInt(9);
-        this.startSize = smoke ? 0.55F + this.random.nextFloat() * 0.2F : 0.4F + this.random.nextFloat() * 0.15F;
-        this.growth = smoke ? 3.5F : 3.0F;
+        if (small) {
+            // Vanilla's flame is 0.1-0.2 across.
+            this.friction = smoke ? 0.9F : 0.88F;
+            this.gravity = smoke ? -0.01F : 0.0F;
+            this.lifetime = smoke ? 16 + this.random.nextInt(9) : 10 + this.random.nextInt(7);
+            this.startSize = smoke ? 0.12F + this.random.nextFloat() * 0.06F : 0.1F + this.random.nextFloat() * 0.05F;
+            this.growth = smoke ? 2.0F : 1.5F;
+        } else {
+            // Slow to lose speed and long-lived, so one sent from her mouth carries the length of her
+            // breath (DragonBreath.PARTICLE_TRAVEL blocks for each block a tick it's sent at).
+            this.friction = smoke ? 0.95F : 0.96F;
+            this.gravity = smoke ? -0.005F : 0.0F;
+            this.lifetime = smoke ? 28 + this.random.nextInt(13) : 22 + this.random.nextInt(9);
+            this.startSize = smoke ? 0.55F + this.random.nextFloat() * 0.2F : 0.4F + this.random.nextFloat() * 0.15F;
+            this.growth = smoke ? 3.5F : 3.0F;
+        }
         this.quadSize = this.startSize;
         this.roll = this.random.nextFloat() * Mth.TWO_PI;
         this.oRoll = this.roll;
@@ -74,10 +84,18 @@ final class RimeBreathParticle extends TextureSheetParticle {
     }
 
     static ParticleProvider<SimpleParticleType> flame(SpriteSet sprites) {
-        return (type, level, x, y, z, xd, yd, zd) -> new RimeBreathParticle(level, x, y, z, xd, yd, zd, sprites, false);
+        return (type, level, x, y, z, xd, yd, zd) -> new RimeBreathParticle(level, x, y, z, xd, yd, zd, sprites, false, false);
     }
 
     static ParticleProvider<SimpleParticleType> smoke(SpriteSet sprites) {
-        return (type, level, x, y, z, xd, yd, zd) -> new RimeBreathParticle(level, x, y, z, xd, yd, zd, sprites, true);
+        return (type, level, x, y, z, xd, yd, zd) -> new RimeBreathParticle(level, x, y, z, xd, yd, zd, sprites, true, false);
+    }
+
+    static ParticleProvider<SimpleParticleType> smallFlame(SpriteSet sprites) {
+        return (type, level, x, y, z, xd, yd, zd) -> new RimeBreathParticle(level, x, y, z, xd, yd, zd, sprites, false, true);
+    }
+
+    static ParticleProvider<SimpleParticleType> smallSmoke(SpriteSet sprites) {
+        return (type, level, x, y, z, xd, yd, zd) -> new RimeBreathParticle(level, x, y, z, xd, yd, zd, sprites, true, true);
     }
 }
