@@ -447,26 +447,32 @@ def main():
     rcon.run(golem.format(x=12.5))
     rcon.run('summon iceandfire:dread_thrall 12.5 200 5.8 {NoAI:1b,Tags:["smoke_dread"]}')
     rcon.run("summon dreadpatch:dread_queen 2.5 200 4.5")
+    # Her next bolt can follow a crown within a few ticks (it comes at most 1.25 s after) and shatter it,
+    # freeing the golem; polled every half second, that was missed in 4 runs of 11. So: every tenth of a
+    # second, her crown standing or the golem rooted; and a trace each second for when it still fails.
     crowned = False
+    spared = True
     trace = []
-    for i in range(50):
-        time.sleep(0.5)
-        if has_effect(target, "dreadpatch:rimebound"):
+    for i in range(250):
+        time.sleep(0.1)
+        if "Test passed" in rcon.run("execute positioned 12.5 200 4.5 if entity @e[type=dreadpatch:rimefire_crown,distance=..4]") \
+                or has_effect(target, "dreadpatch:rimebound"):
             crowned = True
+            spared = not has_effect("@e[tag=smoke_dread,limit=1]", "dreadpatch:rimebound")
             break
-        about = []
-        for kind in ("dreadpatch:syndrigossa", "iceandfire:dread_thrall", "iceandfire:dread_ghoul", "iceandfire:dread_knight",
-                     "iceandfire:dread_scuttler", "dreadpatch:rimefire_crown", "minecraft:zombie", "minecraft:skeleton"):
-            m = re.search(r"count: (\d+)", rcon.run(f"execute positioned 8 200 4 if entity @e[type={kind},distance=..64]"))
-            if m:
-                about.append(kind.split(":")[1] + "=" + m.group(1))
-        qpos = re.search(r"\[([-0-9.]+)d, ([-0-9.]+)d, ([-0-9.]+)d\]", rcon.run("data get entity @e[type=dreadpatch:dread_queen,limit=1] Pos"))
-        trace.append(f"{(i + 1) / 2:4.1f}s golem {health(target)} queen {qpos and tuple(round(float(v), 1) for v in qpos.groups())} {' '.join(about)}")
+        if i % 10 == 9:
+            about = []
+            for kind in ("dreadpatch:syndrigossa", "iceandfire:dread_thrall", "iceandfire:dread_ghoul", "iceandfire:dread_knight",
+                         "iceandfire:dread_scuttler", "minecraft:zombie", "minecraft:skeleton"):
+                m = re.search(r"count: (\d+)", rcon.run(f"execute positioned 8 200 4 if entity @e[type={kind},distance=..64]"))
+                if m:
+                    about.append(kind.split(":")[1] + "=" + m.group(1))
+            qpos = re.search(r"\[([-0-9.]+)d, ([-0-9.]+)d, ([-0-9.]+)d\]", rcon.run("data get entity @e[type=dreadpatch:dread_queen,limit=1] Pos"))
+            trace.append(f"{(i + 1) / 10:4.1f}s golem {health(target)} queen {qpos and tuple(round(float(v), 1) for v in qpos.groups())} {' '.join(about)}")
     if not crowned:
         print("\n".join("      " + line for line in trace))
-    record("she raises a crown on her target", crowned, "the golem wasn't rooted within 25 s")
-    record("her crown spares the Dread", crowned and not has_effect("@e[tag=smoke_dread,limit=1]", "dreadpatch:rimebound"),
-           "the dread thrall was rooted" if crowned else "no crown to check")
+    record("she raises a crown on her target", crowned, "no crown of hers on the golem within 25 s")
+    record("her crown spares the Dread", crowned and spared, "the dread thrall was rooted" if crowned else "no crown to check")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")
