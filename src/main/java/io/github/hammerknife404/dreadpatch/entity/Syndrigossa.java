@@ -2,24 +2,46 @@ package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.config.IafCommonConfig;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
+import com.iafenvoy.iceandfire.entity.ai.DragonAITargetNonTamedGoal;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import com.iafenvoy.iceandfire.entity.util.dragon.IafDragonAttacks;
+import com.iafenvoy.iceandfire.item.DragonEggItem;
 import com.iafenvoy.uranus.animation.Animation;
+import io.github.hammerknife404.dreadpatch.DreadPatch;
+import io.github.hammerknife404.dreadpatch.magic.DragonAge;
 import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -40,8 +62,10 @@ import software.bernie.geckolib.animation.RawAnimation;
  * the bone by {@code SyndrigossaRenderer}. She breathes Withering Rime instead of frost
  * ({@link #witheringBreath}, through {@code SyndrigossaEvents}: Ice and Fire's breath stream, aim and
  * timing, with her damage where it lands), her charge is Shatter-Spine ({@link ShatterSpineCore}),
- * and every 30 s she raises Sovereign's Eclipse round her target. Her drops and her stats are still an
- * ice dragon's.
+ * and every 30 s she raises Sovereign's Eclipse round her target. She grows as an ice dragon does,
+ * but rises ancient, at full strength, as the boss ({@link DragonAge}); she's undead (tagged; no
+ * Wither, in {@code SyndrigossaEvents}), hunts players whatever Ice and Fire's config says, and her
+ * corpse is Dread.
  */
 public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     /**
@@ -69,6 +93,18 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     static final int BREATH_PARTICLES_SENT = 10;
     static final int BREATH_PARTICLES_SET = 10;
 
+    /** Saved, and what makes a summon or a spawn egg's entity data ancient ({@code Ancient:1b}). */
+    public static final String ANCIENT_KEY = "Ancient";
+
+    /** Her corpse (Dread: no flesh, blood or heart to take), her bones, and what she leaves in place of a heart. */
+    public static final ResourceLocation CORPSE_LOOT = DreadPatch.id("entities/syndrigossa/corpse");
+    public static final ResourceLocation BONES_LOOT = DreadPatch.id("entities/syndrigossa/skeleton");
+    public static final ResourceLocation HEART_LOOT = DreadPatch.id("entities/syndrigossa/heart");
+
+    private boolean ancient;
+    /** Set while Ice and Fire takes a harvest from her corpse, so its heart and egg can be swapped. */
+    private boolean harvesting;
+
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
     }
@@ -85,17 +121,124 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         return null;
     }
 
+    public boolean isAncient() {
+        return this.ancient;
+    }
+
+    /** Makes her ancient, the boss: grown to {@link DragonAge#ANCIENT_DAYS} if she's younger, and whole. */
+    public void makeAncient() {
+        this.ancient = true;
+        if (this.getAgeInDays() < DragonAge.ANCIENT_DAYS) {
+            this.setAgeInDays(DragonAge.ANCIENT_DAYS);
+            this.refreshDirtyAttributes();
+            this.refreshDimensions();
+        }
+        this.setHealth(this.getMaxHealth());
+    }
+
+    @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData data) {
+        SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, data);
+        if (DragonAge.spawnsAncient(reason)) {
+            this.makeAncient();
+        }
+        return result;
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putBoolean(ANCIENT_KEY, this.ancient);
+    }
+
     /**
      * A dragon made from a tag ({@code /summon} with NBT skips {@code finalizeSpawn}) reads its
      * health while its max is still a hatchling's 20 (the tag has no saved attributes, which a saved
      * dragon's does), and Ice and Fire only grows the max to its age afterwards, here: summoned
      * full-grown she had 20 of 419 and fell to one warden hit, and {@code Health:300} came out 20.
      * Ice and Fire's own ice dragons do the same. So once her max is set: the tag's health, or whole.
+     * {@code Ancient:1b} on a younger one (a summon, or a spawn egg's entity data, which merges into
+     * what she already is) grows her and makes her whole.
      */
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
+        if (tag.getBoolean(ANCIENT_KEY) && this.getAgeInDays() < DragonAge.ANCIENT_DAYS) {
+            this.makeAncient();
+            return;
+        }
+        this.ancient = tag.getBoolean(ANCIENT_KEY);
         this.setHealth(tag.contains("Health", Tag.TAG_ANY_NUMERIC) ? tag.getFloat("Health") : this.getMaxHealth());
+    }
+
+    /**
+     * She hunts players whatever Ice and Fire's {@code neutralToPlayer} says (the owner's pack sets
+     * it, so its wild dragons leave players be until struck): she's of the Dread. Ice and Fire's own
+     * wild-dragon targeting, for players only and without that setting; never a creative or spectator
+     * player, and a tame one ({@link DragonAITargetNonTamedGoal} stands down) follows its owner.
+     */
+    @Override
+    protected void registerGoals() {
+        super.registerGoals();
+        this.targetSelector.addGoal(5, new DragonAITargetNonTamedGoal<>(this, Player.class, false,
+                entity -> entity instanceof Player player && !player.isCreative() && !player.isSpectator()));
+    }
+
+    /** As Ice and Fire's ice dragon picks: bones from halfway through the harvest (when she's drawn as a skeleton). */
+    @Override
+    public ResourceLocation getDeadLootTable() {
+        return this.getDeathStage() >= this.getAgeInDays() / 5 / 2 ? BONES_LOOT : CORPSE_LOOT;
+    }
+
+    /**
+     * Her corpse is harvested as Ice and Fire's dragons are (empty hand, a take each click), but she's
+     * undead: a bottle draws no blood, her heart is dread ({@link #HEART_LOOT}), and she carries no ice
+     * dragon's egg (her own comes later).
+     */
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!this.isModelDead()) {
+            return super.mobInteract(player, hand);
+        }
+        ItemStack held = player.getMainHandItem().isEmpty() ? player.getItemInHand(hand) : player.getMainHandItem();
+        if (held.is(Items.GLASS_BOTTLE)) {
+            return InteractionResult.PASS;
+        }
+        this.harvesting = true;
+        try {
+            return super.mobInteract(player, hand);
+        } finally {
+            this.harvesting = false;
+        }
+    }
+
+    @Nullable
+    @Override
+    public ItemEntity spawnAtLocation(ItemStack stack, float offsetY) {
+        if (this.harvesting && this.level() instanceof ServerLevel level) {
+            if (stack.getItem() instanceof DragonEggItem) {
+                return null;
+            }
+            if (stack.is(this.getHeartItem().asItem())) {
+                ItemEntity last = null;
+                for (ItemStack drop : this.rollLoot(level, HEART_LOOT)) {
+                    last = super.spawnAtLocation(drop, offsetY);
+                }
+                return last;
+            }
+        }
+        return super.spawnAtLocation(stack, offsetY);
+    }
+
+    /** One of her loot tables, rolled as Ice and Fire rolls a dragon's corpse table. */
+    private List<ItemStack> rollLoot(ServerLevel level, ResourceLocation table) {
+        LootTable loot = level.getServer().reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, table));
+        LootParams params = new LootParams.Builder(level)
+                .withParameter(LootContextParams.THIS_ENTITY, this)
+                .withParameter(LootContextParams.ORIGIN, this.position())
+                .withParameter(LootContextParams.DAMAGE_SOURCE, level.damageSources().generic())
+                .create(LootContextParamSets.ENTITY);
+        return loot.getRandomItems(params);
     }
 
     /** Every 30 s, grown, with her target in sight within 24 blocks: Sovereign's Eclipse round it. */

@@ -187,6 +187,21 @@ def main():
     time.sleep(1.5)
     check("dispensed egg spawns her", "execute if entity @e[type=dreadpatch:dread_queen]", "Test passed, count: 1")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    # The Ancient Syndrigossa egg (her egg carrying Ancient:1b, NoAI here to keep her put): the data
+    # merges into the dragon the egg made at a random age, so she must come out ancient and whole.
+    rcon.run("setblock 4 199 4 minecraft:air")
+    check("an ancient Syndrigossa egg goes in a dispenser", "item replace block 4 200 4 container.0 with dreadpatch:syndrigossa_spawn_egg"
+          '[entity_data={id:"dreadpatch:syndrigossa",Ancient:1b,NoAI:1b}]', "Replaced")
+    rcon.run("setblock 4 199 4 minecraft:redstone_block")
+    time.sleep(1.5)
+    hatched = "@e[type=dreadpatch:syndrigossa,limit=1]"
+    m_age = re.search(r"entity data: (\d+)", rcon.run("data get entity " + hatched + " AgeTicks"))
+    m_max = re.search(r"is ([0-9.]+)", rcon.run("attribute " + hatched + " minecraft:generic.max_health get"))
+    egg_health = health(hatched)
+    record("the ancient egg's dragon is ancient and whole", m_age is not None and int(m_age.group(1)) >= 125 * 24000
+           and m_max is not None and egg_health == float(m_max.group(1)) == 500.0,
+           f"AgeTicks {m_age and m_age.group(1)}, health {egg_health} of {m_max and m_max.group(1)}")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
 
     # Her staff in the main hand: +15% Ice Spell Power, +10% Cooldown Reduction, as Iron's staffs give
     # theirs (and, like theirs, nothing from the off hand). Held items' attributes apply on the
@@ -224,6 +239,66 @@ def main():
     grown = re.search(r"is ([0-9.]+)", rcon.run("attribute " + dragon + " minecraft:generic.max_health get"))
     record("summoned full-grown, she starts at full health", grown is not None and float(grown.group(1)) > 100 and health(dragon) == float(grown.group(1)),
            f"health {health(dragon)} of {grown and grown.group(1)}")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+
+    def age_ticks(selector):
+        m = re.search(r"entity data: (\d+)", rcon.run("data get entity " + selector + " AgeTicks"))
+        return int(m.group(1)) if m else -1
+
+    def max_health(selector):
+        m = re.search(r"is ([0-9.]+)", rcon.run("attribute " + selector + " minecraft:generic.max_health get"))
+        return float(m.group(1)) if m else -1.0
+
+    # Summoned by hand she gets Ice and Fire's random age (1-80 days) and grows as an ice dragon does;
+    # the boss is ancient: 125 days, Ice and Fire's full strength (its maxHealth, 500 by default as in
+    # the dev run; 1,000 in the owner's pack), and whole.
+    ANCIENT_TICKS = 125 * 24000
+    rcon.run(surface + "summon dreadpatch:syndrigossa ~8 ~ ~")
+    plain_age = age_ticks(dragon)
+    record("summoned by hand, she's Ice and Fire's random age", 0 < plain_age <= 80 * 24000, f"AgeTicks {plain_age}")
+    check("and not ancient", "data get entity " + dragon + " Ancient", "0b")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    rcon.run(surface + "summon dreadpatch:syndrigossa ~8 ~ ~ {NoAI:1b,Ancient:1b}")
+    old_age, old_max, old_health = age_ticks(dragon), max_health(dragon), health(dragon)
+    record("ancient, she's 125 days old", old_age == ANCIENT_TICKS, f"AgeTicks {old_age}")
+    record("at full strength (Ice and Fire's maxHealth)", old_max == 500.0, f"max health {old_max}")
+    record("and whole", old_health == old_max, f"health {old_health} of {old_max}")
+    check("she stays ancient", "data get entity " + dragon + " Ancient", "1b")
+    # Undead (tagged: Poison and Regeneration don't take, Harming heals), no Wither, and the ice
+    # dragon's own tags (freeze immune, breathes under water, an ice dragon to Ice and Fire's weapons).
+    for tag in ("#minecraft:undead", "#minecraft:freeze_immune_entity_types", "#minecraft:can_breathe_under_water", "#iceandfire:ice_dragon"):
+        check("Syndrigossa in " + tag, "execute as " + dragon + " if entity @s[type=" + tag + "]", "Test passed")
+    check("no Wither on her", "effect give " + dragon + " minecraft:wither 5", "Unable to apply")
+    check("no Poison on her", "effect give " + dragon + " minecraft:poison 5", "Unable to apply")
+    rcon.run("data merge entity " + dragon + " {Health:100.0f}")
+    rcon.run("effect give " + dragon + " minecraft:instant_damage 1 0")
+    time.sleep(0.3)  # an instant effect from /effect lands on the target's next tick
+    harmed = health(dragon)
+    record("Harming heals her", harmed > 100.0, f"health {harmed} from 100")
+
+    def item_total(item):
+        out = rcon.run("execute as @e[type=item] if items entity @s contents " + item + " run data get entity @s Item.count")
+        return sum(int(n) for n in re.findall(r"entity data: (\d+)", out))
+
+    # Her corpse is Dread (rolled here as Ice and Fire rolls a corpse, with her as the entity): her white
+    # scales or dread shards, never flesh; her bones; and in place of a heart, dread shards and witherbones.
+    rcon.run("kill @e[type=item]")
+    for _ in range(20):
+        rcon.run("execute as " + dragon + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/syndrigossa/corpse")
+    scales, shards = item_total("iceandfire:dragonscales_white"), item_total("iceandfire:dread_shard")
+    others = count("*") - count("iceandfire:dragonscales_white") - count("iceandfire:dread_shard")
+    record("her corpse gives white scales and dread shards, nothing else", scales > 0 and shards > 0 and others == 0,
+           f"{scales} scales, {shards} shards, {others} other stacks")
+    rcon.run("kill @e[type=item]")
+    rcon.run("execute as " + dragon + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/syndrigossa/heart")
+    heart_shards, heart_bones = item_total("iceandfire:dread_shard"), item_total("iceandfire:witherbone")
+    record("her heart is 4-8 dread shards and 2-4 witherbones", 4 <= heart_shards <= 8 and 2 <= heart_bones <= 4,
+           f"{heart_shards} shards, {heart_bones} witherbones")
+    rcon.run("kill @e[type=item]")
+    rcon.run("execute as " + dragon + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/syndrigossa/skeleton")
+    bones = item_total("iceandfire:dragonbone")
+    record("her skeleton gives dragon bones", 1 <= bones <= 6, f"{bones} dragon bones")
+    rcon.run("kill @e[type=item]")
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
 
     # Her spawn animation: 30 ticks rising out of the ground, unable to move, with a pig to tempt her.

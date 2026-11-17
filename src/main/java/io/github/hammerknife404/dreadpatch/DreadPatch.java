@@ -7,13 +7,19 @@ import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerBolts;
+import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.SyndrigossaEvents;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -57,6 +63,22 @@ public final class DreadPatch {
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ModRegistries.DREAD_QUEEN_SPAWN_EGG.get());
             event.accept(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get());
+            event.accept(ancientSyndrigossaEgg());
         }
+    }
+
+    /**
+     * Her spawn egg carrying {@code Ancient:1b}: an ancient Syndrigossa, the boss at full strength,
+     * where the plain egg gives Ice and Fire's random age. Named by {@code item_name}, which (unlike a
+     * custom name) isn't passed on to what it spawns.
+     */
+    private static ItemStack ancientSyndrigossaEgg() {
+        ItemStack egg = new ItemStack(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get());
+        CompoundTag data = new CompoundTag();
+        data.putString("id", ModRegistries.SYNDRIGOSSA.getId().toString());
+        data.putBoolean(Syndrigossa.ANCIENT_KEY, true);
+        egg.set(DataComponents.ENTITY_DATA, CustomData.of(data));
+        egg.set(DataComponents.ITEM_NAME, Component.translatable("item.dreadpatch.ancient_syndrigossa_spawn_egg"));
+        return egg;
     }
 }
