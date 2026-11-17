@@ -8,6 +8,7 @@ import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,11 +21,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A Dread Queen in Syndrigossa's saddle, drawn on the dragon's upper body bone so she moves with it,
- * where Ice and Fire draws a tame dragon's rider. Ice and Fire's own attachment layer draws every
- * other passenger as prey in the jaws, a queen included, and she'd also be drawn at her own position;
- * both are skipped ({@link #onRenderLiving}). Her body faces along the dragon
- * ({@code Syndrigossa.positionRider}); her head turns to what she's looking at.
+ * A Dread Queen in Syndrigossa's saddle, drawn with the dragon's upper body bone so she moves with it:
+ * seated on its top ({@link SaddleSeat}), upright, facing along the dragon. Ice and Fire's own
+ * attachment layer draws every passenger but a tame dragon's owner as prey in the jaws, a queen
+ * included, and she'd also be drawn at her own position; both are skipped ({@link #onRenderLiving}).
+ * (0.24.0 used Ice and Fire's rider transform, a near-zero offset and a half turn about Z, which with
+ * GeckoLib handing layers the pose at the model's origin hung her upside down under the dragon.) Her
+ * renderer turns her body by the dragon's body yaw, as it does for any rider, and that's undone here,
+ * so she faces where the bone does; her head turns to what she's looking at.
  */
 public final class SaddleLayer extends GeoRenderLayer<Syndrigossa> {
     /** Queens being drawn in a saddle right now: drawn anywhere else while they ride, they're skipped. */
@@ -45,16 +49,19 @@ public final class SaddleLayer extends GeoRenderLayer<Syndrigossa> {
             if (!(passenger instanceof DreadQueenEntity)) {
                 continue;
             }
-            // Ice and Fire's transform for a rider (rather than prey) on this bone.
             poseStack.pushPose();
-            poseStack.translate(0.0F, -0.01F, -0.04F);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(partialTick, passenger.yRotO, passenger.getYRot()) + 180.0F));
+            poseStack.translate(SaddleSeat.X, SaddleSeat.Y, SaddleSeat.Z);
+            poseStack.mulPose(Axis.YP.rotationDegrees(Mth.rotLerp(partialTick, dragon.yBodyRotO, dragon.yBodyRot) - 180.0F));
             poseStack.scale(1.0F / dragonScale, 1.0F / dragonScale, 1.0F / dragonScale);
+            poseStack.translate(0.0F, -SaddleSeat.HIPS, 0.0F);
+            EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
             DRAWING.add(passenger);
+            // Her shadow would fall where her entity is, not under her here.
+            dispatcher.setRenderShadow(false);
             try {
-                Minecraft.getInstance().getEntityRenderDispatcher().render(passenger, 0.0, 0.0, 0.0, 0.0F, partialTick, poseStack, bufferSource, packedLight);
+                dispatcher.render(passenger, 0.0, 0.0, 0.0, 0.0F, partialTick, poseStack, bufferSource, packedLight);
             } finally {
+                dispatcher.setRenderShadow(Minecraft.getInstance().options.entityShadows().get());
                 DRAWING.remove(passenger);
                 poseStack.popPose();
             }

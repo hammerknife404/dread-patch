@@ -140,15 +140,17 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
 
     /**
      * Ice and Fire seats only a tame dragon's owner; anyone else on a dragon is prey in its jaws, shaken
-     * and bitten ({@code updatePreyInMouth}). A Dread Queen on her back rides in the saddle, where Ice
-     * and Fire would seat a rider. Her own position is only her hitbox and where she casts from; she's
-     * drawn on the dragon's back by {@code SaddleLayer}.
+     * and bitten ({@code updatePreyInMouth}). A Dread Queen on her back rides in the saddle, placed as
+     * Ice and Fire places a rider: her feet at its rider position plus her height, on the dragon's back
+     * (full-grown: 9.1 blocks up for a player, against the model's back at 8.9). That's her hitbox and
+     * where she casts from (at the rider position itself, as 0.24.0 had it, she was inside the dragon's
+     * body, out of reach); she's drawn on the dragon's back by {@code SaddleLayer}.
      */
     @Override
     public void positionRider(Entity passenger, Entity.MoveFunction callback) {
         if (passenger instanceof DreadQueenEntity queen && this.hasPassenger(passenger)) {
             Vec3 seat = this.getRiderPosition();
-            callback.accept(passenger, seat.x, seat.y, seat.z);
+            callback.accept(passenger, seat.x, seat.y + passenger.getBbHeight(), seat.z);
             // Facing along the dragon, as a rider does (Ice and Fire's riders turn it; she doesn't).
             queen.setYRot(this.yBodyRot);
             queen.yRotO = this.yBodyRotO;
@@ -307,6 +309,12 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         super.aiStep();
         if (this.level().isClientSide || !this.isAlive() || this.isModelDead()) {
             return;
+        }
+        // A target handed to her (by her queen, or kept from before) isn't rechecked by a target goal;
+        // Ice and Fire breathes at whatever it is: a player gone creative or spectator included.
+        LivingEntity current = this.getTarget();
+        if (current != null && (!current.isAlive() || !this.canAttack(current))) {
+            this.setTarget(null);
         }
         LivingEntity hunted = this.getTarget();
         if (hunted != null && hunted.isAlive() && !this.isFlying() && !this.isHovering() && !this.carriesOthers() && !this.isOrderedToSit()
