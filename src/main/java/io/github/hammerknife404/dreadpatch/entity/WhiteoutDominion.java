@@ -1,6 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.entity.DragonBaseEntity;
+import com.iafenvoy.iceandfire.entity.DreadBeastEntity;
 import com.iafenvoy.iceandfire.entity.DreadMobEntity;
 import com.iafenvoy.iceandfire.entity.DreadThrallEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
@@ -10,6 +11,7 @@ import io.github.hammerknife404.dreadpatch.magic.WhiteoutStorm;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -29,9 +31,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.TraceableEntity;
-import net.minecraft.world.entity.monster.AbstractIllager;
-import net.minecraft.world.entity.monster.Witch;
-import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.animal.AbstractGolem;
+import net.minecraft.world.entity.monster.Shulker;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -50,9 +52,9 @@ import java.util.UUID;
  * standing where it was cast ({@link WhiteoutStorm} has its shape and numbers). Everyone inside it
  * may harm is kept in a {@code Whiteout} (slowed, and blind past a few blocks) and, every few
  * seconds, takes a point of freezing damage. In hers, the Dread Queen's, whatever dies rises again
- * as a dread mob of her court ({@link #raise}). Drawn by {@code WhiteoutRenderer} and
- * {@code WhiteoutClient}: driven snow, a wall of it at the edge, and the fog. Never saved: it blows
- * over in under a minute.
+ * as a dread mob of her court ({@link #raise}), golems aside. Drawn by {@code WhiteoutRenderer} and
+ * {@code WhiteoutClient}: driven snow, snow lying on the ground for as long as it stands, a wall of
+ * it at the edge, and the fog. Never saved: it blows over in under a minute.
  */
 public class WhiteoutDominion extends Entity implements TraceableEntity {
     /** Ticks of Whiteout each renewal gives, so it lingers a moment after leaving; renewed this often. */
@@ -168,24 +170,34 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         }
     }
 
-    /** Not the Dread (her court stays dead), dragons (as Ice and Fire's own necromancy spares them), bosses, or her husks. */
+    /**
+     * Mobs and players: not armor stands or her husks; not the Dread (her court stays dead), dragons
+     * (as Ice and Fire's own necromancy spares them), bosses, or golems (the owner's call).
+     */
     static boolean canRise(LivingEntity victim) {
-        return !(victim instanceof IDreadMob) && !(victim instanceof DragonBaseEntity) && !(victim instanceof BarrowHusk)
-                && !victim.getType().is(Tags.EntityTypes.BOSSES);
+        return (victim instanceof Mob || victim instanceof Player) && !(victim instanceof IDreadMob) && !(victim instanceof DragonBaseEntity)
+                && !victim.getType().is(Tags.EntityTypes.BOSSES) && !isGolem(victim);
+    }
+
+    /** Vanilla's golems (a shulker is one in code only) and any mod's whose id says golem. */
+    static boolean isGolem(LivingEntity victim) {
+        return victim instanceof AbstractGolem && !(victim instanceof Shulker)
+                || BuiltInRegistries.ENTITY_TYPE.getKey(victim.getType()).getPath().contains("golem");
     }
 
     /**
      * The dead rising where they fell, a dread mob of her court: Ice and Fire's own necromancy (which
      * nothing in Ice and Fire calls) picks what by what they were (a scuttler from an arthropod, a
      * ghoul from a zombie, a thrall in their gear from a player or the undead, a dread horse from a
-     * horse, a dread beast from an animal); villagers and illagers rise as thralls in their gear too.
-     * Anything else stays dead. What they carried was copied, never moved: the dead still drop their
-     * own, and the risen never drop theirs.
+     * horse, a dread beast from an animal); anything else rises by its shape
+     * ({@link WhiteoutStorm#risesAsThrall}): upright, a thrall in its gear; otherwise a dread beast its
+     * size. What they carried was copied, never moved: the dead still drop their own, and the risen
+     * never drop theirs.
      */
     private boolean raise(ServerLevel level, LivingEntity victim, DreadQueen queen) {
         Entity risen = DreadMobEntity.necromancyEntity(victim);
-        if (risen == null && (victim instanceof AbstractVillager || victim instanceof AbstractIllager || victim instanceof Witch)) {
-            risen = this.thrall(level, victim);
+        if (risen == null) {
+            risen = WhiteoutStorm.risesAsThrall(victim.getBbWidth(), victim.getBbHeight()) ? this.thrall(level, victim) : this.beast(level, victim);
         }
         if (risen == null) {
             return false;
@@ -212,6 +224,19 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         MagicManager.spawnParticles(level, ParticleTypes.SOUL, victim.getX(), victim.getY() + 0.5, victim.getZ(), 8, 0.3, 0.3, 0.3, 0.03, false);
         level.playSound(null, victim.getX(), victim.getY(), victim.getZ(), IafSounds.DREAD_LICH_SUMMON.get(), SoundSource.HOSTILE, 1.0F, 0.8F);
         return true;
+    }
+
+    /** A dread beast the dead's size, as Ice and Fire raises an animal. */
+    @Nullable
+    private DreadBeastEntity beast(ServerLevel level, LivingEntity victim) {
+        DreadBeastEntity beast = IafEntities.DREAD_BEAST.get().create(level);
+        if (beast == null) {
+            return null;
+        }
+        beast.moveTo(victim.getX(), victim.getY(), victim.getZ(), victim.getYRot(), 0.0F);
+        EventHooks.finalizeMobSpawn(beast, level, level.getCurrentDifficultyAt(victim.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+        beast.setSize(WhiteoutStorm.beastSize(victim.getBbWidth()));
+        return beast;
     }
 
     /** A thrall in the dead's gear, as Ice and Fire raises a player or the undead. */
