@@ -651,18 +651,25 @@ def main():
     for tag in ("smoke_target", "smoke_dread", "smoke_caster"):
         rcon.run(f"kill @e[tag={tag}]")
 
-    # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, a dread
-    # beast from a cow, a thrall from a villager, answering to her; and when she falls it clears.
+    # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, answering
+    # to her: a dread beast from a cow (Ice and Fire's own mapping); a thrall from a villager or a creeper
+    # and a dread beast from a bat (by their shape). A golem stays dead. When she falls her storm clears.
     rcon.run('summon dreadpatch:dread_queen 2.5 200 2.5 {NoAI:1b,UUID:[I;9,9,9,9]}')
     check("her Whiteout Dominion stands", 'summon dreadpatch:whiteout_dominion 8.5 200 7.5 {Owner:[I;9,9,9,9],RaisesDead:1b,Radius:16f,Lifetime:600}',
           "Summoned new Whiteout Dominion")
-    for kind, at, risen in (("cow", "10.5 200 4.5", "iceandfire:dread_beast"), ("villager", "12.5 200 10.5", "iceandfire:dread_thrall")):
+    for kind, at, risen in (("cow", "10.5 200 4.5", "iceandfire:dread_beast"), ("villager", "12.5 200 10.5", "iceandfire:dread_thrall"),
+                            ("creeper", "4.5 200 10.5", "iceandfire:dread_thrall"), ("bat", "5.5 200 4.5", "iceandfire:dread_beast")):
         rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
         rcon.run("kill @e[tag=smoke_dead]")
         time.sleep(0.5)
         check(f"a {kind} killed in her storm rises", f"execute positioned {at} if entity @e[type={risen},distance=..2]", "Test passed")
         check(f"the risen {kind} answers to her", f"execute positioned {at} if entity @e[type={risen},distance=..2,nbt={{CommanderUUID:[I;9,9,9,9]}}]",
               "Test passed")
+    rcon.run('summon minecraft:iron_golem 13.5 200 6.5 {NoAI:1b,Tags:["smoke_dead"]}')
+    rcon.run("kill @e[tag=smoke_dead]")
+    time.sleep(0.5)
+    check("a golem killed in her storm stays dead",
+          "execute positioned 13.5 200 6.5 if entity @e[distance=..2.5,type=!minecraft:item,type=!minecraft:experience_orb]", "Test failed")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     time.sleep(4.0)
     check("her storm clears when she falls", storms, "Test failed")
