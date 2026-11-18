@@ -43,5 +43,15 @@
   "death.attack.dreadpatch.shatter_spine": "%1$s was cut down by %2$s's Shatter-Spine",
   "death.attack.dreadpatch.shatter_spine.item": "%1$s was cut down by %2$s's Shatter-Spine",
   "death.attack.dreadpatch.shatter_spine.player": "%1$s was cut down by a Shatter-Spine while fighting %2$s",
-  "entity.dreadpatch.sovereigns_eclipse": "Sovereign's Eclipse"
+  "entity.dreadpatch.sovereigns_eclipse": "Sovereign's Eclipse",
+  "entity.dreadpatch.whiteout_dominion": "Whiteout Dominion",
+  "effect.dreadpatch.whiteout": "Whiteout",
+  "spell.dreadpatch.whiteout_dominion": "Whiteout Dominion",
+  "spell.dreadpatch.whiteout_dominion.guide": "Call a blizzard of the Dread down on the land around you. It stands where you raised it: everyone in it you would harm is slowed in the drifts, can see no more than a few blocks, and is touched by its cold every few seconds. In the Dread Queen's own storm, whatever dies rises again in her court.",
+  "ui.dreadpatch.storm_seconds": "%ss Storm",
+  "ui.dreadpatch.slow": "%s%% Slower",
+  "ui.dreadpatch.freezing_damage": "%s Freezing Damage every %ss",
+  "death.attack.dreadpatch.whiteout": "%1$s froze in %2$s's Whiteout Dominion",
+  "death.attack.dreadpatch.whiteout.item": "%1$s froze in %2$s's Whiteout Dominion",
+  "death.attack.dreadpatch.whiteout.player": "%1$s froze in a whiteout while fighting %2$s"
 }

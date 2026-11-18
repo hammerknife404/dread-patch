@@ -75,7 +75,7 @@ def main():
 
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
-    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step"}
+    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion"}
     # Her staff as an Iron's staff: both her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:2,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b}]},'
@@ -89,8 +89,9 @@ def main():
     court_types = ["iceandfire:dread_thrall", "iceandfire:dread_ghoul", "iceandfire:dread_knight", "iceandfire:dread_scuttler"]
 
     def clear_court():
-        # Every queen raises a court; clear it with her so it can't wander into later checks.
-        for kind in court_types:
+        # Every queen raises a court (and her storm raises the dead into it); clear it, and her storm,
+        # with her so they can't wander into later checks.
+        for kind in court_types + ["iceandfire:dread_beast", "iceandfire:dread_horse", "dreadpatch:whiteout_dominion"]:
             rcon.run(f"kill @e[type={kind}]")
 
     def has_effect(selector, effect):
@@ -612,6 +613,62 @@ def main():
     for tag in ("smoke_dragon", "smoke_target", "smoke_dread", "smoke_caster"):
         rcon.run(f"kill @e[tag={tag}]")
 
+    # Whiteout Dominion, cast by an armor stand (level 1: 16 blocks round, 25 s) over a golem 10 blocks
+    # off and a dread thrall: the golem is slowed 20% and its sight halved, and takes a point of
+    # freezing damage 3 s in (and no more by 4 s); the thrall, one of the Dread, is untouched. A
+    # caster's storm doesn't raise the dead, and a new one of theirs ends the last.
+    storms = "execute if entity @e[type=dreadpatch:whiteout_dominion]"
+    thrall = "@e[tag=smoke_dread,limit=1]"
+    rcon.run('summon minecraft:iron_golem 12.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
+    rcon.run('summon iceandfire:dread_thrall 6.5 200 10.5 {NoAI:1b,Tags:["smoke_dread"]}')
+    rcon.run('summon minecraft:armor_stand 2.5 200 7.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}')
+    golem_hp, thrall_hp = health(target), health(thrall)
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:whiteout_dominion 1")
+    time.sleep(0.8)
+    check("Whiteout Dominion stands", storms, "Test passed")
+    record("its storm puts Whiteout on the golem", has_effect(target, "dreadpatch:whiteout"), "no Whiteout on the golem")
+    speed = re.search(r"is ([0-9.]+)", rcon.run("attribute " + target + " minecraft:generic.movement_speed get"))
+    record("Whiteout slows by a fifth", speed is not None and 0.19 < float(speed.group(1)) < 0.21,
+           f"golem movement speed {speed and speed.group(1)}, from 0.25")
+    sight = re.search(r"is ([0-9.]+)", rcon.run("attribute " + target + " minecraft:generic.follow_range get"))
+    record("Whiteout halves a mob's sight", sight is not None and 7.9 < float(sight.group(1)) < 8.1,
+           f"golem follow range {sight and sight.group(1)}, from 16")
+    record("the Dread are untouched by it", not has_effect(thrall, "dreadpatch:whiteout"), "the dread thrall has Whiteout")
+    time.sleep(3.2)
+    hp = health(target)
+    record("its cold takes a point every 3 s", golem_hp - 1.5 < hp < golem_hp - 0.5, f"golem health {golem_hp} -> {hp} 4 s in")
+    record("its cold spares the Dread", health(thrall) >= thrall_hp, f"dread thrall health {thrall_hp} -> {health(thrall)}")
+    rcon.run('summon minecraft:cow 10.5 200 4.5 {NoAI:1b,Tags:["smoke_dead"]}')
+    rcon.run("kill @e[tag=smoke_dead]")
+    time.sleep(0.5)
+    check("a caster's storm doesn't raise the dead", "execute if entity @e[type=iceandfire:dread_beast]", "Test failed")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:whiteout_dominion 1")
+    time.sleep(0.3)
+    check("a caster's new storm ends their last", storms, "Test passed, count: 1")
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    time.sleep(2.5)
+    record("out of it, Whiteout wears off", not has_effect(target, "dreadpatch:whiteout"), "the golem still has Whiteout 2.5 s after")
+    for tag in ("smoke_target", "smoke_dread", "smoke_caster"):
+        rcon.run(f"kill @e[tag={tag}]")
+
+    # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, a dread
+    # beast from a cow, a thrall from a villager, answering to her; and when she falls it clears.
+    rcon.run('summon dreadpatch:dread_queen 2.5 200 2.5 {NoAI:1b,UUID:[I;9,9,9,9]}')
+    check("her Whiteout Dominion stands", 'summon dreadpatch:whiteout_dominion 8.5 200 7.5 {Owner:[I;9,9,9,9],RaisesDead:1b,Radius:16f,Lifetime:600}',
+          "Summoned new Whiteout Dominion")
+    for kind, at, risen in (("cow", "10.5 200 4.5", "iceandfire:dread_beast"), ("villager", "12.5 200 10.5", "iceandfire:dread_thrall")):
+        rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
+        rcon.run("kill @e[tag=smoke_dead]")
+        time.sleep(0.5)
+        check(f"a {kind} killed in her storm rises", f"execute positioned {at} if entity @e[type={risen},distance=..2]", "Test passed")
+        check(f"the risen {kind} answers to her", f"execute positioned {at} if entity @e[type={risen},distance=..2,nbt={{CommanderUUID:[I;9,9,9,9]}}]",
+              "Test passed")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    time.sleep(4.0)
+    check("her storm clears when she falls", storms, "Test failed")
+    clear_court()
+    rcon.run("kill @e[type=item]")
+
     rcon.run('summon minecraft:iron_golem 12.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
     rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
     rcon.run("summon dreadpatch:dread_queen 2.5 200 7.5")
@@ -635,6 +692,16 @@ def main():
         if frenzied:
             break
     record("Beater's Decree frenzies her court", frenzied >= 1, "no court member got Strength within 30 s")
+    # Her Whiteout Dominion: the first 15 s into a fight, over the golem too.
+    stormed = False
+    for _ in range(50):
+        stormed = "Test passed" in rcon.run("execute if entity @e[type=dreadpatch:whiteout_dominion,nbt={RaisesDead:1b}]")
+        if stormed:
+            break
+        time.sleep(0.5)
+    record("she raises Whiteout Dominion", stormed, "no storm of hers within 25 s more")
+    time.sleep(0.6)
+    record("her storm takes the golem", stormed and has_effect(target, "dreadpatch:whiteout"), "no Whiteout on the golem")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")

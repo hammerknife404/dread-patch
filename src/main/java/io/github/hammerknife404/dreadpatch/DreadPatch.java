@@ -9,6 +9,7 @@ import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerBolts;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.SyndrigossaEvents;
+import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
@@ -42,6 +43,7 @@ public final class DreadPatch {
         DreadQueenSword.register(modBus, NeoForge.EVENT_BUS);
         SyndrigossaEvents.register(NeoForge.EVENT_BUS);
         ScuttlerBolts.register(NeoForge.EVENT_BUS);
+        WhiteoutDominion.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

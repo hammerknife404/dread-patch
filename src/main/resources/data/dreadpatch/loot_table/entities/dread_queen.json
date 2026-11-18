@@ -55,7 +55,8 @@
                 "spells": [
                   "dreadpatch:withering_rime_bolt",
                   "dreadpatch:rimefire_crown",
-                  "dreadpatch:barrow_step"
+                  "dreadpatch:barrow_step",
+                  "dreadpatch:whiteout_dominion"
                 ],
                 "force": true
               }

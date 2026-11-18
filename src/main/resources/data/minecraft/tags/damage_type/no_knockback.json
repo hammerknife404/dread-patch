@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "dreadpatch:withering_breath"
+    "dreadpatch:withering_breath",
+    "dreadpatch:whiteout"
   ]
 }

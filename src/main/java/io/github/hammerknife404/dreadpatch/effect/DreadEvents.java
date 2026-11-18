@@ -24,9 +24,13 @@ public final class DreadEvents {
         }
     }
 
-    /** Pure Dread doesn't wither the Dread: the queen, her court and Ice and Fire's dread mobs. */
+    /**
+     * Pure Dread doesn't wither the Dread (the queen, her court and Ice and Fire's dread mobs), and
+     * they see and walk through its storms: they're of them.
+     */
     private static void onEffectApplicable(MobEffectEvent.Applicable event) {
-        if (event.getEntity() instanceof IDreadMob && event.getEffectInstance().is(ModRegistries.WITHERING_RIME)) {
+        if (event.getEntity() instanceof IDreadMob
+                && (event.getEffectInstance().is(ModRegistries.WITHERING_RIME) || event.getEffectInstance().is(ModRegistries.WHITEOUT))) {
             event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
         }
     }

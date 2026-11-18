@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch.registry;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.effect.BrittleEffect;
 import io.github.hammerknife404.dreadpatch.effect.RimeboundEffect;
+import io.github.hammerknife404.dreadpatch.effect.WhiteoutEffect;
 import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
@@ -11,9 +12,11 @@ import io.github.hammerknife404.dreadpatch.entity.ShatterSpineCore;
 import io.github.hammerknife404.dreadpatch.entity.SovereignsEclipse;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineShard;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
+import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
 import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
 import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
+import io.github.hammerknife404.dreadpatch.spell.WhiteoutDominionSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
@@ -86,6 +89,17 @@ public final class ModRegistries {
                     .clientTrackingRange(10)
                     .build(DreadPatch.id("syndrigossa").toString()));
 
+    /**
+     * Whiteout Dominion: a point where it was raised (it reaches far past its box, and says so for
+     * culling); tracked from as far as the queen, since its snow wall shows from outside it.
+     */
+    public static final DeferredHolder<EntityType<?>, EntityType<WhiteoutDominion>> WHITEOUT_DOMINION = ENTITY_TYPES.register("whiteout_dominion",
+            () -> EntityType.Builder.<WhiteoutDominion>of(WhiteoutDominion::new, MobCategory.MISC)
+                    .sized(1.0F, 1.0F)
+                    .clientTrackingRange(10)
+                    .updateInterval(20)
+                    .build(DreadPatch.id("whiteout_dominion").toString()));
+
     /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */
     public static final DeferredHolder<EntityType<?>, EntityType<SovereignsEclipse>> SOVEREIGNS_ECLIPSE = ENTITY_TYPES.register("sovereigns_eclipse",
             () -> EntityType.Builder.<SovereignsEclipse>of(SovereignsEclipse::new, MobCategory.MISC)
@@ -115,6 +129,8 @@ public final class ModRegistries {
     /** Syndrigossa's breath and her Shatter-Spine's shards (data/dreadpatch/damage_type). */
     public static final ResourceKey<DamageType> WITHERING_BREATH_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("withering_breath"));
     public static final ResourceKey<DamageType> SHATTER_SPINE_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("shatter_spine"));
+    /** Whiteout Dominion's cold. */
+    public static final ResourceKey<DamageType> WHITEOUT_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("whiteout"));
 
     /** Ice and Fire's dread egg base, spotted with the queen's eye glow. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_QUEEN_SPAWN_EGG = ITEMS.register("dread_queen_spawn_egg",
@@ -137,6 +153,8 @@ public final class ModRegistries {
 
     public static final DeferredHolder<MobEffect, BrittleEffect> BRITTLE = MOB_EFFECTS.register("brittle", BrittleEffect::new);
 
+    public static final DeferredHolder<MobEffect, WhiteoutEffect> WHITEOUT = MOB_EFFECTS.register("whiteout", WhiteoutEffect::new);
+
     /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",
             builder -> builder.persistent(Unit.CODEC).networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
@@ -144,6 +162,7 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, WitheringRimeBoltSpell> WITHERING_RIME_BOLT_SPELL = SPELLS.register("withering_rime_bolt", WitheringRimeBoltSpell::new);
     public static final DeferredHolder<AbstractSpell, RimefireCrownSpell> RIMEFIRE_CROWN_SPELL = SPELLS.register("rimefire_crown", RimefireCrownSpell::new);
     public static final DeferredHolder<AbstractSpell, BarrowStepSpell> BARROW_STEP_SPELL = SPELLS.register("barrow_step", BarrowStepSpell::new);
+    public static final DeferredHolder<AbstractSpell, WhiteoutDominionSpell> WHITEOUT_DOMINION_SPELL = SPELLS.register("whiteout_dominion", WhiteoutDominionSpell::new);
 
     private ModRegistries() {
     }
