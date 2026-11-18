@@ -282,6 +282,51 @@ def syndrigossa_egg():
     return im
 
 
+def whiteout_dominion():
+    """The storm: a charcoal sky closing into bone-grey whiteout toward the ground, her hooded shadow
+    in it with her two cyan eyes, and snow driven down and to the left across everything."""
+    rnd = random.Random(41)
+    im = Image.new("RGBA", (16, 16))
+    bands = [CHARCOAL, CHARCOAL, CHARCOAL, INDIGO, INDIGO, DEEP, DEEP, BONE_DIM, BONE_DIM, BONE]
+    for y in range(16):
+        for x in range(16):
+            band = (y + (x % 3 == 0)) * (len(bands) - 1) / 16.0
+            i = int(band)
+            # Dithered between neighbouring bands, like Iron's fields.
+            if rnd.random() < band - i and i + 1 < len(bands):
+                i += 1
+            im.putpixel((x, y), rgba(bands[i]))
+    # Her hood and shoulders, a soot shadow in the storm.
+    for y, x0, x1 in [(4, 6, 9), (5, 5, 10), (6, 5, 10), (7, 5, 10), (8, 5, 10), (9, 5, 10),
+                      (10, 4, 11), (11, 3, 12), (12, 3, 12)]:
+        for x in range(x0, x1 + 1):
+            im.putpixel((x, y), rgba(SOOT))
+    for x in (6, 9):
+        im.putpixel((x, 7), rgba(DREAD_CYAN))
+    # Streaks of snow on the wind: short diagonals, brightest at their heads.
+    for x0, y0, n in [(15, 0, 3), (10, 0, 3), (5, 1, 3), (13, 4, 3), (3, 6, 3),
+                      (12, 9, 3), (7, 12, 3), (15, 12, 3), (2, 13, 3)]:
+        for k in range(n):
+            x, y = x0 - k, y0 + k
+            if 0 <= x < 16 and 0 <= y < 16:
+                im.putpixel((x, y), rgba(BONE_LIGHT if k == n - 1 else BONE))
+    return im
+
+
+def whiteout_effect():
+    """Three gusts of wind, each curling over at its head, with flakes caught between them."""
+    im = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
+    for y, x0, x1 in [(5, 1, 11), (10, 4, 14), (15, 2, 10)]:
+        for x in range(x0, x1 + 1):
+            im.putpixel((x, y), rgba(BONE if x < x1 - 3 else BONE_LIGHT))
+        for x, dy in [(x1 + 1, -1), (x1 + 1, -2), (x1, -3), (x1 - 1, -2)]:
+            im.putpixel((x, y + dy), rgba(BONE_LIGHT))
+    for x, y in [(15, 3), (2, 8), (13, 14)]:
+        im.putpixel((x, y), rgba(ICE_LIGHT))
+    outline(im)
+    return im
+
+
 def periodic_noise(width, height, cells_x, cells_y, rnd):
     """Smooth value noise that wraps in both directions, so an animation scrolled through it loops."""
     grid = [[rnd.random() for _ in range(cells_x)] for _ in range(cells_y)]
@@ -346,6 +391,8 @@ def main():
         "mob_effect/rimebound.png": rimebound_effect(),
         "mob_effect/brittle.png": brittle_effect(),
         "gui/spell_icons/barrow_step.png": barrow_step(),
+        "gui/spell_icons/whiteout_dominion.png": whiteout_dominion(),
+        "mob_effect/whiteout.png": whiteout_effect(),
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "block/dread_fire_0.png": dread_fire(31),
         "block/dread_fire_1.png": dread_fire(8),

@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch.entity;
 import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.iafenvoy.uranus.animation.AnimationHandler;
 import io.github.hammerknife404.dreadpatch.magic.DragonAge;
+import io.github.hammerknife404.dreadpatch.magic.WhiteoutStorm;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
 import io.redspace.ironsspellbooks.api.util.Utils;
@@ -66,6 +67,9 @@ public class DreadQueen extends DreadQueenEntity {
     /** After a crown, her next bolt comes this soon, to shatter it. */
     static final int CROWN_FOLLOW_UP = 25;
 
+    /** Ticks before her first Whiteout Dominion; then {@link WhiteoutStorm#QUEEN_COOLDOWN} between them. */
+    static final int FIRST_STORM = 300;
+
     /** Barrow-Step: ticks between steps (the spell's 12 s), and the nearest to her target she'll land. */
     static final int BARROW_STEP_COOLDOWN = 240;
     static final double BARROW_STEP_MIN_AWAY = 9.0;
@@ -83,6 +87,9 @@ public class DreadQueen extends DreadQueenEntity {
     private int boltCooldown = 40;
     private int crownCooldown = 100;
     private int barrowStepCooldown;
+    private int stormCooldown = FIRST_STORM;
+    @Nullable
+    private WhiteoutDominion storm;
     private final DreadCourt court = new DreadCourt(this);
     @Nullable
     private UUID dragonId;
@@ -198,7 +205,10 @@ public class DreadQueen extends DreadQueenEntity {
         return slot.getType() == EquipmentSlot.Type.HAND ? 0.0F : super.getEquipmentDropChance(slot);
     }
 
-    /** Her spells and her court, on top of her movement ({@link KeepDistanceGoal}). Not called while she's rising ({@link #isImmobile}). */
+    /**
+     * Her spells, her storm and her court, on top of her movement ({@link KeepDistanceGoal}). Not
+     * called while she's rising ({@link #isImmobile}).
+     */
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
@@ -210,6 +220,9 @@ public class DreadQueen extends DreadQueenEntity {
         }
         if (this.barrowStepCooldown > 0) {
             this.barrowStepCooldown--;
+        }
+        if (this.stormCooldown > 0) {
+            this.stormCooldown--;
         }
         LivingEntity target = this.getTarget();
         if (target != null && !target.isAlive()) {
@@ -230,6 +243,11 @@ public class DreadQueen extends DreadQueenEntity {
             return;
         }
         double distance = this.distanceTo(target);
+        if (this.stormCooldown == 0 && distance <= WhiteoutStorm.QUEEN_RADIUS && (this.storm == null || this.storm.isRemoved())) {
+            this.raiseStorm();
+            this.stormCooldown = WhiteoutStorm.QUEEN_COOLDOWN;
+            return;
+        }
         if (this.crownCooldown == 0 && distance <= CROWN_RANGE && this.hasLineOfSight(target)) {
             this.raiseCrown(target);
             this.crownCooldown = CROWN_COOLDOWN;
@@ -257,6 +275,18 @@ public class DreadQueen extends DreadQueenEntity {
             return its;
         }
         return mine;
+    }
+
+    /**
+     * Whiteout Dominion over the ground under her (under her dragon, riding it), at full strength: her
+     * enemies in it are slowed, blinded and frozen, and whatever dies in it rises in her court.
+     */
+    private void raiseStorm() {
+        Vec3 at = Utils.moveToRelativeGroundLevel(this.level(), this.position(), 64);
+        this.storm = WhiteoutDominion.create(this.level(), this, at, WhiteoutStorm.QUEEN_RADIUS, WhiteoutStorm.QUEEN_LIFETIME, true);
+        this.level().addFreshEntity(this.storm);
+        this.swing(InteractionHand.OFF_HAND);
+        this.playSound(SoundEvents.EVOKER_PREPARE_SUMMON, 1.5F, 0.5F);
     }
 
     /** Rimefire Crown round her target, then a bolt to shatter it ({@link #CROWN_FOLLOW_UP}). */

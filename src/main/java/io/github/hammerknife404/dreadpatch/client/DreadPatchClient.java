@@ -34,6 +34,7 @@ public final class DreadPatchClient {
         modBus.addListener(DreadPatchClient::onParticles);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(SaddleLayer::onRenderLiving);
+        WhiteoutClient.register(NeoForge.EVENT_BUS);
     }
 
     /**
@@ -105,5 +106,6 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.SYNDRIGOSSA.get(), SyndrigossaRenderer::new);
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE.get(), ShatterSpineRenderer::core);
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), ShatterSpineRenderer::shard);
+        event.registerEntityRenderer(ModRegistries.WHITEOUT_DOMINION.get(), WhiteoutRenderer::new);
     }
 }
