@@ -319,6 +319,8 @@ Everything is under `io.github.hammerknife404.dreadpatch`. `magic/` holds the ru
 
 All five are Iron's Ice spells, levels 1–5. They're kept out of random loot and the scroll forge (`allowLooting()` false, `setAllowCrafting(false)`); only her loot drops them, named with `"force": true`.
 
+**Death messages:** a spell's damage source (`getDamageSource`) dies as `death.attack.<spell id>` (Iron's `SpellDamageSource`: victim, then caster). The bolt's (also used by Beater's Decree) and the crown's (its shards) are in our lang, from 0.33.1; until then a death showed the raw key. Give any spell that deals damage under its own id one, plus the `.item` form Iron's own spells carry.
+
 **Withering Rime-Bolt** (`entity/WitheringRimeBolt`, `spell/WitheringRimeBoltSpell`)
 - **What it is:** an Iron's `AbstractMagicProjectile`. Flat damage plus a share of max health go through Iron's `DamageSources.applyDamage`, so Ice resistance counts; then it applies Withering Rime.
 - **Numbers:**
