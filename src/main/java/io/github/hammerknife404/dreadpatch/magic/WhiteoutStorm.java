@@ -70,6 +70,25 @@ public final class WhiteoutStorm {
     }
 
     /**
+     * Where in the drift one block settles ({@link #settled}'s {@code patch}), 0 to 1: a hash of where
+     * it is, the same every time and on every side, so its ice and its snow come and go together.
+     */
+    public static float patch(int x, int z) {
+        long seed = x * 3129871L ^ z * 116129781L;
+        seed = seed * seed * 42317861L + seed * 11L;
+        return (seed >>> 16 & 0xFFFF) / 65536.0F;
+    }
+
+    /**
+     * Whether still water at one block lies frozen, with the storm's {@link #cover} at {@code cover}:
+     * from when its snow would begin to settle there until it's gone again, so the ice spreads in
+     * patches as the snow drifts in, and breaks up the same way as the storm clears.
+     */
+    public static boolean ices(float cover, float patch) {
+        return settled(cover, patch) > 0.0F;
+    }
+
+    /**
      * What a dead thing Ice and Fire's own necromancy leaves alone rises as: something standing
      * upright (at least a block tall and half again as tall as it's wide: villagers, illagers,
      * witches, creepers, endermen, blazes, wardens) as a thrall; anything else as a dread beast.

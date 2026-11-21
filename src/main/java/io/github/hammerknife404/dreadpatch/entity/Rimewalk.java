@@ -58,14 +58,21 @@ final class Rimewalk {
                     if (state.getValue(FrostedIceBlock.AGE) > 0) {
                         level.setBlock(at, ice, 2);
                     }
-                } else if (state.is(Blocks.WATER) && state.getFluidState().isSource()
-                        && level.getBlockState(at.above()).isAir()
-                        && level.isUnobstructed(ice, at, CollisionContext.empty())
-                        && level.setBlockAndUpdate(at, ice)) {
+                } else if (canFreeze(level, at, state) && level.setBlockAndUpdate(at, ice)) {
                     level.gameEvent(walker, GameEvent.BLOCK_PLACE, at);
                 }
             }
         }
+    }
+
+    /**
+     * Where Frost Walker freezes: still water (a source) open to the air, with nothing living (or a
+     * boat) in the way. Her storm freezes by the same rule ({@code WhiteoutDominion}).
+     */
+    static boolean canFreeze(Level level, BlockPos at, BlockState state) {
+        return state.is(Blocks.WATER) && state.getFluidState().isSource()
+                && level.getBlockState(at.above()).isAir()
+                && level.isUnobstructed(Blocks.FROSTED_ICE.defaultBlockState(), at, CollisionContext.empty());
     }
 
     /** In water: the top water block in her column, from her feet to her eyes, if it's open to the air. */

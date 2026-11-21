@@ -247,14 +247,16 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
                     continue;
                 }
                 at.set(x, top, z);
-                // Where a snow layer could stand: on a full top or leaves, not water, ice or another layer.
-                if (!level.getFluidState(at.below()).isEmpty() || !Blocks.SNOW.defaultBlockState().canSurvive(level, at)) {
+                // Where a snow layer could stand: on a full top or leaves, not water, ice or another layer;
+                // and not on frosted ice (vanilla's snow would lie on it), so the water it froze shows as ice.
+                if (!level.getFluidState(at.below()).isEmpty() || level.getBlockState(at.below()).is(Blocks.FROSTED_ICE)
+                        || !Blocks.SNOW.defaultBlockState().canSurvive(level, at)) {
                     continue;
                 }
                 xs[n] = (float) (x - storm.getX());
                 ys[n] = (float) (top - storm.getY()) + COVER_LIFT;
                 zs[n] = (float) (z - storm.getZ());
-                patches[n] = patch(x, z);
+                patches[n] = WhiteoutStorm.patch(x, z);
                 lights[n] = brightened(LevelRenderer.getLightColor(level, at));
                 n++;
             }
@@ -402,13 +404,6 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
             }
         }
         return wall;
-    }
-
-    /** Where in the drift one block's snow settles, 0 to 1: a hash of where it is, the same every time. */
-    private static float patch(int x, int z) {
-        long seed = x * 3129871L ^ z * 116129781L;
-        seed = seed * seed * 42317861L + seed * 11L;
-        return (seed >>> 16 & 0xFFFF) / 65536.0F;
     }
 
     /** Snow catches what light there is, as vanilla's does: three quarters of the way to full. */

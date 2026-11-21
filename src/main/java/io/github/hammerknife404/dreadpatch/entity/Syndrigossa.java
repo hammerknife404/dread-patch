@@ -24,6 +24,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -34,6 +35,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -105,6 +108,8 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
 
     /** Saved: the queen she rose under ({@link SoulTether}). */
     static final String QUEEN_KEY = "Queen";
+    /** Saved: the difficulty her max health was last set for ({@link #refreshDirtyAttributes}). */
+    static final String HEALTH_DIFFICULTY_KEY = "HealthDifficulty";
     /**
      * With a queen on her back, at this share of her health she's forced down, and once she lands her
      * queen steps off for good (the owner's choice, once, at half: the queen can't be hit in the saddle).
@@ -120,6 +125,9 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     private UUID queenId;
     private boolean forcedDown;
     private int groundedTicks;
+    /** The difficulty her max health is set for; no initializer, as Ice and Fire may set it from its constructor. */
+    @Nullable
+    private Difficulty healthDifficulty;
 
     public Syndrigossa(EntityType<? extends Syndrigossa> type, Level level) {
         super(type, level);
@@ -242,6 +250,32 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         return this.ancient;
     }
 
+    /**
+     * Ice and Fire's stats for her age, but her health is hers by difficulty (the owner's numbers:
+     * 500 Easy, 750 Normal, 1,000 Hard at full strength, {@link DragonAge#fullHealth}), grown with her
+     * age as Ice and Fire grows a dragon's ({@link DragonAge#maxHealth}), in place of its
+     * {@code dragon.maxHealth}.
+     */
+    @Override
+    public void refreshDirtyAttributes() {
+        super.refreshDirtyAttributes();
+        this.healthDifficulty = this.level().getDifficulty();
+        AttributeInstance maxHealth = this.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHealth != null) {
+            maxHealth.setBaseValue(DragonAge.maxHealth(DragonAge.fullHealth(this.healthDifficulty), this.getAgeInDays()));
+        }
+    }
+
+    /** The difficulty changed: her max health follows it, and she keeps the same share of it. */
+    private void followDifficulty() {
+        if (this.level().getDifficulty() == this.healthDifficulty) {
+            return;
+        }
+        float share = this.getHealth() / this.getMaxHealth();
+        this.refreshDirtyAttributes();
+        this.setHealth(share * this.getMaxHealth());
+    }
+
     /** Makes her ancient, the boss: grown to {@link DragonAge#ANCIENT_DAYS} if she's younger, and whole. */
     public void makeAncient() {
         this.ancient = true;
@@ -266,6 +300,9 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean(ANCIENT_KEY, this.ancient);
+        if (this.healthDifficulty != null) {
+            tag.putInt(HEALTH_DIFFICULTY_KEY, this.healthDifficulty.getId());
+        }
         if (this.queenId != null) {
             tag.putUUID(QUEEN_KEY, this.queenId);
         }
@@ -290,6 +327,14 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         }
         this.ancient = tag.getBoolean(ANCIENT_KEY);
         this.setHealth(tag.contains("Health", Tag.TAG_ANY_NUMERIC) ? tag.getFloat("Health") : this.getMaxHealth());
+        // Saved at another difficulty (changed while she was unloaded): the same share of her health.
+        if (tag.contains(HEALTH_DIFFICULTY_KEY, Tag.TAG_ANY_NUMERIC)) {
+            Difficulty saved = Difficulty.byId(tag.getInt(HEALTH_DIFFICULTY_KEY));
+            double was = DragonAge.maxHealth(DragonAge.fullHealth(saved), this.getAgeInDays());
+            if (saved != this.healthDifficulty && was > 0.0) {
+                this.setHealth((float) (this.getHealth() / was * this.getMaxHealth()));
+            }
+        }
     }
 
     /**
@@ -370,6 +415,7 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         if (this.level().isClientSide || !this.isAlive() || this.isModelDead()) {
             return;
         }
+        this.followDifficulty();
         // A target handed to her (by her queen, or kept from before) isn't rechecked by a target goal;
         // Ice and Fire breathes at whatever it is: a player gone creative or spectator included.
         LivingEntity current = this.getTarget();

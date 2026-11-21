@@ -1,5 +1,6 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import com.iafenvoy.iceandfire.entity.DreadLichEntity;
 import com.iafenvoy.iceandfire.entity.DreadMobEntity;
 import com.iafenvoy.iceandfire.registry.IafEntities;
 import com.iafenvoy.iceandfire.registry.IafSounds;
@@ -35,7 +36,8 @@ import java.util.List;
  * ground with their own spawn animations), marked as hers the way the Dread Lich marks its minions,
  * and they fight what she fights. Beater's Decree: when one of them presses an enemy, she burns its
  * back. It's consumed in a burst of rime that hits everyone round it, and the rest of her court
- * frenzies.
+ * frenzies. And now and then a Dread Lich ({@link #raiseLich}), one at a time, which raises minions
+ * of its own.
  */
 final class DreadCourt {
     /** The most of her court standing at once, and how many rise per call. */
@@ -55,6 +57,14 @@ final class DreadCourt {
     /** Her court near the burnt one frenzies: Speed I and Strength I. */
     static final double FRENZY_RANGE = 8.0;
     static final int FRENZY_TICKS = 120;
+    /**
+     * Her Dread Lich: the first 30 s in, then at most every 90 s (the owner: at least a minute, for
+     * balance), and never while one of hers still stands; with nowhere to raise it, she tries again a
+     * second later.
+     */
+    static final int FIRST_LICH = 600;
+    static final int LICH_COOLDOWN = 1800;
+    static final int LICH_RETRY = 20;
 
     private static final ParticleOptions CHARCOAL = new DustParticleOptions(new Vector3f(0.078F, 0.086F, 0.114F), 1.6F);
     private static final ParticleOptions BONE = new DustParticleOptions(new Vector3f(0.847F, 0.871F, 0.914F), 1.1F);
@@ -62,6 +72,7 @@ final class DreadCourt {
     private final DreadQueen queen;
     private int summonCooldown = 60;
     private int decreeCooldown = 200;
+    private int lichCooldown = FIRST_LICH;
 
     DreadCourt(DreadQueen queen) {
         this.queen = queen;
@@ -75,18 +86,24 @@ final class DreadCourt {
         if (this.decreeCooldown > 0) {
             this.decreeCooldown--;
         }
+        if (this.lichCooldown > 0) {
+            this.lichCooldown--;
+        }
         if (target == null || !(this.queen.level() instanceof ServerLevel level)) {
             return;
         }
         boolean summonReady = this.summonCooldown == 0;
         boolean decreeReady = this.decreeCooldown == 0 && this.queen.tickCount % 10 == 0;
         boolean rally = this.queen.tickCount % 20 == 0;
-        if (!summonReady && !decreeReady && !rally) {
+        boolean lichReady = this.lichCooldown == 0;
+        if (!summonReady && !decreeReady && !rally && !lichReady) {
             return;
         }
-        List<DreadMobEntity> court = this.members(level);
+        List<DreadMobEntity> all = this.members(level);
+        // Her lich stands apart: it takes none of her court's places, and isn't burnt for her decree.
+        List<DreadMobEntity> court = all.stream().filter(m -> !(m instanceof DreadLichEntity)).toList();
         if (rally) {
-            for (DreadMobEntity member : court) {
+            for (DreadMobEntity member : all) {
                 if (member.getTarget() != target) {
                     member.setTarget(target);
                 }
@@ -99,9 +116,41 @@ final class DreadCourt {
         if (decreeReady && this.decree(level, court)) {
             this.decreeCooldown = DECREE_COOLDOWN;
         }
+        if (lichReady) {
+            boolean standing = all.size() > court.size();
+            this.lichCooldown = !standing && this.raiseLich(level, target) ? LICH_COOLDOWN : LICH_RETRY;
+        }
     }
 
-    /** Her court: living dread mobs within range that answer to her. */
+    /**
+     * A Dread Lich rises beside her (Ice and Fire's, with its own rise and gear), hers: it fights what
+     * she fights, and raises its own minions as a lich does (up to 5 in its life, one every 5 s; they
+     * answer to it). False if there's nowhere for it to rise.
+     */
+    private boolean raiseLich(ServerLevel level, LivingEntity target) {
+        DreadLichEntity lich = IafEntities.DREAD_LICH.get().create(level);
+        if (lich == null) {
+            return false;
+        }
+        Vec3 spot = this.findSpot(level, lich);
+        if (spot == null) {
+            return false;
+        }
+        lich.moveTo(spot.x, spot.y, spot.z, this.queen.getYRot(), 0.0F);
+        EventHooks.finalizeMobSpawn(lich, level, level.getCurrentDifficultyAt(lich.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+        lich.setCommanderId(this.queen.getUUID());
+        lich.setTarget(target);
+        if (!level.addFreshEntity(lich)) {
+            return false;
+        }
+        MagicManager.spawnParticles(level, CHARCOAL, spot.x, spot.y + 0.2, spot.z, 30, 0.5, 0.1, 0.5, 0.02, false);
+        MagicManager.spawnParticles(level, ParticleTypes.SOUL, spot.x, spot.y + 0.5, spot.z, 12, 0.4, 0.4, 0.4, 0.03, false);
+        this.queen.swing(InteractionHand.OFF_HAND);
+        level.playSound(null, this.queen.getX(), this.queen.getY(), this.queen.getZ(), IafSounds.DREAD_LICH_SUMMON.get(), SoundSource.HOSTILE, 2.0F, 0.5F);
+        return true;
+    }
+
+    /** Her court: living dread mobs within range that answer to her (her lich among them). */
     List<DreadMobEntity> members(ServerLevel level) {
         return level.getEntitiesOfClass(DreadMobEntity.class, this.queen.getBoundingBox().inflate(ROSTER_RANGE),
                 m -> m.isAlive() && this.queen.getUUID().equals(m.getCommanderId()));

@@ -91,7 +91,7 @@ def main():
     def clear_court():
         # Every queen raises a court (and her storm raises the dead into it); clear it, and her storm,
         # with her so they can't wander into later checks.
-        for kind in court_types + ["iceandfire:dread_beast", "iceandfire:dread_horse", "dreadpatch:whiteout_dominion"]:
+        for kind in court_types + ["iceandfire:dread_beast", "iceandfire:dread_horse", "iceandfire:dread_lich", "dreadpatch:whiteout_dominion"]:
             rcon.run(f"kill @e[type={kind}]")
 
     def has_effect(selector, effect):
@@ -132,6 +132,10 @@ def main():
     # By day: at night monsters spawn on the dark stone platforms and draw her off her targets (her crown
     # check failed in alternate runs as the dev world's clock went round), and dragons sleep.
     rcon.run("time set noon")
+    # On Easy, as the dev run is (Syndrigossa's health is by difficulty: 500 at full strength on Easy);
+    # put back at the end.
+    first_difficulty = re.search(r"The difficulty is (\w+)", rcon.run("difficulty"))
+    rcon.run("difficulty easy")
     # Chunks x 0-1, z 0: the platforms in the sky, the longest 30 blocks.
     rcon.run("forceload add 0 0 31 15")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
@@ -266,8 +270,23 @@ def main():
     old_age, old_max, old_health = age_ticks(dragon), max_health(dragon), health(dragon)
     # (Dragons age a tick each tick, NoAI or not, so the read may come a tick or two later.)
     record("ancient, she's 125 days old", ANCIENT_TICKS <= old_age < ANCIENT_TICKS + 200, f"AgeTicks {old_age}")
-    record("at full strength (Ice and Fire's maxHealth)", old_max == 500.0, f"max health {old_max}")
+    record("at full strength (Easy's 500)", old_max == 500.0, f"max health {old_max}")
     record("and whole", old_health == old_max, f"health {old_health} of {old_max}")
+    # Her health is hers by difficulty (the owner's: 500 Easy, 750 Normal, 1,000 Hard at full strength),
+    # and follows a change of difficulty, keeping her share of it (NoAI or not: it's her aiStep).
+    rcon.run("difficulty hard")
+    time.sleep(0.3)
+    hard_max, hard_health = max_health(dragon), health(dragon)
+    record("on Hard she has 1,000, whole", hard_max == 1000.0 and hard_health == 1000.0, f"health {hard_health} of {hard_max}")
+    rcon.run("data merge entity " + dragon + " {Health:500.0f}")
+    rcon.run("difficulty normal")
+    time.sleep(0.3)
+    normal_max, normal_health = max_health(dragon), health(dragon)
+    record("on Normal 750, at the same share", normal_max == 750.0 and abs(normal_health - 375.0) < 0.01,
+           f"health {normal_health} of {normal_max} from 500 of 1,000")
+    rcon.run("difficulty easy")
+    time.sleep(0.3)
+    record("back on Easy, 500", max_health(dragon) == 500.0, f"max health {max_health(dragon)}")
     check("she stays ancient", "data get entity " + dragon + " Ancient", "1b")
     # Undead (tagged: Poison and Regeneration don't take, Harming heals), no Wither, and the ice
     # dragon's own tags (freeze immune, breathes under water, an ice dragon to Ice and Fire's weapons).
@@ -709,6 +728,22 @@ def main():
     record("she raises Whiteout Dominion", stormed, "no storm of hers within 25 s more")
     time.sleep(0.6)
     record("her storm takes the golem", stormed and has_effect(target, "dreadpatch:whiteout"), "no Whiteout on the golem")
+    # Her Dread Lich: the first 30 s into her fight (she's been at it about 20 s by now), answering to her.
+    lich = "@e[type=iceandfire:dread_lich,limit=1]"
+    liches = 0
+    for _ in range(50):
+        m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=iceandfire:dread_lich]"))
+        liches = int(m.group(1)) if m else 0
+        if liches:
+            break
+        time.sleep(0.5)
+    record("she raises a Dread Lich", liches == 1, f"{liches} liches within 25 s more")
+    lich_commander = re.search(r"\[I; [-0-9, ]+\]", rcon.run("data get entity " + lich + " CommanderUUID"))
+    record("her lich answers to her", bool(queen_id) and bool(lich_commander) and lich_commander.group(0) == queen_id.group(0),
+           f"queen {queen_id and queen_id.group(0)}, lich's commander {lich_commander and lich_commander.group(0)}")
+    time.sleep(3.0)
+    m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=iceandfire:dread_lich]"))
+    record("and only one", m is not None and int(m.group(1)) == 1, f"{m and m.group(1)} liches 3 s later")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     clear_court()
     rcon.run("kill @e[tag=smoke_target]")
@@ -838,10 +873,44 @@ def main():
     record("but not where she is", block_is(25, 199, 7, "minecraft:water"), "she's frozen in")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     clear_court()
+
+    # Whiteout Dominion freezes its water too, in patches as its snow drifts in (all of it at full
+    # cover), holds that ice whole while it stands, and thaws it when it ends. The pool again, all
+    # water, under a storm 8 blocks round (no caster: anyone's) that lasts 10 s: its cover passes 0.6,
+    # where every block's ice lies, between 6 s and 8.2 s.
+    def frosted_in_pool():
+        # Cloned out of the storm's reach (x 1-11), filtered: the count is the pool's frosted ice.
+        out = rcon.run("clone 18 199 3 28 199 11 1 230 3 filtered minecraft:frosted_ice")
+        rcon.run("fill 1 230 3 11 230 11 minecraft:air")
+        m = re.search(r"cloned (\d+)", out)
+        return int(m.group(1)) if m else 0
+    rcon.run("fill 18 199 3 28 199 11 minecraft:water")
+    check("a storm over the pool", "summon dreadpatch:whiteout_dominion 23.5 200 7.5 {Lifetime:200,Radius:8f}", "Summoned new")
+    iced = 0
+    for _ in range(40):
+        time.sleep(0.25)
+        iced = frosted_in_pool()
+        if iced == 99:
+            break
+    record("its water freezes over", iced == 99, f"{iced} of the pool's 99 blocks frozen in 10 s")
+    rcon.run("setblock 20 199 7 minecraft:frosted_ice[age=3]")
+    time.sleep(0.6)
+    record("and its ice holds", block_is(20, 199, 7, "minecraft:frosted_ice[age=0]"), "ice in the storm stayed melting")
+    gone = False
+    for _ in range(30):
+        time.sleep(0.25)
+        gone = "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:whiteout_dominion]")
+        if gone:
+            break
+    time.sleep(0.2)
+    left = frosted_in_pool()
+    record("its ice thaws when it ends", gone and left == 0 and block_is(18, 199, 3, "minecraft:water") and block_is(23, 199, 7, "minecraft:water"),
+           f"storm gone {gone}, {left} frosted ice left")
     rcon.run("fill 18 198 3 28 198 11 minecraft:air")
     rcon.run("fill 1 199 1 30 199 14 minecraft:air")
     rcon.run("forceload remove 0 0 31 15")
 
+    rcon.run("difficulty " + (first_difficulty.group(1).lower() if first_difficulty else "easy"))
     print(f"{sum(results)}/{len(results)} passed")
     if "--keep" not in sys.argv:
         rcon.run("stop")
