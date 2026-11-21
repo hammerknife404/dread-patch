@@ -814,6 +814,31 @@ def main():
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[type=item]")
     rcon.run("kill @e[type=dreadpatch:barrow_husk]")
+
+    # Rimewalk, her Frost Walker: still water round her feet freezes to frosted ice, under 4 blocks
+    # out (Frost Walker II), and ice of hers that's melting is made whole; in water, the surface round
+    # her freezes, but not where she is. A pool sunk in the platform (x 18-28, z 3-11); NoAI queens.
+    def block_is(x, y, z, block):
+        return "Test passed" in rcon.run(f"execute if block {x} {y} {z} {block}")
+    rcon.run("fill 18 198 3 28 198 11 minecraft:stone")
+    rcon.run("fill 18 199 3 28 199 11 minecraft:water")
+    check("summons her at the water's edge", "summon dreadpatch:dread_queen 16.5 200 7.5 {NoAI:1b,OnGround:1b}", "Summoned new Dread Queen")
+    time.sleep(0.5)
+    record("the water by her freezes", block_is(18, 199, 7, "minecraft:frosted_ice") and block_is(19, 199, 7, "minecraft:frosted_ice"),
+           "no frosted ice 2 and 3 blocks out")
+    record("not 4 blocks out", block_is(20, 199, 7, "minecraft:water"), "the water 4 blocks out froze")
+    rcon.run("setblock 18 199 7 minecraft:frosted_ice[age=3]")
+    time.sleep(0.3)
+    record("her ice stays whole", block_is(18, 199, 7, "minecraft:frosted_ice[age=0]"), "ice by her stayed melting")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    check("summons her in the water", "summon dreadpatch:dread_queen 25.5 199 7.5 {NoAI:1b}", "Summoned new Dread Queen")
+    time.sleep(0.5)
+    record("in water, the surface round her freezes", block_is(23, 199, 7, "minecraft:frosted_ice") and block_is(27, 199, 7, "minecraft:frosted_ice"),
+           "no frosted ice 2 blocks either side of her")
+    record("but not where she is", block_is(25, 199, 7, "minecraft:water"), "she's frozen in")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    clear_court()
+    rcon.run("fill 18 198 3 28 198 11 minecraft:air")
     rcon.run("fill 1 199 1 30 199 14 minecraft:air")
     rcon.run("forceload remove 0 0 31 15")
 

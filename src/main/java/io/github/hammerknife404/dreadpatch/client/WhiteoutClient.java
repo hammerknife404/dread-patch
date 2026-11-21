@@ -51,6 +51,7 @@ public final class WhiteoutClient {
         gameBus.addListener(WhiteoutClient::onClientTick);
         gameBus.addListener(WhiteoutClient::onRenderFog);
         gameBus.addListener(WhiteoutClient::onFogColor);
+        gameBus.addListener(WhiteoutRenderer::drawStorms);
     }
 
     /** Each storm's wind: a direction along the ground, fixed for the storm (from its UUID, so every client agrees). */

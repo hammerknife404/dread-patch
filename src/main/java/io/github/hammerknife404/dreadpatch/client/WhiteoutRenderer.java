@@ -1,12 +1,17 @@
 package io.github.hammerknife404.dreadpatch.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.magic.WhiteoutStorm;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.Util;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -21,11 +26,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Function;
 
 /**
  * Whiteout Dominion's snow, as vanilla draws weather but driven: in every block column of the storm
@@ -35,6 +44,12 @@ import java.util.WeakHashMap;
  * wherever vanilla's snow could lie, drifting in by patches and melting as the storm clears: drawn,
  * never placed, so nothing is left behind when it blows over, is unloaded, or the server stops. The
  * fog (and the flakes and wind round whoever's in it) is {@link WhiteoutClient}'s.
+ * <p>
+ * Drawn where vanilla draws its weather, after the water ({@link #drawStorms}), not in the entity
+ * pass: vanilla draws translucent terrain after entities, so anything translucent an entity drew in
+ * front of water hid it (the owner saw a lake vanish inside her storm). Nothing of it writes depth
+ * (except under Fabulous, whose composite sorts its layers by the depth they write), so it's drawn back
+ * to front: the snow on the ground and the wall's far side, the falling snow, then the wall's near side.
  */
 public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
     private static final ResourceLocation SNOW = ResourceLocation.withDefaultNamespace("textures/environment/snow.png");
@@ -57,35 +72,111 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
     private static final float COVER_SIGHT = 64.0F;
     private static final int COVER_REFRESH = 40;
 
+    /**
+     * Vanilla's entity translucent type, but drawn into the weather target (the main target, except
+     * under Fabulous) and writing no depth (except under Fabulous): nothing of the storm hides what's
+     * drawn after it.
+     */
+    private static final Function<ResourceLocation, RenderType> STORM = Util.memoize(texture -> stormType(texture, false));
+    private static final Function<ResourceLocation, RenderType> STORM_FABULOUS = Util.memoize(texture -> stormType(texture, true));
+
+    /** Storms the entity pass found in view this frame, drawn after the water ({@link #drawStorms}). */
+    private static final Set<WhiteoutDominion> SEEN = Collections.newSetFromMap(new WeakHashMap<>());
     /** Where each storm's snow lies, looked up every {@link #COVER_REFRESH} ticks rather than every frame. */
-    private final Map<WhiteoutDominion, Cover> covers = new WeakHashMap<>();
+    private static final Map<WhiteoutDominion, Cover> COVERS = new WeakHashMap<>();
 
     public WhiteoutRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.shadowRadius = 0.0F;
     }
 
+    /** Only noted here (vanilla has culled it already); drawn after the water, by {@link #drawStorms}. */
     @Override
     public void render(WhiteoutDominion storm, float yaw, float partialTick, PoseStack pose, MultiBufferSource buffers, int light) {
+        if (storm.strength(partialTick) > 0.0F) {
+            SEEN.add(storm);
+        }
+        super.render(storm, yaw, partialTick, pose, buffers, light);
+    }
+
+    /** Every storm in view, where vanilla draws its rain and snow: after the water, the particles and the clouds. */
+    static void drawStorms(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_WEATHER || SEEN.isEmpty()) {
+            return;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        Vec3 camera = event.getCamera().getPosition();
+        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
+        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
+        // The camera's turn is in the model-view matrix; this is only where the storm stands from it.
+        PoseStack pose = new PoseStack();
+        for (WhiteoutDominion storm : List.copyOf(SEEN)) {
+            if (!storm.isRemoved() && storm.level() == minecraft.level) {
+                pose.pushPose();
+                pose.translate(storm.getX() - camera.x, storm.getY() - camera.y, storm.getZ() - camera.z);
+                draw(storm, partialTick, camera, pose.last(), buffers);
+                pose.popPose();
+            }
+        }
+        SEEN.clear();
+        // Back as vanilla had it for the rest of its weather pass: the world border, and other mods.
+        if (Minecraft.useShaderTransparency()) {
+            RenderStateShard.WEATHER_TARGET.setupRenderState();
+        } else {
+            RenderSystem.depthMask(false);
+        }
+    }
+
+    /**
+     * One storm, back to front, each batch ended before the next (its quads sorted far to near as
+     * it's drawn): the snow on the ground and the wall's far side; the falling snow; the wall's near side.
+     */
+    private static void draw(WhiteoutDominion storm, float partialTick, Vec3 camera, PoseStack.Pose pose, MultiBufferSource.BufferSource buffers) {
         float strength = storm.strength(partialTick);
         if (strength <= 0.0F) {
             return;
         }
         Level level = storm.level();
-        Vec3 camera = this.entityRenderDispatcher.camera.getPosition();
         float age = storm.tickCount + partialTick;
         Vec3 wind = WhiteoutClient.wind(storm);
-        // All of one render type before the next: asking for another ends the last one's batch.
-        VertexConsumer snow = buffers.getBuffer(RenderType.entityTranslucent(SNOW));
-        this.renderDrifts(storm, level, camera, wind, age, strength, pose.last(), snow);
         List<WallSegment> wall = wallNear(storm, level, camera);
-        this.renderWallSnow(wall, wind, age, strength, pose.last(), snow);
         TextureAtlasSprite haze = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(HAZE);
         TextureAtlasSprite cover = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(COVER);
-        VertexConsumer blocks = buffers.getBuffer(RenderType.entityTranslucent(InventoryMenu.BLOCK_ATLAS));
-        this.renderWallHaze(wall, strength, pose.last(), blocks, haze);
-        this.renderCover(storm, level, camera, age, pose.last(), blocks, cover);
-        super.render(storm, yaw, partialTick, pose, buffers, light);
+        RenderType blocks = stormType(InventoryMenu.BLOCK_ATLAS);
+        RenderType snow = stormType(SNOW);
+        VertexConsumer out = buffers.getBuffer(blocks);
+        renderCover(storm, level, camera, age, pose, out, cover);
+        renderWallHaze(wall, false, strength, pose, out, haze);
+        buffers.endBatch(blocks);
+        out = buffers.getBuffer(snow);
+        renderWallSnow(wall, false, wind, age, strength, pose, out);
+        renderDrifts(storm, level, camera, wind, age, strength, pose, out);
+        buffers.endBatch(snow);
+        out = buffers.getBuffer(blocks);
+        renderWallHaze(wall, true, strength, pose, out, haze);
+        buffers.endBatch(blocks);
+        out = buffers.getBuffer(snow);
+        renderWallSnow(wall, true, wind, age, strength, pose, out);
+        buffers.endBatch(snow);
+    }
+
+    private static RenderType stormType(ResourceLocation texture) {
+        return (Minecraft.useShaderTransparency() ? STORM_FABULOUS : STORM).apply(texture);
+    }
+
+    private static RenderType stormType(ResourceLocation texture, boolean fabulous) {
+        return RenderType.create(fabulous ? "dreadpatch_whiteout_fabulous" : "dreadpatch_whiteout",
+                DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, false, true,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+                        .setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+                        .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                        .setCullState(RenderStateShard.NO_CULL)
+                        .setLightmapState(RenderStateShard.LIGHTMAP)
+                        .setOverlayState(RenderStateShard.OVERLAY)
+                        .setOutputState(RenderStateShard.WEATHER_TARGET)
+                        .setWriteMaskState(fabulous ? RenderStateShard.COLOR_DEPTH_WRITE : RenderStateShard.COLOR_WRITE)
+                        .createCompositeState(false));
     }
 
     /** Where a storm's snow can lie: block tops in it, relative to it, each with its light and the point it settles at. */
@@ -96,15 +187,15 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
      * Its snow on the ground, block by block, wherever vanilla's snow could lie (a full top, or
      * leaves; not on water or ice), drifting in and melting by patches ({@link WhiteoutStorm#settled}).
      */
-    private void renderCover(WhiteoutDominion storm, Level level, Vec3 camera, float age, PoseStack.Pose pose, VertexConsumer out, TextureAtlasSprite sprite) {
+    private static void renderCover(WhiteoutDominion storm, Level level, Vec3 camera, float age, PoseStack.Pose pose, VertexConsumer out, TextureAtlasSprite sprite) {
         float amount = WhiteoutStorm.cover(age, storm.getLifetime());
         if (amount <= 0.0F) {
             return;
         }
-        Cover cover = this.covers.get(storm);
+        Cover cover = COVERS.get(storm);
         if (cover == null || storm.tickCount - cover.builtAt() >= COVER_REFRESH || storm.tickCount < cover.builtAt()) {
             cover = coverOf(storm, level);
-            this.covers.put(storm, cover);
+            COVERS.put(storm, cover);
         }
         double sight = COVER_SIGHT * COVER_SIGHT;
         for (int i = 0; i < cover.count(); i++) {
@@ -172,7 +263,7 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
     }
 
     /** Vanilla's snow, in each column of the storm round the camera: two sheets, at different speeds. */
-    private void renderDrifts(WhiteoutDominion storm, Level level, Vec3 camera, Vec3 wind, float age, float strength, PoseStack.Pose pose, VertexConsumer out) {
+    private static void renderDrifts(WhiteoutDominion storm, Level level, Vec3 camera, Vec3 wind, float age, float strength, PoseStack.Pose pose, VertexConsumer out) {
         int reach = Minecraft.useFancyGraphics() ? 10 : 6;
         int cx = Mth.floor(camera.x);
         int cy = Mth.floor(camera.y);
@@ -227,15 +318,21 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
         }
     }
 
-    /** One stretch of the wall round its edge, relative to the storm: its ends, how high it stands, its light. */
-    private record WallSegment(int index, float x0, float z0, float x1, float z1, float bottom, float top, int light) {
+    /**
+     * One stretch of the wall round its edge, relative to the storm: its ends, how high it stands, its
+     * light, and whether it's on the near side (the camera outside it, it between the camera and the storm).
+     */
+    private record WallSegment(int index, float x0, float z0, float x1, float z1, float bottom, float top, int light, boolean near) {
     }
 
     /** Round its edge: a wall of falling snow from the ground up, fading out above. Only the part near enough the camera to matter. */
-    private void renderWallSnow(List<WallSegment> wall, Vec3 wind, float age, float strength, PoseStack.Pose pose, VertexConsumer snow) {
+    private static void renderWallSnow(List<WallSegment> wall, boolean near, Vec3 wind, float age, float strength, PoseStack.Pose pose, VertexConsumer snow) {
         float fall = -Mth.frac(age * FALL * 1.3F);
         float blow = Mth.frac(age * BLOW);
         for (WallSegment s : wall) {
+            if (s.near() != near) {
+                continue;
+            }
             float length = Mth.sqrt((s.x1() - s.x0()) * (s.x1() - s.x0()) + (s.z1() - s.z0()) * (s.z1() - s.z0()));
             float along = (float) Math.signum(wind.x * (s.x1() - s.x0()) + wind.z * (s.z1() - s.z0()));
             float u = s.index() * length + blow * along;
@@ -249,8 +346,11 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
     }
 
     /** Behind the wall's snow, a haze of powder snow; a sprite can't repeat, so cells, thinning out with height. */
-    private void renderWallHaze(List<WallSegment> wall, float strength, PoseStack.Pose pose, VertexConsumer out, TextureAtlasSprite haze) {
+    private static void renderWallHaze(List<WallSegment> wall, boolean near, float strength, PoseStack.Pose pose, VertexConsumer out, TextureAtlasSprite haze) {
         for (WallSegment s : wall) {
+            if (s.near() != near) {
+                continue;
+            }
             float span = s.top() - s.bottom();
             int cells = Mth.ceil(span / HAZE_CELL);
             for (int c = 0; c < cells; c++) {
@@ -271,6 +371,8 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
         float radius = storm.getRadius();
         int segments = Math.max(12, Mth.ceil(Mth.TWO_PI * radius / WALL_SEGMENT));
         double ceiling = storm.getY() + WhiteoutStorm.HEIGHT;
+        double cx = camera.x - storm.getX();
+        double cz = camera.z - storm.getZ();
         BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
         List<WallSegment> wall = new ArrayList<>();
         for (int i = 0; i < segments; i++) {
@@ -292,7 +394,11 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
             float top = (float) (Math.min(ground + WALL_HEIGHT, ceiling) - storm.getY());
             if (bottom < top) {
                 at.set(Mth.floor(mx), ground, Mth.floor(mz));
-                wall.add(new WallSegment(i, x0, z0, x1, z1, bottom, top, brightened(LevelRenderer.getLightColor(level, at))));
+                // Its outward side faces the camera: it stands between the camera and the storm.
+                float hx = (x0 + x1) / 2;
+                float hz = (z0 + z1) / 2;
+                boolean near = (cx - hx) * hx + (cz - hz) * hz > 0.0;
+                wall.add(new WallSegment(i, x0, z0, x1, z1, bottom, top, brightened(LevelRenderer.getLightColor(level, at)), near));
             }
         }
         return wall;
