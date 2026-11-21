@@ -66,7 +66,7 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 
 ## Syndrigossa
 
-A unique, named dragon of the Rimefrost, a subtype of frost dragon, risen undead as the queen's mount; still in progress. She's built on an Ice and Fire ice dragon rotted to the bone (soot-black scales, bone showing through, torn wings), and allied with the queen and her court. Tamed, she can be ridden like any Ice and Fire dragon.
+A unique, named dragon of the Rimefrost, a subtype of frost dragon, risen undead as the queen's mount; still in progress. She's built on an Ice and Fire ice dragon rotted to the bone (soot-black scales, bone showing through, torn wings), and allied with the queen and her court. She has her own boss bar, white beside the queen's blue (none while she's tamed). Tamed, she can be ridden like any Ice and Fire dragon.
 
 Her attacks:
 

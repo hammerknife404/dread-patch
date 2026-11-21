@@ -23,7 +23,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.BossEvent;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -122,6 +127,11 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     static final int GROUNDED_TICKS = 200;
 
     private boolean ancient;
+    /**
+     * Her own boss bar (0.34.0, the owner's ask), white beside her queen's blue: shown to every player
+     * tracking her (as vanilla's Wither), hidden while she's tame and once she's a corpse.
+     */
+    private final ServerBossEvent bossBar = new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.WHITE, BossEvent.BossBarOverlay.PROGRESS);
     /** Set while Ice and Fire takes a harvest from her corpse, so its heart and egg can be swapped. */
     private boolean harvesting;
     @Nullable
@@ -300,6 +310,25 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     }
 
     @Override
+    public void startSeenByPlayer(ServerPlayer player) {
+        super.startSeenByPlayer(player);
+        this.bossBar.addPlayer(player);
+    }
+
+    @Override
+    public void stopSeenByPlayer(ServerPlayer player) {
+        super.stopSeenByPlayer(player);
+        this.bossBar.removePlayer(player);
+    }
+
+    /** A name tag renames her bar too (and a loaded name, which comes through here). */
+    @Override
+    public void setCustomName(@Nullable Component name) {
+        super.setCustomName(name);
+        this.bossBar.setName(this.getDisplayName());
+    }
+
+    @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean(ANCIENT_KEY, this.ancient);
@@ -415,6 +444,10 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
     @Override
     public void aiStep() {
         super.aiStep();
+        if (!this.level().isClientSide) {
+            this.bossBar.setProgress(this.getMaxHealth() > 0.0F ? Mth.clamp(this.getHealth() / this.getMaxHealth(), 0.0F, 1.0F) : 0.0F);
+            this.bossBar.setVisible(this.isAlive() && !this.isModelDead() && !this.isTame());
+        }
         if (this.level().isClientSide || !this.isAlive() || this.isModelDead()) {
             return;
         }
