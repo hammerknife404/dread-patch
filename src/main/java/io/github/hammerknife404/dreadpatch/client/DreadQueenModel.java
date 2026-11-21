@@ -20,12 +20,17 @@ import net.minecraft.world.entity.LivingEntity;
  * part; head, arms and legs sit at the root (the original hung them off the body, which only ever
  * moves as a whole, so they land in the same place). Ice and Fire CE's own dread model base can't
  * be extended from outside its package, so its spawn animation is redone here from {@link RisePose}.
- * Her Barrow-Step husk wears it too, without the animation.
+ * Her bust is ours (0.31.0, the owner: her body after the female player variant). Her Barrow-Step
+ * husk wears it too, without the animation.
  */
 public final class DreadQueenModel<T extends LivingEntity> extends HumanoidModel<T> {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(DreadPatch.id("dread_queen"), "main");
     /** The original pose angles each arm this far (radians) away from the body. */
     private static final float ARM_FLARE = 0.10000737F;
+    /** How far (radians) her bust tips forward from her chest: its tops slope down from her collar. */
+    private static final float BUST_TILT = 0.17F;
+    /** And how far (radians) each half turns outward, so the two read apart. */
+    private static final float BUST_SPLAY = 0.15F;
 
     public DreadQueenModel(ModelPart root) {
         super(root);
@@ -50,6 +55,17 @@ public final class DreadQueenModel<T extends LivingEntity> extends HumanoidModel
         PartDefinition chestplate = body.addOrReplaceChild("chestplate",
                 CubeListBuilder.create().texOffs(1, 32).addBox(-4.5F, -0.3F, -2.5F, 9.0F, 12.0F, 5.0F),
                 PartPose.offset(0.0F, 0.1F, 0.0F));
+        // Her bust: a block each side on her chest, 4 wide, 4 tall and 3 deep, set 1 into the chestplate
+        // (2 proud of it), tipped forward and turned a little outward, with a gap between for her pendant. Ice and
+        // Fire's texture has nothing for it, so every face takes her chestplate's armor from the rows
+        // that are solid all the way round (39-45: above them its straps and neckline are cut out,
+        // which would leave holes); the left is the right mirrored.
+        chestplate.addOrReplaceChild("right_bust",
+                CubeListBuilder.create().texOffs(3, 39).addBox(-2.0F, 0.0F, -3.0F, 4.0F, 4.0F, 3.0F),
+                PartPose.offsetAndRotation(-2.4F, 1.9F, -1.5F, BUST_TILT, BUST_SPLAY, 0.0F));
+        chestplate.addOrReplaceChild("left_bust",
+                CubeListBuilder.create().texOffs(3, 39).mirror().addBox(-2.0F, 0.0F, -3.0F, 4.0F, 4.0F, 3.0F),
+                PartPose.offsetAndRotation(2.4F, 1.9F, -1.5F, BUST_TILT, -BUST_SPLAY, 0.0F));
         chestplate.addOrReplaceChild("necklace",
                 CubeListBuilder.create().texOffs(1, 52).addBox(-4.5F, -0.3F, -2.8F, 9.0F, 7.0F, 5.0F),
                 PartPose.offsetAndRotation(0.0F, 0.1F, 0.0F, 0.032114058F, 0.0F, 0.0F));
