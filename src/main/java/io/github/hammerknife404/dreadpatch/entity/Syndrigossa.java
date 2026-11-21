@@ -79,6 +79,9 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
      * underneath she's always white, and our renderer paints over it.
      */
     public static final String BASE_COLOR = "white";
+    /** Her bite's Withering Rime: II (amplifier 1, withering twice as fast), for 4.5 s, as her queen's bolt lasts. */
+    public static final int BITE_RIME_TICKS = 90;
+    public static final int BITE_RIME_AMPLIFIER = 1;
     /** Sovereign's Eclipse: ticks between them, how far off her target may be, and how grown she must be. */
     static final int ECLIPSE_COOLDOWN = 600;
     static final double ECLIPSE_RANGE = 24.0;
@@ -682,6 +685,12 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         }
         String name = this.airborne() ? null : groundAction(action);
         return name != null ? once(state, name) : PlayState.STOP;
+    }
+
+    /** Whether she's biting: Ice and Fire's bite, or shaking prey in her jaws. */
+    public boolean biting() {
+        Animation action = this.getAnimation();
+        return action == ANIMATION_BITE || action == ANIMATION_SHAKEPREY;
     }
 
     /** Ice and Fire's names for its dragons' one-off ground animations. */

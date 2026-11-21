@@ -2,7 +2,7 @@
 
 Patching in the Dread Queen for my own world.
 
-[Ice and Fire: Community Edition](https://modrinth.com/mod/iceandfire-ce) ships a Dread Queen (her class, textures, name, sword and staff) but never puts her in the game. This NeoForge mod finishes her, and gives her an undead dragon, Syndrigossa.
+[Ice and Fire: Community Edition](https://modrinth.com/mod/iceandfire-ce) ships a Dread Queen (her class, textures, name, sword and staff) but never puts her in the game. This NeoForge mod finishes her, and gives her an undead dragon: Syndrigossa, a unique Rimefrost dragon.
 
 **Requires:** Minecraft 1.21.1, NeoForge 21.1.265+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
 
@@ -46,7 +46,9 @@ Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she 
 
 ### Her drops
 
-Her sword and staff, two epic or legendary inks, and one or two scrolls of her spells (Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion). They're Ice spells (they count Ice spell power), found nowhere else.
+- Her sword and her staff, each one time in four (Looting raises it: 30% at Looting I, 40% at Looting III).
+- One epic or legendary ink.
+- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion or Summon Court. They're Ice spells (they count Ice spell power), found nowhere else.
 
 ## The Dread Gate and the Gravemaster's Key
 
@@ -64,11 +66,12 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 
 ## Syndrigossa
 
-Her undead frost wyrm, still in progress: an Ice and Fire ice dragon rotted to the bone (soot-black scales, bone showing through, torn wings), allied with the queen and her court. Tamed, she can be ridden like any Ice and Fire dragon.
+A unique, named dragon of the Rimefrost, a subtype of frost dragon, risen undead as the queen's mount; still in progress. She's built on an Ice and Fire ice dragon rotted to the bone (soot-black scales, bone showing through, torn wings), and allied with the queen and her court. Tamed, she can be ridden like any Ice and Fire dragon.
 
 Her attacks:
 
 - **Breath of Withering Rime**, in a wide cone (20 degrees either side) rather than Ice and Fire's thin stream. It hits everyone in the cone and where it lands as hard as an ice dragon's breath of her size, leaves Withering Rime, and drinks fire instead of freezing the ground. Each hit siphons half a heart more, past armor, into her.
+- **Her bite** leaves Withering Rime II, which withers twice as fast, for 4.5 seconds, as every Rimefrost dragon's bite does. Her tail and wing strikes don't.
 - **Shatter-Spine**, her charge: a core of bone and dread-glass that bursts 9 blocks above her target into 5 to 7 shards raining over the ground below. Each cuts everyone within a block and a half and leaves Withering Rime.
 - **Sovereign's Eclipse:** every 30 seconds, once she's grown, her own Rimefire Crown round her target, 16 blocks across with dark spires and indigo fire, standing 10 seconds. It doesn't root and doesn't close in, but everyone inside is heavily slowed (Slowness IV) and kept under Withering Rime, and it drinks the fire inside it.
 
@@ -86,7 +89,7 @@ She takes to the air far more than other dragons: with a target on the ground sh
 
 **Her staff** is an Iron's staff now:
 
-- It carries both her spells at level 3, on your spell wheel while you hold it, cast with right-click.
+- It carries three of her spells at level 3 (Withering Rime-Bolt, Rimefire Crown and Summon Court), on your spell wheel while you hold it, cast with right-click.
 - It gives +15% Ice Spell Power and +10% Cooldown Reduction in the main hand.
 - **Permafrost Conduit:** Ice spells cost 20% less mana while you stand on snow or ice.
 
@@ -100,6 +103,7 @@ She takes to the air far more than other dragons: with a target on the ground sh
 
 Her scrolls (from her drops) teach her spells to players:
 
+- **Summon Court** raises her court round you, Ice and Fire's thralls, ghouls, knights and scuttlers rising out of the ground: 2 at level 1 up to 6 at level 5, standing 70 to 110 seconds, on a two-minute cooldown. They follow you and fall on hostile mobs that attack you or that you attack. They never fight the Dread (the queen and her court leave them be too), never turn on friendly mobs, villagers, golems, pets or other players, and don't fight back when those hit them; and friendly mobs leave them be in turn. You can't hurt them, nor can your spells. Casting it again dismisses the court you raised before. A server can change how they treat friendly mobs and players in `config/dreadpatch-server.toml` (`attack_friendly_mobs`, `retaliate`, `attack_players`, all off by default).
 - **Barrow-Step** takes you to where you look (11 to 15 blocks, by level) and leaves your own husk behind: rime-glass in your shape and skin.
 - **Whiteout Dominion** (16 to 32 blocks round and 25 to 45 seconds, by level, on a two-minute cooldown) fogs, slows and freezes whoever you'd harm in it, and freezes its water over too, but only hers raises the dead. The Dread walk through anyone's storm untouched.
 

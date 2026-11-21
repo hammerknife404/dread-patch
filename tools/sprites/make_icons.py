@@ -206,6 +206,38 @@ def barrow_step():
     return im
 
 
+def summon_court():
+    """Her court rising: three dread figures climbing out of cracked ground lit cyan from below, the
+    middle one bone-white and risen to its waist, the two beside it slate, risen to their shoulders,
+    all with her cyan in their eyes; soul sparks above."""
+    im = dread_background(16, 53)
+    for y in range(12, 16):
+        for x in range(16):
+            im.putpixel((x, y), rgba(SOOT if (x + y) % 3 else CHARCOAL))
+    for x, y in [(1, 13), (2, 14), (3, 14), (6, 13), (7, 14), (8, 15), (11, 13), (12, 14), (14, 15)]:
+        im.putpixel((x, y), rgba(FIRE_DEEP))
+
+    def figure(x, top, light, mid, dark, eyes):
+        # A head 3 wide, then shoulders 5 wide down to the ground at row 12.
+        for y in range(top, 12):
+            xs = list(range(x + 1, x + 4)) if y < top + 3 else list(range(x, x + 5))
+            for k, px in enumerate(xs):
+                im.putpixel((px, y), rgba(light if k == 0 else dark if k == len(xs) - 1 else mid))
+        for px in (x + 1, x + 3):
+            im.putpixel((px, top + 1), rgba(eyes))
+        # Where it breaks the ground, the earth glows.
+        for px in range(x, x + 5):
+            im.putpixel((px, 12), rgba(DREAD_CYAN if px in (x + 1, x + 3) else FIRE_DEEP))
+
+    slate = (0x5C, 0x66, 0x7E)
+    figure(0, 7, BONE_DIM, slate, INDIGO, DREAD_CYAN)
+    figure(10, 7, BONE_DIM, slate, INDIGO, DREAD_CYAN)
+    figure(5, 3, BONE_LIGHT, BONE, BONE_DIM, DREAD_CYAN)
+    for x, y in [(2, 4), (13, 3), (8, 1), (11, 5)]:
+        im.putpixel((x, y), rgba(DREAD_CYAN if (x + y) % 2 else FIRE_BRIGHT))
+    return im
+
+
 def line(im, a, b, c):
     """A 1-pixel line from a to b (Bresenham)."""
     (x0, y0), (x1, y1) = a, b
@@ -434,6 +466,7 @@ def main():
         "mob_effect/brittle.png": brittle_effect(),
         "gui/spell_icons/barrow_step.png": barrow_step(),
         "gui/spell_icons/whiteout_dominion.png": whiteout_dominion(),
+        "gui/spell_icons/summon_court.png": summon_court(),
         "mob_effect/whiteout.png": whiteout_effect(),
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "block/dread_fire_0.png": dread_fire(31),

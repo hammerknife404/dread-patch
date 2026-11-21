@@ -30,7 +30,7 @@ import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
  * done through its default components (every staff has them, including ones already dropped) and
  * events:
  * <ul>
- * <li>her two spells locked into it at {@link #SPELL_LEVEL}, on the spell wheel while it's in either
+ * <li>three of her spells (her bolt, her crown, Summon Court) locked into it at {@link #SPELL_LEVEL}, on the spell wheel while it's in either
  * hand. Iron's only takes spells out at the Inscription Table, which takes only spellbooks;</li>
  * <li>a casting implement like Iron's staffs: right-click casts the selected spell;</li>
  * <li>in the main hand, as Iron's own staffs: +15% Ice Spell Power and +10% Cooldown Reduction;</li>
@@ -66,11 +66,12 @@ public final class DreadQueenStaff {
                 .set(DataComponents.ATTRIBUTE_MODIFIERS, attributes()));
     }
 
-    /** Spell-wheel container (not "must equip", which would keep it off the wheel in hand), both spells locked. */
+    /** Spell-wheel container (not "must equip", which would keep it off the wheel in hand), all three spells locked. */
     static ISpellContainer spells() {
-        ISpellContainerMutable spells = ISpellContainer.create(2, true, false).mutableCopy();
+        ISpellContainerMutable spells = ISpellContainer.create(3, true, false).mutableCopy();
         spells.addSpell(ModRegistries.WITHERING_RIME_BOLT_SPELL.get(), SPELL_LEVEL, true);
         spells.addSpell(ModRegistries.RIMEFIRE_CROWN_SPELL.get(), SPELL_LEVEL, true);
+        spells.addSpell(ModRegistries.SUMMON_COURT_SPELL.get(), SPELL_LEVEL, true);
         return spells.toImmutable();
     }
 

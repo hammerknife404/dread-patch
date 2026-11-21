@@ -18,11 +18,13 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
@@ -183,7 +185,7 @@ final class DreadCourt {
     }
 
     @Nullable
-    private static DreadMobEntity create(ServerLevel level, CourtRules.Kind kind) {
+    static DreadMobEntity create(ServerLevel level, CourtRules.Kind kind) {
         EntityType<? extends DreadMobEntity> type = switch (kind) {
             case THRALL -> IafEntities.DREAD_THRALL.get();
             case GHOUL -> IafEntities.DREAD_GHOUL.get();
@@ -200,9 +202,15 @@ final class DreadCourt {
     @Nullable
     private Vec3 findSpot(ServerLevel level, DreadMobEntity member) {
         Vec3 center = this.queen.isPassenger() ? Utils.moveToRelativeGroundLevel(level, this.queen.position(), 64) : this.queen.position();
+        return findSpot(level, center, this.queen.getRandom(), member);
+    }
+
+    /** Solid ground 2-5 blocks from {@code center} with room for {@code member} to rise, or null. A caster's court rises the same way. */
+    @Nullable
+    static Vec3 findSpot(ServerLevel level, Vec3 center, RandomSource random, Mob member) {
         for (int attempt = 0; attempt < 12; attempt++) {
-            double angle = this.queen.getRandom().nextDouble() * Math.PI * 2;
-            double distance = 2.0 + this.queen.getRandom().nextDouble() * 3.0;
+            double angle = random.nextDouble() * Math.PI * 2;
+            double distance = 2.0 + random.nextDouble() * 3.0;
             Vec3 guess = new Vec3(center.x + Math.cos(angle) * distance, center.y, center.z + Math.sin(angle) * distance);
             // It lands a hair under the surface (199.996 on a block top at 200); Iron's own spells lift it too.
             Vec3 ground = Utils.moveToRelativeGroundLevel(level, guess, 4).add(0, 0.05, 0);

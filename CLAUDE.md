@@ -25,6 +25,10 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - A guard-blocked hit primes a shatter (the chat's "frost charge" did nothing defined).
   - The guard stops only fire and magic.
   - The shatter's 10% is ours.
+- **Her drops (0.33.0):** with the craftable key letting players summon her at will, the sword and staff drop at 25% each (+5% per Looting level), with one ink and one scroll; until then all four were certain, with two inks and one or two scrolls.
+- **Summon Court (0.33.0):** a court spell on her staff and as one of her scrolls. The owner's terms:
+  - a player's court never fights the Dread (and the Dread leave it be);
+  - it's "never hostile to other friendly mobs" and doesn't retaliate, with config options (`config/dreadpatch-server.toml`: `attack_friendly_mobs`, `retaliate`, `attack_players`, all off).
 - **The Rimefire Crown (0.8.0):** it replaced the Barrow-Glass Tomb of 0.6.0–0.7.0, which the owner said looked like glass jars. Scrolls made before went blank.
 - **Loot (0.4.0):** the owner's list (Data, below).
 
@@ -41,6 +45,9 @@ The design comes from the owner's two chats with another assistant, `proposed_st
 - **0.23.0:** her egg comes only from the boss.
 - **0.25.0:** her breath's particles, at normal size, for the queen's bolt too.
 - **0.30.0:** health by difficulty: 500 Easy, 750 Normal, 1,000 Hard.
+- **0.33.0:**
+  - In the owner's taxonomy she's a unique, named dragon of the **Rimefrost**, a subtype of frost dragon (they offered "Rime" or "Rimefrost"). Lore only: no one-per-world limit. Her spawn eggs and egg say so in their tooltips.
+  - Rimefrost dragons' bites inflict Withering Rime II: hers, 4.5 s.
 
 **The queen on her dragon (0.24.0–0.26.0)**
 - As the boss, she rises riding it.
@@ -310,7 +317,7 @@ Everything is under `io.github.hammerknife404.dreadpatch`. `magic/` holds the ru
 
 ### Her spells
 
-All four are Iron's Ice spells, levels 1–5. They're kept out of random loot and the scroll forge (`allowLooting()` false, `setAllowCrafting(false)`); only her loot drops them, named with `"force": true`.
+All five are Iron's Ice spells, levels 1–5. They're kept out of random loot and the scroll forge (`allowLooting()` false, `setAllowCrafting(false)`); only her loot drops them, named with `"force": true`.
 
 **Withering Rime-Bolt** (`entity/WitheringRimeBolt`, `spell/WitheringRimeBoltSpell`)
 - **What it is:** an Iron's `AbstractMagicProjectile`. Flat damage plus a share of max health go through Iron's `DamageSources.applyDamage`, so Ice resistance counts; then it applies Withering Rime.
@@ -351,6 +358,24 @@ All four are Iron's Ice spells, levels 1–5. They're kept out of random loot an
   - **Anyone else's** is her model, eyes lit.
   - Both draw `entityTranslucent`, tinted ice blue.
 - **A vanilla `EntityModel` starts out `young`**, which draws a `HumanoidModel` at a baby's half size. `LivingEntityRenderer` resets it every frame, but the husk's renderer is a plain `EntityRenderer`, so it must set it itself. Until 0.32.1 every husk was half size.
+
+**Summon Court** (`spell/SummonCourtSpell`, `entity/SummonedCourt`, `DreadPatchConfig`)
+- **The spell:** levels 1–5, 120 s cooldown, 60 + 15/level mana. 1 + level members (`CourtRules.summonCount`) of her court's mix, standing (60 + 10 × level) s (`summonSeconds`).
+- **Raising:** her court's way (`DreadCourt.create`, `DreadCourt.findSpot` round the caster, `EventHooks.finalizeMobSpawn`), commanded by the caster (`CommanderUUID`; Ice and Fire's `getCommander` resolves players first, then any entity), `setPersistenceRequired`. A new cast dismisses the caster's last court (scanning the level).
+- **Membership:** `dreadpatch:court_expires` (game time) in the mob's persistent data, saved under `NeoForgeData`. Every second a member past it crumbles, with any `IDreadMob` it rides (a knight's horse).
+- **Its targeting is replaced** on every `EntityJoinLevelEvent` (goals aren't saved):
+  - Ice and Fire's dread mobs target every player and every non-Dread living thing, so all their target goals are removed (`targetSelector.removeAllGoals`);
+  - in their place Iron's `SummonedZombie`'s: `GenericOwnerHurtByTargetGoal` 1, `GenericOwnerHurtTargetGoal` 2, `GenericCopyOwnerTargetGoal` 3, vanilla `HurtByTargetGoal` 4, `GenericProtectOwnerTargetGoal` 5;
+  - and `GenericFollowOwnerGoal` at 4 (Ice and Fire's melee is 2, its stroll 5), as Iron's summons follow: from 15 blocks out to 5, teleporting past 25.
+- **What it may fight** (`CourtRules.mayFight`, by `Stance`):
+  - its caster's side (the caster, their team, pets, Iron's summons, their court and husk): never;
+  - the Dread: never;
+  - hostile mobs (`Enemy`): always;
+  - players and friendly mobs: only as the config allows (joining in, or `retaliate` for what last hurt it).
+  - It's enforced on `LivingChangeTargetEvent` (cancelled) and on `LivingIncomingDamageEvent` (a hit it lands on anything it mayn't fight is cancelled), and its scuttlers' bolts pass through those (`WitheringRimeBolt.canHitEntity`).
+- **Friendly mobs leave it be:** while `attack_friendly_mobs` is off, a mob that isn't hostile, a player or Dread can't take a member as its target (an iron golem goes for any `Enemy`).
+- **Its caster's side can't hurt it** (`LivingIncomingDamageEvent`; Iron's friendly fire only knows `IMagicSummon`), and the caster's crown and storm skip it (`RimefireCrown.canHarm`). `/kill` still works.
+- **Config:** `DreadPatchConfig`, a NeoForge server config, written to `config/dreadpatch-server.toml`; `courtTerms()` gives the defaults before it loads.
 
 **Whiteout Dominion:** under its own heading, below.
 
@@ -531,7 +556,7 @@ All four are Iron's Ice spells, levels 1–5. They're kept out of random loot an
 Both are Ice and Fire's items, changed through default components and events. The components come from `ModifyDefaultComponentsEvent`, so stacks already dropped get them too: a stack stores only changes.
 
 **The staff** (`item/DreadQueenStaff`, `magic/PermafrostConduit`)
-- **Spells:** `irons_spellbooks:spell_container` holds both her spells, locked at level 3: `create(2, true, false)`.
+- **Spells:** `irons_spellbooks:spell_container` holds three of her spells (bolt, crown, Summon Court), locked at level 3: `create(3, true, false)`.
   - That puts them on the spell wheel, not "must equip".
   - "Must equip" would keep them off the wheel in hand (Iron's `SpellSelectionManager`).
 - **Casting:** `casting_implement`. Iron's casts the selected spell on right-click with any item that has it.
@@ -639,6 +664,10 @@ Both are Ice and Fire's items, changed through default components and events. Th
     - and a 0.5 siphon past armor into her.
   - **Fire:** fire near the landing is drunk, and nothing freezes.
   - **Ice and Fire's breath:** `DragonFireDamageWorldEvent` is cancelled for her.
+- **Her bite** (0.33.0): a `mob_attack` hit of hers on `LivingDamageEvent.Post` while `biting()` (Ice and Fire's `ANIMATION_BITE` or `ANIMATION_SHAKEPREY`) leaves Withering Rime II, 90 ticks.
+  - Ice and Fire's `IceDragonEntity.doHurtTarget` only picks the attack's animation (bite, tail whack, prey shake, wing blast) and returns false; the hit lands later on the animation's tick, so the animation then tells a bite from the rest.
+  - A rider's bite (`IafDragonLogic.attackTarget`) is also `mobAttack` from the dragon.
+  - Her rime feeds no one (only a queen's does).
 - **Flight:**
   - `randomizeAttacks` weights the air pick: Scorch Stream 50%, Hover Blast 35%, Tackle 15%.
   - With a live target, on the ground, she takes off with a 1-in-60 chance a tick.
@@ -712,9 +741,9 @@ Both are Ice and Fire's items, changed through default components and events. Th
 ### Data
 
 **Her loot table** (`data/dreadpatch/loot_table/entities/dread_queen.json`), the owner's list
-- **Always:** her sword and staff.
-- **Inks:** two, each epic or legendary, at 23 : 10 (the odds of Iron's `great_ink`).
-- **Scrolls:** one or two, through `irons_spellbooks:randomize_spell` at quality 0.5–1, with `"spell_filter": {"spells": [...], "force": true}`.
+- **Her sword and staff:** each its own pool under `minecraft:random_chance_with_enchanted_bonus` (looting: 25%, 30% at Looting I, +5% a level; vanilla's wither skeleton skull is the model).
+- **Ink:** one, epic or legendary, at 23 : 10 (the odds of Iron's `great_ink`).
+- **Scroll:** one, through `irons_spellbooks:randomize_spell` at quality 0.5–1, with `"spell_filter": {"spells": [...], "force": true}`.
   - **Add each new spell of hers to that list.**
   - Level = 1 + round(quality × (maxLevel − 1)).
   - The spell itself is picked weighted by rarity.
@@ -748,6 +777,8 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **The queen:** her stats, items and loot, and her rise.
 - **Magic:** Withering Rime and the siphon, and each spell, cast through Iron's `/cast` by armor stands.
 - **Fighting:** the sword, her spacing and Barrow-Step, her court, decree, storm and lich.
+- **Summon Court:** cast by a NoAI villager (an armor stand records no attacker, and the court defends its caster from what hurts it). The count by level; leaving a cow and a dread thrall be when they hit the caster or a member; the caster's hit cancelled; a husk that hits the caster attacked; a recast replacing the court; expiry (set through `data merge ... {NeoForgeData:{...}}`). With `attack_friendly_mobs` and `retaliate` switched on by hand, the court killed the cow within 4 s, so the check does catch the filter missing.
+- **Her drops:** at most one sword and one staff, one ink and one scroll a kill; over 40 rolls each of sword and staff 3–20 times; over four deaths of a queen saved with `HandDropChances` 2.0, not all eight.
 - **Ice:** Rimewalk, and the storm's ice.
 - **Syndrigossa:**
   - stats by difficulty, tags and effects;
@@ -778,6 +809,8 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - the key on a frame, its hint, Peaceful, the recipe and tooltips;
   - the Permafrost Conduit and the sword's guard;
   - Syndrigossa's corpse harvest and egg;
+  - her bite's Withering Rime II (a bite needs her AI and a target in reach);
+  - a summoned court following a moving player, and an iron golem leaving it be;
   - her hunting a player in the owner's pack.
 - **Needs her AI in flight:** the forced landing from the air.
 

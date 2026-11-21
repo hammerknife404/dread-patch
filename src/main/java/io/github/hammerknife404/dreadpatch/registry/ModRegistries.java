@@ -18,6 +18,7 @@ import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
 import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
 import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
+import io.github.hammerknife404.dreadpatch.spell.SummonCourtSpell;
 import io.github.hammerknife404.dreadpatch.spell.WhiteoutDominionSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -188,6 +189,7 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, RimefireCrownSpell> RIMEFIRE_CROWN_SPELL = SPELLS.register("rimefire_crown", RimefireCrownSpell::new);
     public static final DeferredHolder<AbstractSpell, BarrowStepSpell> BARROW_STEP_SPELL = SPELLS.register("barrow_step", BarrowStepSpell::new);
     public static final DeferredHolder<AbstractSpell, WhiteoutDominionSpell> WHITEOUT_DOMINION_SPELL = SPELLS.register("whiteout_dominion", WhiteoutDominionSpell::new);
+    public static final DeferredHolder<AbstractSpell, SummonCourtSpell> SUMMON_COURT_SPELL = SPELLS.register("summon_court", SummonCourtSpell::new);
 
     private ModRegistries() {
     }

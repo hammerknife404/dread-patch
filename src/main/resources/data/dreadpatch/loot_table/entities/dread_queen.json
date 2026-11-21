@@ -3,6 +3,18 @@
   "pools": [
     {
       "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:random_chance_with_enchanted_bonus",
+          "enchantment": "minecraft:looting",
+          "unenchanted_chance": 0.25,
+          "enchanted_chance": {
+            "type": "minecraft:linear",
+            "base": 0.3,
+            "per_level_above_first": 0.05
+          }
+        }
+      ],
       "entries": [
         {
           "type": "minecraft:item",
@@ -12,6 +24,18 @@
     },
     {
       "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:random_chance_with_enchanted_bonus",
+          "enchantment": "minecraft:looting",
+          "unenchanted_chance": 0.25,
+          "enchanted_chance": {
+            "type": "minecraft:linear",
+            "base": 0.3,
+            "per_level_above_first": 0.05
+          }
+        }
+      ],
       "entries": [
         {
           "type": "minecraft:item",
@@ -20,7 +44,7 @@
       ]
     },
     {
-      "rolls": 2,
+      "rolls": 1,
       "entries": [
         {
           "type": "minecraft:item",
@@ -35,11 +59,7 @@
       ]
     },
     {
-      "rolls": {
-        "type": "minecraft:uniform",
-        "min": 1,
-        "max": 2
-      },
+      "rolls": 1,
       "entries": [
         {
           "type": "minecraft:item",
@@ -56,7 +76,8 @@
                   "dreadpatch:withering_rime_bolt",
                   "dreadpatch:rimefire_crown",
                   "dreadpatch:barrow_step",
-                  "dreadpatch:whiteout_dominion"
+                  "dreadpatch:whiteout_dominion",
+                  "dreadpatch:summon_court"
                 ],
                 "force": true
               }

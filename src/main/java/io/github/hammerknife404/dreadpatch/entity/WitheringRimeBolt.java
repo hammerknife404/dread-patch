@@ -1,5 +1,6 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import com.iafenvoy.iceandfire.entity.DreadMobEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import io.github.hammerknife404.dreadpatch.magic.DreadDamage;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
@@ -26,7 +27,8 @@ import java.util.Optional;
  * Her signature bolt, the cold dread fire and soot of Syndrigossa's breath at a flame's size (the
  * owner's ask; until 0.25.0 charcoal, bone and indigo dust): flat damage plus a share of the target's max health
  * ({@link DreadDamage}), then Withering Rime. Shot by her and by the Withering Rime-Bolt spell; she
- * takes a bigger share than a player casting it. A queen's bolt passes through the Dread. Into
+ * takes a bigger share than a player casting it. A queen's bolt passes through the Dread, and a
+ * summoned court's scuttler's through whatever it mayn't fight ({@link SummonedCourt}). Into
  * someone a Rimefire Crown holds, it shatters the crown ({@link RimefireCrown#shatterAround}).
  */
 public class WitheringRimeBolt extends AbstractMagicProjectile {
@@ -50,7 +52,8 @@ public class WitheringRimeBolt extends AbstractMagicProjectile {
     @Override
     protected boolean canHitEntity(Entity target) {
         return super.canHitEntity(target) && !(this.getOwner() instanceof IDreadMob && target instanceof IDreadMob)
-                && !(target instanceof BarrowHusk husk && husk.getOwner() == this.getOwner());
+                && !(target instanceof BarrowHusk husk && husk.getOwner() == this.getOwner())
+                && !(this.getOwner() instanceof DreadMobEntity member && SummonedCourt.isMember(member) && !SummonedCourt.mayFight(member, target));
     }
 
     @Override
