@@ -29,6 +29,7 @@ import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +99,9 @@ public class DreadQueen extends DreadQueenEntity {
 
     public DreadQueen(EntityType<? extends DreadQueen> type, Level level) {
         super(type, level);
+        // Water's no obstacle to her: it freezes under her (Rimewalk), so she goes straight across.
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER_BORDER, 0.0F);
     }
 
     /** Ice and Fire's goals, but she fights from range ({@link KeepDistanceGoal}) instead of walking into melee. */
@@ -378,6 +382,7 @@ public class DreadQueen extends DreadQueenEntity {
                 this.stepDown(this.getTarget());
             }
             this.wasMounted = mounted;
+            Rimewalk.tick(this);
         }
         // Counts the animation along on both sides; on its first server tick it also tells clients
         // it started, and at its end it goes back to NO_ANIMATION.
