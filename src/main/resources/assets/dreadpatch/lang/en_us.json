@@ -53,5 +53,13 @@
   "ui.dreadpatch.freezing_damage": "%s Freezing Damage every %ss",
   "death.attack.dreadpatch.whiteout": "%1$s froze in %2$s's Whiteout Dominion",
   "death.attack.dreadpatch.whiteout.item": "%1$s froze in %2$s's Whiteout Dominion",
-  "death.attack.dreadpatch.whiteout.player": "%1$s froze in a whiteout while fighting %2$s"
+  "death.attack.dreadpatch.whiteout.player": "%1$s froze in a whiteout while fighting %2$s",
+  "block.dreadpatch.dread_gate": "Dread Gate",
+  "entity.dreadpatch.dread_gate": "Dread Gate",
+  "tooltip.dreadpatch.gravemasters_key.lock": "Opens a Mausoleum's sealed door.",
+  "tooltip.dreadpatch.gravemasters_key.gate": "Opens a Dread Gate: a frame of dreadstone round an opening %s-%s wide and %s-%s tall,",
+  "tooltip.dreadpatch.gravemasters_key.gate2": "like the arches of a Mausoleum's ice forge shrine. The Dread Queen comes through.",
+  "tooltip.dreadpatch.gravemasters_key.spent": "Used up either way.",
+  "message.dreadpatch.dread_gate.no_gate": "No Dread Gate here: a dreadstone frame round an opening %s-%s wide and %s-%s tall, whole on every side",
+  "message.dreadpatch.dread_gate.peaceful": "Nothing comes through the gate on Peaceful"
 }

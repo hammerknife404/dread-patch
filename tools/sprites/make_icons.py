@@ -5,8 +5,9 @@ Run from anywhere: python3 tools/sprites/make_icons.py. Deterministic (fixed see
 gives identical files. Her palette, from the owner's notes: charcoal #14161D, bone-ash #D8DEE9,
 abyssal indigo #1E2A4A; her dread fire is the cyan of Ice and Fire's dread torch and her eye glow,
 #00CBFF. Spell icons are 16x16 and full-bleed like Iron's; effect icons are 18x18 on transparency
-like vanilla's. The dread fire is an animated block-atlas texture (16x16 frames, with its .mcmeta),
-drawn by the Rimefire Crown's renderer. Syndrigossa's egg is a 16x16 item texture on transparency.
+like vanilla's. The dread fire and the Dread Gate's face are animated block-atlas textures (16x16
+frames, each with its .mcmeta): the fire drawn by the Rimefire Crown's renderer, the gate's face by its
+block. Syndrigossa's egg is a 16x16 item texture on transparency.
 """
 import json
 import math
@@ -383,6 +384,47 @@ def dread_fire(seed):
     return im
 
 
+GATE_FRAMES = 32
+GATE_FRAME_TIME = 2
+
+
+def dread_gate(seed):
+    """32 frames of a Dread Gate's open face (16x16, translucent): a dark swirl of soot and indigo
+    crossed by thin cold-cyan wisps (where one noise passes its middle: its contour lines, so they're
+    spread evenly over every frame) with a few ice-white glints. The wisps' noise scrolls up a row a
+    frame through 32 rows, the swirl's sideways half a column a frame through 16, so both have gone
+    round once in 32 frames and it loops seamlessly. Seed and scale picked for an even amount of
+    wisp on every frame (about a fifth of it, give or take 3%)."""
+    rnd = random.Random(seed)
+    wisps = periodic_noise(16, 32, 5, 8, rnd)
+    swirl = periodic_noise(16, 16, 3, 3, rnd)
+    glint = periodic_noise(16, 32, 8, 12, rnd)
+    im = Image.new("RGBA", (16, 16 * GATE_FRAMES), (0, 0, 0, 0))
+    for t in range(GATE_FRAMES):
+        for y in range(16):
+            for x in range(16):
+                w = wisps(x + 0.5, (y + t) % 32 + 0.5)
+                sw = swirl((x + 0.5 * t) % 16 + 0.5, y + 0.5)
+                # Bend the wisps' contours with the swirl, then take how close they are to the middle.
+                ridge = 1.0 - abs(2.0 * (0.7 * w + 0.3 * sw) - 1.0) * 3.6
+                if ridge > 0.82:
+                    colour, alpha = FIRE_BRIGHT, 245
+                elif ridge > 0.55:
+                    colour, alpha = DREAD_CYAN, 235
+                elif ridge > 0.25:
+                    colour, alpha = FIRE_DARK, 220
+                elif sw > 0.55:
+                    colour, alpha = DEEP, 210
+                elif sw > 0.4:
+                    colour, alpha = INDIGO, 205
+                else:
+                    colour, alpha = SOOT, 200
+                if ridge > 0.55 and glint(x + 0.5, (y + 2 * t) % 32 + 0.5) > 0.8:
+                    colour, alpha = ICE_LIGHT, 250
+                im.putpixel((x, 16 * t + y), rgba(colour, alpha))
+    return im
+
+
 def main():
     out = {
         "gui/spell_icons/withering_rime_bolt.png": withering_rime_bolt(),
@@ -396,15 +438,17 @@ def main():
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "block/dread_fire_0.png": dread_fire(31),
         "block/dread_fire_1.png": dread_fire(8),
+        "block/dread_gate.png": dread_gate(17),
     }
     for rel, im in out.items():
         path = ROOT / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         im.save(path)
         print("wrote", path.relative_to(ROOT.parents[5]))
-        if rel.startswith("block/dread_fire"):
+        frame_time = FIRE_FRAME_TIME if rel.startswith("block/dread_fire") else GATE_FRAME_TIME if rel == "block/dread_gate.png" else None
+        if frame_time is not None:
             meta = path.with_name(path.name + ".mcmeta")
-            meta.write_text(json.dumps({"animation": {"frametime": FIRE_FRAME_TIME}}, indent=2) + "\n")
+            meta.write_text(json.dumps({"animation": {"frametime": frame_time}}, indent=2) + "\n")
             print("wrote", meta.relative_to(ROOT.parents[5]))
 
 
