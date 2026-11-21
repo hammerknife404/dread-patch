@@ -812,7 +812,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - the Permafrost Conduit and the sword's guard;
   - Syndrigossa's corpse harvest and egg;
   - her bite's Withering Rime II (a bite needs her AI and a target in reach);
-  - a summoned court following a moving player, and an iron golem leaving it be;
+  - a summoned court following a moving player, and an iron golem leaving it be (the owner saw both in 0.33.0: "the court follows and ignores golems");
   - her hunting a player in the owner's pack.
 - **Needs her AI in flight:** the forced landing from the air.
 
@@ -820,7 +820,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 
 - **Ask first:** rendering has no automated check, and on the owner's machine `./gradlew runClient` opens a window on their desktop (there's no Xvfb). **Ask before launching it.**
 - **Creative mode:** Iron's spends no mana and sets no cooldowns in creative (`CREATIVE_MANA_COST` / `CREATIVE_COOLDOWN`), so check those in survival.
-- **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.32.1. Their reports are behind the decisions above.
+- **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.33.0 (2026-11-21: "everything works, the court follows and ignores golems"). Their reports are behind the decisions above.
 - **Never checked:** Fabulous graphics and Iris shader packs, for the storm and its fog.
 
 ## Working here
