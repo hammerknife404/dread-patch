@@ -131,13 +131,14 @@ public class RimefireCrown extends Entity implements TraceableEntity {
         }
     }
 
-    /** Who her magic hits: not its caster or their allies, and the Dread don't hit the Dread. */
+    /** Who her magic hits: not its caster or their allies (their summoned court too), and the Dread don't hit the Dread. */
     static boolean canHarm(@Nullable Entity owner, Entity target) {
         if (owner == null) {
             return true;
         }
         return target != owner && !owner.isAlliedTo(target) && !target.isAlliedTo(owner)
-                && !(owner instanceof IDreadMob && target instanceof IDreadMob);
+                && !(owner instanceof IDreadMob && target instanceof IDreadMob)
+                && !SummonedCourt.serves(target, owner) && !SummonedCourt.serves(owner, target);
     }
 
     /** Dread fire steals heat: fire blocks and lit campfires inside it go out. */

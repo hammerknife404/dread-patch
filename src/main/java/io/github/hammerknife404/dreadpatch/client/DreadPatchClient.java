@@ -40,7 +40,8 @@ public final class DreadPatchClient {
 
     /**
      * Under the name: her staff's Permafrost Conduit (Iron's adds her spells), her sword's three
-     * properties and its charge. The attributes show themselves.
+     * properties and its charge, the Gravemaster's Key's uses, and what Syndrigossa is (her spawn eggs,
+     * her egg). The attributes show themselves.
      */
     private static void onTooltip(ItemTooltipEvent event) {
         List<Component> tooltip = event.getToolTip();
@@ -68,6 +69,11 @@ public final class DreadPatchClient {
                     line("tooltip.dreadpatch.gravemasters_key.gate", GateShape.MIN_WIDTH, GateShape.MAX_WIDTH, GateShape.MIN_HEIGHT, GateShape.MAX_HEIGHT),
                     line("tooltip.dreadpatch.gravemasters_key.gate2"),
                     line("tooltip.dreadpatch.gravemasters_key.spent")));
+        } else if (event.getItemStack().is(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get())) {
+            // What she is, in the owner's taxonomy: a unique, named dragon of the Rimefrost frost dragons.
+            tooltip.add(at, line("tooltip.dreadpatch.syndrigossa"));
+        } else if (event.getItemStack().is(ModRegistries.SYNDRIGOSSA_EGG.get())) {
+            tooltip.add(at, line("tooltip.dreadpatch.syndrigossa_egg"));
         }
     }
 

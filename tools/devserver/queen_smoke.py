@@ -75,10 +75,12 @@ def main():
 
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
-    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion"}
-    # Her staff as an Iron's staff: both her spells locked in at level 3, and right-click casting.
-    STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:2,spellWheel:1b,mustEquip:0b,data:['
-                         '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b}]},'
+    HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
+                  "dreadpatch:summon_court"}
+    # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
+    STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
+                         '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
+                         '{id:"dreadpatch:summon_court",index:2,level:3,locked:1b}]},'
                          'irons_spellbooks:casting_implement={}]')
 
     def health(selector):
@@ -103,24 +105,27 @@ def main():
         return "Test passed" in out
 
     def check_loot(where):
-        # Her loot table: her sword and staff (exactly one each: the ones she holds never drop too),
-        # two inks, epic or legendary, and one or two scrolls with a spell on them.
+        # Her loot table (0.33.0, the owner's numbers): her sword and her staff, each at 25% (at most
+        # one each: the ones she holds never drop too), one ink, epic or legendary, and one scroll
+        # with a spell on it. Returns how many swords and staffs dropped.
+        gear = {}
         for item in ("iceandfire:dread_queen_sword", "iceandfire:dread_queen_staff"):
-            n = count(item)
-            record(where + ": one " + item.split(":")[1], n == 1, f"found {n}")
+            gear[item] = count(item)
+            record(where + ": at most one " + item.split(":")[1], gear[item] <= 1, f"found {gear[item]}")
         epic, legendary = count("irons_spellbooks:epic_ink"), count("irons_spellbooks:legendary_ink")
-        record(where + ": two epic/legendary inks", epic + legendary == 2, f"epic {epic}, legendary {legendary}")
+        record(where + ": one epic/legendary ink", epic + legendary == 1, f"epic {epic}, legendary {legendary}")
         scrolls = count("irons_spellbooks:scroll")
         with_spell = count(SPELL_SCROLL)
-        record(where + ": one or two scrolls, each with a spell", 1 <= scrolls <= 2 and with_spell == scrolls,
-               f"{scrolls} scrolls, {with_spell} with a spell")
+        record(where + ": one scroll, with a spell", scrolls == 1 and with_spell == 1, f"{scrolls} scrolls, {with_spell} with a spell")
         ids = re.findall(r'entity data: "([a-z_:]+)"', rcon.run(
             'execute as @e[type=item] if items entity @s contents irons_spellbooks:scroll run data get entity @s '
             'Item.components."irons_spellbooks:spell_container".data[0].id'))
         record(where + ": the scrolls hold her spells", bool(ids) and all(i in HER_SPELLS for i in ids), f"spells {ids}")
         staffs = count(STAFF_WITH_SPELLS)
-        record(where + ": her staff holds her spells", staffs == 1, f"{staffs} staffs with both spells locked in at level 3")
+        record(where + ": her staff holds her spells", staffs == gear["iceandfire:dread_queen_staff"],
+               f"{staffs} of {gear['iceandfire:dread_queen_staff']} staffs with her three spells locked in at level 3")
         rcon.run("kill @e[type=item]")
+        return gear["iceandfire:dread_queen_sword"] + gear["iceandfire:dread_queen_staff"]
 
     queen = "@e[type=dreadpatch:dread_queen,limit=1]"
     surface = "execute positioned 0 0 0 positioned over world_surface run "
@@ -173,20 +178,32 @@ def main():
     levels = sorted(int(n) for n in re.findall(r"entity data: (\d+)", out))
     record("scroll spells reach high levels", bool(levels) and levels[-1] >= 3, f"levels {levels}")
     rcon.run("kill @e[type=item]")
+    # Her sword and staff at 25% each: over 40 rolls each turns up sometimes, never every time (each
+    # count is 10 on average; outside 3-20 is about 1 in 1,000), and her staff always holds her spells.
+    for _ in range(40):
+        rcon.run(surface + "loot spawn ~ ~2 ~ loot dreadpatch:entities/dread_queen")
+    swords, staffs = count("iceandfire:dread_queen_sword"), count("iceandfire:dread_queen_staff")
+    record("her sword and staff drop about 1 time in 4", 3 <= swords <= 20 and 3 <= staffs <= 20, f"over 40 rolls: {swords} swords, {staffs} staffs")
+    record("every staff she drops holds her spells", count(STAFF_WITH_SPELLS) == staffs, f"{count(STAFF_WITH_SPELLS)} of {staffs}")
+    rcon.run("kill @e[type=item]")
 
     check("dies", "kill @e[type=dreadpatch:dread_queen]", "Killed Dread Queen")
     time.sleep(1.5)
     check_loot("death drops")
 
-    # A queen whose saved drop chances say her held items always drop (2.0) still drops one of each:
-    # those come from her loot table, never from her hands.
+    # A queen whose saved drop chances say her held items always drop (2.0) still drops them only from
+    # her loot table, never from her hands: over four such deaths not every one drops both (with her
+    # hands dropping, every one would; from her table alone, all eight is 1 in 65,536).
     held = ('{HandItems:[{id:"iceandfire:dread_queen_sword",count:1},{id:"iceandfire:dread_queen_staff",count:1}],'
             'HandDropChances:[2.0f,2.0f]}')
-    check("summons with drop chances 2.0", surface + "summon dreadpatch:dread_queen ~ ~ ~ " + held, "Summoned new Dread Queen")
-    rcon.run("kill @e[type=dreadpatch:dread_queen]")
-    clear_court()
-    time.sleep(1.5)
-    check_loot("forced hand drops")
+    dropped = 0
+    for i in range(4):
+        check("summons with drop chances 2.0", surface + "summon dreadpatch:dread_queen ~ ~ ~ " + held, "Summoned new Dread Queen")
+        rcon.run("kill @e[type=dreadpatch:dread_queen]")
+        clear_court()
+        time.sleep(1.5)
+        dropped += check_loot(f"forced hand drops {i + 1}")
+    record("her held sword and staff never drop from her hands", dropped < 8, f"{dropped} of 8 over four deaths")
 
     # A dispenser only fires a spawn egg that knows its entity type.
     rcon.run("setblock 4 200 4 minecraft:dispenser[facing=up]")
@@ -669,6 +686,59 @@ def main():
     record("out of it, Whiteout wears off", not has_effect(target, "dreadpatch:whiteout"), "the golem still has Whiteout 2.5 s after")
     for tag in ("smoke_target", "smoke_dread", "smoke_caster"):
         rcon.run(f"kill @e[tag={tag}]")
+
+    # Summon Court (0.33.0), cast by a villager (NoAI, Resistance V; an armor stand records no attacker,
+    # and the court defends its caster from what hurts it): level 3 raises 4 of her court, answering to
+    # the villager. A husk (a zombie that doesn't burn at noon) that hurts the caster, they fall on; a
+    # cow that does, or that hurts one of them, they leave be (the server config's defaults; with
+    # attack_friendly_mobs and retaliate on, they killed it within 4 s); nor do they hurt the cow, nor
+    # one of the Dread. Their caster can't hurt them. A new cast replaces the last; their time up, they go.
+    def summoned(extra=""):
+        return court(",nbt={CommanderUUID:[I;7,7,7,7]}" + extra)
+
+    member = "@e[type=!minecraft:villager,nbt={CommanderUUID:[I;7,7,7,7]},limit=1]"
+    rcon.run('summon minecraft:villager 7.5 200 7.5 {NoAI:1b,UUID:[I;7,7,7,7],Tags:["smoke_caster"]}')
+    rcon.run("effect give @e[tag=smoke_caster,limit=1] minecraft:resistance 300 4 true")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_court 3")
+    time.sleep(0.5)
+    n = summoned()
+    record("Summon Court raises 4 at level 3, answering to its caster", n == 4, f"{n} raised")
+    rcon.run('summon minecraft:cow 9.5 200 9.5 {NoAI:1b,Tags:["smoke_cow"]}')
+    rcon.run('summon iceandfire:dread_thrall 5.5 200 9.5 {NoAI:1b,Tags:["smoke_dread"]}')
+    cow = "@e[tag=smoke_cow,limit=1]"
+    time.sleep(2.0)  # past their rise
+    cow_hp, thrall_hp = health(cow), health(thrall)
+    rcon.run("damage @e[tag=smoke_caster,limit=1] 1 minecraft:mob_attack by " + cow)
+    rcon.run("damage " + member + " 1 minecraft:mob_attack by " + cow)
+    rcon.run("damage @e[tag=smoke_caster,limit=1] 1 minecraft:mob_attack by " + thrall)
+    rcon.run("damage " + cow + " 2 minecraft:mob_attack by " + member)
+    time.sleep(3.0)
+    record("the court leaves a friendly mob be, even one that hits it or its caster", health(cow) >= cow_hp, f"cow health {cow_hp} -> {health(cow)}")
+    record("the court never fights the Dread", health(thrall) >= thrall_hp, f"dread thrall health {thrall_hp} -> {health(thrall)}")
+    before = health(member)
+    rcon.run("damage " + member + " 4 minecraft:mob_attack by @e[tag=smoke_caster,limit=1]")
+    record("its caster can't hurt it", health(member) >= before, f"court member health {before} -> {health(member)}")
+    rcon.run('summon minecraft:husk 10.5 200 5.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_zombie"]}')
+    rcon.run("damage @e[tag=smoke_caster,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_zombie,limit=1]")
+    fought = False
+    for _ in range(16):
+        time.sleep(0.5)
+        zombie_hp = health("@e[tag=smoke_zombie,limit=1]")
+        if zombie_hp < 20.0:
+            fought = True
+            break
+    record("the court falls on a hostile mob that hurts its caster", fought, "the husk was untouched 8 s after it hit the caster")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_court 1")
+    time.sleep(0.5)
+    n = summoned()
+    record("a new cast replaces the last court (2 at level 1)", n == 2, f"{n} standing")
+    rcon.run('execute as @e[nbt={CommanderUUID:[I;7,7,7,7]}] run data merge entity @s {NeoForgeData:{"dreadpatch:court_expires":0L}}')
+    time.sleep(1.5)
+    n = summoned()
+    record("their time up, they go", n == 0, f"{n} still standing")
+    for tag in ("smoke_caster", "smoke_cow", "smoke_dread", "smoke_zombie"):
+        rcon.run(f"kill @e[tag={tag}]")
+    clear_court()
 
     # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, answering
     # to her: a dread beast from a cow (Ice and Fire's own mapping); a thrall from a villager or a creeper

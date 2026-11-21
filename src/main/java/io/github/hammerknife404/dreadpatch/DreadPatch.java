@@ -9,6 +9,7 @@ import io.github.hammerknife404.dreadpatch.entity.DreadGate;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerBolts;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
+import io.github.hammerknife404.dreadpatch.entity.SummonedCourt;
 import io.github.hammerknife404.dreadpatch.entity.SyndrigossaEvents;
 import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
@@ -25,6 +26,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
@@ -37,6 +39,7 @@ public final class DreadPatch {
 
     public DreadPatch(IEventBus modBus, ModContainer container) {
         ModRegistries.register(modBus);
+        container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
         modBus.addListener(DreadPatch::onEntityAttributes);
         modBus.addListener(DreadPatch::onCreativeTabs);
         DreadEvents.register(NeoForge.EVENT_BUS);
@@ -46,6 +49,7 @@ public final class DreadPatch {
         ScuttlerBolts.register(NeoForge.EVENT_BUS);
         WhiteoutDominion.register(NeoForge.EVENT_BUS);
         DreadGate.register(NeoForge.EVENT_BUS);
+        SummonedCourt.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

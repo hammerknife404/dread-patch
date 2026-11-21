@@ -7,6 +7,8 @@ import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -25,6 +27,10 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
  * {@code createCharge}) becomes Shatter-Spine as it enters the world;</li>
  * <li>each breath hit siphons {@link DragonBreath#SIPHON} more, past armor, into her (shared with her
  * queen, {@link SoulTether});</li>
+ * <li>her bite leaves Withering Rime II ({@link Syndrigossa#BITE_RIME_TICKS}), as every Rimefrost
+ * dragon's does (the owner's ask): a melee hit of hers while her bite or her prey-shaking plays, which
+ * is when Ice and Fire lands it (it picks the attack's animation first and hits on its tick), so her
+ * tail and wing strikes don't carry it;</li>
  * <li>she's undead, and the Wither effect doesn't take (the undead tag already keeps Poison and
  * Regeneration off her, and Withering Rime is refused to all the Dread in {@code DreadEvents}).</li>
  * </ul>
@@ -37,6 +43,7 @@ public final class SyndrigossaEvents {
         gameBus.addListener(SyndrigossaEvents::onDragonFireDamage);
         gameBus.addListener(SyndrigossaEvents::onJoin);
         gameBus.addListener(SyndrigossaEvents::onDamage);
+        gameBus.addListener(SyndrigossaEvents::onBite);
         gameBus.addListener(SyndrigossaEvents::onEffectApplicable);
     }
 
@@ -73,6 +80,13 @@ public final class SyndrigossaEvents {
         if (event.getSource().is(ModRegistries.WITHERING_BREATH_DAMAGE) && event.getSource().getEntity() instanceof Syndrigossa dragon) {
             event.setNewDamage(event.getNewDamage() + DragonBreath.SIPHON);
             SoulTether.heal(dragon, DragonBreath.SIPHON);
+        }
+    }
+
+    private static void onBite(LivingDamageEvent.Post event) {
+        if (event.getNewDamage() > 0 && event.getSource().is(DamageTypes.MOB_ATTACK)
+                && event.getSource().getDirectEntity() instanceof Syndrigossa dragon && dragon.biting() && event.getEntity().isAlive()) {
+            event.getEntity().addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, Syndrigossa.BITE_RIME_TICKS, Syndrigossa.BITE_RIME_AMPLIFIER), dragon);
         }
     }
 }
