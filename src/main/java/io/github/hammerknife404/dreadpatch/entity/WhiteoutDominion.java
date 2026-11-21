@@ -10,6 +10,9 @@ import com.iafenvoy.iceandfire.registry.IafSounds;
 import io.github.hammerknife404.dreadpatch.magic.WhiteoutStorm;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.ParticleOptions;
@@ -22,6 +25,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -35,6 +39,11 @@ import net.minecraft.world.entity.animal.AbstractGolem;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FrostedIceBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
@@ -52,9 +61,10 @@ import java.util.UUID;
  * standing where it was cast ({@link WhiteoutStorm} has its shape and numbers). Everyone inside it
  * may harm is kept in a {@code Whiteout} (slowed, and blind past a few blocks) and, every few
  * seconds, takes a point of freezing damage. In hers, the Dread Queen's, whatever dies rises again
- * as a dread mob of her court ({@link #raise}), golems aside. Drawn by {@code WhiteoutRenderer} and
- * {@code WhiteoutClient}: driven snow, snow lying on the ground for as long as it stands, a wall of
- * it at the edge, and the fog. Never saved: it blows over in under a minute.
+ * as a dread mob of her court ({@link #raise}), golems aside. Its water freezes over as under Frost
+ * Walker ({@link #frost}), in patches as its snow drifts in, and thaws as it clears. Drawn by
+ * {@code WhiteoutRenderer} and {@code WhiteoutClient}: driven snow, snow lying on the ground for as
+ * long as it stands, a wall of it at the edge, and the fog. Never saved: it blows over in under a minute.
  */
 public class WhiteoutDominion extends Entity implements TraceableEntity {
     /** Ticks of Whiteout each renewal gives, so it lingers a moment after leaving; renewed this often. */
@@ -62,6 +72,8 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
     static final int RENEW_EVERY = 10;
     /** How far from a death to look for a storm holding it: past any storm's radius. */
     static final double SEARCH = 64.0;
+    /** Ticks between its looks over its water: freezing, holding and thawing it. */
+    static final int FROST_EVERY = 10;
 
     private static final EntityDataAccessor<Integer> LIFETIME = SynchedEntityData.defineId(WhiteoutDominion.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> RADIUS = SynchedEntityData.defineId(WhiteoutDominion.class, EntityDataSerializers.FLOAT);
@@ -74,6 +86,8 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
     /** Hers: whatever dies inside rises in her court. */
     private boolean raisesDead;
     private int raised;
+    /** The water it froze (server side), so it thaws that and only that. */
+    private final LongOpenHashSet frozen = new LongOpenHashSet();
 
     public WhiteoutDominion(EntityType<? extends WhiteoutDominion> type, Level level) {
         super(type, level);
@@ -127,6 +141,9 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         if (this.raisesDead && (owner == null || !owner.isAlive()) && this.getLifetime() > this.tickCount + WhiteoutStorm.BUILD_TICKS) {
             this.setLifetime(this.tickCount + WhiteoutStorm.BUILD_TICKS);
         }
+        if (this.tickCount % FROST_EVERY == 0) {
+            this.frost();
+        }
         boolean renew = this.tickCount % RENEW_EVERY == 0;
         boolean freeze = WhiteoutStorm.freezesAt(this.tickCount);
         if (!renew && !freeze) {
@@ -142,6 +159,85 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
                 victim.hurt(cold, WhiteoutStorm.FREEZE_DAMAGE);
             }
         }
+    }
+
+    /**
+     * Its water: still water at the top of each column in it (open to the air, nothing living or a boat
+     * on it: {@link Rimewalk#canFreeze}) freezes to vanilla's frosted ice where its snow has begun to
+     * settle ({@link WhiteoutStorm#ices}: in patches, as the snow drifts in), and stays whole while it
+     * lies (its melting set back, as under her Rimewalk). As the storm clears it breaks up patch by
+     * patch, a crack a look, and back to water; whatever is left thaws when it ends ({@link #remove}).
+     * Only loaded chunks. Laid and held without block updates: vanilla melts frosted ice outright when
+     * a neighbouring block turns to frosted ice and it has fewer than two such neighbours, so patchy ice
+     * laid with updates would melt as fast as it was laid.
+     */
+    private void frost() {
+        Level level = this.level();
+        float cover = WhiteoutStorm.cover(this.tickCount, this.getLifetime());
+        float radius = this.getRadius();
+        int r = Mth.ceil(radius);
+        int cx = Mth.floor(this.getX());
+        int cz = Mth.floor(this.getZ());
+        double floor = this.getY() - WhiteoutStorm.DEPTH;
+        double ceiling = this.getY() + WhiteoutStorm.HEIGHT;
+        BlockState ice = Blocks.FROSTED_ICE.defaultBlockState();
+        BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+        for (int z = cz - r; z <= cz + r; z++) {
+            for (int x = cx - r; x <= cx + r; x++) {
+                double dx = x + 0.5 - this.getX();
+                double dz = z + 0.5 - this.getZ();
+                if (dx * dx + dz * dz > radius * radius || !level.hasChunk(x >> 4, z >> 4)) {
+                    continue;
+                }
+                int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
+                if (y < floor || y > ceiling) {
+                    continue;
+                }
+                at.set(x, y, z);
+                BlockState state = level.getBlockState(at);
+                boolean lies = WhiteoutStorm.ices(cover, WhiteoutStorm.patch(x, z));
+                if (state.is(Blocks.FROSTED_ICE)) {
+                    if (!this.frozen.contains(at.asLong())) {
+                        continue;
+                    }
+                    int age = state.getValue(FrostedIceBlock.AGE);
+                    if (lies && age > 0) {
+                        level.setBlock(at, ice, Block.UPDATE_CLIENTS);
+                    } else if (!lies && age < FrostedIceBlock.MAX_AGE) {
+                        level.setBlock(at, state.setValue(FrostedIceBlock.AGE, age + 1), Block.UPDATE_CLIENTS);
+                    } else if (!lies) {
+                        thaw(level, at);
+                        this.frozen.remove(at.asLong());
+                    }
+                } else if (lies && Rimewalk.canFreeze(level, at, state) && level.setBlock(at, ice, Block.UPDATE_CLIENTS)) {
+                    this.frozen.add(at.asLong());
+                }
+            }
+        }
+    }
+
+    /** Back to water, as ice melts (vanilla's {@code IceBlock.melt}). */
+    private static void thaw(Level level, BlockPos at) {
+        level.setBlockAndUpdate(at, Blocks.WATER.defaultBlockState());
+        level.neighborChanged(at, Blocks.WATER, at);
+    }
+
+    /**
+     * Ended (its time up, its caster's next storm, {@code /kill}): what's left of its ice thaws. Not
+     * when its chunk unloads (it isn't saved): that ice is left to melt as Frost Walker's does, by day.
+     */
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        if (!this.level().isClientSide && reason.shouldDestroy()) {
+            for (LongIterator it = this.frozen.iterator(); it.hasNext(); ) {
+                BlockPos at = BlockPos.of(it.nextLong());
+                if (this.level().isLoaded(at) && this.level().getBlockState(at).is(Blocks.FROSTED_ICE)) {
+                    thaw(this.level(), at);
+                }
+            }
+            this.frozen.clear();
+        }
+        super.remove(reason);
     }
 
     /** Its cold, as its caster's (death messages, kill credit, who the hurt turn on); vanilla's freezing without one. */

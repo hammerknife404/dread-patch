@@ -79,6 +79,37 @@ class WhiteoutStormTest {
     }
 
     @Test
+    void eachBlockHasItsOwnPatchTheSameEveryTime() {
+        int early = 0;
+        for (int x = -40; x < 40; x++) {
+            for (int z = -40; z < 40; z++) {
+                float patch = WhiteoutStorm.patch(x, z);
+                assertTrue(patch >= 0.0F && patch < 1.0F, x + ", " + z);
+                assertEquals(patch, WhiteoutStorm.patch(x, z));
+                early += patch < 0.5F ? 1 : 0;
+            }
+        }
+        // Spread over the drift, not bunched: about half settle in its first half.
+        assertTrue(early > 2800 && early < 3600, early + " of 6400");
+    }
+
+    @Test
+    void itsWaterFreezesWithItsSnowAndThawsAsItClears() {
+        int lifetime = WhiteoutStorm.QUEEN_LIFETIME;
+        assertFalse(WhiteoutStorm.ices(WhiteoutStorm.cover(0, lifetime), 0.0F), "nothing at once");
+        assertTrue(WhiteoutStorm.ices(WhiteoutStorm.cover(WhiteoutStorm.COVER_TICKS, lifetime), 0.999F), "all of it at full cover");
+        assertTrue(WhiteoutStorm.ices(0.3F, 0.1F), "an early patch while it drifts in");
+        assertFalse(WhiteoutStorm.ices(0.3F, 0.9F), "not a late one yet");
+        assertFalse(WhiteoutStorm.ices(WhiteoutStorm.cover(lifetime, lifetime), 0.0F), "all thawed at its end");
+        // Its ice and its snow go together: frozen exactly where its snow has begun to lie.
+        for (float cover = 0.0F; cover <= 1.0F; cover += 0.05F) {
+            for (float patch = 0.0F; patch < 1.0F; patch += 0.05F) {
+                assertEquals(WhiteoutStorm.settled(cover, patch) > 0.0F, WhiteoutStorm.ices(cover, patch));
+            }
+        }
+    }
+
+    @Test
     void whatDoesntRiseAsIceAndFireRaisesItRisesByItsShape() {
         assertTrue(WhiteoutStorm.risesAsThrall(0.6F, 1.95F), "a villager or an illager");
         assertTrue(WhiteoutStorm.risesAsThrall(0.6F, 1.7F), "a creeper");
