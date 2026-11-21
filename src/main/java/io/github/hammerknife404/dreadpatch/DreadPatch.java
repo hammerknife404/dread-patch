@@ -5,6 +5,7 @@ import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
+import io.github.hammerknife404.dreadpatch.entity.DreadGate;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerBolts;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
@@ -44,6 +45,7 @@ public final class DreadPatch {
         SyndrigossaEvents.register(NeoForge.EVENT_BUS);
         ScuttlerBolts.register(NeoForge.EVENT_BUS);
         WhiteoutDominion.register(NeoForge.EVENT_BUS);
+        DreadGate.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

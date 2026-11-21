@@ -91,7 +91,7 @@ def main():
     def clear_court():
         # Every queen raises a court (and her storm raises the dead into it); clear it, and her storm,
         # with her so they can't wander into later checks.
-        for kind in court_types + ["iceandfire:dread_beast", "iceandfire:dread_horse", "iceandfire:dread_lich", "dreadpatch:whiteout_dominion"]:
+        for kind in court_types + ["iceandfire:dread_beast", "iceandfire:dread_horse", "iceandfire:dread_lich", "dreadpatch:whiteout_dominion", "dreadpatch:dread_gate"]:
             rcon.run(f"kill @e[type={kind}]")
 
     def has_effect(selector, effect):
@@ -906,6 +906,68 @@ def main():
     left = frosted_in_pool()
     record("its ice thaws when it ends", gone and left == 0 and block_is(18, 199, 3, "minecraft:water") and block_is(23, 199, 7, "minecraft:water"),
            f"storm gone {gone}, {left} frosted ice left")
+    # A Dread Gate. A Gravemaster's Key used on its frame needs a player; a gate summoned by hand finds
+    # its frame round where it stands, the same way. A dreadstone frame round a 3x4 opening at the
+    # platform's north edge, open sky in front of it: after the 5 s ritual the queen comes through
+    # riding an ancient Syndrigossa, and the gate shatters, its frame left.
+    queen_sel = "@e[type=dreadpatch:dread_queen,limit=1]"
+    rcon.run("fill 3 199 2 7 204 2 iceandfire:dread_stone_bricks")
+    rcon.run("fill 4 200 2 6 203 2 minecraft:air")
+    check("a gate summoned in its frame", "summon dreadpatch:dread_gate 5.5 200 2.5", "Summoned new")
+    time.sleep(0.5)
+    record("it fills its frame", all(block_is(x, y, 2, "dreadpatch:dread_gate") for x in (4, 5, 6) for y in (200, 203)),
+           "no gate across the opening")
+    came = False
+    for _ in range(32):
+        time.sleep(0.25)
+        came = "Test passed" in rcon.run("execute if entity " + queen_sel)
+        if came:
+            break
+    record("the Dread Queen comes through", came, "no queen within 8 s")
+    time.sleep(0.6)
+    record("riding an ancient Syndrigossa, with room for one",
+           "Test passed" in rcon.run("execute as " + queen_sel + " on vehicle if entity @s[type=dreadpatch:syndrigossa,nbt={Ancient:1b}]"),
+           "she isn't on an ancient Syndrigossa")
+    record("and the gate is gone, its frame left", block_is(5, 201, 2, "minecraft:air") and block_is(3, 201, 2, "iceandfire:dread_stone_bricks")
+           and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "the gate's still there, or its frame went")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    clear_court()
+    rcon.run("kill @e[type=item]")
+    # Broken mid-ritual, it collapses and nothing comes; a frame with a gap opens nothing.
+    rcon.run("summon dreadpatch:dread_gate 5.5 200 2.5")
+    time.sleep(0.5)
+    rcon.run("setblock 3 201 2 minecraft:air")
+    time.sleep(0.5)
+    record("breaking its frame collapses it", block_is(5, 201, 2, "minecraft:air") and block_is(4, 200, 2, "minecraft:air")
+           and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "the gate outlived its frame")
+    time.sleep(5.0)
+    record("and nothing comes through", "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]"), "a queen came anyway")
+    rcon.run("summon dreadpatch:dread_gate 5.5 200 2.5")
+    time.sleep(0.5)
+    record("a frame with a gap opens nothing", block_is(5, 201, 2, "minecraft:air")
+           and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "a gate opened in a broken frame")
+    # In a room too low for her dragon (as a Mausoleum's hall is), she comes on foot, out of the gate itself.
+    rcon.run("fill 9 199 1 17 206 13 minecraft:stone hollow")
+    rcon.run("fill 11 200 7 15 204 7 iceandfire:dread_stone_bricks")
+    rcon.run("fill 12 201 7 14 203 7 minecraft:air")
+    rcon.run("summon dreadpatch:dread_gate 13.5 201 7.5")
+    came = False
+    for _ in range(32):
+        time.sleep(0.25)
+        came = "Test passed" in rcon.run("execute positioned 13.5 201 7.5 if entity @e[type=dreadpatch:dread_queen,distance=..2]")
+        if came:
+            break
+    time.sleep(0.6)
+    record("in a low room she comes on foot, in the gate", came and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:syndrigossa]"),
+           f"queen in the gate: {came}; a Syndrigossa came too, or she didn't come")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    clear_court()
+    rcon.run("kill @e[type=item]")
+    rcon.run("fill 3 199 2 7 204 2 minecraft:air")
+    rcon.run("fill 9 199 1 17 206 13 minecraft:air")
+
     rcon.run("fill 18 198 3 28 198 11 minecraft:air")
     rcon.run("fill 1 199 1 30 199 14 minecraft:air")
     rcon.run("forceload remove 0 0 31 15")

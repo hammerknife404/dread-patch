@@ -128,6 +128,14 @@ public class DreadQueen extends DreadQueenEntity {
         return result;
     }
 
+    /**
+     * Whether she raises her dragon on her first tick ({@link #riseWithDragon}); a boss spawn sets it.
+     * A Dread Gate clears it where there's no room for an ancient Syndrigossa: she comes on foot.
+     */
+    public void setWithDragon(boolean withDragon) {
+        this.withDragon = withDragon;
+    }
+
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);

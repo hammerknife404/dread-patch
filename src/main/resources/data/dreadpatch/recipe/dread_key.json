@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bone"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "S": {
+      "item": "iceandfire:dread_shard"
+    }
+  },
+  "pattern": [
+    "SBS",
+    " S ",
+    " GG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "iceandfire:dread_key"
+  }
+}

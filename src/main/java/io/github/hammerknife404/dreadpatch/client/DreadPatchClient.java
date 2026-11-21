@@ -4,6 +4,7 @@ import io.github.hammerknife404.dreadpatch.DreadPatch;
 import com.iafenvoy.iceandfire.registry.IafItems;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
+import io.github.hammerknife404.dreadpatch.magic.GateShape;
 import io.github.hammerknife404.dreadpatch.magic.PermafrostConduit;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.ChatFormatting;
@@ -60,6 +61,13 @@ public final class DreadPatchClient {
             if (DreadQueenSword.charged(event.getItemStack())) {
                 tooltip.add(at, Component.translatable("tooltip.dreadpatch.frost_charged").withStyle(ChatFormatting.DARK_AQUA));
             }
+        } else if (event.getItemStack().is(IafItems.DREAD_KEY.get())) {
+            // Ice and Fire's key says nothing of what it opens: a Mausoleum's door, and now a Dread Gate.
+            tooltip.addAll(at, List.of(
+                    line("tooltip.dreadpatch.gravemasters_key.lock"),
+                    line("tooltip.dreadpatch.gravemasters_key.gate", GateShape.MIN_WIDTH, GateShape.MAX_WIDTH, GateShape.MIN_HEIGHT, GateShape.MAX_HEIGHT),
+                    line("tooltip.dreadpatch.gravemasters_key.gate2"),
+                    line("tooltip.dreadpatch.gravemasters_key.spent")));
         }
     }
 
@@ -107,5 +115,6 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE.get(), ShatterSpineRenderer::core);
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), ShatterSpineRenderer::shard);
         event.registerEntityRenderer(ModRegistries.WHITEOUT_DOMINION.get(), WhiteoutRenderer::new);
+        event.registerEntityRenderer(ModRegistries.DREAD_GATE.get(), NoopRenderer::new);
     }
 }

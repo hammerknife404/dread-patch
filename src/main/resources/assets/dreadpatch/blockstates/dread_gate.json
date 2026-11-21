@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "dreadpatch:block/dread_gate_ns"
+    },
+    "axis=z": {
+      "model": "dreadpatch:block/dread_gate_ew"
+    }
+  }
+}

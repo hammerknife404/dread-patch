@@ -1,11 +1,13 @@
 package io.github.hammerknife404.dreadpatch.registry;
 
 import io.github.hammerknife404.dreadpatch.DreadPatch;
+import io.github.hammerknife404.dreadpatch.block.DreadGateBlock;
 import io.github.hammerknife404.dreadpatch.effect.BrittleEffect;
 import io.github.hammerknife404.dreadpatch.effect.RimeboundEffect;
 import io.github.hammerknife404.dreadpatch.effect.WhiteoutEffect;
 import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
+import io.github.hammerknife404.dreadpatch.entity.DreadGate;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineCore;
@@ -37,8 +39,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -46,6 +52,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class ModRegistries {
     private static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE, DreadPatch.MODID);
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(DreadPatch.MODID);
+    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(DreadPatch.MODID);
     private static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, DreadPatch.MODID);
     private static final DeferredRegister<AbstractSpell> SPELLS = DeferredRegister.create(SpellRegistry.SPELL_REGISTRY_KEY, DreadPatch.MODID);
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, DreadPatch.MODID);
@@ -99,6 +106,24 @@ public final class ModRegistries {
                     .clientTrackingRange(10)
                     .updateInterval(20)
                     .build(DreadPatch.id("whiteout_dominion").toString()));
+
+    /** A Dread Gate's ritual: a point at the foot of the gate, invisible; it draws itself in blocks and particles. */
+    public static final DeferredHolder<EntityType<?>, EntityType<DreadGate>> DREAD_GATE = ENTITY_TYPES.register("dread_gate",
+            () -> EntityType.Builder.<DreadGate>of(DreadGate::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(8)
+                    .updateInterval(20)
+                    .build(DreadPatch.id("dread_gate").toString()));
+
+    /** A Dread Gate's open face: no item, no drops, unbreakable but in creative, lit like a Nether portal. */
+    public static final DeferredBlock<DreadGateBlock> DREAD_GATE_BLOCK = BLOCKS.register("dread_gate",
+            () -> new DreadGateBlock(BlockBehaviour.Properties.of()
+                    .noCollission()
+                    .strength(-1.0F, 3600000.0F)
+                    .sound(SoundType.GLASS)
+                    .lightLevel(state -> 11)
+                    .pushReaction(PushReaction.BLOCK)
+                    .noLootTable()));
 
     /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */
     public static final DeferredHolder<EntityType<?>, EntityType<SovereignsEclipse>> SOVEREIGNS_ECLIPSE = ENTITY_TYPES.register("sovereigns_eclipse",
@@ -173,6 +198,7 @@ public final class ModRegistries {
 
     public static void register(IEventBus modBus) {
         ENTITY_TYPES.register(modBus);
+        BLOCKS.register(modBus);
         ITEMS.register(modBus);
         MOB_EFFECTS.register(modBus);
         SPELLS.register(modBus);
