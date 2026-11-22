@@ -77,7 +77,8 @@
                   "dreadpatch:rimefire_crown",
                   "dreadpatch:barrow_step",
                   "dreadpatch:whiteout_dominion",
-                  "dreadpatch:summon_court"
+                  "dreadpatch:summon_court",
+                  "dreadpatch:create_rimefrost_dragon"
                 ],
                 "force": true
               }

@@ -1,5 +1,8 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import io.github.hammerknife404.dreadpatch.spell.CreateRimefrostDragonSpell;
+import io.github.hammerknife404.dreadpatch.magic.RimefrostRaising;
+import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.iafenvoy.uranus.animation.AnimationHandler;
 import io.github.hammerknife404.dreadpatch.magic.DragonAge;
@@ -221,6 +224,44 @@ public class DreadQueen extends DreadQueenEntity {
      * Her spells, her storm and her court, on top of her movement ({@link KeepDistanceGoal}). Not
      * called while she's rising ({@link #isImmobile}).
      */
+    /**
+     * Create Rimefrost Dragon (0.38.0), cast for nothing (a player pays 500 mana and all the rest): with
+     * a target, at most every 3 minutes (her first {@link #FIRST_RAISE} ticks in), once she's lost a
+     * quarter of her health (it rises with half what she's lost, so unhurt it would rise all but dead),
+     * and while no dragon she raised stands, she raises the nearest Ice and Fire ice dragon corpse within
+     * {@link #RAISE_RANGE} blocks as a Rimefrost dragon of hers: it takes her target, as her court does.
+     */
+    static final int FIRST_RAISE = 200;
+    static final int RAISE_COOLDOWN = CreateRimefrostDragonSpell.WINDOW_TICKS;
+    static final int RAISE_RETRY = 20;
+    static final double RAISE_RANGE = 32.0;
+    private int raiseCooldown = FIRST_RAISE;
+
+    /** False if she won't or can't raise one now. */
+    private boolean raiseDragon() {
+        if (!(this.level() instanceof ServerLevel level) || this.getHealth() > this.getMaxHealth() * RimefrostRaising.QUEEN_RAISES_BELOW) {
+            return false;
+        }
+        for (RimefrostDragon raised : level.getEntitiesOfClass(RimefrostDragon.class, this.getBoundingBox().inflate(128.0),
+                d -> d.isAlive() && this.getUUID().equals(d.getRaisedBy()))) {
+            return false;
+        }
+        IceDragonEntity nearest = null;
+        double best = RAISE_RANGE * RAISE_RANGE;
+        for (IceDragonEntity corpse : level.getEntitiesOfClass(IceDragonEntity.class, this.getBoundingBox().inflate(RAISE_RANGE), CreateRimefrostDragonSpell::isCorpse)) {
+            double d = corpse.distanceToSqr(this);
+            if (d <= best) {
+                best = d;
+                nearest = corpse;
+            }
+        }
+        if (nearest == null) {
+            return false;
+        }
+        this.swing(InteractionHand.OFF_HAND);
+        return CreateRimefrostDragonSpell.raise(level, this, nearest) != null;
+    }
+
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
@@ -235,6 +276,9 @@ public class DreadQueen extends DreadQueenEntity {
         }
         if (this.stormCooldown > 0) {
             this.stormCooldown--;
+        }
+        if (this.raiseCooldown > 0) {
+            this.raiseCooldown--;
         }
         LivingEntity target = this.getTarget();
         if (target != null && !target.isAlive()) {
@@ -255,6 +299,9 @@ public class DreadQueen extends DreadQueenEntity {
             return;
         }
         double distance = this.distanceTo(target);
+        if (this.raiseCooldown == 0) {
+            this.raiseCooldown = this.raiseDragon() ? RAISE_COOLDOWN : RAISE_RETRY;
+        }
         if (this.stormCooldown == 0 && distance <= WhiteoutStorm.QUEEN_RADIUS && (this.storm == null || this.storm.isRemoved())) {
             this.raiseStorm();
             this.stormCooldown = WhiteoutStorm.QUEEN_COOLDOWN;

@@ -238,6 +238,35 @@ def summon_court():
     return im
 
 
+def create_rimefrost_dragon():
+    """A dragon's skull in profile rising from cracked ground lit cyan: bone-white, horned, its eye
+    socket burning with her cyan, soul sparks above."""
+    im = dread_background(16, 61)
+    for y in range(13, 16):
+        for x in range(16):
+            im.putpixel((x, y), rgba(SOOT if (x + 2 * y) % 3 else CHARCOAL))
+    for x, y in [(2, 14), (3, 15), (6, 14), (9, 15), (12, 14), (13, 15)]:
+        im.putpixel((x, y), rgba(FIRE_DEEP))
+    # Row by row: (y, first x, last x) of bone, facing right, horns swept back.
+    rows = [(2, 2, 3), (3, 3, 4), (4, 3, 6), (5, 3, 8), (6, 4, 11), (7, 4, 13), (8, 5, 14), (9, 5, 13),
+            (10, 6, 13), (11, 6, 12), (12, 5, 11)]
+    for y, x0, x1 in rows:
+        for x in range(x0, x1 + 1):
+            shade = BONE_LIGHT if y <= 5 or x == x0 else BONE if y <= 9 else BONE_DIM
+            im.putpixel((x, y), rgba(shade))
+    # Eye socket, nostril, the gap of the jaw with teeth.
+    im.putpixel((7, 7), rgba(DREAD_CYAN))
+    im.putpixel((8, 7), rgba(FIRE_BRIGHT))
+    im.putpixel((13, 7), rgba(CHARCOAL))
+    for x in range(8, 14):
+        im.putpixel((x, 10), rgba(SOOT if x % 2 else BONE_LIGHT))
+    for x in range(5, 12):
+        im.putpixel((x, 12), rgba(DREAD_CYAN if x in (6, 9) else FIRE_DEEP))
+    for x, y in [(1, 6), (14, 3), (11, 1), (2, 10)]:
+        im.putpixel((x, y), rgba(DREAD_CYAN if (x + y) % 2 else FIRE_BRIGHT))
+    return im
+
+
 def line(im, a, b, c):
     """A 1-pixel line from a to b (Bresenham)."""
     (x0, y0), (x1, y1) = a, b
@@ -467,6 +496,7 @@ def main():
         "gui/spell_icons/barrow_step.png": barrow_step(),
         "gui/spell_icons/whiteout_dominion.png": whiteout_dominion(),
         "gui/spell_icons/summon_court.png": summon_court(),
+        "gui/spell_icons/create_rimefrost_dragon.png": create_rimefrost_dragon(),
         "mob_effect/whiteout.png": whiteout_effect(),
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "block/dread_fire_0.png": dread_fire(31),

@@ -4,7 +4,7 @@ NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinish
 
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
-- **Still to come:** the Create Rimefrost Dragon spell, hatching Syndrigossa's egg (both decided, under the owner's decisions), and natural spawning. For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
+- **Still to come:** hatching Syndrigossa's egg (decided, under the owner's decisions), and natural spawning. For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
 
 ## The owner's decisions
 
@@ -52,7 +52,8 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - the plan's split, which they didn't change: every Rimefrost dragon has the breath, the bite, Shatter-Spine, undeath, Dread alliance, the rotted look in its own ice dragon colour and a Dread corpse;
   - only Syndrigossa has Sovereign's Eclipse, the boss bar, health by difficulty, the ancient boss, the queen's saddle and tether, and her egg;
   - a plain Rimefrost dragon's health is Ice and Fire's for its age (their pick wasn't given; ours, as "same tiered").
-- **Next, decided (2026-11-21):**
+- **0.38.0, Create Rimefrost Dragon** (below); ours: the queen raises one only once she's lost a quarter of her health (unhurt, hers would rise with 1), first 10 s in.
+- **Decided (2026-11-21):**
   - **Create Rimefrost Dragon**, a spell (scroll only): it raises an Ice and Fire ice dragon corpse as a Rimefrost dragon of the same age, owned by the caster. 3 minutes' cooldown at least; 500 mana and all the rest a player has (the queen pays none). It rises with health of half (rounded down) the caster's missing health: the queen's, or the casting player's. A player has one at a time. "Recasting Create Rimefrost Dragon within its cooldown unsummons the current one and allows the new target".
   - **Hatching her egg, B:** placed on dreadstone, it hatches after soaking up three full Whiteout Dominion storms cast over it, into a Rimefrost hatchling (white) tamed to whoever placed it.
 - **0.36.0:** "Make the max distance on the breath 32. Adjust particle speeds accordingly, but keep the cutoff matching its max distance".
@@ -335,7 +336,7 @@ Everything is under `io.github.hammerknife404.dreadpatch`. `magic/` holds the ru
 
 ### Her spells
 
-All five are Iron's Ice spells, levels 1–5. They're kept out of random loot and the scroll forge (`allowLooting()` false, `setAllowCrafting(false)`); only her loot drops them, named with `"force": true`.
+All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). They're kept out of random loot and the scroll forge (`allowLooting()` false, `setAllowCrafting(false)`); only her loot drops them, named with `"force": true`.
 
 **Death messages:** a spell's damage source (`getDamageSource`) dies as `death.attack.<spell id>` (Iron's `SpellDamageSource`: victim, then caster). The bolt's (also used by Beater's Decree) and the crown's (its shards) are in our lang, from 0.33.1; until then a death showed the raw key. Give any spell that deals damage under its own id one, plus the `.item` form Iron's own spells carry.
 
@@ -396,6 +397,16 @@ All five are Iron's Ice spells, levels 1–5. They're kept out of random loot an
 - **Friendly mobs leave it be:** while `attack_friendly_mobs` is off, a mob that isn't hostile, a player or Dread can't take a member as its target (an iron golem goes for any `Enemy`).
 - **Its caster's side can't hurt it** (`LivingIncomingDamageEvent`; Iron's friendly fire only knows `IMagicSummon`), and the caster's crown and storm skip it (`RimefireCrown.canHarm`). `/kill` still works.
 - **Config:** `DreadPatchConfig`, a NeoForge server config, written to `config/dreadpatch-server.toml`; `courtTerms()` gives the defaults before it loads.
+
+**Create Rimefrost Dragon** (`spell/CreateRimefrostDragonSpell`, `magic/RimefrostRaising`; 0.38.0)
+- **The spell:** Ice, legendary, one level, 500 mana, `RANGE` 24. Scroll only (her loot list). It raises an Ice and Fire ice dragon corpse (`isCorpse`: an `IceDragonEntity`, not a Rimefrost, `isModelDead`) as a Rimefrost dragon where it lay: `setVariant`, `setGender`, `setAgeInTicks` copied, `refreshDirtyAttributes`, health `RimefrostRaising.risingHealth` (half the caster's missing health, floored, at least 1, at most its max), `RaisedBy` saved, persistent; a player's `tame(player)`. The corpse is discarded. `dismiss` first crumbles every Rimefrost the caster raised in the level (one at a time). A raised Rimefrost's `getCommander` is its raiser unless that's a player, and every second it takes its commander's target.
+- **Targeting:** players go through `checkPreCastConditions`, Iron's `Utils.preCastTargetHelper` with an `isCorpse` filter (its "no target" hint; nothing spent). It resolves a dragon's `PartEntity` to its parent, and doesn't mind a corpse being invulnerable. Its ray stops at the first entity it meets: a living dragon in the way means no target. Casters without Iron's pre-cast (`/cast` on a mob) use `findCorpse`, a `RaycastBuilder` with the same filter.
+- **Mana, window and cooldown** (Iron's recast system, the only way to cast during a cooldown):
+  - `castSpell` takes the mana before `onCast` unless a recast is open; a recast is free and skips the cooldown check.
+  - The first cast (no recast open) sets the player's mana to 0 (`SyncManaPacket`) and opens a `RecastInstance` (`getRecastCount` 2, `WINDOW_TICKS` 3,600, `WindowData`, an empty `ICastDataSerializable`). Iron's then decrements it to 1.
+  - A recast raises the new corpse (sending the last back) and uses it up. The cooldown starts in `onRecastFinished` (Iron's would add the full one): ours adds only `getTicksRemaining()` of the window (`addCooldown` + `SyncCooldownPacket`), none on a timeout. So it's 3 minutes from the first cast either way.
+  - **Iron's refuses to cast a spell with recasts from a scroll** (`cast_error_scroll`), so it's inscribed and cast from a spellbook.
+- **The queen** (`DreadQueen.raiseDragon`, in `customServerAiStep`): free. With a target, `FIRST_RAISE` 200 ticks in, then `RAISE_COOLDOWN` 3,600 (retrying every 20), once she's at or under `QUEEN_RAISES_BELOW` 75% health, and with no Rimefrost of hers alive within 128: the nearest corpse within 32.
 
 **Whiteout Dominion:** under its own heading, below.
 
@@ -826,6 +837,11 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Magic:** Withering Rime and the siphon, and each spell, cast through Iron's `/cast` by armor stands.
 - **Fighting:** the sword, her spacing and Barrow-Step, her court, decree, storm and lich.
 - **Summon Court:** cast by a NoAI villager (an armor stand records no attacker, and the court defends its caster from what hurts it). The count by level; leaving a cow and a dread thrall be when they hit the caster or a member; the caster's hit cancelled; a husk that hits the caster attacked; a recast replacing the court; expiry (set through `data merge ... {NeoForgeData:{...}}`). With `attack_friendly_mobs` and `retaliate` switched on by hand, the court killed the cow within 4 s, so the check does catch the filter missing.
+- **Create Rimefrost Dragon:**
+  - a NoAI villager (Resistance V, at 6 of 20) casts it at a silver ice dragon corpse: the corpse is gone, and a silver Rimefrost of its age rises there with 7 health, `RaisedBy` the villager;
+  - cast at a second corpse, the first is sent back and the second (blue) rises;
+  - a queen at 100 of 300 with a golem target raises one of hers from a corpse 8 blocks off within 20 s, not whole.
+  - The raised dragon is set NoAI right after the cast: with its AI it heals as it fights (it read 87 once) and wanders into the next cast's line of sight.
 - **Rimefrost dragons:** a summoned one keeps its colour (sapphire), is undead with the ice dragon's tags, refuses Withering Rime and Wither, starts whole from a tag at Ice and Fire's health for its age (unchanged on Hard, unlike Syndrigossa's), and its corpse gives its own colour's scales and shards, its heart never her egg. Summoned without NBT it's a random age and ice colour (a summon with any NBT skips `finalizeSpawn`: a colourless hatchling).
 - **Her drops:** at most one sword and one staff, one ink and one scroll a kill; over 40 rolls each of sword and staff 3–20 times; over four deaths of a queen saved with `HandDropChances` 2.0, not all eight.
 - **Ice:** Rimewalk, and the storm's ice.
