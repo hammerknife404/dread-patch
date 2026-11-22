@@ -1,5 +1,6 @@
 package io.github.hammerknife404.dreadpatch.client;
 
+import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
@@ -39,9 +40,11 @@ final class RimeBreathParticle extends TextureSheetParticle {
         } else {
             // Slow to lose speed and long-lived, so one sent from her mouth carries the length of her
             // breath (DragonBreath.PARTICLE_TRAVEL blocks for each block a tick it's sent at).
-            this.friction = smoke ? 0.95F : 0.96F;
+            this.friction = smoke ? DragonBreath.SMOKE_FRICTION : DragonBreath.FLAME_FRICTION;
             this.gravity = smoke ? -0.005F : 0.0F;
-            this.lifetime = smoke ? 28 + this.random.nextInt(13) : 22 + this.random.nextInt(9);
+            this.lifetime = smoke
+                    ? DragonBreath.SMOKE_LIFE_MIN + this.random.nextInt(DragonBreath.SMOKE_LIFE_MAX - DragonBreath.SMOKE_LIFE_MIN + 1)
+                    : DragonBreath.FLAME_LIFE_MIN + this.random.nextInt(DragonBreath.FLAME_LIFE_MAX - DragonBreath.FLAME_LIFE_MIN + 1);
             this.startSize = smoke ? 0.55F + this.random.nextFloat() * 0.2F : 0.4F + this.random.nextFloat() * 0.15F;
             this.growth = smoke ? 3.5F : 3.0F;
         }
