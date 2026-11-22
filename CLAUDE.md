@@ -836,7 +836,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 
 - **Ask first:** rendering has no automated check, and on the owner's machine `./gradlew runClient` opens a window on their desktop (there's no Xvfb). **Ask before launching it.**
 - **Creative mode:** Iron's spends no mana and sets no cooldowns in creative (`CREATIVE_MANA_COST` / `CREATIVE_COOLDOWN`), so check those in survival.
-- **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.33.0 (2026-11-21: "everything works, the court follows and ignores golems"). Their reports are behind the decisions above.
+- **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.35.0 (2026-11-21: at 0.33.0 "everything works, the court follows and ignores golems"; at 0.34.0 "the boss bar works"; at 0.35.0 "everything works, they ignore the corpse now"). Their reports are behind the decisions above.
 - **Never checked:** Fabulous graphics and Iris shader packs, for the storm and its fog.
 
 ## Working here
