@@ -359,7 +359,10 @@ public class DreadPhantom extends Phantom implements IDreadMob {
         }
     }
 
-    /** Vanilla's dive, at any living target; a cat still turns it away. It keeps its target after. */
+    /**
+     * Vanilla's dive, at any living target, committed: it presses on through hits until it bites or meets a
+     * wall. A cat still turns it away. It keeps its target after.
+     */
     class DiveGoal extends FlightGoal {
         private boolean scaredOfCat;
         private int catSearchTick;
@@ -405,7 +408,9 @@ public class DreadPhantom extends Phantom implements IDreadMob {
                 if (!DreadPhantom.this.isSilent()) {
                     DreadPhantom.this.level().levelEvent(1039, DreadPhantom.this.blockPosition(), 0);
                 }
-            } else if (DreadPhantom.this.horizontalCollision || DreadPhantom.this.hurtTime > 0) {
+            } else if (DreadPhantom.this.horizontalCollision) {
+                // Only a wall turns it aside. Vanilla's also pulls out when hit (hurtTime); the owner (0.45.1):
+                // "commit to hitting and ignore being hit causing them to retreat".
                 DreadPhantom.this.diving = false;
             }
         }
