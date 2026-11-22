@@ -92,6 +92,9 @@ dependencies {
     localRuntime "maven.modrinth:better-combat:${bettercombat_version}"
     localRuntime "maven.modrinth:better-mob-combat-reimagined:${better_mob_combat_version}"
     localRuntime "maven.modrinth:cloth-config:${cloth_config_version}"
+    // Dev runs only: Lootr as the owner's pack has it, so the smoke test sees the Dreadlands' loot chests
+    // (spire summits, abandoned villages) become per-player ones. Never required.
+    localRuntime "maven.modrinth:lootr:${lootr_version}"
 
     // Plain JUnit for pure logic (no Minecraft bootstrap).
     testImplementation platform('org.junit:junit-bom:5.11.4')

@@ -15,6 +15,10 @@ import java.util.Random;
  * <li>Stone and dreadstone at the foot, dreadstone and its bricks through the middle banded with
  * packed and blue ice, packed ice and snow toward the top. No plain ice (0.47.0): torches by it, the
  * encounter's or a player's, would melt it into water running down the spire.</li>
+ * <li>Its top flares out again over its last {@link #FLARE_HEIGHT} blocks (0.53.0, the owner's second drop:
+ * "slightly wider to accommodate Syndragossa's size"), its summit {@link #summitRadius} across.</li>
+ * <li>Half of them ({@link #SUMMIT_CHEST_CHANCE}) keep a loot chest on the summit, and a third of those a
+ * Dread Lich beside it (0.53.0; the owner: "a 50/50 chance for a loot chest, occasionally with a Dread Lich").</li>
  * <li>Half of them ({@link #ENCOUNTER_CHANCE}; the owner: "each with a chance") hold the Queen and
  * Syndrigossa's encounter (0.47.0), marked by a dreadstone dais at the summit's middle and dread
  * torches round it, burning cyan.</li>
@@ -40,6 +44,11 @@ public final class SpireShape {
     static final int MAX_SPIKE = 6;
     /** How many spires hold the encounter. */
     public static final double ENCOUNTER_CHANCE = 0.5;
+    /** The flare at its top: over this many blocks, 3-4 out past its narrowest. */
+    public static final int FLARE_HEIGHT = 8;
+    public static final double SUMMIT_CHEST_CHANCE = 0.5;
+    /** Of the spires with a chest, how many have a Dread Lich by it. */
+    public static final double LICH_CHANCE = 1.0 / 3.0;
     /** Its dread torches, this far out from the middle along the diagonals. */
     static final int TORCH_OFFSET = 3;
 
@@ -51,6 +60,13 @@ public final class SpireShape {
     final double ledgeStart;
     /** Whether the Queen and Syndrigossa come to its summit. */
     public final boolean encounter;
+    /** How far its top flares out past its narrowest. */
+    public final double flare;
+    /** Its summit's radius: its narrowest plus its flare. */
+    public final double summitRadius;
+    /** Whether its summit keeps a chest, and a lich by it. */
+    public final boolean chest;
+    public final boolean lich;
     private final int[] spikeX;
     private final int[] spikeZ;
     private final int[] spikeLength;
@@ -63,6 +79,10 @@ public final class SpireShape {
         Random random = new Random(seed ^ 0x5B1BE5L);
         this.ledgeStart = random.nextDouble() * 2.0 * Math.PI;
         this.encounter = hash(0, 0, 0, seed ^ 0xE4C0L) < ENCOUNTER_CHANCE;
+        this.flare = 3.0 + hash(1, 0, 0, seed ^ 0xF1A5L);
+        this.summitRadius = topRadius + this.flare;
+        this.chest = hash(2, 0, 0, seed ^ 0xC4E5L) < SUMMIT_CHEST_CHANCE;
+        this.lich = this.chest && hash(3, 0, 0, seed ^ 0x1C4L) < LICH_CHANCE;
         // The crown: spikes round the rim, none where the ledge comes up onto it.
         double arrival = this.ledgeAngle(height - 1);
         this.spikeX = new int[SPIKES];
@@ -70,7 +90,7 @@ public final class SpireShape {
         this.spikeLength = new int[SPIKES];
         for (int i = 0; i < SPIKES; i++) {
             double angle = 2.0 * Math.PI * (i + 0.5 * random.nextDouble()) / SPIKES;
-            double rim = topRadius - 0.5;
+            double rim = this.summitRadius - 0.5;
             boolean onLedge = Math.abs(wrap(angle - arrival)) < 0.7;
             this.spikeX[i] = (int) Math.round(Math.cos(angle) * rim);
             this.spikeZ[i] = (int) Math.round(Math.sin(angle) * rim);
@@ -89,16 +109,26 @@ public final class SpireShape {
 
     /** How far from its centre anything of it reaches. */
     public int reach() {
-        return (int) Math.ceil(this.baseRadius + 1.0 + ROUGHNESS + LEDGE_WIDTH) + 1;
+        return (int) Math.ceil(Math.max(this.baseRadius + 1.0, this.summitRadius) + ROUGHNESS + LEDGE_WIDTH) + 1;
     }
 
-    /** Its radius at height {@code y}: concave, wide at the foot, narrowing fast and then slowly to the summit. */
+    /**
+     * Its radius at height {@code y}: concave, wide at the foot, narrowing fast and then slowly, then
+     * flaring out again (smoothly) over its last {@link #FLARE_HEIGHT} to its summit.
+     */
     public double radius(int y) {
         if (y < 0) {
             return this.baseRadius + 1.0;
         }
         double t = Math.min(1.0, y / (double) this.height);
-        return this.topRadius + (this.baseRadius - this.topRadius) * Math.pow(1.0 - t, 1.6);
+        double taper = this.topRadius + (this.baseRadius - this.topRadius) * Math.pow(1.0 - t, 1.6);
+        double f = Math.max(0.0, Math.min(1.0, (y - (this.height - FLARE_HEIGHT)) / (double) (FLARE_HEIGHT - 1)));
+        return taper + this.flare * f * f * (3.0 - 2.0 * f);
+    }
+
+    /** Where its summit chest stands (on the summit): beside the dais on an encounter spire, else in the middle. */
+    public int[] chestAt() {
+        return new int[]{0, this.height, this.encounter ? 2 : 0};
     }
 
     /** Whether its body stands at this block (its ledge's headroom cut out). */
@@ -163,7 +193,7 @@ public final class SpireShape {
 
     /** Whether a spot {@code dx}, {@code dz} from its middle and {@code above} its summit's top block is on its summit. */
     public boolean onSummit(double dx, double above, double dz) {
-        return above >= -1.0 && above <= 8.0 && Math.hypot(dx, dz) <= this.topRadius + 2.0;
+        return above >= -1.0 && above <= 8.0 && Math.hypot(dx, dz) <= this.summitRadius + 2.0;
     }
 
     /** What its body is made of here. */

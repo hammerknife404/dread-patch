@@ -14,9 +14,13 @@ class SpireShapeTest {
             assertTrue(spire.height >= SpireShape.MIN_HEIGHT && spire.height <= SpireShape.MAX_HEIGHT);
             assertTrue(spire.baseRadius > spire.topRadius);
             assertEquals(spire.baseRadius, spire.radius(0), 1e-9);
-            assertEquals(spire.topRadius, spire.radius(spire.height), 1e-9);
-            for (int y = 1; y < spire.height; y++) {
-                assertTrue(spire.radius(y) <= spire.radius(y - 1), "it narrows upward");
+            assertEquals(spire.summitRadius, spire.radius(spire.height), 1e-9);
+            assertTrue(spire.summitRadius >= spire.topRadius + 3.0 && spire.summitRadius <= spire.topRadius + 4.0, "flared 3-4 blocks");
+            for (int y = 1; y < spire.height - SpireShape.FLARE_HEIGHT; y++) {
+                assertTrue(spire.radius(y) <= spire.radius(y - 1), "it narrows upward, till its top flares");
+            }
+            for (int y = spire.height - SpireShape.FLARE_HEIGHT + 1; y <= spire.height; y++) {
+                assertTrue(spire.radius(y) >= spire.radius(y - 1) - 0.05, "then widens to its summit");
             }
         }
     }
@@ -96,8 +100,8 @@ class SpireShapeTest {
         for (long seed = 0; seed < 50; seed++) {
             SpireShape spire = SpireShape.roll(seed);
             double arrival = spire.ledgeAngle(spire.height - 1);
-            int dx = (int) Math.round(Math.cos(arrival) * (spire.topRadius - 0.5));
-            int dz = (int) Math.round(Math.sin(arrival) * (spire.topRadius - 0.5));
+            int dx = (int) Math.round(Math.cos(arrival) * (spire.summitRadius - 0.5));
+            int dz = (int) Math.round(Math.sin(arrival) * (spire.summitRadius - 0.5));
             assertFalse(spire.spike(dx, spire.height, dz), "a spike where the ledge comes up, seed " + seed);
         }
     }
@@ -127,9 +131,9 @@ class SpireShapeTest {
     void itsSummitIsWhereItsTopIs() {
         SpireShape spire = SpireShape.roll(5);
         assertTrue(spire.onSummit(0.0, 0.0, 0.0));
-        assertTrue(spire.onSummit(spire.topRadius, 1.0, 0.0), "at the rim");
+        assertTrue(spire.onSummit(spire.summitRadius, 1.0, 0.0), "at the rim");
         assertFalse(spire.onSummit(0.0, -3.0, 0.0), "below it, on the ledge's last turn");
-        assertFalse(spire.onSummit(spire.topRadius + 3.0, 0.0, 0.0), "off it, in the air beside it");
+        assertFalse(spire.onSummit(spire.summitRadius + 3.0, 0.0, 0.0), "off it, in the air beside it");
         assertFalse(spire.onSummit(0.0, 12.0, 0.0), "high over it");
     }
 
@@ -141,5 +145,24 @@ class SpireShapeTest {
                 assertTrue(spire.material(dx, y, 0) != null);
             }
         }
+    }
+
+    @Test
+    void halfKeepAChestAndAThirdOfThoseALich() {
+        int chests = 0;
+        int liches = 0;
+        for (long seed = 0; seed < 3000; seed++) {
+            SpireShape spire = SpireShape.roll(seed);
+            if (spire.chest) {
+                chests++;
+                int[] at = spire.chestAt();
+                assertTrue(spire.solid(at[0], at[1] - 1, at[2]), "a chest stands on the summit, seed " + seed);
+                assertTrue(spire.summit(at[0], at[1], at[2]) == null && !spire.spike(at[0], at[1], at[2]), "clear of the dais and the crown");
+            }
+            liches += spire.lich ? 1 : 0;
+            assertTrue(!spire.lich || spire.chest, "a lich only by a chest");
+        }
+        assertEquals(0.5, chests / 3000.0, 0.03);
+        assertEquals(1.0 / 6.0, liches / 3000.0, 0.03);
     }
 }

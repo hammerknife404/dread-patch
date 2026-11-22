@@ -1,0 +1,18 @@
+{
+  "structures": [
+    {
+      "structure": "dreadpatch:dread_village",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 40,
+    "separation": 16,
+    "salt": 1093847261,
+    "exclusion_zone": {
+      "other_set": "dreadpatch:spires",
+      "chunk_count": 4
+    }
+  }
+}

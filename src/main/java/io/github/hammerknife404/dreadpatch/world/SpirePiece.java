@@ -1,6 +1,15 @@
 package io.github.hammerknife404.dreadpatch.world;
 
+import com.iafenvoy.iceandfire.entity.DreadLichEntity;
 import com.iafenvoy.iceandfire.registry.IafBlocks;
+import com.iafenvoy.iceandfire.registry.IafEntities;
+import io.github.hammerknife404.dreadpatch.DreadPatch;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.storage.loot.LootTable;
 import io.github.hammerknife404.dreadpatch.magic.SpireShape;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
@@ -20,9 +29,13 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSeriali
 /**
  * A spire's blocks, placed chunk by chunk from its {@link SpireShape} (rebuilt from its seed, so a
  * saved piece is only its centre and seed). Its ledge is dreadstone bricks; the air over its ledge is
- * cleared, the ground's too where the ledge starts at its foot.
+ * cleared, the ground's too where the ledge starts at its foot. Half keep a loot chest on the summit
+ * ({@link #SUMMIT_LOOT}: a plain chest with a loot table, so Lootr makes it per-player), a third of
+ * those a Dread Lich by it, kept (0.53.0).
  */
 public class SpirePiece extends StructurePiece {
+    public static final ResourceKey<LootTable> SUMMIT_LOOT = ResourceKey.create(Registries.LOOT_TABLE, DreadPatch.id("chests/spire_summit"));
+
     private final BlockPos base;
     private final long seed;
     private final SpireShape shape;
@@ -106,6 +119,26 @@ public class SpirePiece extends StructurePiece {
                 }
             }
         }
+        if (this.shape.chest) {
+            int[] chest = this.shape.chestAt();
+            BlockPos pos = this.base.offset(chest[0], chest[1], chest[2]);
+            if (area.isInside(pos) && this.createChest(level, area, random, pos, SUMMIT_LOOT,
+                    Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.NORTH)) && this.shape.lich) {
+                this.raiseLich(level, pos.south().east());
+            }
+        }
+    }
+
+    /** Its summit's Dread Lich, by the chest, kept: risen as the world raises structures' mobs. */
+    private void raiseLich(WorldGenLevel level, BlockPos at) {
+        DreadLichEntity lich = IafEntities.DREAD_LICH.get().create(level.getLevel());
+        if (lich == null) {
+            return;
+        }
+        lich.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0.0F, 0.0F);
+        lich.finalizeSpawn(level, level.getCurrentDifficultyAt(at), MobSpawnType.STRUCTURE, null);
+        lich.setPersistenceRequired();
+        level.addFreshEntityWithPassengers(lich);
     }
 
     private static BlockState block(SpireShape.Material material) {

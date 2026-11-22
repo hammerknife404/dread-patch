@@ -52,13 +52,59 @@
           }
         },
         "argument2": {
-          "type": "minecraft:mul",
-          "argument1": 0.17,
+          "type": "minecraft:add",
+          "argument1": {
+            "type": "minecraft:mul",
+            "argument1": 0.32,
+            "argument2": {
+              "type": "minecraft:mul",
+              "argument1": {
+                "type": "minecraft:clamp",
+                "min": 0.0,
+                "max": 1.0,
+                "input": {
+                  "type": "minecraft:mul",
+                  "argument1": 4.0,
+                  "argument2": {
+                    "type": "minecraft:add",
+                    "argument1": -0.15,
+                    "argument2": {
+                      "type": "minecraft:noise",
+                      "noise": "dreadpatch:dreadlands_dune_fields",
+                      "xz_scale": 1.0,
+                      "y_scale": 0.0
+                    }
+                  }
+                }
+              },
+              "argument2": {
+                "type": "minecraft:add",
+                "argument1": 0.55,
+                "argument2": {
+                  "type": "minecraft:mul",
+                  "argument1": -1.1,
+                  "argument2": {
+                    "type": "minecraft:abs",
+                    "argument": {
+                      "type": "minecraft:noise",
+                      "noise": "dreadpatch:dreadlands_drifts",
+                      "xz_scale": 1.0,
+                      "y_scale": 0.0
+                    }
+                  }
+                }
+              }
+            }
+          },
           "argument2": {
-            "type": "minecraft:noise",
-            "noise": "dreadpatch:dreadlands_hummocks",
-            "xz_scale": 1.0,
-            "y_scale": 0.0
+            "type": "minecraft:mul",
+            "argument1": 0.06,
+            "argument2": {
+              "type": "minecraft:noise",
+              "noise": "dreadpatch:dreadlands_hummocks",
+              "xz_scale": 1.0,
+              "y_scale": 0.0
+            }
           }
         }
       }
@@ -87,13 +133,59 @@
             }
           },
           "argument2": {
-            "type": "minecraft:mul",
-            "argument1": 0.17,
+            "type": "minecraft:add",
+            "argument1": {
+              "type": "minecraft:mul",
+              "argument1": 0.32,
+              "argument2": {
+                "type": "minecraft:mul",
+                "argument1": {
+                  "type": "minecraft:clamp",
+                  "min": 0.0,
+                  "max": 1.0,
+                  "input": {
+                    "type": "minecraft:mul",
+                    "argument1": 4.0,
+                    "argument2": {
+                      "type": "minecraft:add",
+                      "argument1": -0.15,
+                      "argument2": {
+                        "type": "minecraft:noise",
+                        "noise": "dreadpatch:dreadlands_dune_fields",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      }
+                    }
+                  }
+                },
+                "argument2": {
+                  "type": "minecraft:add",
+                  "argument1": 0.55,
+                  "argument2": {
+                    "type": "minecraft:mul",
+                    "argument1": -1.1,
+                    "argument2": {
+                      "type": "minecraft:abs",
+                      "argument": {
+                        "type": "minecraft:noise",
+                        "noise": "dreadpatch:dreadlands_drifts",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "argument2": {
-              "type": "minecraft:noise",
-              "noise": "dreadpatch:dreadlands_hummocks",
-              "xz_scale": 1.0,
-              "y_scale": 0.0
+              "type": "minecraft:mul",
+              "argument1": 0.06,
+              "argument2": {
+                "type": "minecraft:noise",
+                "noise": "dreadpatch:dreadlands_hummocks",
+                "xz_scale": 1.0,
+                "y_scale": 0.0
+              }
             }
           }
         }
