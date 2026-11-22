@@ -19,9 +19,13 @@ public final class DragonBreath {
     public static final double SHARD_RADIUS = 1.5;
     /** Her breath is a cone from her head, this wide either side of its axis (the owner asked for wider than Ice and Fire's stream). */
     public static final double CONE_HALF_ANGLE = Math.toRadians(20.0);
-    /** The furthest it reaches past where she aims it, and at all. */
+    /**
+     * The furthest it reaches past where she aims it, and at all: {@link #CONE_MAX_LENGTH} from her head
+     * (the owner's 32, 0.36.0; 30 before) is a hard limit, on the splash where it lands and on its
+     * particles too ({@link #reach}).
+     */
     public static final double CONE_OVERSHOOT = 2.0;
-    public static final double CONE_MAX_LENGTH = 30.0;
+    public static final double CONE_MAX_LENGTH = 32.0;
     /** Ticks of breathing (Ice and Fire's {@code burnProgress}) for the cone to reach its full length; Ice and Fire's stream takes 40. */
     public static final int CONE_GROWTH_TICKS = 10;
     /**
@@ -88,6 +92,14 @@ public final class DragonBreath {
         return full * Math.max(0.3, Math.min(1.0, burnProgress / (double) CONE_GROWTH_TICKS));
     }
 
+    /**
+     * How far from her head her breath reaches at all, and its particles end: the cone's {@code length}
+     * and the splash where it lands, but never past {@link #CONE_MAX_LENGTH}.
+     */
+    public static double reach(double length, double splash) {
+        return Math.min(length + splash, CONE_MAX_LENGTH);
+    }
+
     /** The speed (blocks a tick) to send a breath particle at for it to carry {@code distance} blocks. */
     public static double particleSpeed(double distance) {
         return Math.max(0.0, distance) / PARTICLE_TRAVEL;
@@ -115,21 +127,20 @@ public final class DragonBreath {
 
     /**
      * How far a particle sent from her mouth is meant to carry: half to all of the cone's {@code length}
-     * by {@code roll} (0-1), so the stream fills it, but no further than the breath reaches with the
-     * splash where it lands, allowing for {@link #PARTICLE_OVERSHOOT}.
+     * by {@code roll} (0-1), so the stream fills it, but no further than the breath reaches
+     * ({@link #reach}), allowing for {@link #PARTICLE_OVERSHOOT}.
      */
     public static double sentDistance(double length, double splash, double roll) {
-        return Math.min(length * (0.5 + 0.5 * roll), (length + splash) / PARTICLE_OVERSHOOT);
+        return Math.min(length * (0.5 + 0.5 * roll), reach(length, splash) / PARTICLE_OVERSHOOT);
     }
 
     /**
      * How far a particle set {@code along} blocks into the cone drifts on: {@link #DRIFT_MIN} to
-     * {@link #DRIFT_MAX} by {@code roll} (0-1), but no further than the breath reaches, its
-     * {@code length} and the splash where it lands ({@link #breathRadius}), allowing for
-     * {@link #PARTICLE_OVERSHOOT}.
+     * {@link #DRIFT_MAX} by {@code roll} (0-1), but no further than the breath reaches
+     * ({@link #reach}), allowing for {@link #PARTICLE_OVERSHOOT}.
      */
     public static double driftDistance(double length, double along, double splash, double roll) {
-        double room = Math.max(0.0, (length + splash - along) / PARTICLE_OVERSHOOT);
+        double room = Math.max(0.0, (reach(length, splash) - along) / PARTICLE_OVERSHOOT);
         return Math.min(DRIFT_MIN + (DRIFT_MAX - DRIFT_MIN) * roll, room);
     }
 

@@ -70,7 +70,7 @@ A unique, named dragon of the Rimefrost, a subtype of frost dragon, risen undead
 
 Her attacks:
 
-- **Breath of Withering Rime**, in a wide cone (20 degrees either side) rather than Ice and Fire's thin stream. It hits everyone in the cone and where it lands as hard as an ice dragon's breath of her size, leaves Withering Rime, and drinks fire instead of freezing the ground. Each hit siphons half a heart more, past armor, into her.
+- **Breath of Withering Rime**, in a wide cone (20 degrees either side) rather than Ice and Fire's thin stream, reaching 2 blocks past what she breathes at, up to 32 blocks from her head; nothing of it, splash or particles, reaches further. It hits everyone in the cone and where it lands as hard as an ice dragon's breath of her size, leaves Withering Rime, and drinks fire instead of freezing the ground. Each hit siphons half a heart more, past armor, into her.
 - **Her bite** leaves Withering Rime II, which withers twice as fast, for 4.5 seconds, as every Rimefrost dragon's bite does. Her tail and wing strikes don't.
 - **Shatter-Spine**, her charge: a core of bone and dread-glass that bursts 9 blocks above her target into 5 to 7 shards raining over the ground below. Each cuts everyone within a block and a half and leaves Withering Rime.
 - **Sovereign's Eclipse:** every 30 seconds, once she's grown, her own Rimefire Crown round her target, 16 blocks across with dark spires and indigo fire, standing 10 seconds. It doesn't root and doesn't close in, but everyone inside is heavily slowed (Slowness IV) and kept under Withering Rime, and it drinks the fire inside it.

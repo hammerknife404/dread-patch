@@ -587,7 +587,9 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
             Vec3 at = victim.getBoundingBox().getCenter().subtract(head);
             boolean inCone = DragonBreath.inCone(at.x, at.y, at.z, axis.x, axis.y, axis.z, reach, victim.getBbWidth() / 2.0);
             boolean splashed = victim.getBoundingBox().distanceToSqr(lands) <= radius * radius;
-            if ((inCone || splashed) && this.hasLineOfSight(victim)) {
+            // Nothing of it reaches past its max distance from her head, the splash included.
+            boolean inReach = victim.getBoundingBox().distanceToSqr(head) <= DragonBreath.CONE_MAX_LENGTH * DragonBreath.CONE_MAX_LENGTH;
+            if ((inCone || splashed) && inReach && this.hasLineOfSight(victim)) {
                 this.breathHit(victim, source, damage);
             }
         }
