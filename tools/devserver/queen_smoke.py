@@ -1283,6 +1283,15 @@ def main():
                f"regalia {queen_value}, dread dragonsteel {steel_value}")
     rcon.run("kill @e[tag=smoke_regalia]")
     rcon.run("kill @e[tag=smoke_steel]")
+    # Every piece of the three sets takes a trim at the smithing table (0.44.0): #minecraft:trimmable_armor.
+    rcon.run('summon minecraft:armor_stand 12.5 240 10.5 {NoGravity:1b,Tags:["smoke_trimmable"]}')
+    untrimmable = []
+    for piece in regalia + pieces_of("dreadpatch:rimefrost_dragonscale") + pieces_of("dreadpatch:dread_dragonsteel"):
+        rcon.run(f"item replace entity @e[tag=smoke_trimmable,limit=1] weapon.mainhand with {piece}")
+        if "Test passed" not in rcon.run("execute if items entity @e[tag=smoke_trimmable,limit=1] weapon.mainhand #minecraft:trimmable_armor"):
+            untrimmable.append(piece)
+    record("all twelve pieces take trims", not untrimmable, f"not trimmable: {untrimmable}")
+    rcon.run("kill @e[tag=smoke_trimmable]")
     # A dread dragonsteel sword's hit leaves Withering Rime (a husk's, which goes for iron golems).
     # (No Resistance: a hit brought to nothing carries nothing. An iron golem has 100 health.)
     rcon.run('summon minecraft:iron_golem 12.5 240 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_rimed"]}')

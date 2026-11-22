@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dreadpatch:item/dread_dragonsteel_leggings",
+    "layer1": "minecraft:trims/items/leggings_trim_copper"
+  }
+}

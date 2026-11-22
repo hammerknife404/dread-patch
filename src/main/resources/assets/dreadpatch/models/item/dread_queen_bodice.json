@@ -2,5 +2,67 @@
   "parent": "minecraft:item/generated",
   "textures": {
     "layer0": "dreadpatch:item/dread_queen_bodice"
-  }
+  },
+  "overrides": [
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_quartz_trim",
+      "predicate": {
+        "trim_type": 0.1
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_iron_trim",
+      "predicate": {
+        "trim_type": 0.2
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_netherite_trim",
+      "predicate": {
+        "trim_type": 0.3
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_redstone_trim",
+      "predicate": {
+        "trim_type": 0.4
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_copper_trim",
+      "predicate": {
+        "trim_type": 0.5
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_gold_trim",
+      "predicate": {
+        "trim_type": 0.6
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_emerald_trim",
+      "predicate": {
+        "trim_type": 0.7
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_diamond_trim",
+      "predicate": {
+        "trim_type": 0.8
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_lapis_trim",
+      "predicate": {
+        "trim_type": 0.9
+      }
+    },
+    {
+      "model": "dreadpatch:item/dread_queen_bodice_amethyst_trim",
+      "predicate": {
+        "trim_type": 1.0
+      }
+    }
+  ]
 }

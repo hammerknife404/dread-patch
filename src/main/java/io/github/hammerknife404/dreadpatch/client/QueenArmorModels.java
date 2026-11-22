@@ -70,7 +70,7 @@ public final class QueenArmorModels {
             event.registerItem(new IClientItemExtensions() {
                 @Override
                 public HumanoidModel<?> getHumanoidArmorModel(LivingEntity entity, ItemStack stack, EquipmentSlot slot, HumanoidModel<?> original) {
-                    return MODELS.computeIfAbsent(slot, s -> new HumanoidModel<>(Minecraft.getInstance().getEntityModels().bakeLayer(LAYERS.get(s))));
+                    return MODELS.computeIfAbsent(slot, s -> new TrimmedArmorModel(new HumanoidModel<>(Minecraft.getInstance().getEntityModels().bakeLayer(LAYERS.get(s))), s == EquipmentSlot.LEGS));
                 }
             }, item.get());
         }

@@ -1,0 +1,20 @@
+{
+  "parent": "dreadpatch:regalia/complete",
+  "display": {
+    "icon": {
+      "id": "iceandfire:dread_queen_staff"
+    },
+    "title": {
+      "translate": "advancements.dreadpatch.regalia.enthroned.title"
+    },
+    "description": {
+      "translate": "advancements.dreadpatch.regalia.enthroned.description"
+    },
+    "frame": "challenge"
+  },
+  "criteria": {
+    "enthroned": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
