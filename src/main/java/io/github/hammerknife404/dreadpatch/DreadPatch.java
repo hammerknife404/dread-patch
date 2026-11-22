@@ -9,6 +9,7 @@ import io.github.hammerknife404.dreadpatch.entity.DragonCorpses;
 import io.github.hammerknife404.dreadpatch.entity.DreadGate;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerBolts;
+import io.github.hammerknife404.dreadpatch.entity.ScuttlerClimbing;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.SummonedCourt;
 import io.github.hammerknife404.dreadpatch.entity.SyndrigossaEvents;
@@ -48,6 +49,7 @@ public final class DreadPatch {
         DreadQueenSword.register(modBus, NeoForge.EVENT_BUS);
         SyndrigossaEvents.register(NeoForge.EVENT_BUS);
         ScuttlerBolts.register(NeoForge.EVENT_BUS);
+        ScuttlerClimbing.register(NeoForge.EVENT_BUS);
         WhiteoutDominion.register(NeoForge.EVENT_BUS);
         DreadGate.register(NeoForge.EVENT_BUS);
         SummonedCourt.register(NeoForge.EVENT_BUS);
