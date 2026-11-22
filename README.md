@@ -6,7 +6,7 @@ Patching in the Dread Queen for my own world.
 
 **Requires:** Minecraft 1.21.1, NeoForge 21.1.265+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
 
-**Status:** in development. She doesn't spawn naturally yet: her encounters atop the Dreadlands' spires come next.
+**Status:** in development. In the wild she's met only atop the Dreadlands' spires; their storms come next.
 
 ## Calling her
 
@@ -84,8 +84,10 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 A dimension of bleak frozen waste: rolling snowfields over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning. Its day, night and weather are the overworld's. Nothing lives there.
 
 - **Getting there:** step into a Dread Gate during its ritual (above). You arrive near the foot of the nearest spire, 30 to 40 blocks from it, facing it; anyone who follows through the same gate arrives at the same spot.
-- **The spires:** rare and tall (64 to 100 blocks), standing far apart on the waste. They're dreadstone and dreadstone bricks over stone at the foot, banded with packed and blue ice, giving way to ice and snow toward a flat summit crowned with ice spikes. A ledge of dreadstone bricks winds up the outside from the ground to the summit.
-- **Getting home:** build a Dread Gate there and key it. It opens at once (no queen comes), stays open 15 to 30 seconds, and takes whoever steps in back to the gate they came in by (or to the world's spawn). A key takes three dread shards (dread phantoms drop them), a bone and two gold ingots, so bring the gold; the frame takes any dreadstone, the spires' included. Dying sends you to your usual spawn, as anywhere.
+- **The spires:** rare and tall (64 to 100 blocks), standing far apart on the waste. They're dreadstone and dreadstone bricks over stone at the foot, banded with packed and blue ice, giving way to packed ice and snow toward a flat summit crowned with ice spikes. A ledge of dreadstone bricks winds up the outside from the ground to the summit.
+- **The Queen and Syndrigossa:** half the spires hold her, and you can tell which from below: a dreadstone dais at the summit's middle, with dread torches burning cyan round it. Reach such a summit and she comes, as the full boss, riding an ancient Syndrigossa out of the air beside it (on foot on the summit, if there's no room for her dragon), and turns on you. Each spire's encounter comes to each player once; it comes to you there again only after 6 real hours (a server setting, `encounter_reset_hours` in `config/dreadpatch-server.toml`), and never while that spire's queen is still about. Anyone who reaches the summit while she's there has met it too. Not on Peaceful.
+- **Her defeat:** when she falls, a Dread Gate rises where she fell, open home for 5 minutes (time to take what she dropped, and her dragon's corpse), fading out over its last seconds. Its frame stays for a key.
+- **Getting home:** beat a spire's queen (above), or build a Dread Gate there and key it. It opens at once (no queen comes), stays open 15 to 30 seconds, and takes whoever steps in back to the gate they came in by (or to the world's spawn). A key takes three dread shards (dread phantoms drop them), a bone and two gold ingots, so bring the gold; the frame takes any dreadstone, the spires' included. Dying sends you to your usual spawn, as anywhere.
 - **Beds** explode there, as in the Nether, and respawn anchors don't work.
 - **Dread phantoms** come down out of its sky now and then, one or two at a time, whether or not you've slept: about once every 4 minutes for each player out under the sky, never while 4 are already about.
 

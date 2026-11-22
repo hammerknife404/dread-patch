@@ -124,5 +124,7 @@
   "ui.dreadpatch.phantoms": "%s Dread Phantoms",
   "dimension.dreadpatch.dreadlands": "The Dreadlands",
   "biome.dreadpatch.dreadlands": "Dreadlands",
-  "message.dreadpatch.dreadlands.arrive": "The Dreadlands. A Dread Gate keyed here leads home."
+  "message.dreadpatch.dreadlands.arrive": "The Dreadlands. A Dread Gate keyed here leads home.",
+  "message.dreadpatch.dreadlands.encounter": "The Dread Queen descends on the spire",
+  "message.dreadpatch.dreadlands.return_gate": "Where the Dread Queen fell, a way home opens"
 }

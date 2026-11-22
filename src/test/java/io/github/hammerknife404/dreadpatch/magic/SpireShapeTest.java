@@ -101,4 +101,45 @@ class SpireShapeTest {
             assertFalse(spire.spike(dx, spire.height, dz), "a spike where the ledge comes up, seed " + seed);
         }
     }
+
+    @Test
+    void halfHoldTheEncounterMarkedAtTheSummit() {
+        int encounters = 0;
+        for (long seed = 0; seed < 2000; seed++) {
+            SpireShape spire = SpireShape.roll(seed);
+            boolean dressed = spire.summit(0, spire.height, 0) != null;
+            assertEquals(spire.encounter, dressed, "a dais exactly where the encounter is, seed " + seed);
+            if (spire.encounter) {
+                encounters++;
+                // Its torches stand on the summit, clear of the ledge.
+                for (int dx : new int[]{-3, 3}) {
+                    for (int dz : new int[]{-3, 3}) {
+                        assertEquals(SpireShape.Material.DREAD_TORCH, spire.summit(dx, spire.height, dz));
+                        assertTrue(spire.solid(dx, spire.height - 1, dz), "a torch's footing, seed " + seed);
+                    }
+                }
+            }
+        }
+        assertEquals(0.5, encounters / 2000.0, 0.04);
+    }
+
+    @Test
+    void itsSummitIsWhereItsTopIs() {
+        SpireShape spire = SpireShape.roll(5);
+        assertTrue(spire.onSummit(0.0, 0.0, 0.0));
+        assertTrue(spire.onSummit(spire.topRadius, 1.0, 0.0), "at the rim");
+        assertFalse(spire.onSummit(0.0, -3.0, 0.0), "below it, on the ledge's last turn");
+        assertFalse(spire.onSummit(spire.topRadius + 3.0, 0.0, 0.0), "off it, in the air beside it");
+        assertFalse(spire.onSummit(0.0, 12.0, 0.0), "high over it");
+    }
+
+    @Test
+    void noPlainIceToMeltUnderATorch() {
+        SpireShape spire = SpireShape.roll(9);
+        for (int y = 0; y < spire.height; y++) {
+            for (int dx = -3; dx <= 3; dx++) {
+                assertTrue(spire.material(dx, y, 0) != null);
+            }
+        }
+    }
 }
