@@ -6,10 +6,10 @@ import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.spells.ender.TeleportSpell;
@@ -35,7 +35,7 @@ public class BarrowStepSpell extends AbstractSpell {
     private final ResourceLocation id = DreadPatch.id("barrow_step");
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.EPIC)
-            .setSchoolResource(SchoolRegistry.ICE_RESOURCE)
+            .setSchoolResource(DreadSpells.RIMEFROST)
             .setMaxLevel(5)
             .setCooldownSeconds(12)
             .setAllowCrafting(false)
@@ -62,6 +62,12 @@ public class BarrowStepSpell extends AbstractSpell {
     @Override
     public DefaultConfig getDefaultConfig() {
         return this.defaultConfig;
+    }
+
+    /** Rimefrost, whatever an older world's Iron's config says ({@link DreadSpells}). */
+    @Override
+    public SchoolType getSchoolType() {
+        return DreadSpells.school();
     }
 
     @Override

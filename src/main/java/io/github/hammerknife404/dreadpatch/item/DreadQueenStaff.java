@@ -3,10 +3,10 @@ package io.github.hammerknife404.dreadpatch.item;
 import com.iafenvoy.iceandfire.registry.IafItems;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.magic.PermafrostConduit;
+import io.github.hammerknife404.dreadpatch.spell.RimefrostSchool;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable;
 import io.redspace.ironsspellbooks.registries.ComponentRegistry;
@@ -33,8 +33,9 @@ import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
  * <li>three of her spells (her bolt, her crown, Summon Court) locked into it at {@link #SPELL_LEVEL}, on the spell wheel while it's in either
  * hand. Iron's only takes spells out at the Inscription Table, which takes only spellbooks;</li>
  * <li>a casting implement like Iron's staffs: right-click casts the selected spell;</li>
- * <li>in the main hand, as Iron's own staffs: +15% Ice Spell Power and +10% Cooldown Reduction;</li>
- * <li>Permafrost Conduit: while it's in the main hand, Ice spells cast standing on
+ * <li>in the main hand, as Iron's own staffs: +15% Ice Spell Power and +10% Cooldown Reduction; and +5% Rimefrost
+ * Spell Power (0.51.0);</li>
+ * <li>Permafrost Conduit: while it's in the main hand, Ice spells (Rimefrost ones too) cast standing on
  * {@link #PERMAFROST} cost a fifth less mana ({@link PermafrostConduit}). Iron's still checks the
  * full cost before the cast, and takes the lower one after.</li>
  * </ul>
@@ -44,6 +45,8 @@ public final class DreadQueenStaff {
     public static final int SPELL_LEVEL = 3;
     public static final double ICE_SPELL_POWER = 0.15;
     public static final double COOLDOWN_REDUCTION = 0.10;
+    /** The owner's second drop (0.51.0). */
+    public static final double RIMEFROST_SPELL_POWER = 0.05;
     /** Snow, ice and Ice and Fire's dragon-frozen ground. */
     public static final TagKey<Block> PERMAFROST = TagKey.create(Registries.BLOCK, DreadPatch.id("permafrost"));
 
@@ -82,13 +85,15 @@ public final class DreadQueenStaff {
                         ICE_SPELL_POWER, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), EquipmentSlotGroup.MAINHAND)
                 .add(AttributeRegistry.COOLDOWN_REDUCTION, new AttributeModifier(DreadPatch.id("dread_queen_staff_cooldown_reduction"),
                         COOLDOWN_REDUCTION, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), EquipmentSlotGroup.MAINHAND)
+                .add(ModRegistries.RIMEFROST_SPELL_POWER, new AttributeModifier(DreadPatch.id("dread_queen_staff_rimefrost_spell_power"),
+                        RIMEFROST_SPELL_POWER, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), EquipmentSlotGroup.MAINHAND)
                 .build();
     }
 
     /** Permafrost Conduit. Iron's fires this as a player's spell goes off, before it takes the mana. */
     private static void onSpellCast(SpellOnCastEvent event) {
         Player player = event.getEntity();
-        if (event.getSchoolType() == SchoolRegistry.ICE.get() && is(player.getMainHandItem()) && onPermafrost(player)) {
+        if (RimefrostSchool.isIce(event.getSchoolType()) && is(player.getMainHandItem()) && onPermafrost(player)) {
             event.setManaCost(PermafrostConduit.manaCost(event.getManaCost()));
         }
     }

@@ -24,7 +24,7 @@ She fights like a necromancer. She keeps her distance, circling at casting range
 
 Her abilities:
 
-- **Withering Rime-Bolt:** from range, a flame-sized streak of cold cyan dread fire and soot. It takes a share of the target's own life on top of its damage, and leaves Withering Rime.
+- **Withering Rime-Bolt:** from range, a flame-sized streak of cold cyan dread fire and soot. It takes a share of the target's own life on top of its damage (5% of their max health, 8% on Hard), and leaves Withering Rime.
 - **Rimefire Crown:** a ring of ice spikes round her target, wreathed in cold cyan dread fire over cyan and black smoke. It roots everyone inside and drinks every other fire within it. She then shatters it with her bolt for a burst of shrapnel.
 - **Barrow-Step:** when cornered, she steps 10 to 15 blocks away through the cold, leaving a husk of rime-glass in her shape where she stood. Whatever was hunting her turns on the husk, and when it's struck, or after 5 seconds, it shatters, rooting everyone near it for 2 seconds and touching them with Withering Rime.
 - **Rimewalk:** still water freezes under her feet, 4 blocks round, as under Frost Walker II boots, and holds while she stands on it, so water won't keep you from her: she walks straight across lakes and rivers. If she's in water, the surface freezes round her and she climbs out onto it. It's vanilla's frosted ice, which melts back to water in the light once she's gone.
@@ -50,14 +50,16 @@ Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she 
 
 - Her sword and her staff, each one time in four (Looting raises it: 30% at Looting I, 40% at Looting III).
 - One epic or legendary ink.
-- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court, Create Rimefrost Dragon or Summon Dread Phantoms. They're Ice spells (they count Ice spell power), found nowhere else.
+- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court, Create Rimefrost Dragon, Summon Dread Phantoms or Rimefire Blast. They're **Rimefrost** spells (below), and but for Rimefire Blast, found nowhere else.
 - **A piece of her regalia,** when a player kills her (below).
 
 ### Her regalia
 
 Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of the Dreaded Queen**. The crown is her ring of ice, the bodice her bodice with its necklace, cloak and silver pauldrons, the robes and greaves the rest, each drawn from her own model and texture.
 
-- **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It's repaired with dread dragonsteel ingots.
+- **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It never breaks.
+- **Each piece:** +150 max mana, 5% off the mana Ice and Rimefrost spells cost, 5% more Rimefrost damage dealt, and 5% less Rimefrost damage taken (Rimefrost spells, the Rimefrost dragons' breath and Shatter-Spine, Whiteout's cold, and Withering Rime's withering, counted as dealt by whoever laid the rime). The whole set: a fifth more dealt, a fifth less taken.
+- **The whole set:** you can't freeze (powder snow, Withering Rime's chill and freezing damage don't touch you), and the Dread leave you be: they won't come for you unless you hurt them first, and then only that one, for half a minute. The queen herself, Syndrigossa and anything they command still do.
 - **Collecting it:** each queen you kill drops a piece you don't have yet, so four kills complete the set. Looting gives a 10% chance a level of a second missing piece. Once you have the set, she drops a random piece one time in four (5% more a Looting level).
 - **Advancements** keep count: one for slaying her, one for each piece you've held, and one for the whole set. A piece counts as yours once it's been in your inventory.
 - **There Must Always Be a Dread Queen:** wear all four pieces with her blade and her staff in your hands.
@@ -153,7 +155,7 @@ Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon g
 **Her staff** is an Iron's staff now:
 
 - It carries three of her spells at level 3 (Withering Rime-Bolt, Rimefire Crown and Summon Court), on your spell wheel while you hold it, cast with right-click. Its tooltip lists them a line each; hold Shift for each one's details.
-- It gives +15% Ice Spell Power and +10% Cooldown Reduction in the main hand.
+- It gives +15% Ice Spell Power, +5% Rimefrost Spell Power and +10% Cooldown Reduction in the main hand.
 - **Permafrost Conduit:** Ice spells cost 20% less mana while you stand on snow or ice.
 
 **Her sword** is unbreakable, with 11.5 attack damage at 1.6 speed and half a block more reach. She swings the same sword, so her own strikes leave Withering Rime and shatter too.
@@ -164,7 +166,10 @@ Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon g
 
 ## Her spells, as a player
 
-Her scrolls (from her drops) teach her spells to players:
+Her scrolls (from her drops) teach her spells to players. They're **Rimefrost** spells, a school of their own and a kind of Ice magic: Ice spell power strengthens them as well as Rimefrost spell power, Ice magic resistance guards against them as well as Rimefrost's, and anything that makes Ice spells cheaper does them too.
+
+- **Rimefire Blast** (levels 1 to 10, 12-second cooldown), held like Cone of Cold: a cone of cold dread fire pours from your hand, burning little but leaving 3 seconds of Withering Rime on everything it touches. Unlike her other spells it can be made: put a dread shard in Iron's Scroll Forge as the focus, with ink and paper.
+- **Withering Rime-Bolt**'s share of the target's life grows with its level: 3% at level 1 to 7% at level 5.
 
 - **Summon Court** raises her court round you, Ice and Fire's thralls, ghouls, knights and scuttlers rising out of the ground: 2 at level 1 up to 6 at level 5, standing 70 to 110 seconds, on a two-minute cooldown. They follow you and fall on hostile mobs that attack you or that you attack. They never fight the Dread (the queen and her court leave them be too), never turn on friendly mobs, villagers, golems, pets or other players, and don't fight back when those hit them; and friendly mobs leave them be in turn. You can't hurt them, nor can your spells. Casting it again dismisses the court you raised before. A server can change how they treat friendly mobs and players in `config/dreadpatch-server.toml` (`attack_friendly_mobs`, `retaliate`, `attack_players`, all off by default).
 - **Summon Dread Phantoms** calls two dread phantoms down over you for a minute, on a 90-second cooldown. They circle above you and dive on hostile mobs that attack you or that you attack, under the same rules as Summon Court's court: never the Dread, never friendly mobs, villagers, golems, pets or other players unless the server allows it, and you can't hurt them. They leave nothing behind. Casting it again dismisses the ones you called before.

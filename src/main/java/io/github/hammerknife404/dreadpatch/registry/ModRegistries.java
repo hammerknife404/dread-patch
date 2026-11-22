@@ -28,6 +28,17 @@ import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
 import io.github.hammerknife404.dreadpatch.spell.CreateRimefrostDragonSpell;
 import io.github.hammerknife404.dreadpatch.spell.SummonCourtSpell;
 import io.github.hammerknife404.dreadpatch.spell.SummonDreadPhantomsSpell;
+import io.github.hammerknife404.dreadpatch.spell.RimefireBlastSpell;
+import io.github.hammerknife404.dreadpatch.spell.RimefrostSchool;
+import io.github.hammerknife404.dreadpatch.entity.RimefireBlastProjectile;
+import io.redspace.ironsspellbooks.api.attribute.MagicPercentAttribute;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import io.github.hammerknife404.dreadpatch.spell.WhiteoutDominionSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.github.hammerknife404.dreadpatch.world.SpirePiece;
@@ -73,6 +84,23 @@ public final class ModRegistries {
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, DreadPatch.MODID);
     private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, DreadPatch.MODID);
     private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, DreadPatch.MODID);
+    private static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(Registries.ATTRIBUTE, DreadPatch.MODID);
+    private static final DeferredRegister<SchoolType> SCHOOLS = DeferredRegister.create(SchoolRegistry.SCHOOL_REGISTRY_KEY, DreadPatch.MODID);
+
+    /** Rimefrost's spell power and magic resistance (0.51.0), as Iron's schools' are (1 = none; a multiplier). */
+    public static final DeferredHolder<Attribute, MagicPercentAttribute> RIMEFROST_SPELL_POWER = ATTRIBUTES.register("rimefrost_spell_power",
+            () -> (MagicPercentAttribute) new MagicPercentAttribute("attribute.dreadpatch.rimefrost_spell_power", 1.0, -100.0, 100.0).setSyncable(true));
+    public static final DeferredHolder<Attribute, MagicPercentAttribute> RIMEFROST_MAGIC_RESIST = ATTRIBUTES.register("rimefrost_magic_resist",
+            () -> (MagicPercentAttribute) new MagicPercentAttribute("attribute.dreadpatch.rimefrost_magic_resist", 1.0, -100.0, 100.0).setSyncable(true));
+    /** Rimefrost's focus at the Scroll Forge: a dread shard. */
+    public static final TagKey<Item> RIMEFROST_FOCUS = TagKey.create(Registries.ITEM, DreadPatch.id("rimefrost_focus"));
+    /** Rimefrost magic, the school's damage (data/dreadpatch/damage_type). */
+    public static final ResourceKey<DamageType> RIMEFROST_MAGIC_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("rimefrost_magic"));
+    /** Rimefrost (0.51.0), her spells' school, a subtype of Ice ({@link RimefrostSchool}). Her cyan. */
+    public static final DeferredHolder<SchoolType, RimefrostSchool> RIMEFROST_SCHOOL = SCHOOLS.register("rimefrost",
+            () -> new RimefrostSchool(DreadPatch.id("rimefrost"), RIMEFROST_FOCUS,
+                    Component.translatable("school.dreadpatch.rimefrost").withStyle(Style.EMPTY.withColor(0x5CE1FF)),
+                    RIMEFROST_SPELL_POWER, RIMEFROST_MAGIC_RESIST, SoundRegistry.ICE_CAST, RIMEFROST_MAGIC_DAMAGE));
     private static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES = DeferredRegister.create(Registries.STRUCTURE_TYPE, DreadPatch.MODID);
     private static final DeferredRegister<StructurePieceType> STRUCTURE_PIECES = DeferredRegister.create(Registries.STRUCTURE_PIECE, DreadPatch.MODID);
 
@@ -121,6 +149,13 @@ public final class ModRegistries {
                     .ridingOffset(-0.125F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("dread_phantom").toString()));
+
+    /** Rimefire Blast's cone (0.51.0): Iron's Cone of Cold's size and tracking; it draws itself in particles. */
+    public static final DeferredHolder<EntityType<?>, EntityType<RimefireBlastProjectile>> RIMEFIRE_BLAST_PROJECTILE = ENTITY_TYPES.register("rimefire_blast",
+            () -> EntityType.Builder.<RimefireBlastProjectile>of(RimefireBlastProjectile::new, MobCategory.MISC)
+                    .sized(1.0F, 1.0F)
+                    .clientTrackingRange(64)
+                    .build(DreadPatch.id("rimefire_blast").toString()));
 
     /** Syndrigossa's egg, laid: Ice and Fire's egg's size. */
     public static final DeferredHolder<EntityType<?>, EntityType<SyndrigossaEggEntity>> SYNDRIGOSSA_EGG_ENTITY = ENTITY_TYPES.register("syndrigossa_egg",
@@ -267,6 +302,7 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, SummonCourtSpell> SUMMON_COURT_SPELL = SPELLS.register("summon_court", SummonCourtSpell::new);
     public static final DeferredHolder<AbstractSpell, CreateRimefrostDragonSpell> CREATE_RIMEFROST_DRAGON_SPELL = SPELLS.register("create_rimefrost_dragon", CreateRimefrostDragonSpell::new);
     public static final DeferredHolder<AbstractSpell, SummonDreadPhantomsSpell> SUMMON_DREAD_PHANTOMS_SPELL = SPELLS.register("summon_dread_phantoms", SummonDreadPhantomsSpell::new);
+    public static final DeferredHolder<AbstractSpell, RimefireBlastSpell> RIMEFIRE_BLAST_SPELL = SPELLS.register("rimefire_blast", RimefireBlastSpell::new);
 
     private ModRegistries() {
     }
@@ -289,6 +325,8 @@ public final class ModRegistries {
         PARTICLE_TYPES.register(modBus);
         SOUND_EVENTS.register(modBus);
         STRUCTURE_TYPES.register(modBus);
+        ATTRIBUTES.register(modBus);
+        SCHOOLS.register(modBus);
         STRUCTURE_PIECES.register(modBus);
     }
 }

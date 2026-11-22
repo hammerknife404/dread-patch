@@ -148,5 +148,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.WHITEOUT_DOMINION.get(), WhiteoutRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_GATE.get(), NoopRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
+        // Drawn by its particles, as Iron's draws Cone of Cold.
+        event.registerEntityRenderer(ModRegistries.RIMEFIRE_BLAST_PROJECTILE.get(), NoopRenderer::new);
     }
 }

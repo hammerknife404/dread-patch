@@ -12,6 +12,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -56,6 +58,17 @@ public final class RimeSiphon {
         } else {
             LAID_BY.remove(entity);
         }
+    }
+
+    /** Who laid {@code victim}'s Withering Rime, if they're in its level (0.51.0: her regalia strengthens its wearer's withering). */
+    @Nullable
+    public static Entity layer(LivingEntity victim) {
+        Layer layer = LAID_BY.get(victim);
+        if (layer == null || !(victim.level() instanceof ServerLevel level)) {
+            return null;
+        }
+        Entity found = level.getPlayerByUUID(layer.id());
+        return found != null ? found : level.getEntity(layer.id());
     }
 
     static float heal(Difficulty difficulty) {

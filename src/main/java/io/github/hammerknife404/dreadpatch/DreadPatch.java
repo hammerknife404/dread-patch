@@ -21,6 +21,7 @@ import io.github.hammerknife404.dreadpatch.item.DragonArmor;
 import io.github.hammerknife404.dreadpatch.item.DreadDragonsteel;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
+import io.github.hammerknife404.dreadpatch.item.DreadRegalia;
 import io.github.hammerknife404.dreadpatch.registry.DreadGear;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.world.Dreadlands;
@@ -41,6 +42,9 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.entity.EntityAttributeModificationEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import org.slf4j.Logger;
 
 @Mod(DreadPatch.MODID)
@@ -53,10 +57,12 @@ public final class DreadPatch {
         DreadGear.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
         modBus.addListener(DreadPatch::onEntityAttributes);
+        modBus.addListener(DreadPatch::onEntityAttributeModification);
         modBus.addListener(DreadPatch::onCreativeTabs);
         DreadEvents.register(NeoForge.EVENT_BUS);
         DreadQueenStaff.register(modBus, NeoForge.EVENT_BUS);
         DreadQueenSword.register(modBus, NeoForge.EVENT_BUS);
+        DreadRegalia.register(modBus, NeoForge.EVENT_BUS);
         SyndrigossaEvents.register(NeoForge.EVENT_BUS);
         ScuttlerBolts.register(NeoForge.EVENT_BUS);
         ScuttlerClimbing.register(NeoForge.EVENT_BUS);
@@ -88,6 +94,17 @@ public final class DreadPatch {
         event.put(ModRegistries.SYNDRIGOSSA.get(), DragonBaseEntity.bakeAttributes().build());
         event.put(ModRegistries.RIMEFROST_DRAGON.get(), DragonBaseEntity.bakeAttributes().build());
         event.put(ModRegistries.DREAD_PHANTOM.get(), DreadPhantom.createAttributes().build());
+    }
+
+    /** Rimefrost's spell power and resistance on everything living (0.51.0), as Iron's gives its schools'. */
+    private static void onEntityAttributeModification(EntityAttributeModificationEvent event) {
+        for (EntityType<? extends LivingEntity> type : event.getTypes()) {
+            for (var attribute : java.util.List.of(ModRegistries.RIMEFROST_SPELL_POWER, ModRegistries.RIMEFROST_MAGIC_RESIST)) {
+                if (!event.has(type, attribute)) {
+                    event.add(type, attribute);
+                }
+            }
+        }
     }
 
     private static void onCreativeTabs(BuildCreativeModeTabContentsEvent event) {

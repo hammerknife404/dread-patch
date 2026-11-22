@@ -424,6 +424,39 @@ def summon_dread_phantoms():
     return im
 
 
+def rimefire_blast():
+    """A cone of cold dread fire pouring up and right from a bone-white hand at the lower left: white-hot
+    at the hand, her cyan through the middle, deep blue and soot at its ragged edge."""
+    im = dread_background(16, 83)
+    rnd = random.Random(41)
+    ox, oy = 2.5, 13.5
+    ax, ay = 1 / math.sqrt(2), -1 / math.sqrt(2)
+    for y in range(16):
+        for x in range(16):
+            dx, dy = x - ox, y - oy
+            along = dx * ax + dy * ay
+            across = abs(-dx * ay + dy * ax)
+            if along < 1.0 or along > 15.5:
+                continue
+            width = 0.6 + along * 0.42
+            if across > width + rnd.random() * 0.8:
+                continue
+            t = along / 15.5
+            edge = across / max(width, 0.01)
+            if t < 0.2 and edge < 0.6:
+                c = FIRE_CORE
+            elif edge < 0.45:
+                c = FIRE_BRIGHT if t < 0.55 else DREAD_CYAN
+            elif edge < 0.85:
+                c = DREAD_CYAN if t < 0.5 else FIRE_DEEP
+            else:
+                c = SOOT if rnd.random() < 0.4 else FIRE_DARK
+            im.putpixel((x, y), rgba(c))
+    for x, y in [(1, 14), (2, 14), (1, 15), (2, 13), (3, 14)]:
+        im.putpixel((x, y), rgba(BONE if (x + y) % 2 else BONE_LIGHT))
+    return im
+
+
 def rimefrost_effect():
     """A six-armed flake of rime in ice blues, barbed, round her cyan: the cold without the withering."""
     im = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
@@ -670,6 +703,7 @@ def main():
         "mob_effect/whiteout.png": whiteout_effect(),
         "gui/spell_icons/summon_dread_phantoms.png": summon_dread_phantoms(),
         "mob_effect/rimefrost.png": rimefrost_effect(),
+        "gui/spell_icons/rimefire_blast.png": rimefire_blast(),
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "item/dread_queen_crown.png": queen_crown(),
         "item/dread_queen_bodice.png": queen_bodice(),
