@@ -1483,6 +1483,23 @@ def main():
     record("and chills anyone else", has_effect("@e[tag=smoke_rimefire_zombie,limit=1]", "dreadpatch:rimefrost"), "no Rimefrost on the husk")
     fire = re.search(r"entity data: (-?\d+)s", rcon.run("data get entity @e[tag=smoke_rimefire_zombie,limit=1] Fire"))
     record("and puts them out", fire is not None and int(fire.group(1)) <= 0, f"Fire {fire and fire.group(1)}")
+    # And burns them with its cold (0.55.0): read once it has put them out, so no fire of theirs counts.
+    before = health("@e[tag=smoke_rimefire_zombie,limit=1]")
+    time.sleep(2.5)
+    after = health("@e[tag=smoke_rimefire_zombie,limit=1]")
+    record("and hurts anyone not of the Dread", after < before, f"the husk went from {before} to {after} in 2.5 s on it")
+    # A Withering Rime-Bolt into the ground (0.55.0) leaves a block of embers, gone in 2-4 s.
+    rcon.run(dl + f"run fill 45 {pad + 1} 45 45 {pad + 6} 45 minecraft:air")
+    rcon.run(dl + f"run summon dreadpatch:withering_rime_bolt 45.5 {pad + 4} 45.5 {{Motion:[0.0d,-1.0d,0.0d]}}")
+    embers = False
+    for _ in range(10):
+        time.sleep(0.2)
+        if "Test passed" in rcon.run(dl + f"if block 45 {pad + 1} 45 dreadpatch:rimefire[brief=true]"):
+            embers = True
+            break
+    record("a bolt into the ground leaves rimefire embers", embers, "no brief rimefire where it struck")
+    time.sleep(4.5)
+    record("and they're gone in seconds", "Test failed" in rcon.run(dl + f"if block 45 {pad + 1} 45 dreadpatch:rimefire"), "still burning 4.5 s on")
     rcon.run(dl + "run kill @e[tag=smoke_rimefire_dread]")
     rcon.run(dl + "run kill @e[tag=smoke_rimefire_zombie]")
     rcon.run(dl + f"run fill 38 {pad + 1} 38 60 {pad + 1} 58 minecraft:air replace dreadpatch:rimefire")

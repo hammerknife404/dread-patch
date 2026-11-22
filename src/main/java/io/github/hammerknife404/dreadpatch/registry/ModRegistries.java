@@ -216,7 +216,7 @@ public final class ModRegistries {
                     .replaceable()
                     .noCollission()
                     .instabreak()
-                    .lightLevel(state -> 10)
+                    .lightLevel(state -> RimefireBlock.LIGHT)
                     .sound(SoundType.WOOL)
                     .pushReaction(PushReaction.DESTROY)
                     .noLootTable()));
@@ -252,6 +252,8 @@ public final class ModRegistries {
     public static final ResourceKey<DamageType> SHATTER_SPINE_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("shatter_spine"));
     /** Whiteout Dominion's cold. */
     public static final ResourceKey<DamageType> WHITEOUT_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("whiteout"));
+    /** Standing in rimefire (0.55.0), not of the Dread. */
+    public static final ResourceKey<DamageType> RIMEFIRE_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, DreadPatch.id("rimefire"));
 
     /** Ice and Fire's dread egg base, spotted with the queen's eye glow. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_QUEEN_SPAWN_EGG = ITEMS.register("dread_queen_spawn_egg",
