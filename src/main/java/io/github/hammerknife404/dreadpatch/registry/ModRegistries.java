@@ -43,6 +43,7 @@ import io.github.hammerknife404.dreadpatch.spell.WhiteoutDominionSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.github.hammerknife404.dreadpatch.world.SpirePiece;
 import io.github.hammerknife404.dreadpatch.world.SpireStructure;
+import io.github.hammerknife404.dreadpatch.world.DreadVillageStructure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -106,6 +107,9 @@ public final class ModRegistries {
 
     /** The Dreadlands' spires (0.46.0): a structure of ours, one piece drawn from its shape. */
     public static final DeferredHolder<StructureType<?>, StructureType<SpireStructure>> SPIRE = STRUCTURE_TYPES.register("spire", () -> () -> SpireStructure.CODEC);
+    /** The Dreadlands' abandoned villages (0.53.0): vanilla's snowy zombie village, turned Dread. */
+    public static final DeferredHolder<StructureType<?>, StructureType<DreadVillageStructure>> DREAD_VILLAGE = STRUCTURE_TYPES.register("dread_village",
+            () -> () -> DreadVillageStructure.CODEC);
     public static final DeferredHolder<StructurePieceType, StructurePieceType> SPIRE_PIECE = STRUCTURE_PIECES.register("spire",
             () -> (StructurePieceType.ContextlessType) SpirePiece::new);
 

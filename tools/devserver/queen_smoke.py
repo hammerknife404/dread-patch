@@ -6,6 +6,7 @@ server-ip=127.0.0.1. Then start `./gradlew runServer`, wait for "RCON running", 
 is done (pass --keep to leave it running) and exits non-zero if anything failed.
 """
 import pathlib
+import random
 import re
 import socket
 import struct
@@ -1510,6 +1511,58 @@ def main():
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     clear_court()
     rcon.run("kill @e[type=item]")
+
+    # The Dreadlands' structures (0.53.0), far out where the ground is new: an abandoned village is all
+    # Dread wood and stone, none of vanilla's spruce planks or cobblestone left; spires' summits keep a chest
+    # half the time; and every chest is Lootr's (Lootr's in the dev runs, the owner's pack's version).
+    def count_blocks(block, x0, z0, x1, z1, y0, y1):
+        # Each fill swaps the block for sponge and back, counting what it swapped (/fill counts no same-block "changes").
+        total = 0
+        for x in range(x0, x1 + 1, 32):
+            for z in range(z0, z1 + 1, 32):
+                for y in range(y0, y1 + 1, 16):
+                    box = f"{x} {y} {z} {min(x + 31, x1)} {min(y + 15, y1)} {min(z + 31, z1)}"
+                    filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {box} minecraft:sponge replace {block}"))
+                    if filled and int(filled.group(1)):
+                        rcon.run(dl + f"run fill {box} {block} replace minecraft:sponge")
+                        total += int(filled.group(1))
+        return total
+
+    # Somewhere new each run (the world is kept between runs, and old chunks keep what they were made with).
+    far = random.randrange(8, 40) * 1000
+    out = rcon.run(dl + f"positioned {far} 0 {far} run locate structure dreadpatch:dread_village")
+    v = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
+    record("abandoned villages stand in the Dreadlands", v is not None, out.strip())
+    if v:
+        vx, vz = (int(v.group(1)) & ~15) + 8, (int(v.group(2)) & ~15) + 8
+        rcon.run(dl + f"run forceload add {vx - 64} {vz - 64} {vx + 64} {vz + 64}")
+        time.sleep(20.0)
+        area = (vx - 56, vz - 56, vx + 56, vz + 56, 50, 110)
+        dread_wood = count_blocks("iceandfire:dreadwood_planks", *area) + count_blocks("iceandfire:dreadwood_log", *area)
+        left = count_blocks("minecraft:spruce_planks", *area) + count_blocks("minecraft:cobblestone", *area) + count_blocks("minecraft:spruce_log", *area)
+        record("its wood and stone are the Dread's", dread_wood > 50 and left == 0, f"{dread_wood} dreadwood, {left} spruce planks, logs and cobblestone left")
+        loot_chests, plain_chests = count_blocks("lootr:lootr_chest", *area), count_blocks("minecraft:chest", *area)
+        record("its chests are Lootr's", plain_chests == 0, f"{loot_chests} Lootr chests, {plain_chests} plain chests")
+        rcon.run(dl + "run forceload remove all")
+    summit_chests, plain_summit, torches = 0, 0, 0
+    for sx_far, sz_far in ((-far, far), (far, -far)):
+        out = rcon.run(dl + f"positioned {sx_far} 0 {sz_far} run locate structure dreadpatch:spire")
+        m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
+        if not m:
+            continue
+        sx, sz = (int(m.group(1)) & ~15) + 8, (int(m.group(2)) & ~15) + 8
+        rcon.run(dl + f"run forceload add {sx - 24} {sz - 24} {sx + 24} {sz + 24}")
+        time.sleep(12.0)
+        rcon.run(dl + f'positioned {sx} 0 {sz} positioned over world_surface run summon minecraft:marker ~ ~ ~ {{Tags:["smoke_probe"]}}')
+        top = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+        rcon.run("kill @e[tag=smoke_probe]")
+        ty = int(float(top.group(1))) if top else 150
+        summit = (sx - 12, sz - 12, sx + 12, sz + 12, ty - 6, ty + 6)
+        summit_chests += count_blocks("lootr:lootr_chest", *summit)
+        plain_summit += count_blocks("minecraft:chest", *summit)
+        torches += count_blocks("iceandfire:dread_torch", *summit)
+        rcon.run(dl + "run forceload remove all")
+    record("a spire's summit chest is Lootr's", plain_summit == 0, f"{summit_chests} Lootr chests, {plain_summit} plain chests on two summits ({torches} dread torches)")
 
     # Dread scuttlers climb walls like spiders (0.41.0): one at the foot of a solid block 4 high, a
     # golem (Resistance V) on top that has hit it, is up on top with it within 10 s; it couldn't jump it.

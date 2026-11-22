@@ -184,7 +184,7 @@ public final class SpireEncounters {
         }
         probe.makeAncient();
         Vec3 summit = summit(spire);
-        double out = spire.shape().topRadius + ALOFT_OUT;
+        double out = spire.shape().summitRadius + ALOFT_OUT;
         double away = Math.atan2(summit.z - player.getZ(), summit.x - player.getX());
         for (int i = 0; i < 8; i++) {
             // Straight away from them, then 45° either side, 90°, and so on round.
