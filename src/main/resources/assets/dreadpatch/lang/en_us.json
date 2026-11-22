@@ -137,5 +137,16 @@
   "dreadpatch.configuration.attack_players": "Attack players",
   "dreadpatch.configuration.dreadlands": "The Dreadlands",
   "dreadpatch.configuration.encounter_reset_hours": "Encounter returns after (hours)",
-  "tooltip.dreadpatch.spell_details": "Hold Shift for each spell's details"
+  "tooltip.dreadpatch.spell_details": "Hold Shift for each spell's details",
+  "school.dreadpatch.rimefrost": "Rimefrost",
+  "attribute.dreadpatch.rimefrost_spell_power": "Rimefrost Spell Power",
+  "attribute.dreadpatch.rimefrost_magic_resist": "Rimefrost Magic Resist",
+  "spell.dreadpatch.rimefire_blast": "Rimefire Blast",
+  "spell.dreadpatch.rimefire_blast.guide": "Pour a cone of cold dread fire from your hand for as long as you hold the spell. It burns little, as the Rimefrost dragons' breath does for a spell, but leaves Withering Rime on everything it touches. A Rimefrost spell: Ice spell power strengthens it too. Made at the Scroll Forge from a dread shard and ink.",
+  "entity.dreadpatch.rimefire_blast": "Rimefire Blast",
+  "death.attack.dreadpatch.rimefire_blast": "%1$s was withered by %2$s's Rimefire Blast",
+  "death.attack.dreadpatch.rimefire_blast.item": "%1$s was withered by %2$s's Rimefire Blast using %3$s",
+  "death.attack.rimefrost_magic": "%1$s was taken by the Rimefrost",
+  "death.attack.rimefrost_magic.player": "%1$s was taken by the Rimefrost while fighting %2$s",
+  "death.attack.rimefrost_magic.item": "%1$s was taken by the Rimefrost by %2$s using %3$s"
 }

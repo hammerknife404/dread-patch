@@ -65,11 +65,12 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   5. **The Dreadlands:** bleak frozen waste with rare tall spires (dreadstone, the ice types, snow, stone), each with a chance of the Queen and Syndrigossa encounter at its summit; per player, once, but resetting "after a lengthy time like several IRL hours" (ours: a server config, 6 h). Entered through the Dread Gate: its ritual 10 s; a player stepping in cancels the overworld summoning, and the gate stays open a random 15-30 s, its blocks fading in and out faster and faster over the last ~5 s. Arrival near a spire's base, not close enough to trigger it. Home: a return gate where the encounter's defeated, or a Dread Gate keyed there (ours). Weather follows the overworld's: in a storm, heavy fog (less than Whiteout Dominion's, "a warning"), no damage, and **Rimefrost** (a new effect: the slow, no withering; ours: −25% movement); lightning ignites a rimefire patch that heals dread mobs standing in it 0.25 a second.
 - **The second drop (2026-11-22), the owner's "final feature draft"** (pasted as a pre-commit checklist; built in five releases in these groups, each its own branch, build, unit tests and smoke test before merging; record each as it ships). It supersedes earlier decisions where they differ (the bolt's numbers, the regalia's "no spell bonuses", scrolls only from her loot: the owner, "we can bend that previous rule now that foundations are stable").
   1. **0.50.0, config and tooltips:** the server config in an in-game screen, applied live where safe; her staff's tooltip kept readable however many spells; and (asked alongside) dread phantoms' trails get "the occasional cyan type like the rimefrost breath just scaled down".
+  2. → **0.51.0** (below: the Rimefrost school, Rimefire Blast, the bolt's shares, the regalia's powers, the staff).
   2. **Spells and equipment:**
      - **Rimefrost**, a new Iron's spell school, "a subtype of ice" (the owner's answer to "Rimefrost Spell Power").
      - **Rimefire Blast:** like Iron's Cone of Cold, Rimefire damage, low (like the Rimefrost breath), reliably leaving Withering Rime (the draft's "Withering Rimefrost": "keep as is currently"); made at Iron's **Scroll Forge** (the draft's "Spell Forge") from **dread shards** (the draft's "Dread Essence": "the standard dread mob drop that already exists") and ink.
      - **Withering Rime-Bolt:** its share of max health scales with level from 3% (ours, agreed: 3% at level 1, +1% a level, 7% at 5); the queen's 5% on Easy and Normal, 8% on Hard.
-     - **Her regalia:** indestructible; each piece +150 max mana, −5% Ice spell mana cost, −5% Rimefrost damage taken (what that covers: ours); the full set, freeze immunity and the Dread neutral to the wearer.
+     - **Her regalia:** indestructible; each piece +150 max mana, −5% Ice spell mana cost, −5% Rimefrost damage taken (what that covers: ours), and (the owner, after seeing it built: the set "is to add rimefrost damage not lower it", then "unless you mean the wearer of the armor is taking less rimefire damage then thats ok too") +5% Rimefrost damage dealt, so both; the full set, freeze immunity and the Dread neutral to the wearer.
      - **Her staff:** +5% Rimefrost spell power.
   3. **Spawning, patrols and neutrality:** in the Dreadlands, snowfall raises Dread mob spawns (day and night), a little more in heavy storms; small Dread patrols spawn day and night; dread phantoms come more often round spires, day and night.
   4. **Worldgen, structures and Lootr:** spire tops flare a little wider for Syndrigossa; a 50/50 chance of a loot chest on a spire's top, now and then with a Dread Lich; rolling hills like wind-swept snowdrifts and dunes; abandoned (zombie) villages with Dread block replacements; every Dreadlands chest works with Lootr (in the owner's pack, 1.11.38: per-player loot).
@@ -363,15 +364,29 @@ Everything is under `io.github.hammerknife404.dreadpatch`. `magic/` holds the ru
 
 ### Her spells
 
-All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). They're kept out of random loot and the scroll forge (`allowLooting()` false, `setAllowCrafting(false)`); only her loot drops them, named with `"force": true`.
+Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have one; Rimefire Blast, 1–10) are of the **Rimefrost** school since 0.51.0 (Ice before; below). They're kept out of random loot (`allowLooting()` false) and, but for Rimefire Blast, the Scroll Forge (`setAllowCrafting(false)`); her loot drops them all, named with `"force": true`.
+
+**The Rimefrost school** (`spell/RimefrostSchool`, `spell/DreadSpells`; 0.51.0, the owner: "a new spell school, subtype of ice")
+- An Iron's `SchoolType` registered in `SchoolRegistry.SCHOOL_REGISTRY_KEY` as `dreadpatch:rimefrost`: our attributes `dreadpatch:rimefrost_spell_power` / `_magic_resist` (Iron's `MagicPercentAttribute`, 1.0 = none, synced; added to every entity type on `EntityAttributeModificationEvent`, as Iron's adds its own), Iron's Ice cast sound, its focus `#dreadpatch:rimefrost_focus` (a dread shard), its damage type `dreadpatch:rimefrost_magic` (in `#neoforge:is_magic`, so the sword's guard stops it), her cyan.
+- **A subtype of Ice:** its `getPowerFor` and `getResistanceFor` multiply Rimefrost's attribute by Ice's, so Ice gear helps; `RimefrostSchool.isIce` (Ice or Rimefrost) is what the Permafrost Conduit and the regalia's mana discount check.
+- **Iron's per-world spell config stores each spell's school** (`ServerConfigs`: a `School` entry per spell, defaulting to its `DefaultConfig`), so worlds made before 0.51.0 hold "ice" for her old spells. Each of her spells therefore overrides `getSchoolType` to return Rimefrost whatever the config says.
+- **Iron's `/cast` on a mob doesn't fire a continuous spell** (its own Cone of Cold neither): the smoke test summons Rimefire Blast's cone with an `Owner` instead.
+
+**Rimefire Blast** (`spell/RimefireBlastSpell`, `entity/RimefireBlastProjectile`; 0.51.0): Iron's Cone of Cold remade: continuous, levels 1–10, 12 s cooldown, mana 5 + 1/level, its cone an `AbstractConeProjectile` (Iron's: follows the caster's look, four parts to about 7 blocks; each later cast tick sets `dealDamageActive`). Damage 0.5 + 0.4 × spell power (Cone of Cold's 1 + 0.75: "low"), and every hit renews 60 ticks of Withering Rime (its owner the caster, so only a queen's feeds). Particles: our small rime flame and soot, snowflakes. Death message `death.attack.dreadpatch.rimefire_blast`. The one spell of hers the Scroll Forge makes (dread shard focus, any ink from common); also in her loot. Its cone draws nothing (`NoopRenderer`).
+
+**The regalia's powers** (`item/DreadRegalia`, `magic/RegaliaBonuses`; 0.51.0):
+- **Indestructible:** `unbreakable` set as a default component (`ModifyDefaultComponentsEvent`), so stacks already made have it.
+- **Each piece:** +150 Iron's max mana (`ItemAttributeModifierEvent`, in its own slot); 5% off an Ice or Rimefrost spell's mana (`SpellOnCastEvent`, players); 5% more Rimefrost damage dealt by the wearer (its causing entity, or for Withering Rime's withering, which has none, whoever laid the rime: `RimeSiphon.layer`; before armour: `LivingIncomingDamageEvent`; the owner: "both ways on what counts as rimefrost"); 5% off Rimefrost damage taken, after armour (`LivingDamageEvent.Pre`). Rimefrost damage, both ways: `#dreadpatch:rimefrost` (`withering_breath`, `shatter_spine`, `whiteout`, `rimefrost_magic`) and vanilla `wither` damage on someone under Withering Rime and not vanilla Wither (Withering Rime's withering is vanilla's wither damage). It stacks with the dragon-armour breath cut (her breath: 70% off, then 20%).
+- **The full set:** `setTicksFrozen(0)` each tick and freezing damage (`#minecraft:is_freezing`) cancelled; the Dread (`IDreadMob`) can't take the wearer as a target (`LivingChangeTargetEvent`, and each second a held one is dropped), except the queen, Syndrigossa, anything whose commander (a dread mob's `CommanderUUID`, a phantom's summoner, otherwise `getCommander`) is one of them, and one the wearer hurt in the last 600 ticks (persistent data `dreadpatch:provoked_by` / `_until`). Any living wearer, not only players.
+
 
 **Death messages:** a spell's damage source (`getDamageSource`) dies as `death.attack.<spell id>` (Iron's `SpellDamageSource`: victim, then caster). The bolt's (also used by Beater's Decree) and the crown's (its shards) are in our lang, from 0.33.1; until then a death showed the raw key. Give any spell that deals damage under its own id one, plus the `.item` form Iron's own spells carry.
 
 **Withering Rime-Bolt** (`entity/WitheringRimeBolt`, `spell/WitheringRimeBoltSpell`)
 - **What it is:** an Iron's `AbstractMagicProjectile`. Flat damage plus a share of max health go through Iron's `DamageSources.applyDamage`, so Ice resistance counts; then it applies Withering Rime.
 - **Numbers:**
-  - hers: 8 + 15%, and 4.5 s of rime;
-  - the spell: (6 + 2/level) + 8%.
+  - hers: 8 + 5% (8% on Hard), and 4.5 s of rime (15% until 0.51.0);
+  - the spell: (6 + 2/level) + (2 + level)% (`RimeBoltRules`: 3% at level 1, 7% at 5; 8% flat until 0.51.0).
 - **Pass-through:** a queen's bolt passes through the Dread, and anyone's passes through its caster's own husk.
 - **Look:** drawn only by particles: Syndrigossa's breath mix, smaller.
 
@@ -668,10 +683,10 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - That puts them on the spell wheel, not "must equip".
   - "Must equip" would keep them off the wheel in hand (Iron's `SpellSelectionManager`).
 - **Casting:** `casting_implement`. Iron's casts the selected spell on right-click with any item that has it.
-- **Attributes:** in the main hand, +15% Ice Spell Power and +10% Cooldown Reduction (`ADD_MULTIPLIED_BASE`).
+- **Attributes:** in the main hand, +15% Ice Spell Power, +5% Rimefrost Spell Power (0.51.0) and +10% Cooldown Reduction (`ADD_MULTIPLIED_BASE`).
 - **Locked in:** the spells can't be taken out, because the Inscription Table takes only `SpellBook`s.
 - **The conduit:** on `SpellOnCastEvent` (players only, before the mana is taken):
-  - an Ice spell, the staff in the main hand, standing on or in `#dreadpatch:permafrost` (`#minecraft:ice`, `#minecraft:snow`, and Ice and Fire's dragon ice and frozen ground);
+  - an Ice spell (or Rimefrost, since 0.51.0), the staff in the main hand, standing on or in `#dreadpatch:permafrost` (`#minecraft:ice`, `#minecraft:snow`, and Ice and Fire's dragon ice and frozen ground);
   - costs 20% less;
   - Iron's checks the full cost before the cast.
 
@@ -1008,6 +1023,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - cast at a second corpse, the first is sent back and the second (blue) rises;
   - a queen at 100 of 300 with a golem target raises one of hers from a corpse 8 blocks off within 20 s, not whole.
   - The raised dragon is set NoAI right after the cast: with its AI it heals as it fights (it read 87 once) and wanders into the next cast's line of sight.
+- **Her regalia's powers (0.51.0):** worn on a zombie, +600 max mana over dread dragonsteel's, all four pieces unbreakable, its frozen ticks gone (dread dragonsteel's kept), 20% less Rimefrost magic; her breath 76% off (70%, then 20%). Her staff in an armor stand's hand: Rimefrost spell power 1.05. A bare zombie takes 20% more Rimefrost magic from the one in her regalia than from the one in dread dragonsteel; a golem 20% more from a Rimefire Blast cone (its hit and its rime's withering) owned by a zombie in her regalia. A slowed dread thrall takes a plain zombie for its target, not one in her regalia, until that one hits it. Rimefire Blast's cone, summoned owned by a villager, hits a golem for its 4.5 and leaves Withering Rime.
 - **Her regalia:** worn, its armour and toughness equal dread dragonsteel's; all twelve armour pieces of ours are `#minecraft:trimmable_armor`; it's in the breath check below; a queen not killed by a player (her table rolled, `/kill`) drops none.
 - **Gear:** two zombies in the same armour (100 health), one hit by 40 Rimefrost breath, one by 40 `mob_attack` (armour cuts both; vanilla's `generic` goes straight past armour, which once made it look like a 95% cut): the breath lands at 30% of the attack, for dread dragonsteel and for Ice and Fire's ice dragonsteel; a husk's hit with a dread dragonsteel sword rimes an iron golem (no Resistance: a hit brought to nothing carries nothing). Corpses give Rimefrost dragon scales.
 - **Rimefrost dragons:** a summoned one keeps its colour (sapphire), is undead with the ice dragon's tags, refuses Withering Rime and Wither, starts whole from a tag at Ice and Fire's health for its age (unchanged on Hard, unlike Syndrigossa's), and its corpse gives its own colour's scales and shards, its heart never her egg. Summoned without NBT it's a random age and ice colour (a summon with any NBT skips `finalizeSpawn`: a colourless hatchling).
@@ -1041,7 +1057,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Entity UUIDs in the script must differ:** a killed lich lingers in its death animation, so a villager summoned with the same UUID right after was never added, and the Create Rimefrost Dragon checks after it all failed (0.45.0's first run). The UUIDs in use: 3 (the phantom-calling lich), 5 (Create Rimefrost Dragon's caster), 6, 7 (the court casters), 9 (a queen).
 - **Dread mobs with their AI go for any living thing in reach** (0.48.0's first run): a slowed dread ghoul on rimefire walked off it to kill a husk 10 blocks off; alone, it still wandered off once. Test them one at a time, and wall the ghoul into a one-block cell over the fire.
 - **Her phantoms come 15 s after her first target, her storm 15 s after she spawns:** a single look right after the storm once found none (0.48.0's first run); the check waits up to 10 s, after the storm's golem check (put before it, the wait made that one fail).
-- **The clock runs:** `time set noon` is at the start, but minutes in it's evening; a check that needs the sun sets noon again (the dread phantom's).
+- **The clock runs, and the weather turns:** `time set noon` and `weather clear` are at the start, but minutes in it's evening, or raining; a check that needs the sun sets both again (the dread phantom's: once the rain came and the vanilla phantom, the control, didn't burn).
 - **A court member:** "its caster can't hurt it" once read two different members (`limit=1` alone may pick another between reads); it now tags one and reads `/damage`'s own output.
 
 **What it doesn't cover**

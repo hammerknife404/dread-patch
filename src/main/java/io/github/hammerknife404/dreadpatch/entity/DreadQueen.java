@@ -6,6 +6,7 @@ import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
 import com.iafenvoy.uranus.animation.AnimationHandler;
 import io.github.hammerknife404.dreadpatch.magic.DragonAge;
+import io.github.hammerknife404.dreadpatch.magic.RimeBoltRules;
 import io.github.hammerknife404.dreadpatch.magic.WhiteoutStorm;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
@@ -57,7 +58,7 @@ public class DreadQueen extends DreadQueenEntity {
     public static final int RISE_TICKS = 30;
     /** Her Withering Rime-Bolt: flat damage, then this share of the target's max health (a player's takes 8%). */
     public static final float BOLT_DAMAGE = 8.0F;
-    public static final float BOLT_MAX_HEALTH_SHARE = 0.15F;
+    /** Her bolt's share of max health is by difficulty since 0.51.0 ({@link RimeBoltRules#queenShare}: 5%, 8% on Hard); 15% before. */
     public static final int BOLT_RIME_TICKS = 90;
     /** Ticks between her bolts, and the range (blocks) she shoots them from: not point-blank, where she uses her sword. */
     static final int BOLT_COOLDOWN = 80;
@@ -405,7 +406,7 @@ public class DreadQueen extends DreadQueenEntity {
     }
 
     private void shootBolt(LivingEntity target) {
-        WitheringRimeBolt bolt = new WitheringRimeBolt(this.level(), this, BOLT_DAMAGE, BOLT_MAX_HEALTH_SHARE, BOLT_RIME_TICKS);
+        WitheringRimeBolt bolt = new WitheringRimeBolt(this.level(), this, BOLT_DAMAGE, RimeBoltRules.queenShare(this.level().getDifficulty().getId()), BOLT_RIME_TICKS);
         bolt.setPos(this.getX(), this.getEyeY() - 0.4, this.getZ());
         Vec3 aim = target.position().add(0, target.getBbHeight() * 0.6, 0).subtract(bolt.position());
         bolt.shoot(aim.normalize());

@@ -5,10 +5,10 @@ import io.github.hammerknife404.dreadpatch.entity.SummonedCourt;
 import io.github.hammerknife404.dreadpatch.magic.PhantomRules;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -29,7 +29,7 @@ public class SummonDreadPhantomsSpell extends AbstractSpell {
     private final ResourceLocation id = DreadPatch.id("summon_dread_phantoms");
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.EPIC)
-            .setSchoolResource(SchoolRegistry.ICE_RESOURCE)
+            .setSchoolResource(DreadSpells.RIMEFROST)
             .setMaxLevel(1)
             .setCooldownSeconds(90)
             .setAllowCrafting(false)
@@ -51,6 +51,12 @@ public class SummonDreadPhantomsSpell extends AbstractSpell {
     @Override
     public DefaultConfig getDefaultConfig() {
         return this.defaultConfig;
+    }
+
+    /** Rimefrost, whatever an older world's Iron's config says ({@link DreadSpells}). */
+    @Override
+    public SchoolType getSchoolType() {
+        return DreadSpells.school();
     }
 
     @Override

@@ -4,10 +4,10 @@ import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.RaycastBuilder;
 import io.redspace.ironsspellbooks.api.util.Utils;
@@ -34,7 +34,7 @@ public class RimefireCrownSpell extends AbstractSpell {
     private final ResourceLocation id = DreadPatch.id("rimefire_crown");
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.EPIC)
-            .setSchoolResource(SchoolRegistry.ICE_RESOURCE)
+            .setSchoolResource(DreadSpells.RIMEFROST)
             .setMaxLevel(5)
             .setCooldownSeconds(15)
             .setAllowCrafting(false)
@@ -61,6 +61,12 @@ public class RimefireCrownSpell extends AbstractSpell {
     @Override
     public DefaultConfig getDefaultConfig() {
         return this.defaultConfig;
+    }
+
+    /** Rimefrost, whatever an older world's Iron's config says ({@link DreadSpells}). */
+    @Override
+    public SchoolType getSchoolType() {
+        return DreadSpells.school();
     }
 
     @Override

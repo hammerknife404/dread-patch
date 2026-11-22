@@ -76,7 +76,8 @@ def main():
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
-                  "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms"}
+                  "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms",
+                  "dreadpatch:rimefire_blast"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -445,13 +446,14 @@ def main():
     check("the Dread are immune to Withering Rime", "effect give " + target + " dreadpatch:withering_rime 5", "Unable to apply")
     rcon.run("kill @e[tag=smoke_target]")
 
-    # Her bolt as a player's spell: an armor stand casts it (level 5: 14 damage + 8% of 100) at a golem 6 blocks off.
+    # Her bolt as a player's spell: an armor stand casts it (level 5: 14 damage + 7% of 100: the share by level
+    # since 0.51.0, 3% at level 1 and a point a level) at a golem 6 blocks off.
     rcon.run(golem.format(x=8.5))
     rcon.run('summon minecraft:armor_stand 2.5 200 4.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}')
     rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:withering_rime_bolt 5")
     time.sleep(1.0)
     hp = health(target)
-    record("her bolt (cast) hits for 14 + 8% of max health", 70 <= hp <= 79, f"golem health {hp}, expected about 78")
+    record("her bolt (cast) hits for 14 + 7% of max health at level 5", 76 <= hp <= 81, f"golem health {hp}, expected about 79")
     record("her bolt (cast) leaves Withering Rime", has_effect(target, "dreadpatch:withering_rime"), "no Withering Rime on the golem")
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")
@@ -465,6 +467,20 @@ def main():
     time.sleep(1.0)
     hp = health(target)
     record("her bolt's share is capped at 20", 963 <= hp <= 967, f"golem health {hp}, expected about 966 (uncapped it'd be 906)")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[tag=smoke_caster]")
+
+    # Rimefire Blast (0.51.0): its cone, summoned (a mob can't hold a continuous spell through /cast: Iron's
+    # Cone of Cold doesn't fire that way either), owned by a villager facing a golem, hits it for its
+    # damage and leaves Withering Rime.
+    rcon.run('summon minecraft:villager 2.5 200 4.5 {NoAI:1b,UUID:[I;2,2,2,2],Tags:["smoke_caster"],Rotation:[-90f,0f]}')
+    rcon.run(golem.format(x=6.5))
+    rcon.run('summon dreadpatch:rimefire_blast 2.5 201 4.5 {Owner:[I;2,2,2,2],Damage:4.5f}')
+    time.sleep(0.6)
+    hp = health(target)
+    record("Rimefire Blast's cone hits for its damage", 93.0 <= hp <= 96.0, f"golem health {hp}, expected about 95")
+    record("and leaves Withering Rime", has_effect(target, "dreadpatch:withering_rime"), "no Withering Rime on the golem")
+    rcon.run("kill @e[type=dreadpatch:rimefire_blast]")
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")
 
@@ -813,6 +829,7 @@ def main():
     # by a quarter. Its loot table gives the dread thrall's drops, and membrane and Rimefrost scales
     # only on a player's kill.
     rcon.run("time set noon")  # the clock runs: minutes in, it's no longer day
+    rcon.run("weather clear")  # and the weather turns: a phantom doesn't burn in the rain (0.51.0's last run)
     rcon.run('summon minecraft:phantom 3.5 212 12.5 {NoAI:1b,Tags:["smoke_vanilla_phantom"]}')
     rcon.run('summon dreadpatch:dread_phantom 6.5 212 12.5 {NoAI:1b,Tags:["smoke_phantom"]}')
     phantom = "@e[tag=smoke_phantom,limit=1]"
@@ -1365,13 +1382,18 @@ def main():
     # last run's gate frame stood where the ground was probed).
     rcon.run(dl + "run forceload add 32 32 63 63")
     time.sleep(4.0)
+    # The ground's probed just off the pad's corner (a run stopped part-way once left its pad over 48,48).
+    rcon.run(dl + 'positioned 34 0 34 positioned over world_surface run summon minecraft:marker ~ ~ ~ {Tags:["smoke_probe"]}')
+    pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+    rcon.run("kill @e[tag=smoke_probe]")
+    ground = int(float(pos.group(1))) if pos else 80
+    frozen = [b for b in ("minecraft:snow", "minecraft:snow_block", "minecraft:packed_ice", "minecraft:blue_ice", "minecraft:ice", "iceandfire:dread_stone", "minecraft:gravel")
+              if "Test passed" in rcon.run(dl + f"if block 34 {ground - 1} 34 {b}")]
+    record("its ground is frozen", bool(frozen), f"the top block at 34,{ground - 1},34 is none of snow, ice or dreadstone")
     rcon.run(dl + 'positioned 48 0 48 positioned over world_surface run summon minecraft:marker ~ ~ ~ {Tags:["smoke_probe"]}')
     pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
     rcon.run("kill @e[tag=smoke_probe]")
     gy = int(float(pos.group(1))) if pos else 80
-    frozen = [b for b in ("minecraft:snow", "minecraft:snow_block", "minecraft:packed_ice", "minecraft:blue_ice", "minecraft:ice", "iceandfire:dread_stone", "minecraft:gravel")
-              if "Test passed" in rcon.run(dl + f"if block 48 {gy - 1} 48 {b}")]
-    record("its ground is frozen", bool(frozen), f"the top block at 48,{gy - 1},48 is none of snow, ice or dreadstone")
     # A stone pad over the ground, and on it a gate: frame 5 wide, 6 tall round a 3x4 opening.
     pad = gy + 2
     rcon.run(dl + f"run fill 38 {pad} 38 60 {pad} 58 minecraft:stone")
@@ -1520,8 +1542,10 @@ def main():
         # (A mob's attack: armour cuts it as it does the breath; vanilla's generic damage goes straight past armour.)
         rcon.run("damage @e[tag=smoke_struck,limit=1] 40 minecraft:mob_attack")
         breathed, struck = 100.0 - health("@e[tag=smoke_breathed,limit=1]"), 100.0 - health("@e[tag=smoke_struck,limit=1]")
-        record(f"{label} takes 70% off Rimefrost breath", struck > 0 and abs(breathed - 0.3 * struck) < 0.6,
-               f"breath took {breathed:.2f}, a plain hit {struck:.2f} (30% would be {0.3 * struck:.2f})")
+        # Her regalia also takes 5% a piece off Rimefrost damage (0.51.0): 30% of it, then 80% of that.
+        share = 0.3 * 0.8 if label.startswith("the Dread Queen") else 0.3
+        record(f"{label} takes {100 - round(share * 100)}% off Rimefrost breath", struck > 0 and abs(breathed - share * struck) < 0.6,
+               f"breath took {breathed:.2f}, a plain hit {struck:.2f} ({round(share * 100)}% would be {share * struck:.2f})")
         rcon.run("kill @e[tag=smoke_breathed]")
         rcon.run("kill @e[tag=smoke_struck]")
     # Her regalia (0.43.0) is as strong as dread dragonsteel: the same armour and toughness, worn.
@@ -1538,8 +1562,93 @@ def main():
         queen_value, steel_value = worn("smoke_regalia", attribute), worn("smoke_steel", attribute)
         record(f"her regalia's {attribute.split('.')[-1]} is dread dragonsteel's", queen_value is not None and queen_value == steel_value and queen_value > 0,
                f"regalia {queen_value}, dread dragonsteel {steel_value}")
+    # Its powers (0.51.0): +150 max mana a piece, indestructible, the full set can't freeze, and 5% a piece
+    # off Rimefrost damage taken and onto Rimefrost damage dealt (her school's magic here, which nothing
+    # else of the armour's touches).
+    queen_mana, steel_mana = worn("smoke_regalia", "irons_spellbooks:max_mana"), worn("smoke_steel", "irons_spellbooks:max_mana")
+    record("her regalia gives +150 max mana a piece", queen_mana is not None and steel_mana is not None and queen_mana - steel_mana == 600.0,
+           f"regalia {queen_mana}, dread dragonsteel {steel_mana}")
+    check("her regalia is indestructible", "execute if items entity @e[tag=smoke_regalia,limit=1] armor.* *[minecraft:unbreakable]", "count: 4")
+    for tag in ("smoke_regalia", "smoke_steel"):
+        rcon.run(f"data merge entity @e[tag={tag},limit=1] {{TicksFrozen:140}}")
+    time.sleep(0.3)
+    frozen = lambda tag: int((re.search(r"entity data: (\d+)", rcon.run(f"data get entity @e[tag={tag},limit=1] TicksFrozen")) or [0, "0"])[1])
+    record("in her whole regalia, nothing freezes", frozen("smoke_regalia") == 0 and frozen("smoke_steel") > 0,
+           f"frozen ticks: regalia {frozen('smoke_regalia')}, dread dragonsteel {frozen('smoke_steel')}")
+    for tag in ("smoke_regalia", "smoke_steel"):
+        rcon.run(f"data merge entity @e[tag={tag},limit=1] {{Health:100.0f}}")
+        rcon.run(f"damage @e[tag={tag},limit=1] 20 dreadpatch:rimefrost_magic")
+    queen_took, steel_took = 100.0 - health("@e[tag=smoke_regalia,limit=1]"), 100.0 - health("@e[tag=smoke_steel,limit=1]")
+    record("her regalia takes 5% a piece off Rimefrost magic", steel_took > 0 and abs(queen_took - 0.8 * steel_took) < 0.3,
+           f"regalia took {queen_took:.2f}, dread dragonsteel {steel_took:.2f} (80% would be {0.8 * steel_took:.2f})")
+    # And deals 5% a piece more (the owner: it's "to add rimefrost damage"): the same blow into two bare
+    # zombies, one from the one in her regalia, one from the one in dread dragonsteel.
+    for tag, dealer in (("smoke_hit_by_queen", "smoke_regalia"), ("smoke_hit_by_steel", "smoke_steel")):
+        rcon.run(f'summon minecraft:zombie 12.5 240 {4.5 if dealer == "smoke_regalia" else 8.5} {{NoAI:1b,PersistenceRequired:1b,Tags:["{tag}"]}}')
+        rcon.run(f"attribute @e[tag={tag},limit=1] minecraft:generic.max_health base set 100")
+        rcon.run(f"data merge entity @e[tag={tag},limit=1] {{Health:100.0f}}")
+    time.sleep(0.2)
+    for tag, dealer in (("smoke_hit_by_queen", "smoke_regalia"), ("smoke_hit_by_steel", "smoke_steel")):
+        rcon.run(f"damage @e[tag={tag},limit=1] 20 dreadpatch:rimefrost_magic by @e[tag={dealer},limit=1]")
+    by_queen, by_steel = 100.0 - health("@e[tag=smoke_hit_by_queen,limit=1]"), 100.0 - health("@e[tag=smoke_hit_by_steel,limit=1]")
+    record("and deals 5% a piece more", by_steel > 0 and abs(by_queen - 1.2 * by_steel) < 0.3,
+           f"from her regalia {by_queen:.2f}, from dread dragonsteel {by_steel:.2f} (120% would be {1.2 * by_steel:.2f})")
+    for tag in ("smoke_hit_by_queen", "smoke_hit_by_steel"):
+        rcon.run(f"kill @e[tag={tag}]")
+    # Withering Rime's withering counts too (the owner: "both ways on what counts as rimefrost"), as dealt by
+    # whoever laid the rime: Rimefire Blast's cone (4.5, and 3 s of rime) from a zombie in her regalia and
+    # one in dread dragonsteel into two golems; everything the regalia's golem loses, 20% more.
+    for uuid, row, pieces in (("11", 4.5, regalia), ("12", 8.5, pieces_of("dreadpatch:dread_dragonsteel"))):
+        dressed = ",".join(f'{{id:"{piece}",count:1}}' for piece in pieces)
+        rcon.run(f'summon minecraft:zombie 16.5 240 {row} {{NoAI:1b,PersistenceRequired:1b,UUID:[I;{uuid},{uuid},{uuid},{uuid}],'
+                 f'Tags:["smoke_blaster"],Rotation:[-90f,0f],ArmorItems:[{dressed}]}}')
+        rcon.run(f'summon minecraft:iron_golem 20.5 240 {row} {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_blasted_{uuid}"]}}')
+    time.sleep(0.3)
+    for uuid, row in (("11", 4.5), ("12", 8.5)):
+        rcon.run(f"summon dreadpatch:rimefire_blast 16.5 241 {row} {{Owner:[I;{uuid},{uuid},{uuid},{uuid}],Damage:4.5f}}")
+    time.sleep(3.6)
+    by_queen, by_steel = 100.0 - health("@e[tag=smoke_blasted_11,limit=1]"), 100.0 - health("@e[tag=smoke_blasted_12,limit=1]")
+    record("her regalia's withering counts as Rimefrost dealt", by_steel > 4.5 and abs(by_queen - 1.2 * by_steel) < 0.5,
+           f"from her regalia {by_queen:.2f}, from dread dragonsteel {by_steel:.2f} (120% would be {1.2 * by_steel:.2f})")
+    rcon.run("kill @e[type=dreadpatch:rimefire_blast]")
+    for tag in ("smoke_blaster", "smoke_blasted_11", "smoke_blasted_12"):
+        rcon.run(f"kill @e[tag={tag}]")
     rcon.run("kill @e[tag=smoke_regalia]")
     rcon.run("kill @e[tag=smoke_steel]")
+    # Her staff: +5% Rimefrost spell power in the hand (0.51.0).
+    rcon.run('summon minecraft:armor_stand 12.5 240 4.5 {Tags:["smoke_staff"],ShowArms:1b,HandItems:[{id:"iceandfire:dread_queen_staff",count:1},{}]}')
+    time.sleep(0.2)
+    power = worn("smoke_staff", "dreadpatch:rimefrost_spell_power")
+    record("her staff gives +5% Rimefrost spell power", power is not None and abs(power - 1.05) < 1e-6, f"Rimefrost spell power {power}")
+    rcon.run("kill @e[tag=smoke_staff]")
+    # In her whole regalia the Dread leave you be (0.51.0): a dread thrall (with its AI, held still) goes for
+    # a zombie beside it, but not for one in her regalia, until that one hurts it.
+    still = 'active_effects:[{id:"minecraft:slowness",amplifier:255b,duration:1200}]'
+    rcon.run(f'summon iceandfire:dread_thrall 4.5 240 10.5 {{PersistenceRequired:1b,Tags:["smoke_dread_judge"],{still}}}')
+    rcon.run('summon minecraft:zombie 8.5 240 10.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_plain"]}')
+    judge_target = lambda: rcon.run("execute as @e[tag=smoke_dread_judge,limit=1] on target run data get entity @s Tags")
+    took = False
+    for _ in range(16):
+        time.sleep(0.5)
+        if "smoke_plain" in judge_target():
+            took = True
+            break
+    record("a dread thrall goes for a zombie (the control)", took, "it never took the plain zombie for its target")
+    rcon.run("kill @e[tag=smoke_plain]")
+    worn_list = ",".join(f'{{id:"{piece}",count:1}}' for piece in regalia)
+    rcon.run(f'summon minecraft:zombie 8.5 240 10.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_crowned"],ArmorItems:[{worn_list}]}}')
+    time.sleep(5.0)
+    record("but leaves one in her whole regalia be", "smoke_crowned" not in judge_target(), judge_target().strip())
+    rcon.run("damage @e[tag=smoke_dread_judge,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_crowned,limit=1]")
+    fought = False
+    for _ in range(10):
+        time.sleep(0.5)
+        if "smoke_crowned" in judge_target():
+            fought = True
+            break
+    record("until it hurts the Dread", fought, "the thrall didn't turn on the one in her regalia that hit it")
+    for tag in ("smoke_dread_judge", "smoke_crowned"):
+        rcon.run(f"kill @e[tag={tag}]")
     # Every piece of the three sets takes a trim at the smithing table (0.44.0): #minecraft:trimmable_armor.
     rcon.run('summon minecraft:armor_stand 12.5 240 10.5 {NoGravity:1b,Tags:["smoke_trimmable"]}')
     untrimmable = []
