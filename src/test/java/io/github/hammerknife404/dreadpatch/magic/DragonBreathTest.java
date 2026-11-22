@@ -85,7 +85,7 @@ class DragonBreathTest {
 
     @Test
     void flameAndSmokeCarryTheDistanceTheyreSentFor() {
-        for (double distance : new double[] {3, 10, 20, 30}) {
+        for (double distance : new double[] {3, 10, 20, 32}) {
             double[] r = reaches(DragonBreath.particleSpeed(distance));
             assertTrue(r[0] >= 0.92 * distance, "shortest " + r[0] + " of " + distance);
             assertTrue(r[1] <= DragonBreath.PARTICLE_OVERSHOOT * distance + EPSILON, "longest " + r[1] + " of " + distance);
@@ -94,7 +94,7 @@ class DragonBreathTest {
 
     @Test
     void noSnowflakePassesItsMark() {
-        for (double distance : new double[] {3, 10, 30}) {
+        for (double distance : new double[] {3, 10, 32}) {
             double speed = DragonBreath.snowSpeed(distance);
             for (int life = 16; life <= DragonBreath.SNOW_LIFE_MAX; life++) {
                 assertTrue(DragonBreath.travel(speed, DragonBreath.SNOW_FRICTION, life) <= distance + EPSILON, "life " + life);
@@ -107,8 +107,9 @@ class DragonBreathTest {
     void everyParticleEndsWhereTheBreathReachesAndTheStreamFillsIt() {
         for (int stage = 1; stage <= 5; stage++) {
             double splash = DragonBreath.breathRadius(stage);
-            for (double length : new double[] {2, 6, 15, 30}) {
-                double reach = length + splash;
+            for (double length : new double[] {2, 6, 15, 30, DragonBreath.CONE_MAX_LENGTH}) {
+                double reach = DragonBreath.reach(length, splash);
+                assertTrue(reach <= DragonBreath.CONE_MAX_LENGTH, "its max distance is a hard limit");
                 for (double roll = 0.0; roll <= 1.0; roll += 0.1) {
                     double sent = DragonBreath.sentDistance(length, splash, roll);
                     assertTrue(reaches(DragonBreath.particleSpeed(sent))[1] <= reach + EPSILON, "sent, stage " + stage + ", length " + length);
@@ -120,8 +121,16 @@ class DragonBreathTest {
                 }
                 // The far end is still reached: the furthest-sent flame gets at least to the cone's end.
                 double furthest = reaches(DragonBreath.particleSpeed(DragonBreath.sentDistance(length, splash, 1.0)))[1];
-                assertTrue(furthest >= length, "stage " + stage + ", length " + length + ": furthest " + furthest);
+                assertTrue(furthest >= length - EPSILON, "stage " + stage + ", length " + length + ": furthest " + furthest);
             }
         }
+    }
+
+    @Test
+    void itsMaxDistanceIs32() {
+        assertEquals(32.0, DragonBreath.CONE_MAX_LENGTH, EPSILON);
+        assertEquals(32.0, DragonBreath.coneLength(30, DragonBreath.CONE_GROWTH_TICKS), EPSILON, "her aim 30 off, 2 past it");
+        assertEquals(32.0, DragonBreath.reach(32, DragonBreath.breathRadius(5)), EPSILON, "the splash stops at it too");
+        assertEquals(23.5, DragonBreath.reach(20, DragonBreath.breathRadius(5)), EPSILON, "short of it, the splash counts");
     }
 }
