@@ -17,17 +17,17 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 /**
- * Where Syndrigossa's attacks leave the ice dragon's:
+ * Where a Rimefrost dragon's attacks (Syndrigossa's among them) leave the ice dragon's:
  * <ul>
  * <li>Ice and Fire's breath (and charge) damage, which it posts as a cancellable
  * {@code DragonFireDamageWorldEvent} where it lands, is hers: cancelled, and her
- * {@link Syndrigossa#witheringBreath} there instead;</li>
+ * {@link RimefrostDragon#witheringBreath} there instead;</li>
  * <li>an ice charge she looses anyway (Ice and Fire's {@code IceDragonEntity} makes them directly in
  * its private {@code shootIceAtMob} and in {@code riderShootFire}, not through
  * {@code createCharge}) becomes Shatter-Spine as it enters the world;</li>
  * <li>each breath hit siphons {@link DragonBreath#SIPHON} more, past armor, into her (shared with her
  * queen, {@link SoulTether});</li>
- * <li>her bite leaves Withering Rime II ({@link Syndrigossa#BITE_RIME_TICKS}), as every Rimefrost
+ * <li>her bite leaves Withering Rime II ({@link RimefrostDragon#BITE_RIME_TICKS}), as every Rimefrost
  * dragon's does (the owner's ask): a melee hit of hers while her bite or her prey-shaking plays, which
  * is when Ice and Fire lands it (it picks the attack's animation first and hits on its tick), so her
  * tail and wing strikes don't carry it;</li>
@@ -48,13 +48,13 @@ public final class SyndrigossaEvents {
     }
 
     private static void onEffectApplicable(MobEffectEvent.Applicable event) {
-        if (event.getEntity() instanceof Syndrigossa && event.getEffectInstance().is(MobEffects.WITHER)) {
+        if (event.getEntity() instanceof RimefrostDragon && event.getEffectInstance().is(MobEffects.WITHER)) {
             event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
         }
     }
 
     private static void onDragonFireDamage(DragonFireDamageWorldEvent event) {
-        if (event.getDragon() instanceof Syndrigossa dragon) {
+        if (event.getDragon() instanceof RimefrostDragon dragon) {
             event.setCanceled(true);
             dragon.witheringBreath(new Vec3(event.getTargetX(), event.getTargetY(), event.getTargetZ()));
         }
@@ -62,7 +62,7 @@ public final class SyndrigossaEvents {
 
     /** Swapped a tick later: adding an entity while another is joining isn't safe. */
     private static void onJoin(EntityJoinLevelEvent event) {
-        if (event.getEntity() instanceof IceDragonChargeEntity charge && charge.getOwner() instanceof Syndrigossa dragon
+        if (event.getEntity() instanceof IceDragonChargeEntity charge && charge.getOwner() instanceof RimefrostDragon dragon
                 && event.getLevel() instanceof ServerLevel level) {
             event.setCanceled(true);
             Vec3 from = charge.position();
@@ -77,7 +77,7 @@ public final class SyndrigossaEvents {
     }
 
     private static void onDamage(LivingDamageEvent.Pre event) {
-        if (event.getSource().is(ModRegistries.WITHERING_BREATH_DAMAGE) && event.getSource().getEntity() instanceof Syndrigossa dragon) {
+        if (event.getSource().is(ModRegistries.WITHERING_BREATH_DAMAGE) && event.getSource().getEntity() instanceof RimefrostDragon dragon) {
             event.setNewDamage(event.getNewDamage() + DragonBreath.SIPHON);
             SoulTether.heal(dragon, DragonBreath.SIPHON);
         }
@@ -85,8 +85,8 @@ public final class SyndrigossaEvents {
 
     private static void onBite(LivingDamageEvent.Post event) {
         if (event.getNewDamage() > 0 && event.getSource().is(DamageTypes.MOB_ATTACK)
-                && event.getSource().getDirectEntity() instanceof Syndrigossa dragon && dragon.biting() && event.getEntity().isAlive()) {
-            event.getEntity().addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, Syndrigossa.BITE_RIME_TICKS, Syndrigossa.BITE_RIME_AMPLIFIER), dragon);
+                && event.getSource().getDirectEntity() instanceof RimefrostDragon dragon && dragon.biting() && event.getEntity().isAlive()) {
+            event.getEntity().addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, RimefrostDragon.BITE_RIME_TICKS, RimefrostDragon.BITE_RIME_AMPLIFIER), dragon);
         }
     }
 }

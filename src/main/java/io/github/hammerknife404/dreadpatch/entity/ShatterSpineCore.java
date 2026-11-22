@@ -50,7 +50,7 @@ public class ShatterSpineCore extends AbstractHurtingProjectile {
     }
 
     /** From {@code from} toward {@code aim} if there is one, else along {@code direction}. */
-    public static ShatterSpineCore launch(Level level, Syndrigossa dragon, Vec3 from, Vec3 direction, @Nullable Vec3 aim) {
+    public static ShatterSpineCore launch(Level level, RimefrostDragon dragon, Vec3 from, Vec3 direction, @Nullable Vec3 aim) {
         Vec3 heading = aim != null ? aim.subtract(from) : direction;
         ShatterSpineCore core = new ShatterSpineCore(ModRegistries.SHATTER_SPINE.get(), level);
         core.setOwner(dragon);

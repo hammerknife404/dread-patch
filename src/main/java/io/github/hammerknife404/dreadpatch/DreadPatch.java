@@ -67,6 +67,7 @@ public final class DreadPatch {
                 .build());
         event.put(ModRegistries.BARROW_HUSK.get(), BarrowHusk.createAttributes().build());
         event.put(ModRegistries.SYNDRIGOSSA.get(), DragonBaseEntity.bakeAttributes().build());
+        event.put(ModRegistries.RIMEFROST_DRAGON.get(), DragonBaseEntity.bakeAttributes().build());
     }
 
     private static void onCreativeTabs(BuildCreativeModeTabContentsEvent event) {
@@ -75,6 +76,7 @@ public final class DreadPatch {
             event.accept(queenWithSyndrigossaEgg());
             event.accept(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get());
             event.accept(ancientSyndrigossaEgg());
+            event.accept(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
         }

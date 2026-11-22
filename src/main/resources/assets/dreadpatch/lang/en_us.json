@@ -71,5 +71,8 @@
   "death.attack.dreadpatch.withering_rime_bolt": "%1$s withered under %2$s's Withering Rime-Bolt",
   "death.attack.dreadpatch.withering_rime_bolt.item": "%1$s withered under %2$s's Withering Rime-Bolt using %3$s",
   "death.attack.dreadpatch.rimefire_crown": "%1$s was cut down by the shards of %2$s's Rimefire Crown",
-  "death.attack.dreadpatch.rimefire_crown.item": "%1$s was cut down by the shards of %2$s's Rimefire Crown using %3$s"
+  "death.attack.dreadpatch.rimefire_crown.item": "%1$s was cut down by the shards of %2$s's Rimefire Crown using %3$s",
+  "entity.dreadpatch.rimefrost_dragon": "Rimefrost Dragon",
+  "item.dreadpatch.rimefrost_dragon_spawn_egg": "Rimefrost Dragon Spawn Egg",
+  "tooltip.dreadpatch.rimefrost_dragon": "An undead frost dragon of the Rimefrost"
 }
