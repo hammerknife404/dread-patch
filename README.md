@@ -107,6 +107,10 @@ Her scrolls (from her drops) teach her spells to players:
 - **Barrow-Step** takes you to where you look (11 to 15 blocks, by level) and leaves your own husk behind: rime-glass in your shape and skin.
 - **Whiteout Dominion** (16 to 32 blocks round and 25 to 45 seconds, by level, on a two-minute cooldown) fogs, slows and freezes whoever you'd harm in it, and freezes its water over too, but only hers raises the dead. The Dread walk through anyone's storm untouched.
 
+## Fixes to Ice and Fire
+
+- **Dragon corpses:** Ice and Fire still counts a dead dragon as alive while its corpse lies, so a mob that was fighting a dragon when it died went on attacking its corpse forever. Now nothing fights a dragon's corpse, any Ice and Fire dragon's, and mobs from other mods that use Minecraft's usual targeting leave it be too. Harvesting a corpse is unchanged.
+
 ## Building
 
 `./gradlew build` puts the jar in `build/libs/`. `./gradlew runClient` starts a dev client with Ice and Fire loaded.

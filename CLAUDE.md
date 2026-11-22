@@ -48,6 +48,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
 - **0.33.0:**
   - In the owner's taxonomy she's a unique, named dragon of the **Rimefrost**, a subtype of frost dragon (they offered "Rime" or "Rimefrost"). Lore only: no one-per-world limit. Her spawn eggs and egg say so in their tooltips.
   - Rimefrost dragons' bites inflict Withering Rime II: hers, 4.5 s.
+- **0.35.0:** "Dread mobs should ignore dragon corpses so they are not stuck attacking them forever", then "perhaps patch the corpse itself for broader compatibility": so it covers every mob and every Ice and Fire dragon's corpse.
 - **0.34.0:** "Syndrigossa should have her own boss bar". Ours is white (the queen's is Ice and Fire's blue), and hidden while she's tame and once she's a corpse.
 
 **The queen on her dragon (0.24.0–0.26.0)**
@@ -745,6 +746,15 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - her shadow is off while she rides.
 - **Elsewhere:** a `RenderLivingEvent.Pre` listener skips drawing her anywhere else while she rides.
 - **History:** 0.24.0 used Ice and Fire's rider transform, and the owner saw her "hanging beneath the dragon".
+
+### Dragon corpses (`entity/DragonCorpses`)
+
+- **The bug:** `DragonBaseEntity.isAlive()` is `!isRemoved()` while `isModelDead()`, so a corpse counts as alive until it's removed. A mob whose target died kept it (`TargetGoal.canContinueToUse` saw it alive). Ice and Fire's `DreadAITargetNonDreadGoal` only skips corpses (`DragonUtils.isAlive`, which is `!isMobDead`) when picking a new one. In a probe a dread thrall still targeted the corpse 6 s on.
+- **The corpse itself** (the owner's suggestion, for other mods' sake): each tick a corpse that isn't yet is made invulnerable (saved as `Invulnerable`).
+  - `LivingEntity.canBeSeenAsEnemy` is `!isInvulnerable() && canBeSeenByAnyone()`, which `Mob.canAttack` and `TargetingConditions` use, so a running target goal drops it and nothing picks it.
+  - Nothing else changes: Ice and Fire's `hurt` on a corpse takes only `fellOutOfWorld`, which bypasses invulnerability, and harvesting is `mobInteract`.
+- **Any mob's target:** `LivingChangeTargetEvent` turns a corpse into no target, and every 10 ticks a mob holding one drops it. That covers targets handed over outside the goals (the queen's rally to her court).
+- **Smoke test:** a dread thrall, then an iron golem (one at a time: a golem goes for a thrall), takes an ice dragon for its target. The dragon is killed into a corpse; the corpse is invulnerable, and the fighter has no target 1 s and 4 s on. With no target, `execute ... on target` prints nothing at all.
 
 ### Data
 
