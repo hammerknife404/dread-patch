@@ -52,7 +52,13 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - the plan's split, which they didn't change: every Rimefrost dragon has the breath, the bite, Shatter-Spine, undeath, Dread alliance, the rotted look in its own ice dragon colour and a Dread corpse;
   - only Syndrigossa has Sovereign's Eclipse, the boss bar, health by difficulty, the ancient boss, the queen's saddle and tether, and her egg;
   - a plain Rimefrost dragon's health is Ice and Fire's for its age (their pick wasn't given; ours, as "same tiered").
-- **0.38.0, Create Rimefrost Dragon** (below); ours: the queen raises one only once she's lost a quarter of her health (unhurt, hers would rise with 1), first 10 s in.
+- **0.38.0, Create Rimefrost Dragon** (below; the owner raised one in the client, 2026-11-21, which is how they saw it sleep); ours: the queen raises one only once she's lost a quarter of her health (unhurt, hers would rise with 1), first 10 s in.
+- **The big drop (2026-11-21), the owner's answers to our questions** (built in five releases, in this order; record each as it ships):
+  1. **Scuttler climbing**, all dread scuttlers (0.41.0).
+  2. **Rimefrost dragon scale** (one item; the "dread dragon scale" and the phantom's "rimefrost dragon scales"): Rimefrost corpses drop it in place of Ice and Fire's coloured scales. **Dread dragonsteel** through Ice and Fire's ice dragonforge, as ice dragonsteel is made (scales + bottle → Rimefrost dragon blood; blood + iron ingot → dread dragonsteel). Full sets: dragonscale armour from the scales, dragonsteel armour and tools from the ingot, with their abilities (ours to propose: Withering Rime where ice dragonsteel freezes; the scale set resists Rimefrost breath), stats as Ice and Fire's ice sets.
+  3. **Dread Queen armour:** "replicate as close as possible" her outfit; stats "in line with their respective scale and steel variants" (ours: the dread dragonsteel set's armour with the scale set's breath resistance, no spell bonuses); drops "tracked via achievements so each kill guarantees a needed piece to complete the set", Looting affecting (ours: a missing piece per kill by a player, per-piece advancements; complete, a random piece at 25%, Looting raising it).
+  4. **Dread phantom:** vanilla phantom's stats ("they're hated enough"), not burning by day, dread eyes, a look mixing both with more holes in its wing membranes showing bones, a sparse Rimefrost trail. Spawned by a spell scroll (players can learn it; not on her staff) and by the queen, a Dread Lich and Syndrigossa (not Rimefrost dragons): 1-2 every 45 s. They escort their summoner and aggressively take revenge; aggression scales with difficulty. Its attacks roll Rimefrost (the slow) and Withering Rime independently ("it would still be possible for both to apply"; ours: 35% and 15%). Drops our choice (ours: thrall drops + 1-3 phantom membrane + 1-3 Rimefrost dragon scales, Looting affecting). No natural spawning. Ours: the spell 2 phantoms for 60 s, 90 s cooldown, a summoned court's rules; at most 4 a summoner.
+  5. **The Dreadlands:** bleak frozen waste with rare tall spires (dreadstone, the ice types, snow, stone), each with a chance of the Queen and Syndrigossa encounter at its summit; per player, once, but resetting "after a lengthy time like several IRL hours" (ours: a server config, 6 h). Entered through the Dread Gate: its ritual 10 s; a player stepping in cancels the overworld summoning, and the gate stays open a random 15-30 s, its blocks fading in and out faster and faster over the last ~5 s. Arrival near a spire's base, not close enough to trigger it. Home: a return gate where the encounter's defeated, or a Dread Gate keyed there (ours). Weather follows the overworld's: in a storm, heavy fog (less than Whiteout Dominion's, "a warning"), no damage, and **Rimefrost** (a new effect: the slow, no withering; ours: −25% movement); lightning ignites a rimefire patch that heals dread mobs standing in it 0.25 a second.
 - **0.40.0:** "Rimefrost dragons are undead, they do not sleep" (`RimefrostDragon`: the sleep flag never set, `isSleeping` false, `isTimeToWake` true).
 - **0.39.0, hatching her egg** (B, below; ours: the storm must rise with the egg already in it and run its whole course, not cut short; struck by a player, a laid egg pops back into an item and loses its storms).
 - **Decided (2026-11-21):**
@@ -441,6 +447,12 @@ All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). T
   - never while one of hers stands (she retries every 20 ticks).
 - **Spawning:** on a court spot, through `EventHooks.finalizeMobSpawn`, with her `CommanderUUID`, so it gets her target.
 - **Not court:** it isn't counted in her court's 6, it's never burnt for the decree, and its minions answer to it, not to her.
+
+**Scuttler climbing** (`entity/ScuttlerClimbing`; 0.41.0)
+- Every `DreadScuttlerEntity` climbs walls as vanilla's spider does, done from outside (Ice and Fire's class):
+  - as it joins a level, its `navigation` (a protected field, set by reflection: `ObfuscationReflectionHelper.findField(Mob.class, "navigation")`; mojmap at runtime) becomes a `WallClimberNavigation`, which heads straight for a target it has no ground path to;
+  - each server tick it's against a wall (`horizontalCollision`; not riding, not NoAI) its upward motion is at least 0.2, a climbing spider's, and its fall distance is reset.
+- Probed: from 6 blocks off a 4-block wall, up and on top by 3 s.
 
 **Scuttler bolts** (`entity/ScuttlerBolts`)
 - Every Ice and Fire `DreadScuttlerEntity` spits a weak bolt: 3 + 4%, and 2 s of rime.
@@ -852,6 +864,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Magic:** Withering Rime and the siphon, and each spell, cast through Iron's `/cast` by armor stands.
 - **Fighting:** the sword, her spacing and Barrow-Step, her court, decree, storm and lich.
 - **Summon Court:** cast by a NoAI villager (an armor stand records no attacker, and the court defends its caster from what hurts it). The count by level; leaving a cow and a dread thrall be when they hit the caster or a member; the caster's hit cancelled; a husk that hits the caster attacked; a recast replacing the court; expiry (set through `data merge ... {NeoForgeData:{...}}`). With `attack_friendly_mobs` and `retaliate` switched on by hand, the court killed the cow within 4 s, so the check does catch the filter missing.
+- **Scuttler climbing:** a scuttler hit by a golem standing on a solid block 4 high is on top within 10 s.
 - **Hatching:** an egg summoned on a dreadstone block with an `Owner`, and another on plain stone:
   - a full summoned storm (`Lifetime` 40) gives the first 1 and the second 0;
   - a storm killed early gives nothing;

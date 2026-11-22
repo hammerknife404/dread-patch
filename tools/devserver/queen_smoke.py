@@ -1201,6 +1201,28 @@ def main():
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     clear_court()
     rcon.run("kill @e[type=item]")
+    # Dread scuttlers climb walls like spiders (0.41.0): one at the foot of a solid block 4 high, a
+    # golem (Resistance V) on top that has hit it, is up on top with it within 10 s; it couldn't jump it.
+    rcon.run("fill 1 239 1 30 239 14 minecraft:stone")
+    rcon.run("fill 1 240 1 30 250 14 minecraft:air")
+    rcon.run("fill 14 240 4 18 243 10 minecraft:stone")
+    rcon.run('summon minecraft:iron_golem 16.5 244 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_climb_target"]}')
+    rcon.run("effect give @e[tag=smoke_climb_target,limit=1] minecraft:resistance 60 4 true")
+    rcon.run('summon iceandfire:dread_scuttler 9.5 240 7.5 {PersistenceRequired:1b,Tags:["smoke_climber"]}')
+    time.sleep(2.0)  # past its rise
+    rcon.run("damage @e[tag=smoke_climber,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_climb_target,limit=1]")
+    climbed = False
+    for _ in range(20):
+        time.sleep(0.5)
+        m = re.search(r"entity data: \[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_climber,limit=1] Pos"))
+        if m and float(m.group(1)) >= 243.9:
+            climbed = True
+            break
+    record("a dread scuttler climbs a wall to its target", climbed, f"still at y {m and m.group(1)} 10 s on, the top at 244")
+    rcon.run("kill @e[tag=smoke_climber]")
+    rcon.run("kill @e[tag=smoke_climb_target]")
+    rcon.run("fill 1 239 1 30 250 14 minecraft:air")
+
     # Nothing fights a dragon's corpse (0.35.0): Ice and Fire counts a corpse alive, so a dread thrall
     # fighting an ice dragon when it died kept hacking at its corpse (6 s on, still its target, before
     # the fix). On a platform of its own, higher up, one at a time (an iron golem goes for a thrall): a
