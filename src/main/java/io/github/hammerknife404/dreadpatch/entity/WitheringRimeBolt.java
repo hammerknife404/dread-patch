@@ -1,5 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import net.minecraft.server.level.ServerLevel;
+import io.github.hammerknife404.dreadpatch.block.RimefireBlock;
 import com.iafenvoy.iceandfire.entity.DreadMobEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import io.github.hammerknife404.dreadpatch.magic.DreadDamage;
@@ -59,6 +61,10 @@ public class WitheringRimeBolt extends AbstractMagicProjectile {
     @Override
     protected void onHitBlock(BlockHitResult hit) {
         super.onHitBlock(hit);
+        // Its embers (0.55.0): a brief block of rimefire where it struck, on the face it hit, or on top of that block.
+        if (this.level() instanceof ServerLevel level && !RimefireBlock.embers(level, hit.getBlockPos().relative(hit.getDirection()))) {
+            RimefireBlock.embers(level, hit.getBlockPos().above());
+        }
         this.discard();
     }
 

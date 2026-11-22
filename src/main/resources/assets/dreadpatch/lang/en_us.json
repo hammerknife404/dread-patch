@@ -158,5 +158,7 @@
   "dreadpatch.configuration.phantoms_near_spires": "Dread phantoms near spires (one in)",
   "subtitles.dreadpatch.ambient.dreadlands.ice_crack": "Ice cracks",
   "subtitles.dreadpatch.ambient.dreadlands.rumble": "Something rumbles deep below",
-  "dreadpatch.configuration.whiteout_storms": "Whiteout storms (one in)"
+  "dreadpatch.configuration.whiteout_storms": "Whiteout storms (one in)",
+  "death.attack.dreadpatch.rimefire": "%1$s burned cold in rimefire",
+  "death.attack.dreadpatch.rimefire.player": "%1$s burned cold in rimefire while fighting %2$s"
 }

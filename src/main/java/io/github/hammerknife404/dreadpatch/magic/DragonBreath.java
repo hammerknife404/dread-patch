@@ -10,6 +10,11 @@ package io.github.hammerknife404.dreadpatch.magic;
  */
 public final class DragonBreath {
     public static final float SIPHON = 0.5F;
+    /**
+     * A Rimefrost dragon's breath where it lands lights a rimefire patch (the lightning's) one in this many of
+     * its every-4-ticks looks (0.55.0; ours): about one every 2 s of breathing, with mobGriefing on.
+     */
+    public static final int IGNITE_ONE_IN = 10;
     /** Withering Rime from a breath hit or a shard. */
     public static final int RIME_TICKS = 60;
     public static final double AIRBURST_HEIGHT = 9.0;

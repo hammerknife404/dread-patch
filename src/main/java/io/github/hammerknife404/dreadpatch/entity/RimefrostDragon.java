@@ -1,5 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import net.minecraft.world.level.GameRules;
+import io.github.hammerknife404.dreadpatch.world.DreadlandsStorms;
 import com.iafenvoy.iceandfire.config.IafCommonConfig;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.ai.DragonAITargetNonTamedGoal;
@@ -418,6 +420,9 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
             for (BlockPos pos : BlockPos.betweenClosed(center.offset(-2, -2, -2), center.offset(2, 2, 2))) {
                 RimefireCrown.drinkFire(level, pos);
             }
+            if (block.getType() != HitResult.Type.MISS) {
+                this.maybeIgnite(level, center);
+            }
         }
     }
 
@@ -470,6 +475,14 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
         BlockPos center = BlockPos.containing(at);
         for (BlockPos pos : BlockPos.betweenClosed(center.offset(-2, -2, -2), center.offset(2, 2, 2))) {
             RimefireCrown.drinkFire(level, pos);
+        }
+        this.maybeIgnite(level, center);
+    }
+
+    /** Now and then, a rimefire patch where its breath lands, as lightning lights in the Dreadlands (0.55.0). */
+    private void maybeIgnite(ServerLevel level, BlockPos at) {
+        if (this.random.nextInt(DragonBreath.IGNITE_ONE_IN) == 0 && level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
+            DreadlandsStorms.ignite(level, at);
         }
     }
 
