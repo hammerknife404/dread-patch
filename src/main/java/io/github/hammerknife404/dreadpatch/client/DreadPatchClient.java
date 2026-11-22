@@ -35,6 +35,8 @@ public final class DreadPatchClient {
         modBus.addListener(DreadPatchClient::onParticles);
         modBus.addListener(DreadRecolors::onRegisterSpriteSources);
         modBus.addListener(DreadRecolors::onClientExtensions);
+        modBus.addListener(QueenArmorModels::onRegisterLayers);
+        modBus.addListener(QueenArmorModels::onClientExtensions);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(SaddleLayer::onRenderLiving);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
@@ -113,6 +115,7 @@ public final class DreadPatchClient {
         event.registerReloadListener((ResourceManagerReloadListener) resources -> {
             UndeadDragonSkins.clear();
             DreadRecolors.clear();
+            QueenArmorModels.clear();
         });
     }
 

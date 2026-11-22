@@ -1,0 +1,27 @@
+{
+  "parent": "dreadpatch:regalia/root",
+  "display": {
+    "icon": {
+      "id": "dreadpatch:dread_queen_greaves"
+    },
+    "title": {
+      "translate": "item.dreadpatch.dread_queen_greaves"
+    },
+    "description": {
+      "translate": "advancements.dreadpatch.regalia.greaves.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "dreadpatch:dread_queen_greaves"
+          }
+        ]
+      }
+    }
+  }
+}

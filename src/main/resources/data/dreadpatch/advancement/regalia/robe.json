@@ -1,0 +1,27 @@
+{
+  "parent": "dreadpatch:regalia/root",
+  "display": {
+    "icon": {
+      "id": "dreadpatch:dread_queen_robe"
+    },
+    "title": {
+      "translate": "item.dreadpatch.dread_queen_robe"
+    },
+    "description": {
+      "translate": "advancements.dreadpatch.regalia.robe.description"
+    },
+    "frame": "goal"
+  },
+  "criteria": {
+    "has": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "dreadpatch:dread_queen_robe"
+          }
+        ]
+      }
+    }
+  }
+}

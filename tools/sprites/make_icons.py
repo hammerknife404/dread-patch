@@ -7,7 +7,8 @@ abyssal indigo #1E2A4A; her dread fire is the cyan of Ice and Fire's dread torch
 #00CBFF. Spell icons are 16x16 and full-bleed like Iron's; effect icons are 18x18 on transparency
 like vanilla's. The dread fire and the Dread Gate's face are animated block-atlas textures (16x16
 frames, each with its .mcmeta): the fire drawn by the Rimefire Crown's renderer, the gate's face by its
-block. Syndrigossa's egg is a 16x16 item texture on transparency.
+block. Syndrigossa's egg and the Dread Queen's regalia are 16x16 item textures on transparency, the
+regalia in her outfit's colours from Ice and Fire's texture of her.
 """
 import json
 import math
@@ -486,6 +487,117 @@ def dread_gate(seed):
     return im
 
 
+# The Dread Queen's regalia, in her outfit's colours as Ice and Fire's texture of her has them.
+REGALIA = {
+    ".": None,
+    "O": (0x0B, 0x0C, 0x10),  # outline
+    "S": (0xDF, 0xE6, 0xF2), "s": (0xA0, 0xAB, 0xBF), "d": (0x6B, 0x73, 0x80),  # her silver
+    "I": (0x7F, 0xB2, 0xEE), "i": (0xC9, 0xE3, 0xFF),  # her crown's ice
+    "C": (0x00, 0xF4, 0xFF),  # her pendant's gem
+    "K": (0x15, 0x17, 0x1B), "k": (0x29, 0x2C, 0x33), "m": (0x3A, 0x3E, 0x47), "g": (0x5A, 0x60, 0x6C),  # her black, banded
+    "B": (0x3F, 0x71, 0x93), "b": (0x2D, 0x51, 0x6C), "c": (0x2C, 0x58, 0x75), "n": (0x1D, 0x37, 0x4C),  # her blues
+}
+
+
+def mirrored_icon(left_half):
+    """A 16x16 item icon from its left half (8 columns a row, 16 rows), mirrored, in REGALIA's colours."""
+    assert len(left_half) == 16 and all(len(row) == 8 for row in left_half), left_half
+    im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y, row in enumerate(left_half):
+        for x, ch in enumerate(row + row[::-1]):
+            if REGALIA[ch] is not None:
+                im.putpixel((x, y), rgba(REGALIA[ch]))
+    return im
+
+
+def queen_crown():
+    """Her crown: a silver band under spikes of ice, the tallest at its middle, her gem hung beneath."""
+    return mirrored_icon([
+        "........",
+        "........",
+        "........",
+        ".......i",
+        "...i...I",
+        "...I..iI",
+        ".i.I..II",
+        ".IiIi.II",
+        ".IIIIiII",
+        "OSSSSSSS",
+        "OsSSSsSC",
+        "OddssssC",
+        ".OOdddds",
+        "......Od",
+        ".......O",
+        "........",
+    ])
+
+
+def queen_bodice():
+    """Her bodice: black, her silver pauldrons at the shoulders, blue straps, a silver V of necklace down to her gem, a blue sash."""
+    return mirrored_icon([
+        "........",
+        ".OOOO...",
+        "OSSSSO..",
+        "OSsssdOO",
+        "OsdddBsk",
+        ".OOOOBks",
+        "...OkBkC",
+        "...OKBkk",
+        "...OKBkk",
+        "...OKBkk",
+        "...ObBBB",
+        "...OKmkk",
+        "...OKmkk",
+        "...OKkmk",
+        "....OOOO",
+        "........",
+    ])
+
+
+def queen_robe():
+    """Her robes: a silver girdle, then deep blue, flaring to a ragged hem."""
+    return mirrored_icon([
+        "........",
+        "..OOOOOO",
+        "..OsSSSS",
+        "..ObBBBB",
+        "..ObBBcc",
+        "..ObBccO",
+        "..ObBcnO",
+        "..ObBcnO",
+        ".ObBccnO",
+        ".ObBccnO",
+        ".ObBcnnO",
+        "ObBBcnnO",
+        "ObBccnnO",
+        "OdnndnnO",
+        ".O.OO.O.",
+        "........",
+    ])
+
+
+def queen_greaves():
+    """Her greaves: her legs' black wraps, banded in grey."""
+    return mirrored_icon([
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "..OOOOO.",
+        "..OkgmO.",
+        "..OkkkO.",
+        "..OgggO.",
+        "..OkkmO.",
+        "OOOkkkO.",
+        "OgmkgmO.",
+        "OkkkkkO.",
+        "OOOOOOO.",
+        "........",
+    ])
+
+
 def main():
     out = {
         "gui/spell_icons/withering_rime_bolt.png": withering_rime_bolt(),
@@ -499,6 +611,10 @@ def main():
         "gui/spell_icons/create_rimefrost_dragon.png": create_rimefrost_dragon(),
         "mob_effect/whiteout.png": whiteout_effect(),
         "item/syndrigossa_egg.png": syndrigossa_egg(),
+        "item/dread_queen_crown.png": queen_crown(),
+        "item/dread_queen_bodice.png": queen_bodice(),
+        "item/dread_queen_robe.png": queen_robe(),
+        "item/dread_queen_greaves.png": queen_greaves(),
         "block/dread_fire_0.png": dread_fire(31),
         "block/dread_fire_1.png": dread_fire(8),
         "block/dread_gate.png": dread_gate(17),

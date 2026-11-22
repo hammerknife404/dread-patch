@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "id": "dreadpatch:dread_queen_crown"
+    },
+    "title": {
+      "translate": "advancements.dreadpatch.regalia.root.title"
+    },
+    "description": {
+      "translate": "advancements.dreadpatch.regalia.root.description"
+    },
+    "background": "iceandfire:textures/block/dread_stone_bricks.png",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "killed_queen": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "dreadpatch:dread_queen"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

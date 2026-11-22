@@ -94,7 +94,7 @@ public final class DreadRecolors {
 
     /** Ice and Fire's ice armour models for ours (Ice and Fire hands its own to Uranus' renderer, which ours aren't in). */
     static void onClientExtensions(RegisterClientExtensionsEvent event) {
-        for (var item : DreadGear.armor()) {
+        for (var item : DreadGear.armor().stream().filter(i -> i.get().kind() != DreadArmorItem.Kind.QUEEN).toList()) {
             DreadArmorItem.Kind kind = item.get().kind();
             event.registerItem(new IClientItemExtensions() {
                 @Override
@@ -112,6 +112,9 @@ public final class DreadRecolors {
 
     /** An armour layer, recoloured from Ice and Fire's: made the first time it's drawn; Ice and Fire's own if it can't be. */
     static ResourceLocation armorTexture(DreadArmorItem.Kind kind, boolean inner) {
+        if (kind == DreadArmorItem.Kind.QUEEN) {
+            return DreadQueenRenderer.TEXTURE;
+        }
         String key = kind.name().toLowerCase() + "_layer_" + (inner ? 2 : 1);
         ResourceLocation made = MADE.get(key);
         if (made != null) {
