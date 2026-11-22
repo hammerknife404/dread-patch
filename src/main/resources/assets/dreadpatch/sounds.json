@@ -35,5 +35,54 @@
       {"name": "minecraft:ambient/nether/soulsand_valley/whisper1", "volume": 0.7},
       {"name": "minecraft:ambient/nether/soulsand_valley/whisper2", "volume": 0.7}
     ]
+  },
+  "ambient.dreadlands.loop": {
+    "sounds": [
+      {"name": "minecraft:ambient/nether/soulsand_valley/ambience", "volume": 1.0, "stream": true}
+    ]
+  },
+  "ambient.dreadlands.additions": {
+    "sounds": [
+      {"name": "minecraft:ambient/nether/soulsand_valley/sand1", "volume": 0.24},
+      {"name": "minecraft:ambient/nether/soulsand_valley/sand2", "volume": 0.24},
+      {"name": "minecraft:ambient/nether/soulsand_valley/sand3", "volume": 0.48},
+      {"name": "minecraft:ambient/nether/soulsand_valley/voices1", "volume": 0.48},
+      {"name": "minecraft:ambient/nether/soulsand_valley/voices2", "volume": 0.48},
+      {"name": "minecraft:ambient/nether/soulsand_valley/voices3", "volume": 0.48},
+      {"name": "minecraft:ambient/nether/soulsand_valley/voices4", "volume": 0.96},
+      {"name": "minecraft:ambient/nether/soulsand_valley/voices5", "volume": 0.48},
+      {"name": "minecraft:ambient/nether/soulsand_valley/whisper1", "volume": 1.0},
+      {"name": "minecraft:ambient/nether/soulsand_valley/whisper2", "volume": 1.0},
+      {"name": "minecraft:ambient/nether/soulsand_valley/whisper3", "volume": 1.0},
+      {"name": "minecraft:ambient/nether/soulsand_valley/voices5", "volume": 0.18, "pitch": 0.7}
+    ]
+  },
+  "ambient.dreadlands.ice_crack": {
+    "subtitle": "subtitles.dreadpatch.ambient.dreadlands.ice_crack",
+    "sounds": [
+      {"name": "minecraft:item/armor/crack_wolf1", "volume": 0.7, "pitch": 0.6, "attenuation_distance": 28},
+      {"name": "minecraft:item/armor/crack_wolf1", "volume": 0.7, "pitch": 0.8, "attenuation_distance": 28},
+      {"name": "minecraft:item/armor/crack_wolf2", "volume": 0.7, "pitch": 0.6, "attenuation_distance": 28},
+      {"name": "minecraft:item/armor/crack_wolf2", "volume": 0.7, "pitch": 0.8, "attenuation_distance": 28},
+      {"name": "minecraft:item/armor/crack_wolf3", "volume": 0.7, "pitch": 0.6, "attenuation_distance": 28},
+      {"name": "minecraft:item/armor/crack_wolf3", "volume": 0.7, "pitch": 0.8, "attenuation_distance": 28},
+      {"name": "minecraft:item/armor/crack_wolf4", "volume": 0.7, "pitch": 0.6, "attenuation_distance": 28},
+      {"name": "minecraft:item/armor/crack_wolf4", "volume": 0.7, "pitch": 0.8, "attenuation_distance": 28},
+      {"name": "minecraft:ambient/underwater/additions/earth_crack", "volume": 0.8, "pitch": 1.3, "attenuation_distance": 28, "weight": 2},
+      {"name": "minecraft:random/glass1", "volume": 0.25, "pitch": 0.55, "attenuation_distance": 20},
+      {"name": "minecraft:random/glass2", "volume": 0.25, "pitch": 0.55, "attenuation_distance": 20},
+      {"name": "minecraft:random/glass3", "volume": 0.25, "pitch": 0.55, "attenuation_distance": 20}
+    ]
+  },
+  "ambient.dreadlands.rumble": {
+    "subtitle": "subtitles.dreadpatch.ambient.dreadlands.rumble",
+    "sounds": [
+      {"name": "minecraft:ambient/weather/thunder1", "volume": 0.6, "pitch": 0.5},
+      {"name": "minecraft:ambient/weather/thunder2", "volume": 0.6, "pitch": 0.5},
+      {"name": "minecraft:ambient/weather/thunder3", "volume": 0.6, "pitch": 0.5},
+      {"name": "minecraft:ambient/nether/basalt_deltas/long_debris1", "volume": 0.9, "pitch": 0.55},
+      {"name": "minecraft:ambient/nether/basalt_deltas/long_debris2", "volume": 0.9, "pitch": 0.55},
+      {"name": "minecraft:ambient/underwater/additions/earth_crack", "volume": 0.9, "pitch": 0.5}
+    ]
   }
 }

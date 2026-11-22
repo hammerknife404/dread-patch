@@ -83,12 +83,13 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 
 ## The Dreadlands
 
-A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning. Its day, night and weather are the overworld's.
+A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning, ice cracking somewhere out on the waste and something rumbling deep below. Its day, night and weather are the overworld's.
 
 - **The Dread walk there:** Ice and Fire's thralls, ghouls, knights and scuttlers rise out of the snow in ones, twos and threes, by day and by night, 24 to 48 blocks off: now and then in clear weather, more often while it snows, and a little more often again in a heavy snowstorm (thunder). No more than 8 of them gather round any one player.
 - **Patrols:** now and then a small Dread patrol (a dread knight on foot leading two to four more) crosses the waste, its first leg passing by you, then on from waypoint to waypoint. They fight what they meet, then walk on; if their knight falls, another leads.
 
 - **Its storms:** when it rains in the overworld, it snows there, and that's a storm. Out under the open sky the fog closes in to about 24 blocks (a warning; a Whiteout Dominion's is 10), snow blows past on the wind, and **Rimefrost** settles on you: the Dread's cold without the withering, 25% slower, for as long as you stay out in it. It does no damage, and the Dread don't feel it. Get under a roof and it lifts.
+- **Whiteout storms:** about one storm in six (never two in a row) is a Whiteout Dominion, like the Dread Queen's own storm across the whole land: out under the open sky the fog closes in to 10 blocks, the wind howls and the snow drives past, you're slowed further, and the cold does half a heart of damage every 3 seconds unless you can't freeze (leather, her full regalia). Get under a roof. It never starts while a Dread Queen is about there, and if she comes during one, it breaks into a heavy thunderstorm. How often is a server setting (`whiteout_storms`; 0 for never).
 - **Its lightning:** when the overworld thunders, lightning strikes round you every 20 seconds or so (Minecraft's own never strikes ground that cold). It hurts what it hits, as lightning does, but sets no fire: it leaves a patch of **rimefire**, cold dread fire burning cyan for 30 to 60 seconds. One of the Dread standing in it heals a quarter of a heart a second; anyone else is chilled (Rimefrost) and put out.
 
 - **Getting there:** step into a Dread Gate during its ritual (above). You arrive near the foot of the nearest spire, 30 to 40 blocks from it, facing it; anyone who follows through the same gate arrives at the same spot.
@@ -191,7 +192,7 @@ Her scrolls (from her drops) teach her spells to players. They're **Rimefrost** 
 
 ## Settings
 
-Dread Patch's server settings (how a summoned court behaves, how long until a spire's queen comes back for you) are in the mods list: select Dread Patch and press **Config**. In singleplayer you can change them there as you play, and they apply at once. On a server they're in `config/dreadpatch-server.toml` (in the world's `serverconfig` folder).
+Dread Patch's server settings (how a summoned court behaves, how long until a spire's queen comes back for you) are in the mods list: select Dread Patch and press **Config**. In singleplayer you can change them there as you play, and they apply at once. On a server they're in `config/dreadpatch-server.toml` (a copy in the world's `serverconfig` folder overrides it).
 
 ## Building
 

@@ -155,5 +155,8 @@
   "dreadpatch.configuration.dread_cap": "Most Dread near a player",
   "dreadpatch.configuration.patrols": "Dread patrols (one in)",
   "dreadpatch.configuration.phantoms": "Dread phantoms (one in)",
-  "dreadpatch.configuration.phantoms_near_spires": "Dread phantoms near spires (one in)"
+  "dreadpatch.configuration.phantoms_near_spires": "Dread phantoms near spires (one in)",
+  "subtitles.dreadpatch.ambient.dreadlands.ice_crack": "Ice cracks",
+  "subtitles.dreadpatch.ambient.dreadlands.rumble": "Something rumbles deep below",
+  "dreadpatch.configuration.whiteout_storms": "Whiteout storms (one in)"
 }

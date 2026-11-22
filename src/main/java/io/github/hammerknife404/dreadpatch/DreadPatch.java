@@ -27,6 +27,7 @@ import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.world.Dreadlands;
 import io.github.hammerknife404.dreadpatch.world.DreadlandsStorms;
 import io.github.hammerknife404.dreadpatch.world.DreadlandsSpawns;
+import io.github.hammerknife404.dreadpatch.world.DreadlandsWhiteout;
 import io.github.hammerknife404.dreadpatch.entity.DreadPatrols;
 import io.github.hammerknife404.dreadpatch.world.SpireEncounters;
 import net.minecraft.core.component.DataComponents;
@@ -80,6 +81,7 @@ public final class DreadPatch {
         SpireEncounters.register(NeoForge.EVENT_BUS);
         DreadlandsStorms.register(NeoForge.EVENT_BUS);
         DreadlandsSpawns.register(NeoForge.EVENT_BUS);
+        DreadlandsWhiteout.register(NeoForge.EVENT_BUS);
         DreadPatrols.register(NeoForge.EVENT_BUS);
     }
 

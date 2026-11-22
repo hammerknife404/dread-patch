@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch.client;
 import com.mojang.blaze3d.shaders.FogShape;
 import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
+import io.github.hammerknife404.dreadpatch.world.Dreadlands;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -81,6 +82,10 @@ public final class WhiteoutClient {
         fog = Mth.clamp(fog + (blinded ? FADE : -FADE), 0.0F, 1.0F);
         WhiteoutDominion storm = stormAround(level, camera.getEyePosition());
         float target = storm == null ? 0.0F : storm.strength(0.0F);
+        if (blinded && level.dimension() == Dreadlands.LEVEL) {
+            // The Dreadlands' whiteout weather (0.54.0): its wind wherever it blinds you there.
+            target = Math.max(target, level.getRainLevel(1.0F));
+        }
         inside = inside < target ? Math.min(target, inside + FADE) : Math.max(target, inside - FADE);
         if (storm != null) {
             blowFlakes(level, storm, camera.getEyePosition());

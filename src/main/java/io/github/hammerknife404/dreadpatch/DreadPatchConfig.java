@@ -2,13 +2,14 @@ package io.github.hammerknife404.dreadpatch;
 
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
+import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
  * The server config ({@code config/dreadpatch-server.toml}): how a court raised by
  * Summon Court behaves (by default it fights only hostile mobs: never friendly mobs or players, not
  * even when they hit it); and how long until a Dreadlands spire's encounter comes again to a player
- * who's met it (0.47.0).
+ * who's met it (0.47.0); how often the Dread rise there (0.52.0); how often its storms are whiteouts (0.54.0).
  */
 public final class DreadPatchConfig {
     public static final ModConfigSpec SPEC;
@@ -23,6 +24,7 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue PATROLS;
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
+    private static final ModConfigSpec.IntValue WHITEOUT_STORMS;
     /** The default: the owner's "after a lengthy time like several IRL hours"; ours, 6. */
     public static final double DEFAULT_ENCOUNTER_RESET_HOURS = 6.0;
 
@@ -51,6 +53,10 @@ public final class DreadPatchConfig {
                 .defineInRange("phantoms", DreadlandsSpawning.PHANTOM_ONE_IN, 0, 10000);
         PHANTOMS_NEAR_SPIRES = builder.comment("The same within 96 blocks of a spire.")
                 .defineInRange("phantoms_near_spires", DreadlandsSpawning.PHANTOM_NEAR_SPIRE_ONE_IN, 0, 10000);
+        WHITEOUT_STORMS = builder.comment("About one storm in this many in the Dreadlands is a Whiteout Dominion: fog to 10 blocks, slowed,",
+                "and a point of freezing damage every 3 s under the open sky. Never two in a row (so 2 or less: every other storm),",
+                "never starting while a Dread Queen is about there, and it breaks into a thunderstorm when her fight starts. 0: never.")
+                .defineInRange("whiteout_storms", WeatherRules.WHITEOUT_ONE_IN, 0, 10000);
         builder.pop();
         SPEC = builder.build();
     }
@@ -87,6 +93,11 @@ public final class DreadPatchConfig {
             return nearSpire ? DreadlandsSpawning.PHANTOM_NEAR_SPIRE_ONE_IN : DreadlandsSpawning.PHANTOM_ONE_IN;
         }
         return nearSpire ? PHANTOMS_NEAR_SPIRES.get() : PHANTOMS.get();
+    }
+
+    /** About one Dreadlands storm in how many is a whiteout (0.54.0). */
+    public static int whiteoutOneIn() {
+        return SPEC.isLoaded() ? WHITEOUT_STORMS.get() : WeatherRules.WHITEOUT_ONE_IN;
     }
 
     /** How long until a spire's encounter comes again to a player, in milliseconds. */
