@@ -972,9 +972,11 @@ def main():
     # 100 of 300, against a golem under Resistance V, an ice dragon's corpse 8 blocks off. Her first
     # raising is 10 s in; hers answers to her, and rises with half what she's lost.
     ice_corpse(12.5, "white", "smoke_ice_corpse_3")
-    rcon.run('summon minecraft:iron_golem 8.5 200 3.5 {PersistenceRequired:1b,Tags:["smoke_target"]}')
+    # The golem without its AI (she targets it all the same): once (0.52.0's run) she was gone by the time
+    # of the check, and a golem with its AI fights her. The summon is checked too, to tell the two apart.
+    rcon.run('summon minecraft:iron_golem 8.5 200 3.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
     rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
-    rcon.run('summon dreadpatch:dread_queen 4.5 200 7.5 {UUID:[I;6,6,6,6],Health:100.0f}')
+    check("a wounded queen summoned beside a corpse", 'summon dreadpatch:dread_queen 4.5 200 7.5 {UUID:[I;6,6,6,6],Health:100.0f}', "Summoned new")
     risen = False
     for _ in range(40):
         time.sleep(0.5)
@@ -1474,6 +1476,23 @@ def main():
     rcon.run(dl + "run kill @e[tag=smoke_storm_out]")
     rcon.run(dl + "run kill @e[tag=smoke_storm_in]")
     rcon.run(dl + "run kill @e[type=item]")
+    # A Dread patrol (0.52.0): its leader (a thrall here, on the pad) walks to its waypoint, its follower keeps
+    # up; the leader killed, the follower leads. (Patrols rising, and the Dread rising by weather, need a player.)
+    rcon.run(dl + f'run summon iceandfire:dread_thrall 40.5 {pad + 1} 48.5 {{PersistenceRequired:1b,UUID:[I;21,21,21,21],Tags:["smoke_patrol_lead"],'
+             f'NeoForgeData:{{"dreadpatch:patrol_leader":[I;21,21,21,21],"dreadpatch:patrol_waypoint":[I;58,{pad + 1},48]}}}}')
+    rcon.run(dl + f'run summon iceandfire:dread_ghoul 39.5 {pad + 1} 46.5 {{PersistenceRequired:1b,Tags:["smoke_patrol_follow"],'
+             f'NeoForgeData:{{"dreadpatch:patrol_leader":[I;21,21,21,21]}}}}')
+    lead_x = lambda: float((re.search(r"\[([-0-9.]+)d", rcon.run(dl + "run data get entity @e[tag=smoke_patrol_lead,limit=1] Pos")) or [0, "0"])[1])
+    time.sleep(10.0)
+    moved = lead_x() - 40.5
+    record("a patrol's leader walks to its waypoint", moved >= 6.0, f"it went {moved:.1f} blocks toward x 58")
+    close = "Test passed" in rcon.run(dl + "as @e[tag=smoke_patrol_lead,limit=1] at @s if entity @e[tag=smoke_patrol_follow,distance=..10]")
+    record("and the rest keep up", close, "the ghoul is more than 10 blocks from its leader")
+    rcon.run(dl + "run kill @e[tag=smoke_patrol_lead]")
+    time.sleep(3.0)
+    leads = "Test passed" in rcon.run(dl + 'if data entity @e[tag=smoke_patrol_follow,limit=1] NeoForgeData."dreadpatch:patrol_waypoint"')
+    record("its leader killed, the next leads", leads, "the ghoul has no waypoint of its own")
+    rcon.run(dl + "run kill @e[tag=smoke_patrol_follow]")
     rcon.run(dl + f"run fill 38 {pad} 38 60 {pad + 9} 58 minecraft:air")
     rcon.run(dl + "run forceload remove all")
 

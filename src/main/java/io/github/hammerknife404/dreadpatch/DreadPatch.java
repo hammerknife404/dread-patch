@@ -26,6 +26,8 @@ import io.github.hammerknife404.dreadpatch.registry.DreadGear;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.world.Dreadlands;
 import io.github.hammerknife404.dreadpatch.world.DreadlandsStorms;
+import io.github.hammerknife404.dreadpatch.world.DreadlandsSpawns;
+import io.github.hammerknife404.dreadpatch.entity.DreadPatrols;
 import io.github.hammerknife404.dreadpatch.world.SpireEncounters;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -77,6 +79,8 @@ public final class DreadPatch {
         Dreadlands.register(NeoForge.EVENT_BUS);
         SpireEncounters.register(NeoForge.EVENT_BUS);
         DreadlandsStorms.register(NeoForge.EVENT_BUS);
+        DreadlandsSpawns.register(NeoForge.EVENT_BUS);
+        DreadPatrols.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

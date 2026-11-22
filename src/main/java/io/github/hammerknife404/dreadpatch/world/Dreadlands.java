@@ -1,6 +1,8 @@
 package io.github.hammerknife404.dreadpatch.world;
 
 import io.github.hammerknife404.dreadpatch.DreadPatch;
+import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
+import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
 import io.github.hammerknife404.dreadpatch.entity.DreadPhantom;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
@@ -44,13 +46,15 @@ public final class Dreadlands {
     static final double ARRIVAL_DISTANCE = 28.0;
     static final double ARRIVAL_SPREAD = 8.0;
     /**
-     * Its dread phantoms (the owner: 1-2 at a time, at a low rate, not tied to sleep): every 30 s, one
-     * player in 8 under open sky draws 1-2, about one flight every 4 minutes each; never while 4 wild
-     * ones are near already.
+     * Its dread phantoms (the owner: 1-2 at a time, at a low rate, not tied to sleep): every 30 s, a
+     * player under open sky has a one-in-8 chance of 1-2 (about one flight every 4 minutes), one in 3
+     * within 96 blocks of a spire (0.52.0, the owner's second drop: "more around spires"; both the server
+     * config's); never while 4 wild ones are near already.
      */
     static final int PHANTOM_INTERVAL = 600;
-    static final int PHANTOM_ONE_IN = 8;
     static final int PHANTOM_CAP = 4;
+    /** How far (in chunks) to look for a spire a player is near. */
+    static final int SPIRE_NEAR_CHUNKS = 7;
 
     /** Where someone arrives, facing the spire. */
     public record Arrival(Vec3 pos, float yaw) {
@@ -133,7 +137,18 @@ public final class Dreadlands {
         player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.PLAYERS, 0.4F, 0.8F);
     }
 
-    /** Now and then, 1-2 dread phantoms over a player under the open sky. */
+    /** Whether {@code pos} is within {@link DreadlandsSpawning#SPIRE_REACH} of a spire's middle. */
+    public static boolean nearSpire(ServerLevel level, BlockPos pos) {
+        BlockPos spire = level.findNearestMapStructure(SPIRES, pos, SPIRE_NEAR_CHUNKS, false);
+        if (spire == null) {
+            return false;
+        }
+        double dx = (spire.getX() & ~15) + 8.5 - pos.getX();
+        double dz = (spire.getZ() & ~15) + 8.5 - pos.getZ();
+        return dx * dx + dz * dz <= DreadlandsSpawning.SPIRE_REACH * DreadlandsSpawning.SPIRE_REACH;
+    }
+
+    /** Now and then, 1-2 dread phantoms over a player under the open sky; more often near a spire. */
     private static void onLevelTick(LevelTickEvent.Post event) {
         if (!(event.getLevel() instanceof ServerLevel level) || !is(level) || level.getGameTime() % PHANTOM_INTERVAL != 0
                 || level.getDifficulty() == Difficulty.PEACEFUL || !level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
@@ -141,7 +156,8 @@ public final class Dreadlands {
         }
         RandomSource random = level.getRandom();
         for (ServerPlayer player : level.players()) {
-            if (player.isSpectator() || random.nextInt(PHANTOM_ONE_IN) != 0 || !level.canSeeSky(player.blockPosition())) {
+            if (player.isSpectator() || !level.canSeeSky(player.blockPosition())
+                    || !DreadlandsSpawning.comesUp(DreadPatchConfig.phantomOneIn(nearSpire(level, player.blockPosition())), new java.util.Random(random.nextLong()))) {
                 continue;
             }
             int wild = level.getEntitiesOfClass(DreadPhantom.class, player.getBoundingBox().inflate(64.0), p -> p.getSummonerId() == null).size();
