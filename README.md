@@ -83,7 +83,10 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 
 ## The Dreadlands
 
-A dimension of bleak frozen waste: rolling snowfields over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning. Its day, night and weather are the overworld's. Nothing lives there.
+A dimension of bleak frozen waste: rolling snowfields over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning. Its day, night and weather are the overworld's.
+
+- **The Dread walk there:** Ice and Fire's thralls, ghouls, knights and scuttlers rise out of the snow in ones, twos and threes, by day and by night, 24 to 48 blocks off: now and then in clear weather, more often while it snows, and a little more often again in a heavy snowstorm (thunder). No more than 8 of them gather round any one player.
+- **Patrols:** now and then a small Dread patrol (a dread knight on foot leading two to four more) crosses the waste, its first leg passing by you, then on from waypoint to waypoint. They fight what they meet, then walk on; if their knight falls, another leads.
 
 - **Its storms:** when it rains in the overworld, it snows there, and that's a storm. Out under the open sky the fog closes in to about 24 blocks (a warning; a Whiteout Dominion's is 10), snow blows past on the wind, and **Rimefrost** settles on you: the Dread's cold without the withering, 25% slower, for as long as you stay out in it. It does no damage, and the Dread don't feel it. Get under a roof and it lifts.
 - **Its lightning:** when the overworld thunders, lightning strikes round you every 20 seconds or so (Minecraft's own never strikes ground that cold). It hurts what it hits, as lightning does, but sets no fire: it leaves a patch of **rimefire**, cold dread fire burning cyan for 30 to 60 seconds. One of the Dread standing in it heals a quarter of a heart a second; anyone else is chilled (Rimefrost) and put out.
@@ -94,7 +97,8 @@ A dimension of bleak frozen waste: rolling snowfields over packed and blue ice, 
 - **Her defeat:** when she falls, a Dread Gate rises where she fell, open home for 5 minutes (time to take what she dropped, and her dragon's corpse), fading out over its last seconds. Its frame stays for a key.
 - **Getting home:** beat a spire's queen (above), or build a Dread Gate there and key it. It opens at once (no queen comes), stays open 15 to 30 seconds, and takes whoever steps in back to the gate they came in by (or to the world's spawn). A key takes three dread shards (dread phantoms drop them), a bone and two gold ingots, so bring the gold; the frame takes any dreadstone, the spires' included. Dying sends you to your usual spawn, as anywhere.
 - **Beds** explode there, as in the Nether, and respawn anchors don't work.
-- **Dread phantoms** come down out of its sky now and then, one or two at a time, whether or not you've slept: about once every 4 minutes for each player out under the sky, never while 4 are already about.
+- **Dread phantoms** come down out of its sky now and then, one or two at a time, whether or not you've slept: about once every 4 minutes for each player out under the sky, and about every minute and a half near a spire, never while 4 are already about.
+- **All these rates** are server settings (Config, in the mods list, or `config/dreadpatch-server.toml`).
 
 ## Rimefrost dragons
 

@@ -148,5 +148,12 @@
   "death.attack.dreadpatch.rimefire_blast.item": "%1$s was withered by %2$s's Rimefire Blast using %3$s",
   "death.attack.rimefrost_magic": "%1$s was taken by the Rimefrost",
   "death.attack.rimefrost_magic.player": "%1$s was taken by the Rimefrost while fighting %2$s",
-  "death.attack.rimefrost_magic.item": "%1$s was taken by the Rimefrost by %2$s using %3$s"
+  "death.attack.rimefrost_magic.item": "%1$s was taken by the Rimefrost by %2$s using %3$s",
+  "dreadpatch.configuration.dread_spawns_clear": "Dread rising, clear weather (one in)",
+  "dreadpatch.configuration.dread_spawns_snow": "Dread rising, snow (one in)",
+  "dreadpatch.configuration.dread_spawns_storm": "Dread rising, heavy snowstorm (one in)",
+  "dreadpatch.configuration.dread_cap": "Most Dread near a player",
+  "dreadpatch.configuration.patrols": "Dread patrols (one in)",
+  "dreadpatch.configuration.phantoms": "Dread phantoms (one in)",
+  "dreadpatch.configuration.phantoms_near_spires": "Dread phantoms near spires (one in)"
 }
