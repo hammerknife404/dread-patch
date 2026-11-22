@@ -50,6 +50,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - Rimefrost dragons' bites inflict Withering Rime II: hers, 4.5 s.
 - **0.36.0:** "Make the max distance on the breath 32. Adjust particle speeds accordingly, but keep the cutoff matching its max distance".
   - The cone's max is 32 (30 before), and it's a hard limit: the splash where it lands no longer hits past it, and no particle flies past it.
+  - Then "apply this distance to rimefrost dragons too": like the Withering Rime II bite, it's a **Rimefrost trait**. Syndrigossa is the only Rimefrost dragon so far (it's all in her class), so give any Rimefrost dragon added later (one hatched from her egg) both.
   - Particle speeds follow the cone's length on their own.
 - **0.35.1:** "Confirm the dragons breath particles match their distance". Checked by running vanilla's particle motion on them:
   - flame and smoke from her mouth carried 93–110% of their mark, so they matched;
