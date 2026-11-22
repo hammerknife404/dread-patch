@@ -48,6 +48,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
 - **0.33.0:**
   - In the owner's taxonomy she's a unique, named dragon of the **Rimefrost**, a subtype of frost dragon (they offered "Rime" or "Rimefrost"). Lore only: no one-per-world limit. Her spawn eggs and egg say so in their tooltips.
   - Rimefrost dragons' bites inflict Withering Rime II: hers, 4.5 s.
+- **0.34.0:** "Syndrigossa should have her own boss bar". Ours is white (the queen's is Ice and Fire's blue), and hidden while she's tame and once she's a corpse.
 
 **The queen on her dragon (0.24.0–0.26.0)**
 - As the boss, she rises riding it.
@@ -607,6 +608,11 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - allied with the Dread through `isAlliedTo`, `canAttack` and `shouldTarget`;
   - `getCommander` is her queen.
 - **Colour:** `getVariant` is always `white`, so every colour lookup works.
+- **Boss bar:** a `ServerBossEvent` (white, progress), as vanilla's Wither keeps one:
+  - players are added in `startSeenByPlayer` and removed in `stopSeenByPlayer`;
+  - `aiStep` sets its progress and its visibility (alive, not `isModelDead`, not tame);
+  - `setCustomName` renames it.
+  - Ice and Fire gives its dragons none. `/bossbar` only lists command-made bars, so the smoke test can't see it.
 - **Players:** her own `DragonAITargetNonTamedGoal` at 5 takes them, without the `neutralToPlayer` check.
 
 **Her skin** (`client/SyndrigossaRenderer`, `UndeadDragonSkins`, `UndeadSkin`)
