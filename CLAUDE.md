@@ -1040,7 +1040,6 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - her regalia: its drop on a player's kill, the advancements (There Must Always Be a Dread Queen too), how it looks worn;
   - trims: at the smithing table, on the icons, worn;
   - the dread phantom's look (skin, eyes, trail), its sounds, its bite's effects on a player, its drops on a player's kill, and Summon Dread Phantoms from a scroll or spellbook.
-  - a player riding an Ice and Fire dragon, seated (0.49.0);
   - the Dreadlands: stepping into a gate, the arrival, the way home, beds, its phantoms coming down; a spire's encounter coming to a summit, its reset, its dais and torches; a storm's fog and blown snow, its lightning and rimefire's look.
 - **Needs her AI in flight:** the forced landing from the air.
 
@@ -1049,7 +1048,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Ask first:** rendering has no automated check, and on the owner's machine `./gradlew runClient` opens a window on their desktop (there's no Xvfb). **Ask before launching it.**
 - **Creative mode:** Iron's spends no mana and sets no cooldowns in creative (`CREATIVE_MANA_COST` / `CREATIVE_COOLDOWN`), so check those in survival.
 - **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.35.0 (2026-11-21: at 0.33.0 "everything works, the court follows and ignores golems"; at 0.34.0 "the boss bar works"; at 0.35.0 "everything works, they ignore the corpse now"). Their reports are behind the decisions above.
-- **Since 0.35.0:** at 0.44.1 (2026-11-22), "the achievements work" (the regalia's and There Must Always Be a Dread Queen); at 0.45.0, "phantoms work" (summoning, sounds and their AI, in the dev client); at 0.46.0, "dreadlands work"; at 0.47.0, "encounter works"; at 0.48.0, "storms work!" (so the whole big drop has been tried in the dev client).
+- **Since 0.35.0:** at 0.44.1 (2026-11-22), "the achievements work" (the regalia's and There Must Always Be a Dread Queen); at 0.45.0, "phantoms work" (summoning, sounds and their AI, in the dev client); at 0.46.0, "dreadlands work"; at 0.47.0, "encounter works"; at 0.48.0, "storms work!" (so the whole big drop has been tried in the dev client); at 0.49.0, riding an Ice and Fire dragon, "camera and pov's are fine now".
 - **Never checked:** Fabulous graphics and Iris shader packs, for the storm and its fog.
 - **Seen once, not looked into** (0.39.0, the owner: "Seems to be a dysync issue, reloadign seemed to work, likely after shift+right clicking. Moving on"): something went out of step between client and server while trying the egg's hatchling, and a reload put it right. The hatchling had been riding the player's shoulder (Ice and Fire's), and sneaking gets it down.
 
