@@ -18,6 +18,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RenderLivingEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -37,8 +38,9 @@ public final class DreadPatchClient {
         modBus.addListener(DreadRecolors::onClientExtensions);
         modBus.addListener(QueenArmorModels::onRegisterLayers);
         modBus.addListener(QueenArmorModels::onClientExtensions);
+        modBus.addListener(EntityRenderersEvent.AddLayers.class, SaddleLayer::onAddLayers);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
-        NeoForge.EVENT_BUS.addListener(SaddleLayer::onRenderLiving);
+        NeoForge.EVENT_BUS.addListener(RenderLivingEvent.Pre.class, SaddleLayer::onRenderLiving);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
         DreadlandsClient.register(NeoForge.EVENT_BUS);
     }

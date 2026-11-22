@@ -5,11 +5,11 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 
 /**
  * Syndrigossa: drawn as every Rimefrost dragon is ({@link RimefrostDragonRenderer}, in white, her
- * colour), and a queen riding her is drawn in the saddle ({@link SaddleLayer}).
+ * colour). A queen riding her is drawn in the saddle by the {@link SaddleLayer} every dragon renderer
+ * gets ({@link SaddleLayer#onAddLayers}).
  */
 public final class SyndrigossaRenderer extends RimefrostDragonRenderer<Syndrigossa> {
     public SyndrigossaRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.addRenderLayer(new SaddleLayer(this));
     }
 }

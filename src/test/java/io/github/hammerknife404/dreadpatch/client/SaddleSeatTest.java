@@ -4,7 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,14 +16,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The queen's seat is measured off Ice and Fire's ice dragon model ({@code BodyUpper}'s cube); a change
- * there would leave her floating or sunk. Ice and Fire's jar is on the test classpath.
+ * The seat is measured off Ice and Fire's dragon models ({@code BodyUpper}'s cube); a change there would
+ * leave riders floating or sunk. Ice and Fire's jar is on the test classpath.
  */
 class SaddleSeatTest {
-    @Test
-    void sheSitsOnTopOfTheDragonsUpperBody() throws Exception {
-        try (InputStream in = SaddleSeatTest.class.getResourceAsStream("/assets/iceandfire/geo/icedragon.geo.json")) {
-            assertNotNull(in, "Ice and Fire's icedragon.geo.json on the classpath");
+    /**
+     * Every Ice and Fire dragon's model (0.49.0: a player rider sits on any of them): fire, ice and
+     * lightning share the same {@code BodyUpper} cube.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"firedragon", "icedragon", "lightningdragon"})
+    void riderSitsOnTopOfTheDragonsUpperBody(String model) throws Exception {
+        try (InputStream in = SaddleSeatTest.class.getResourceAsStream("/assets/iceandfire/geo/" + model + ".geo.json")) {
+            assertNotNull(in, "Ice and Fire's " + model + ".geo.json on the classpath");
             JsonObject geometry = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject()
                     .getAsJsonArray("minecraft:geometry").get(0).getAsJsonObject();
             JsonObject body = null;
