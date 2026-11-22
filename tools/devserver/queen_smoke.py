@@ -1354,23 +1354,26 @@ def main():
         summit, ground = surface_y(sx, sz), min(surface_y(sx + 30, sz), surface_y(sx - 30, sz), surface_y(sx, sz + 30), surface_y(sx, sz - 30))
         record("tall: its summit 50+ blocks over the ground round it", summit - ground >= 50, f"summit {summit}, ground {ground}")
         rcon.run(dl + "run forceload remove all")
-    rcon.run(dl + "run forceload add 0 0 15 15")
+    # Its own patch of ground, cleared again at the end (the world persists between runs, and once the
+    # last run's gate frame stood where the ground was probed).
+    rcon.run(dl + "run forceload add 32 32 63 63")
     time.sleep(4.0)
-    rcon.run(dl + 'positioned 8 0 8 positioned over world_surface run summon minecraft:marker ~ ~ ~ {Tags:["smoke_probe"]}')
+    rcon.run(dl + 'positioned 48 0 48 positioned over world_surface run summon minecraft:marker ~ ~ ~ {Tags:["smoke_probe"]}')
     pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
     rcon.run("kill @e[tag=smoke_probe]")
     gy = int(float(pos.group(1))) if pos else 80
     frozen = [b for b in ("minecraft:snow", "minecraft:snow_block", "minecraft:packed_ice", "minecraft:blue_ice", "minecraft:ice", "iceandfire:dread_stone", "minecraft:gravel")
-              if "Test passed" in rcon.run(dl + f"if block 8 {gy - 1} 8 {b}")]
-    record("its ground is frozen", bool(frozen), f"the top block at 8,{gy - 1},8 is none of snow, ice or dreadstone")
-    # A gate on a pad over the ground: frame 5 wide, 6 tall round a 3x4 opening.
-    gy += 3
-    rcon.run(dl + f"run fill 2 {gy - 1} 4 10 {gy - 1} 12 minecraft:stone")
-    rcon.run(dl + f"run fill 4 {gy} 8 8 {gy + 5} 8 iceandfire:dread_stone_bricks")
-    rcon.run(dl + f"run fill 5 {gy + 1} 8 7 {gy + 4} 8 minecraft:air")
-    rcon.run(dl + f"run summon dreadpatch:dread_gate 6.5 {gy + 1} 8.5")
+              if "Test passed" in rcon.run(dl + f"if block 48 {gy - 1} 48 {b}")]
+    record("its ground is frozen", bool(frozen), f"the top block at 48,{gy - 1},48 is none of snow, ice or dreadstone")
+    # A stone pad over the ground, and on it a gate: frame 5 wide, 6 tall round a 3x4 opening.
+    pad = gy + 2
+    rcon.run(dl + f"run fill 38 {pad} 38 60 {pad} 58 minecraft:stone")
+    rcon.run(dl + f"run fill 38 {pad + 1} 38 60 {pad + 9} 58 minecraft:air")
+    rcon.run(dl + f"run fill 44 {pad + 1} 44 48 {pad + 6} 44 iceandfire:dread_stone_bricks")
+    rcon.run(dl + f"run fill 45 {pad + 2} 44 47 {pad + 5} 44 minecraft:air")
+    rcon.run(dl + f"run summon dreadpatch:dread_gate 46.5 {pad + 2} 44.5")
     time.sleep(0.5)
-    record("a gate in the Dreadlands opens", "Test passed" in rcon.run(dl + f"if block 6 {gy + 2} 8 dreadpatch:dread_gate"), "no gate in its frame")
+    record("a gate in the Dreadlands opens", "Test passed" in rcon.run(dl + f"if block 46 {pad + 3} 44 dreadpatch:dread_gate"), "no gate in its frame")
     time.sleep(11.0)
     record("it leads home: no queen, and still open past the ritual",
            "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]")
@@ -1380,14 +1383,44 @@ def main():
     for _ in range(100):
         time.sleep(0.2)
         alive = "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
-        pane = "Test passed" in rcon.run(dl + f"if block 6 {gy + 2} 8 dreadpatch:dread_gate")
+        pane = "Test passed" in rcon.run(dl + f"if block 46 {pad + 3} 44 dreadpatch:dread_gate")
         faded |= alive and not pane
         if not alive:
             closed = True
             break
     record("it fades in and out, then closes within 30 s", faded and closed, f"faded {faded}, closed {closed}")
-    record("its frame stays", "Test passed" in rcon.run(dl + f"if block 4 {gy + 1} 8 iceandfire:dread_stone_bricks"), "the frame went")
+    record("its frame stays", "Test passed" in rcon.run(dl + f"if block 44 {pad + 2} 44 iceandfire:dread_stone_bricks"), "the frame went")
+    # A spire's queen falls (0.47.0): where she fell, a Dread Gate frame rises, open home, and for longer
+    # than a keyed gate (5 minutes; a keyed one's most is 30 s). (Her coming to a summit needs a player.)
+    rcon.run(dl + f'run summon dreadpatch:dread_queen 54.5 {pad + 1} 52.5 {{NoAI:1b,NeoForgeData:{{"dreadpatch:spire":12345L}}}}')
+    time.sleep(0.5)
+    rcon.run(dl + "run kill @e[type=dreadpatch:dread_queen]")
+    time.sleep(1.5)
+    opened = "Test passed" in rcon.run(dl + f"positioned 54.5 {pad + 1} 52.5 if entity @e[type=dreadpatch:dread_gate,distance=..3]") \
+        and "Test passed" in rcon.run(dl + f"if block 54 {pad + 2} 52 dreadpatch:dread_gate")
+    record("where a spire's queen falls, a way home opens", opened, "no gate where she fell")
+    time.sleep(30.0)
+    record("and stays open past a keyed gate's 30 s", "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "it closed")
+    rcon.run(dl + "run kill @e[type=dreadpatch:dread_gate]")
+    rcon.run(dl + "run kill @e[type=item]")
+    rcon.run(dl + "run kill @e[type=minecraft:experience_orb]")
+    rcon.run(dl + f"run fill 38 {pad} 38 60 {pad + 9} 58 minecraft:air")
     rcon.run(dl + "run forceload remove all")
+
+    # Risen in the open air on her dragon (as she comes beside a spire's summit, 0.47.0), it takes wing:
+    # 3 s on, it's hovering, still far over the platform (it sinks a little as it takes wing: 260 to 242).
+    # (Over the platform, in loaded chunks: summoned past them, she never ticks.)
+    rcon.run('summon dreadpatch:dread_queen 8.5 260 20.5 {WithSyndrigossa:1b}')
+    time.sleep(3.0)
+    rode = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("execute as @e[type=dreadpatch:dread_queen,limit=1] on vehicle run data get entity @s Pos"))
+    hovering = "1b" in rcon.run("data get entity @e[type=dreadpatch:syndrigossa,limit=1] Hovering") \
+        or "1b" in rcon.run("data get entity @e[type=dreadpatch:syndrigossa,limit=1] Flying")
+    record("risen in the air, her dragon takes wing", rode is not None and float(rode.group(1)) > 225.0 and hovering,
+           f"her dragon at y {rode and rode.group(1)} (the platform at 200), hovering or flying: {hovering}")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    clear_court()
+    rcon.run("kill @e[type=item]")
 
     # Dread scuttlers climb walls like spiders (0.41.0): one at the foot of a solid block 4 high, a
     # golem (Resistance V) on top that has hit it, is up on top with it within 10 s; it couldn't jump it.

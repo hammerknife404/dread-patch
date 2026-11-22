@@ -13,13 +13,17 @@ import java.util.Random;
  * spire with {@link #HEADROOM} clear above it, from the ground to the summit's rim.</li>
  * <li>A crown of ice spikes round the summit's rim, open where the ledge arrives.</li>
  * <li>Stone and dreadstone at the foot, dreadstone and its bricks through the middle banded with
- * packed and blue ice, ice and snow toward the top.</li>
+ * packed and blue ice, packed ice and snow toward the top. No plain ice (0.47.0): torches by it, the
+ * encounter's or a player's, would melt it into water running down the spire.</li>
+ * <li>Half of them ({@link #ENCOUNTER_CHANCE}; the owner: "each with a chance") hold the Queen and
+ * Syndrigossa's encounter (0.47.0), marked by a dreadstone dais at the summit's middle and dread
+ * torches round it, burning cyan.</li>
  * </ul>
  * Deterministic from its seed, so every chunk of it agrees.
  */
 public final class SpireShape {
     public enum Material {
-        STONE, DREAD_STONE, DREAD_BRICKS, DREAD_BRICKS_CRACKED, PACKED_ICE, BLUE_ICE, ICE, SNOW
+        STONE, DREAD_STONE, DREAD_BRICKS, DREAD_BRICKS_CRACKED, DREAD_BRICKS_CHISELED, DREAD_TILE, DREAD_TORCH, PACKED_ICE, BLUE_ICE, SNOW
     }
 
     /** How deep its foundation goes under the ground it stands on. */
@@ -34,6 +38,10 @@ public final class SpireShape {
     static final double ROUGHNESS = 2.0;
     static final int SPIKES = 8;
     static final int MAX_SPIKE = 6;
+    /** How many spires hold the encounter. */
+    public static final double ENCOUNTER_CHANCE = 0.5;
+    /** Its dread torches, this far out from the middle along the diagonals. */
+    static final int TORCH_OFFSET = 3;
 
     public final long seed;
     public final int height;
@@ -41,6 +49,8 @@ public final class SpireShape {
     public final double topRadius;
     /** Where the ledge starts, round from +x. */
     final double ledgeStart;
+    /** Whether the Queen and Syndrigossa come to its summit. */
+    public final boolean encounter;
     private final int[] spikeX;
     private final int[] spikeZ;
     private final int[] spikeLength;
@@ -52,6 +62,7 @@ public final class SpireShape {
         this.topRadius = topRadius;
         Random random = new Random(seed ^ 0x5B1BE5L);
         this.ledgeStart = random.nextDouble() * 2.0 * Math.PI;
+        this.encounter = hash(0, 0, 0, seed ^ 0xE4C0L) < ENCOUNTER_CHANCE;
         // The crown: spikes round the rim, none where the ledge comes up onto it.
         double arrival = this.ledgeAngle(height - 1);
         this.spikeX = new int[SPIKES];
@@ -136,13 +147,31 @@ public final class SpireShape {
         return false;
     }
 
+    /**
+     * An encounter spire's summit dressing, standing on the summit, or null: a 3×3 dais of dreadstone
+     * tiles round chiseled bricks, and a dread torch on each diagonal.
+     */
+    public Material summit(int dx, int y, int dz) {
+        if (!this.encounter || y != this.height) {
+            return null;
+        }
+        if (Math.abs(dx) <= 1 && Math.abs(dz) <= 1) {
+            return dx == 0 && dz == 0 ? Material.DREAD_BRICKS_CHISELED : Material.DREAD_TILE;
+        }
+        return Math.abs(dx) == TORCH_OFFSET && Math.abs(dz) == TORCH_OFFSET ? Material.DREAD_TORCH : null;
+    }
+
+    /** Whether a spot {@code dx}, {@code dz} from its middle and {@code above} its summit's top block is on its summit. */
+    public boolean onSummit(double dx, double above, double dz) {
+        return above >= -1.0 && above <= 8.0 && Math.hypot(dx, dz) <= this.topRadius + 2.0;
+    }
+
     /** What its body is made of here. */
     public Material material(int dx, int y, int dz) {
         double grain = hash(dx, y, dz, this.seed + 3);
         double t = y / (double) this.height;
         if (t > 0.82) {
-            return grain < 0.45 ? Material.PACKED_ICE : grain < 0.65 ? Material.ICE : grain < 0.8 ? Material.SNOW
-                    : grain < 0.9 ? Material.BLUE_ICE : Material.DREAD_STONE;
+            return grain < 0.6 ? Material.PACKED_ICE : grain < 0.8 ? Material.SNOW : grain < 0.9 ? Material.BLUE_ICE : Material.DREAD_STONE;
         }
         // Ice strata through the stone, wavering a little round the spire.
         double band = noise(dx * 0.08, y * 0.35, dz * 0.08, this.seed + 4);

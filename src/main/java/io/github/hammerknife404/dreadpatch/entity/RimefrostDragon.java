@@ -336,7 +336,7 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
      * Ice and Fire picks again after the charge. Otherwise it rarely showed: it's its only charge and
      * only in the air, and dragons can't target players in creative or spectator.
      */
-    private void takeOff() {
+    void takeOff() {
         this.airAttack = IafDragonAttacks.Air.HOVER_BLAST;
         this.setHovering(true);
         this.setInSittingPose(false);

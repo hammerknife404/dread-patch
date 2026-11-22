@@ -174,6 +174,10 @@ public class DreadQueen extends DreadQueenEntity {
             this.wasMounted = true;
             this.setAnimation(NO_ANIMATION);
         }
+        if (level.getBlockState(this.blockPosition().below()).isAir() && level.getBlockState(this.blockPosition().below(2)).isAir()) {
+            // Risen in the air (beside a spire's summit, 0.47.0): it doesn't drop, it takes wing.
+            dragon.takeOff();
+        }
     }
 
     /** Off her dragon, which has landed to let her down: she Barrow-Steps off ({@link #stepDown}). */

@@ -95,6 +95,8 @@ public class SpirePiece extends StructurePiece {
                         state = Blocks.AIR.defaultBlockState();
                     } else if (this.shape.solid(dx, dy, dz)) {
                         state = block(this.shape.material(dx, dy, dz));
+                    } else if (this.shape.summit(dx, dy, dz) != null) {
+                        state = block(this.shape.summit(dx, dy, dz));
                     } else if (this.shape.spike(dx, dy, dz)) {
                         state = block(this.shape.spikeMaterial(dx, dy, dz));
                     } else {
@@ -112,9 +114,11 @@ public class SpirePiece extends StructurePiece {
             case DREAD_STONE -> IafBlocks.DREAD_STONE.get().defaultBlockState();
             case DREAD_BRICKS -> IafBlocks.DREAD_STONE_BRICKS.get().defaultBlockState();
             case DREAD_BRICKS_CRACKED -> IafBlocks.DREAD_STONE_BRICKS_CRACKED.get().defaultBlockState();
+            case DREAD_BRICKS_CHISELED -> IafBlocks.DREAD_STONE_BRICKS_CHISELED.get().defaultBlockState();
+            case DREAD_TILE -> IafBlocks.DREAD_STONE_TILE.get().defaultBlockState();
+            case DREAD_TORCH -> IafBlocks.DREAD_TORCH.get().defaultBlockState();
             case PACKED_ICE -> Blocks.PACKED_ICE.defaultBlockState();
             case BLUE_ICE -> Blocks.BLUE_ICE.defaultBlockState();
-            case ICE -> Blocks.ICE.defaultBlockState();
             case SNOW -> Blocks.SNOW_BLOCK.defaultBlockState();
         };
     }

@@ -18,7 +18,8 @@ import java.util.UUID;
 /**
  * What the Dreadlands remember, kept with the overworld's data ({@code data/dreadpatch_dreadlands.dat}):
  * where each player came in from, in front of the gate they stepped through, so a gate home takes
- * them back there.
+ * them back there; and when each player last met each spire's encounter (0.47.0), by real time, so it
+ * comes to them once and again only after the server config's hours.
  */
 public class DreadlandsData extends SavedData {
     static final String NAME = "dreadpatch_dreadlands";
@@ -28,6 +29,8 @@ public class DreadlandsData extends SavedData {
     }
 
     private final Map<UUID, Origin> origins = new HashMap<>();
+    /** Each spire's (by its base, packed) last encounter with each player, in epoch milliseconds. */
+    private final Map<Long, Map<UUID, Long>> encounters = new HashMap<>();
 
     public static DreadlandsData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(new SavedData.Factory<>(DreadlandsData::new, DreadlandsData::load, null), NAME);
@@ -40,6 +43,18 @@ public class DreadlandsData extends SavedData {
 
     public void setOrigin(UUID player, Origin origin) {
         this.origins.put(player, origin);
+        this.setDirty();
+    }
+
+    /** When {@code player} last met the encounter at {@code spire}, or null if never. */
+    @Nullable
+    public Long lastEncounter(long spire, UUID player) {
+        Map<UUID, Long> met = this.encounters.get(spire);
+        return met == null ? null : met.get(player);
+    }
+
+    public void recordEncounter(long spire, UUID player, long when) {
+        this.encounters.computeIfAbsent(spire, s -> new HashMap<>()).put(player, when);
         this.setDirty();
     }
 
@@ -59,6 +74,19 @@ public class DreadlandsData extends SavedData {
                 // Not a player's UUID: skip it.
             }
         }
+        CompoundTag encounters = tag.getCompound("Encounters");
+        for (String spire : encounters.getAllKeys()) {
+            CompoundTag met = encounters.getCompound(spire);
+            try {
+                Map<UUID, Long> players = new HashMap<>();
+                for (String player : met.getAllKeys()) {
+                    players.put(UUID.fromString(player), met.getLong(player));
+                }
+                data.encounters.put(Long.parseLong(spire), players);
+            } catch (IllegalArgumentException ignored) {
+                // Not a spire's or a player's: skip it.
+            }
+        }
         return data;
     }
 
@@ -75,6 +103,13 @@ public class DreadlandsData extends SavedData {
             origins.put(player.toString(), o);
         });
         tag.put("Origins", origins);
+        CompoundTag encounters = new CompoundTag();
+        this.encounters.forEach((spire, players) -> {
+            CompoundTag met = new CompoundTag();
+            players.forEach((player, when) -> met.putLong(player.toString(), when));
+            encounters.put(Long.toString(spire), met);
+        });
+        tag.put("Encounters", encounters);
         return tag;
     }
 }

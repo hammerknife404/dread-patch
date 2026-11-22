@@ -149,6 +149,23 @@ public class DreadGate extends Entity {
         }
     }
 
+    /**
+     * A gate home opened by the Dreadlands themselves (a spire's encounter won, 0.47.0): the gate round
+     * {@code inside}, open {@code ticks} (longer than a keyed one's), its last {@link GateTiming#FADE_TICKS}
+     * fading. False if there's no gate there.
+     */
+    public static boolean openReturn(ServerLevel level, BlockPos inside, int ticks) {
+        DreadGate gate = new DreadGate(ModRegistries.DREAD_GATE.get(), level);
+        gate.moveTo(inside.getX() + 0.5, inside.getY(), inside.getZ() + 0.5);
+        gate.axis = Direction.Axis.X;
+        if (!gate.open()) {
+            return false;
+        }
+        gate.homeward = true;
+        gate.openFor = ticks;
+        return level.addFreshEntity(gate);
+    }
+
     /** The gate round {@code start} in the plane along {@code axis}, in plane coordinates from it. */
     @Nullable
     static GateShape.Found find(Level level, BlockPos start, Direction.Axis axis) {
