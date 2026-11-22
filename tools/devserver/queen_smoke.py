@@ -1621,6 +1621,11 @@ def main():
     power = worn("smoke_staff", "dreadpatch:rimefrost_spell_power")
     record("her staff gives +5% Rimefrost spell power", power is not None and abs(power - 1.05) < 1e-6, f"Rimefrost spell power {power}")
     rcon.run("kill @e[tag=smoke_staff]")
+    # A dread shard is a school focus at Iron's Scroll Forge (0.51.1: its slot takes only #irons_spellbooks:school_focus).
+    rcon.run('summon minecraft:armor_stand 12.5 240 8.5 {Tags:["smoke_focus"],ShowArms:1b,HandItems:[{id:"iceandfire:dread_shard",count:1},{}]}')
+    check("a dread shard is a Scroll Forge focus", "execute if items entity @e[tag=smoke_focus,limit=1] weapon.mainhand #irons_spellbooks:school_focus", "Test passed")
+    check("Rimefrost's own", "execute if items entity @e[tag=smoke_focus,limit=1] weapon.mainhand #dreadpatch:rimefrost_focus", "Test passed")
+    rcon.run("kill @e[tag=smoke_focus]")
     # In her whole regalia the Dread leave you be (0.51.0): a dread thrall (with its AI, held still) goes for
     # a zombie beside it, but not for one in her regalia, until that one hurts it.
     still = 'active_effects:[{id:"minecraft:slowness",amplifier:255b,duration:1200}]'
