@@ -1,5 +1,6 @@
 package io.github.hammerknife404.dreadpatch.client;
 
+import io.github.hammerknife404.dreadpatch.magic.AmbienceRules;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.world.Dreadlands;
 import net.minecraft.client.Minecraft;
@@ -25,14 +26,14 @@ import org.jetbrains.annotations.Nullable;
  * <li>its loop, the soul sand valley's at full volume (vanilla plays it at 0.85), drifting slowly between
  * 0.88 and 1 like the wind rising and falling, fading in and out as you come and go;</li>
  * <li>its whispers and shifting sand, vanilla's, a fifth louder, as often as vanilla's (0.0111 a tick);</li>
- * <li>ice cracking on the surface round you, 6-20 blocks off, about every 12 s while you're near the top;</li>
+ * <li>ice cracking on the surface round you, 6-20 blocks off, every 30-120 s while you're near the top, half
+ * the time a burst of two or three back to back ({@link AmbienceRules}; 0.54.1);</li>
  * <li>a deep rumble from below about every 30 s, louder when you're underground.</li>
  * </ul>
  * Every one plays at its own volume, ±15%.
  */
 public final class DreadlandsAmbience {
     private static final float ADDITIONS_CHANCE = 0.0111F;
-    private static final int CRACK_ONE_IN = 240;
     private static final int RUMBLE_ONE_IN = 600;
     /** Within this far under the ground's top over you, you hear the ice. */
     private static final int NEAR_SURFACE = 6;
@@ -42,6 +43,13 @@ public final class DreadlandsAmbience {
 
     @Nullable
     private static Loop loop;
+    /** Ticks to the next crack (or burst); -1 until it's set, as you come. */
+    private static int crackIn = -1;
+    /** Cracks still to come in this burst, the ticks to the next, and where the burst is. */
+    private static int burstLeft;
+    private static int burstGap;
+    private static int burstX;
+    private static int burstZ;
 
     private DreadlandsAmbience() {
     }
@@ -61,7 +69,12 @@ public final class DreadlandsAmbience {
 
     private static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.isPaused() || !here(minecraft)) {
+        if (minecraft.isPaused()) {
+            return;
+        }
+        if (!here(minecraft)) {
+            crackIn = -1;
+            burstLeft = 0;
             return;
         }
         ClientLevel level = minecraft.level;
@@ -75,19 +88,39 @@ public final class DreadlandsAmbience {
             everywhere(minecraft, ModRegistries.DREADLANDS_ADDITIONS.get(), vary(random, 1.0F), 0.95F + random.nextFloat() * 0.1F);
         }
         int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, player.getBlockX(), player.getBlockZ());
-        if (player.getY() >= top - NEAR_SURFACE && random.nextInt(CRACK_ONE_IN) == 0) {
-            double angle = random.nextDouble() * Math.PI * 2.0;
-            double distance = 6.0 + random.nextDouble() * 14.0;
-            int x = Mth.floor(player.getX() + Math.cos(angle) * distance);
-            int z = Mth.floor(player.getZ() + Math.sin(angle) * distance);
-            int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-            level.playLocalSound(x + 0.5, y, z + 0.5, ModRegistries.DREADLANDS_ICE_CRACK.get(), SoundSource.AMBIENT,
-                    vary(random, 0.9F), 0.9F + random.nextFloat() * 0.25F, false);
+        if (crackIn < 0) {
+            crackIn = AmbienceRules.crackDelay(random::nextInt);
+        }
+        if (burstLeft > 0) {
+            if (--burstGap <= 0) {
+                int spread = AmbienceRules.BURST_SPREAD;
+                crack(level, random, burstX + random.nextInt(2 * spread + 1) - spread, burstZ + random.nextInt(2 * spread + 1) - spread);
+                burstLeft--;
+                burstGap = AmbienceRules.burstGap(random::nextInt);
+            }
+        } else if (--crackIn <= 0) {
+            crackIn = AmbienceRules.crackDelay(random::nextInt);
+            if (player.getY() >= top - NEAR_SURFACE) {
+                double angle = random.nextDouble() * Math.PI * 2.0;
+                double distance = 6.0 + random.nextDouble() * 14.0;
+                burstX = Mth.floor(player.getX() + Math.cos(angle) * distance);
+                burstZ = Mth.floor(player.getZ() + Math.sin(angle) * distance);
+                crack(level, random, burstX, burstZ);
+                burstLeft = AmbienceRules.burstSize(random::nextInt) - 1;
+                burstGap = AmbienceRules.burstGap(random::nextInt);
+            }
         }
         if (random.nextInt(RUMBLE_ONE_IN) == 0) {
             float base = player.getEyeY() < top - UNDERGROUND ? 0.8F : 0.55F;
             everywhere(minecraft, ModRegistries.DREADLANDS_RUMBLE.get(), vary(random, base), 0.9F + random.nextFloat() * 0.2F);
         }
+    }
+
+    /** Ice cracking on the ground's top at {@code x}, {@code z}. */
+    private static void crack(ClientLevel level, RandomSource random, int x, int z) {
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+        level.playLocalSound(x + 0.5, y, z + 0.5, ModRegistries.DREADLANDS_ICE_CRACK.get(), SoundSource.AMBIENT,
+                vary(random, 0.9F), 0.9F + random.nextFloat() * 0.25F, false);
     }
 
     /** A sound heard all round, not from anywhere in particular. */
