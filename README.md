@@ -59,6 +59,9 @@ Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of t
 - **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It's repaired with dread dragonsteel ingots.
 - **Collecting it:** each queen you kill drops a piece you don't have yet, so four kills complete the set. Looting gives a 10% chance a level of a second missing piece. Once you have the set, she drops a random piece one time in four (5% more a Looting level).
 - **Advancements** keep count: one for slaying her, one for each piece you've held, and one for the whole set. A piece counts as yours once it's been in your inventory.
+- **There Must Always Be a Dread Queen:** wear all four pieces with her blade and her staff in your hands.
+
+**Armour trims** go on her regalia, Rimefrost dragonscale and dread dragonsteel armour at a smithing table, as on vanilla armour. Worn, a trim sits on vanilla armour's shape over the piece.
 
 ## The Dread Gate and the Gravemaster's Key
 

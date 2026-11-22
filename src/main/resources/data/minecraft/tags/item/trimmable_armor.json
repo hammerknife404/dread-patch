@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "dreadpatch:dread_queen_crown",
+    "dreadpatch:dread_queen_bodice",
+    "dreadpatch:dread_queen_robe",
+    "dreadpatch:dread_queen_greaves",
+    "dreadpatch:rimefrost_dragonscale_helmet",
+    "dreadpatch:rimefrost_dragonscale_chestplate",
+    "dreadpatch:rimefrost_dragonscale_leggings",
+    "dreadpatch:rimefrost_dragonscale_boots",
+    "dreadpatch:dread_dragonsteel_helmet",
+    "dreadpatch:dread_dragonsteel_chestplate",
+    "dreadpatch:dread_dragonsteel_leggings",
+    "dreadpatch:dread_dragonsteel_boots"
+  ]
+}

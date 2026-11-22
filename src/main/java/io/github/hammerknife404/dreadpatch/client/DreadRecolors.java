@@ -107,7 +107,7 @@ public final class DreadRecolors {
     }
 
     private static HumanoidModel<LivingEntity> model(DreadArmorItem.Kind kind, boolean inner) {
-        return (inner ? INNER : OUTER).computeIfAbsent(kind, k -> k == DreadArmorItem.Kind.SCALE ? new IceDragonScaleArmorModel(inner) : new DragonSteelIceArmorModel(inner));
+        return (inner ? INNER : OUTER).computeIfAbsent(kind, k -> new TrimmedArmorModel(k == DreadArmorItem.Kind.SCALE ? new IceDragonScaleArmorModel(inner) : new DragonSteelIceArmorModel(inner), inner));
     }
 
     /** An armour layer, recoloured from Ice and Fire's: made the first time it's drawn; Ice and Fire's own if it can't be. */

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dreadpatch:item/dread_queen_greaves",
+    "layer1": "minecraft:trims/items/boots_trim_redstone"
+  }
+}
