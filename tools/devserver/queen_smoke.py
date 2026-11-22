@@ -372,6 +372,13 @@ def main():
     time.sleep(0.3)
     record("its health isn't Syndrigossa's by difficulty", max_health(rime) == rime_max, f"max health {rime_max} on Easy, {max_health(rime)} on Hard")
     rcon.run("difficulty easy")
+    # Undead, it never sleeps (0.40.0): loaded asleep it wakes, where Ice and Fire's own ice dragon sleeps on.
+    rcon.run(surface + 'summon iceandfire:ice_dragon ~16 ~ ~ {NoAI:1b,AgeTicks:2500000,Sleeping:1b,Tags:["smoke_sleeper"]}')
+    rcon.run(surface + 'summon dreadpatch:rimefrost_dragon ~16 ~ ~8 {NoAI:1b,AgeTicks:2500000,Sleeping:1b,Tags:["smoke_waker"]}')
+    check("an ice dragon loaded asleep sleeps", "data get entity @e[tag=smoke_sleeper,limit=1] Sleeping", "1b")
+    check("a Rimefrost dragon loaded asleep is awake", "data get entity @e[tag=smoke_waker,limit=1] Sleeping", "0b")
+    rcon.run("kill @e[tag=smoke_sleeper]")
+    rcon.run("kill @e[tag=smoke_waker]")
     rcon.run("kill @e[type=item]")
     for _ in range(20):
         rcon.run("execute as " + rime + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/rimefrost_dragon/corpse")
@@ -837,7 +844,13 @@ def main():
         if "Test passed" in rcon.run("execute if entity @e[type=dreadpatch:rimefrost_dragon,nbt={RaisedBy:[I;6,6,6,6]}]"):
             risen = True
             break
-    record("the queen raises a Rimefrost dragon of hers from a corpse", risen, "none raised by her within 20 s")
+    if not risen:
+        # Alone this passed 3 runs of 3, each at 10 s; once (0.40.0) not within the full run. Show why if it happens again.
+        state = rcon.run("data get entity @e[type=dreadpatch:dread_queen,limit=1] Pos") + " | " + rcon.run(
+            "data get entity @e[type=dreadpatch:dread_queen,limit=1] Health") + " | corpse: " + rcon.run(
+            "execute if entity @e[tag=smoke_ice_corpse_3,nbt={ModelDead:1b}]") + " | " + rcon.run(
+            "execute as @e[type=dreadpatch:dread_queen,limit=1] on target run data get entity @s id")
+    record("the queen raises a Rimefrost dragon of hers from a corpse", risen, "none raised by her within 20 s" + ("" if risen else ": " + state.replace("\n", " ")))
     if risen:
         hp = health("@e[type=dreadpatch:rimefrost_dragon,limit=1]")
         hp_max = max_health("@e[type=dreadpatch:rimefrost_dragon,limit=1]")
