@@ -127,5 +127,15 @@
   "message.dreadpatch.dreadlands.arrive": "The Dreadlands. A Dread Gate keyed here leads home.",
   "message.dreadpatch.dreadlands.encounter": "The Dread Queen descends on the spire",
   "message.dreadpatch.dreadlands.return_gate": "Where the Dread Queen fell, a way home opens",
-  "block.dreadpatch.rimefire": "Rimefire"
+  "block.dreadpatch.rimefire": "Rimefire",
+  "dreadpatch.configuration.title": "Dread Patch",
+  "dreadpatch.configuration.section.dreadpatch.server.toml": "Server settings",
+  "dreadpatch.configuration.section.dreadpatch.server.toml.title": "Dread Patch: server settings",
+  "dreadpatch.configuration.summoned_court": "Summoned court",
+  "dreadpatch.configuration.attack_friendly_mobs": "Attack friendly mobs",
+  "dreadpatch.configuration.retaliate": "Fight back",
+  "dreadpatch.configuration.attack_players": "Attack players",
+  "dreadpatch.configuration.dreadlands": "The Dreadlands",
+  "dreadpatch.configuration.encounter_reset_hours": "Encounter returns after (hours)",
+  "tooltip.dreadpatch.spell_details": "Hold Shift for each spell's details"
 }

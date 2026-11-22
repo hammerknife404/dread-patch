@@ -191,12 +191,16 @@ public class DreadPhantom extends Phantom implements IDreadMob {
     public void tick() {
         super.tick();
         if (this.level().isClientSide && this.tickCount % 3 == 0 && this.random.nextFloat() < 0.6F) {
-            // A sparse Rimefrost trail, off its tail.
+            // A sparse Rimefrost trail, off its tail: snowflakes and soot, and now and then a cyan flame.
             float yaw = this.getYRot() * Mth.DEG_TO_RAD;
             double x = this.getX() + Mth.sin(yaw) * 0.9 + (this.random.nextDouble() - 0.5) * 0.3;
             double y = this.getY() + 0.2;
             double z = this.getZ() - Mth.cos(yaw) * 0.9 + (this.random.nextDouble() - 0.5) * 0.3;
-            if (this.random.nextBoolean()) {
+            float pick = this.random.nextFloat();
+            if (pick < 0.15F) {
+                // Now and then a cold cyan flame, the Rimefrost breath's at the bolt's size (0.50.0).
+                this.level().addParticle(ModRegistries.RIME_FLAME_SMALL.get(), x, y, z, 0.0, -0.005, 0.0);
+            } else if (pick < 0.575F) {
                 this.level().addParticle(ParticleTypes.SNOWFLAKE, x, y, z, 0.0, -0.03, 0.0);
             } else {
                 this.level().addParticle(ModRegistries.RIME_SMOKE_SMALL.get(), x, y, z, 0.0, -0.01, 0.0);

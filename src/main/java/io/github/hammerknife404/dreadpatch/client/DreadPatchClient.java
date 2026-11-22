@@ -16,6 +16,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RenderLivingEvent;
@@ -42,6 +44,10 @@ public final class DreadPatchClient {
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(RenderLivingEvent.Pre.class, SaddleLayer::onRenderLiving);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
+        StaffTooltip.register(NeoForge.EVENT_BUS);
+        // The server config in the mods list's Config button (0.50.0): NeoForge's own screen; every value is read
+        // where it's used, so a change applies at once.
+        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         DreadlandsClient.register(NeoForge.EVENT_BUS);
     }
 
