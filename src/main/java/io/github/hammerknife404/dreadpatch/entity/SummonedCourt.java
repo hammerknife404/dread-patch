@@ -41,6 +41,7 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A court raised by Summon Court: her court's dread mobs (Ice and Fire's, through
@@ -78,6 +79,21 @@ public final class SummonedCourt {
     /** Whether {@code entity} is a court member a caster raised. */
     public static boolean isMember(@Nullable Entity entity) {
         return entity instanceof DreadMobEntity mob && mob.getPersistentData().contains(EXPIRES_KEY);
+    }
+
+    /**
+     * Its caster, resolved from its {@code CommanderUUID} (a player, or any entity in its level), not by
+     * Ice and Fire's {@code getCommander}: its scuttler's always returns null (as its lich's does), so a
+     * scuttler of a caster's court followed no one, defended no one, and its caster could hurt it (until 0.42.0).
+     */
+    @Nullable
+    public static Entity commander(DreadMobEntity member) {
+        UUID id = member.getCommanderId();
+        if (id == null || !(member.level() instanceof ServerLevel level)) {
+            return null;
+        }
+        Player player = level.getPlayerByUUID(id);
+        return player != null ? player : level.getEntity(id);
     }
 
     /** Whether {@code entity} is a court member {@code caster} raised. */
@@ -152,13 +168,13 @@ public final class SummonedCourt {
         }
         DreadMobEntity member = (DreadMobEntity) event.getEntity();
         member.targetSelector.removeAllGoals(goal -> true);
-        member.targetSelector.addGoal(1, new GenericOwnerHurtByTargetGoal(member, member::getCommander));
-        member.targetSelector.addGoal(2, new GenericOwnerHurtTargetGoal(member, member::getCommander));
-        member.targetSelector.addGoal(3, new GenericCopyOwnerTargetGoal(member, member::getCommander));
+        member.targetSelector.addGoal(1, new GenericOwnerHurtByTargetGoal(member, () -> commander(member)));
+        member.targetSelector.addGoal(2, new GenericOwnerHurtTargetGoal(member, () -> commander(member)));
+        member.targetSelector.addGoal(3, new GenericCopyOwnerTargetGoal(member, () -> commander(member)));
         member.targetSelector.addGoal(4, new HurtByTargetGoal(member));
-        member.targetSelector.addGoal(5, new GenericProtectOwnerTargetGoal(member, member::getCommander));
+        member.targetSelector.addGoal(5, new GenericProtectOwnerTargetGoal(member, () -> commander(member)));
         // Between Ice and Fire's melee (2) and its stroll (5), as Iron's summons follow (15 out, to 5; past 25, a teleport).
-        member.goalSelector.addGoal(4, new GenericFollowOwnerGoal(member, member::getCommander, 1.0, 15.0F, 5.0F, false, 25.0F));
+        member.goalSelector.addGoal(4, new GenericFollowOwnerGoal(member, () -> commander(member), 1.0, 15.0F, 5.0F, false, 25.0F));
     }
 
     /**
@@ -187,7 +203,7 @@ public final class SummonedCourt {
             return;
         }
         LivingEntity victim = event.getEntity();
-        if (isMember(victim) && onCastersSide(((DreadMobEntity) victim).getCommander(), attacker)) {
+        if (isMember(victim) && onCastersSide(commander((DreadMobEntity) victim), attacker)) {
             event.setCanceled(true);
         } else if (isMember(attacker) && !mayFight((DreadMobEntity) attacker, victim)) {
             event.setCanceled(true);
@@ -208,7 +224,7 @@ public final class SummonedCourt {
     /** Whether court member {@code member} may fight {@code target}, by the server config's terms. */
     public static boolean mayFight(DreadMobEntity member, Entity target) {
         boolean retaliating = target == member.getLastHurtByMob();
-        return CourtRules.mayFight(stance(member.getCommander(), target), retaliating, DreadPatchConfig.courtTerms());
+        return CourtRules.mayFight(stance(commander(member), target), retaliating, DreadPatchConfig.courtTerms());
     }
 
     private static CourtRules.Stance stance(@Nullable Entity caster, Entity target) {

@@ -1,0 +1,14 @@
+{
+  "type": "iceandfire:dragonforge",
+  "dragonType": "ice",
+  "cookTime": 750,
+  "input": {
+    "item": "dreadpatch:rimefrost_dragon_scale"
+  },
+  "blood": {
+    "item": "minecraft:glass_bottle"
+  },
+  "result": {
+    "id": "dreadpatch:rimefrost_dragon_blood"
+  }
+}

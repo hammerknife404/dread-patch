@@ -6,15 +6,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "iceandfire:dragonscales_white",
+          "name": "dreadpatch:rimefrost_dragon_scale",
           "weight": 60,
           "functions": [
             {
-              "function": "minecraft:set_count",
-              "count": 1
-            },
-            {
-              "function": "iceandfire:dragon_loot"
+              "function": "dreadpatch:rimefrost_scales"
             }
           ]
         },

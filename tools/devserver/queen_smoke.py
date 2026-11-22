@@ -326,9 +326,9 @@ def main():
     rcon.run("kill @e[type=item]")
     for _ in range(20):
         rcon.run("execute as " + dragon + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/syndrigossa/corpse")
-    scales, shards = item_total("iceandfire:dragonscales_white"), item_total("iceandfire:dread_shard")
-    others = count("*") - count("iceandfire:dragonscales_white") - count("iceandfire:dread_shard")
-    record("her corpse gives white scales and dread shards, nothing else", scales > 0 and shards > 0 and others == 0,
+    scales, shards = item_total("dreadpatch:rimefrost_dragon_scale"), item_total("iceandfire:dread_shard")
+    others = count("*") - count("dreadpatch:rimefrost_dragon_scale") - count("iceandfire:dread_shard")
+    record("her corpse gives Rimefrost dragon scales and dread shards, nothing else", scales > 0 and shards > 0 and others == 0,
            f"{scales} scales, {shards} shards, {others} other stacks")
     rcon.run("kill @e[type=item]")
     rcon.run("execute as " + dragon + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/syndrigossa/heart")
@@ -382,10 +382,10 @@ def main():
     rcon.run("kill @e[type=item]")
     for _ in range(20):
         rcon.run("execute as " + rime + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/rimefrost_dragon/corpse")
-    blue_scales, rime_shards = item_total("iceandfire:dragonscales_sapphire"), item_total("iceandfire:dread_shard")
-    others = count("*") - count("iceandfire:dragonscales_sapphire") - count("iceandfire:dread_shard")
-    record("its corpse gives its own colour's scales and dread shards", blue_scales > 0 and rime_shards > 0 and others == 0,
-           f"{blue_scales} sapphire scales, {rime_shards} shards, {others} other stacks")
+    rime_scales, rime_shards = item_total("dreadpatch:rimefrost_dragon_scale"), item_total("iceandfire:dread_shard")
+    others = count("*") - count("dreadpatch:rimefrost_dragon_scale") - count("iceandfire:dread_shard")
+    record("its corpse gives Rimefrost dragon scales and dread shards", rime_scales > 0 and rime_shards > 0 and others == 0,
+           f"{rime_scales} Rimefrost scales, {rime_shards} shards, {others} other stacks")
     rcon.run("kill @e[type=item]")
     for _ in range(5):
         rcon.run("execute as " + rime + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/rimefrost_dragon/heart")
@@ -773,6 +773,14 @@ def main():
     out = rcon.run("damage " + pinned + " 4 minecraft:mob_attack by @e[tag=smoke_caster,limit=1]")
     record("its caster can't hurt it", "Applied" not in out and health(pinned) >= before,
            f"court member health {before} -> {health(pinned)}: {out.strip()}")
+    # A scuttler in the court, every time (the court's kinds are random): Ice and Fire's scuttler's own
+    # getCommander is always null, which until 0.42.0 let its caster hurt it (once each in 0.37.0 and 0.42.0's runs).
+    rcon.run('summon iceandfire:dread_scuttler 5.5 200 5.5 {NoAI:1b,CommanderUUID:[I;7,7,7,7],Tags:["smoke_court_scuttler"],'
+             'NeoForgeData:{"dreadpatch:court_expires":999999999L}}')
+    time.sleep(0.2)
+    out = rcon.run("damage @e[tag=smoke_court_scuttler,limit=1] 4 minecraft:mob_attack by @e[tag=smoke_caster,limit=1]")
+    record("its caster can't hurt a scuttler of it", "Applied" not in out, out.strip())
+    rcon.run("kill @e[tag=smoke_court_scuttler]")
     rcon.run('summon minecraft:husk 10.5 200 5.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_zombie"]}')
     rcon.run("damage @e[tag=smoke_caster,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_zombie,limit=1]")
     fought = False
@@ -822,7 +830,8 @@ def main():
     record("with half its caster's missing health, rounded down", hp_risen == 7.0, f"health {hp_risen} (the caster at 6 of 20)")
     check("raised by its caster", "data get entity " + raised + " RaisedBy", "[I; 5, 5, 5, 5]")
     ice_corpse(6.5, "blue", "smoke_ice_corpse_2")
-    rcon.run("tp @e[tag=smoke_caster,limit=1] 0.5 200 7.5 -90 5")
+    # Looking lower: a corpse lies low, and 6 blocks off a ray at 5 degrees passes just over it.
+    rcon.run("tp @e[tag=smoke_caster,limit=1] 0.5 200 7.5 -90 12")
     rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:create_rimefrost_dragon 1")
     time.sleep(0.5)
     check("raising another sends the first back: one at a time", "execute if entity @e[type=dreadpatch:rimefrost_dragon]", "Test passed, count: 1")
@@ -1221,6 +1230,47 @@ def main():
     record("a dread scuttler climbs a wall to its target", climbed, f"still at y {m and m.group(1)} 10 s on, the top at 244")
     rcon.run("kill @e[tag=smoke_climber]")
     rcon.run("kill @e[tag=smoke_climb_target]")
+    rcon.run("fill 1 239 1 30 250 14 minecraft:air")
+
+    # Dread dragonsteel and Rimefrost dragonscale (0.42.0). Dragon armour against Rimefrost breath, as Ice
+    # and Fire's against its own: two zombies in the same armour (100 health), one hit by Rimefrost breath,
+    # one by a mob's attack, as hard: past the armour, the breath lands at 30% of the attack (helmet 10%, chestplate 30%,
+    # leggings 20%, boots 10% off), for our dread dragonsteel and for Ice and Fire's ice dragonsteel.
+    rcon.run("fill 1 239 1 30 239 14 minecraft:stone")
+    rcon.run("fill 1 240 1 30 250 14 minecraft:air")
+
+    def armoured(tag, x, set_name):
+        rcon.run(f'summon minecraft:zombie {x} 240 4.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["{tag}"],ArmorItems:['
+                 f'{{id:"{set_name}_boots",count:1}},{{id:"{set_name}_leggings",count:1}},{{id:"{set_name}_chestplate",count:1}},{{id:"{set_name}_helmet",count:1}}]}}')
+        rcon.run(f"attribute @e[tag={tag},limit=1] minecraft:generic.max_health base set 100")
+        rcon.run(f"data merge entity @e[tag={tag},limit=1] {{Health:100.0f}}")
+
+    for set_name, label in (("dreadpatch:dread_dragonsteel", "dread dragonsteel"), ("iceandfire:dragonsteel_ice", "Ice and Fire's ice dragonsteel")):
+        armoured("smoke_breathed", 4.5, set_name)
+        armoured("smoke_struck", 8.5, set_name)
+        time.sleep(0.3)
+        rcon.run("damage @e[tag=smoke_breathed,limit=1] 40 dreadpatch:withering_breath")
+        # (A mob's attack: armour cuts it as it does the breath; vanilla's generic damage goes straight past armour.)
+        rcon.run("damage @e[tag=smoke_struck,limit=1] 40 minecraft:mob_attack")
+        breathed, struck = 100.0 - health("@e[tag=smoke_breathed,limit=1]"), 100.0 - health("@e[tag=smoke_struck,limit=1]")
+        record(f"{label} takes 70% off Rimefrost breath", struck > 0 and abs(breathed - 0.3 * struck) < 0.6,
+               f"breath took {breathed:.2f}, a plain hit {struck:.2f} (30% would be {0.3 * struck:.2f})")
+        rcon.run("kill @e[tag=smoke_breathed]")
+        rcon.run("kill @e[tag=smoke_struck]")
+    # A dread dragonsteel sword's hit leaves Withering Rime (a husk's, which goes for iron golems).
+    # (No Resistance: a hit brought to nothing carries nothing. An iron golem has 100 health.)
+    rcon.run('summon minecraft:iron_golem 12.5 240 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_rimed"]}')
+    rcon.run('summon minecraft:husk 10.5 240 7.5 {PersistenceRequired:1b,Tags:["smoke_wielder"],'
+             'HandItems:[{id:"dreadpatch:dread_dragonsteel_sword",count:1},{}],HandDropChances:[0.0f,0.0f]}')
+    rimed = False
+    for _ in range(24):
+        time.sleep(0.5)
+        if has_effect("@e[tag=smoke_rimed,limit=1]", "dreadpatch:withering_rime"):
+            rimed = True
+            break
+    record("a dread dragonsteel sword's hit leaves Withering Rime", rimed, "no Withering Rime on the golem within 12 s")
+    rcon.run("kill @e[tag=smoke_wielder]")
+    rcon.run("kill @e[tag=smoke_rimed]")
     rcon.run("fill 1 239 1 30 250 14 minecraft:air")
 
     # Nothing fights a dragon's corpse (0.35.0): Ice and Fire counts a corpse alive, so a dread thrall

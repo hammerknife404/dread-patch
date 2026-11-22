@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "M",
+    "H",
+    "H"
+  ],
+  "key": {
+    "M": {
+      "item": "dreadpatch:dread_dragonsteel_ingot"
+    },
+    "H": {
+      "tag": "c:bones/wither"
+    }
+  },
+  "result": {
+    "id": "dreadpatch:dread_dragonsteel_shovel"
+  }
+}

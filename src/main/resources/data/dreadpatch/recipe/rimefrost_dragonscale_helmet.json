@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "###",
+    "# #"
+  ],
+  "key": {
+    "#": {
+      "item": "dreadpatch:rimefrost_dragon_scale"
+    }
+  },
+  "result": {
+    "id": "dreadpatch:rimefrost_dragonscale_helmet"
+  }
+}

@@ -14,8 +14,11 @@ import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.SummonedCourt;
 import io.github.hammerknife404.dreadpatch.entity.SyndrigossaEvents;
 import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
+import io.github.hammerknife404.dreadpatch.item.DragonArmor;
+import io.github.hammerknife404.dreadpatch.item.DreadDragonsteel;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
+import io.github.hammerknife404.dreadpatch.registry.DreadGear;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -41,6 +44,7 @@ public final class DreadPatch {
 
     public DreadPatch(IEventBus modBus, ModContainer container) {
         ModRegistries.register(modBus);
+        DreadGear.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
         modBus.addListener(DreadPatch::onEntityAttributes);
         modBus.addListener(DreadPatch::onCreativeTabs);
@@ -54,6 +58,8 @@ public final class DreadPatch {
         DreadGate.register(NeoForge.EVENT_BUS);
         SummonedCourt.register(NeoForge.EVENT_BUS);
         DragonCorpses.register(NeoForge.EVENT_BUS);
+        DragonArmor.register(NeoForge.EVENT_BUS);
+        DreadDragonsteel.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {
@@ -81,6 +87,18 @@ public final class DreadPatch {
             event.accept(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
+            event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());
+            event.accept(DreadGear.RIMEFROST_DRAGON_BLOOD.get());
+            event.accept(DreadGear.DREAD_DRAGONSTEEL_INGOT.get());
+        } else if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+            DreadGear.armor().forEach(item -> event.accept(item.get()));
+            event.accept(DreadGear.DREAD_DRAGONSTEEL_SWORD.get());
+            event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
+        } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(DreadGear.DREAD_DRAGONSTEEL_PICKAXE.get());
+            event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
+            event.accept(DreadGear.DREAD_DRAGONSTEEL_SHOVEL.get());
+            event.accept(DreadGear.DREAD_DRAGONSTEEL_HOE.get());
         }
     }
 
