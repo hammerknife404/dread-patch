@@ -78,5 +78,10 @@
   "spell.dreadpatch.create_rimefrost_dragon": "Create Rimefrost Dragon",
   "spell.dreadpatch.create_rimefrost_dragon.guide": "Raise the corpse of an ice dragon you look at as a Rimefrost dragon of the same age, your own to ride and command. It rises with half the health you're missing, so the closer you are to death, the stronger it rises. It costs every drop of your mana. You keep one at a time: recast within its cooldown to send it back and raise the corpse you're looking at instead.",
   "ui.dreadpatch.rises_with": "Rises with %s%% of Your Missing Health",
-  "ui.dreadpatch.all_mana": "Consumes All Your Mana"
+  "ui.dreadpatch.all_mana": "Consumes All Your Mana",
+  "entity.dreadpatch.syndrigossa_egg": "Syndrigossa Egg",
+  "message.dreadpatch.syndrigossa_egg.dreadstone": "Syndrigossa's egg must lie on dreadstone",
+  "message.dreadpatch.syndrigossa_egg.soaked": "Syndrigossa's egg soaks up the storm (%s of %s)",
+  "tooltip.dreadpatch.syndrigossa_egg.hatch": "Lay it on dreadstone; three Whiteout Dominion storms",
+  "tooltip.dreadpatch.syndrigossa_egg.hatch2": "over it, start to end, hatch a Rimefrost dragon."
 }

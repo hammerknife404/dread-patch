@@ -75,7 +75,10 @@ public final class DreadPatchClient {
         } else if (event.getItemStack().is(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get())) {
             tooltip.add(at, line("tooltip.dreadpatch.rimefrost_dragon"));
         } else if (event.getItemStack().is(ModRegistries.SYNDRIGOSSA_EGG.get())) {
-            tooltip.add(at, line("tooltip.dreadpatch.syndrigossa_egg"));
+            tooltip.addAll(at, List.of(
+                    line("tooltip.dreadpatch.syndrigossa_egg"),
+                    line("tooltip.dreadpatch.syndrigossa_egg.hatch"),
+                    line("tooltip.dreadpatch.syndrigossa_egg.hatch2")));
         }
     }
 
@@ -121,6 +124,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.BARROW_HUSK.get(), BarrowHuskRenderer::new);
         event.registerEntityRenderer(ModRegistries.SYNDRIGOSSA.get(), SyndrigossaRenderer::new);
         event.registerEntityRenderer(ModRegistries.RIMEFROST_DRAGON.get(), RimefrostDragonRenderer::new);
+        event.registerEntityRenderer(ModRegistries.SYNDRIGOSSA_EGG_ENTITY.get(), SyndrigossaEggRenderer::new);
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE.get(), ShatterSpineRenderer::core);
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), ShatterSpineRenderer::shard);
         event.registerEntityRenderer(ModRegistries.WHITEOUT_DOMINION.get(), WhiteoutRenderer::new);

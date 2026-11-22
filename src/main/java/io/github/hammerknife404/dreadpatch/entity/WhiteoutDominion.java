@@ -1,5 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import java.util.Set;
+import java.util.HashSet;
 import com.iafenvoy.iceandfire.entity.DragonBaseEntity;
 import com.iafenvoy.iceandfire.entity.DreadBeastEntity;
 import com.iafenvoy.iceandfire.entity.DreadMobEntity;
@@ -105,9 +107,29 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         return storm;
     }
 
+    /** Its lifetime when it rose, and Syndrigossa's eggs in it since then. Never saved, as the storm isn't. */
+    private int fullLifetime = -1;
+    private final Set<UUID> eggs = new HashSet<>();
+
     public static void register(IEventBus gameBus) {
         // Last, and only if nothing has saved them.
         gameBus.addListener(EventPriority.LOWEST, WhiteoutDominion::onDeath);
+    }
+
+    /**
+     * Its whole course run (its lifetime not cut short, as hers is when she falls): every egg it rose
+     * over and that stayed in it soaks it up ({@link SyndrigossaEggEntity#soak}). One discarded early
+     * (a recast, {@code /kill}) never gets here.
+     */
+    private void soakEggs() {
+        if (this.getLifetime() != this.fullLifetime || !(this.level() instanceof ServerLevel server)) {
+            return;
+        }
+        for (UUID id : this.eggs) {
+            if (server.getEntity(id) instanceof SyndrigossaEggEntity egg && this.holds(egg)) {
+                egg.soak();
+            }
+        }
     }
 
     public boolean holds(Entity entity) {
@@ -131,10 +153,19 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         }
         if (this.tickCount == 1) {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ILLUSIONER_PREPARE_BLINDNESS, SoundSource.HOSTILE, 4.0F, 0.5F);
+            // Syndrigossa's eggs it rises over: a full storm, start to end, is one step to hatching.
+            this.fullLifetime = this.getLifetime();
+            for (SyndrigossaEggEntity egg : this.level().getEntitiesOfClass(SyndrigossaEggEntity.class, this.area(), this::holds)) {
+                this.eggs.add(egg.getUUID());
+            }
         }
         if (this.tickCount >= this.getLifetime()) {
+            this.soakEggs();
             this.discard();
             return;
+        }
+        if (this.tickCount % 20 == 0 && !this.eggs.isEmpty() && this.level() instanceof ServerLevel server) {
+            this.eggs.removeIf(id -> !(server.getEntity(id) instanceof SyndrigossaEggEntity egg) || !this.holds(egg));
         }
         Entity owner = this.getOwner();
         // Hers breaks when she falls (or is gone from the world): it clears.
