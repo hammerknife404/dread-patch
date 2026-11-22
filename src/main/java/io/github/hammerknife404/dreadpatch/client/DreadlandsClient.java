@@ -93,7 +93,10 @@ public final class DreadlandsClient {
             return;
         }
         float far = event.getFarPlaneDistance();
-        event.setFarPlaneDistance(Math.min(far, Mth.lerp(amount, far, Math.min(StormRules.FOG_FAR, far))));
+        ClientLevel level = Minecraft.getInstance().level;
+        float thunder = level == null ? 0.0F : level.getThunderLevel((float) event.getPartialTick());
+        float storm = Mth.lerp(thunder, StormRules.FOG_FAR_SNOW, StormRules.FOG_FAR);
+        event.setFarPlaneDistance(Math.min(far, Mth.lerp(amount, far, Math.min(storm, far))));
         event.setNearPlaneDistance(Math.min(event.getNearPlaneDistance(), Mth.lerp(amount, event.getNearPlaneDistance(), 0.0F)));
         event.setFogShape(FogShape.SPHERE);
         event.setCanceled(true);

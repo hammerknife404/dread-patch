@@ -1,6 +1,6 @@
 # The Dread Gate
 
-1. Build a frame of Ice and Fire's dreadstone (any of its stone, bricks, tiles or chiseled skulls) round an opening 2 to 5 blocks wide and 3 to 7 tall, like a Nether portal's. The corners can be left out.
+1. Build a frame of Ice and Fire's dreadstone (any of its stone, bricks, tiles or chiseled skulls) round an opening 2 to 21 blocks wide and 3 to 21 tall, as a Nether portal's can be. The corners can be left out.
 2. Right-click the frame with a **Gravemaster's Key**, Ice and Fire's Mausoleum key, which the gate uses up.
 3. The opening fills with a dark, cold-fire gate, and 10 seconds later the Dread Queen comes through. The gate shatters, leaving its frame for another key.
 4. **Or step into it** before she comes, and it takes you to **[the Dreadlands](The-Dreadlands)** instead. She doesn't come, and the gate stays open 15 to 30 seconds more for anyone to follow you, flickering faster and faster over its last 5 seconds before it closes.

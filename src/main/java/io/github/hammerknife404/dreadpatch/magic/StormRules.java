@@ -12,6 +12,8 @@ import java.util.Random;
 public final class StormRules {
     /** How far the fog lets you see at the storm's height (Whiteout Dominion's: 10). */
     public static final float FOG_FAR = 24.0F;
+    /** In plain snow, no thunder: lighter (0.55.1, the owner: the fog was "just as thick during normal rain"). Eased toward {@link #FOG_FAR} as the thunder rises. */
+    public static final float FOG_FAR_SNOW = 56.0F;
     /** Rimefrost on everyone under the open sky, renewed every second while it lasts. */
     public static final int RIMEFROST_TICKS = 60;
     /**
