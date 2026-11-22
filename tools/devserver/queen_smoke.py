@@ -76,7 +76,7 @@ def main():
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
-                  "dreadpatch:summon_court"}
+                  "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -786,6 +786,68 @@ def main():
     record("their time up, they go", n == 0, f"{n} still standing")
     for tag in ("smoke_caster", "smoke_cow", "smoke_dread", "smoke_zombie"):
         rcon.run(f"kill @e[tag={tag}]")
+    clear_court()
+
+    # Create Rimefrost Dragon (0.38.0), cast by a villager (NoAI, Resistance V, at 6 of 20 health) at
+    # an Ice and Fire ice dragon's corpse in its sights: the corpse rises as a Rimefrost dragon of the
+    # same age and colour, with half the caster's missing health (7), raised by it; cast at another,
+    # the first is sent back (one at a time). (A player's cooldown, recast window and mana need a client.)
+    def ice_corpse(x, colour, tag):
+        rcon.run(f'summon iceandfire:ice_dragon {x} 200 7.5 {{NoAI:1b,AgeTicks:1300000,Variant:"{colour}",Tags:["{tag}"]}}')
+        rcon.run(f"damage @e[tag={tag},limit=1] 100000 minecraft:generic")
+        time.sleep(0.5)
+
+    raised = "@e[type=dreadpatch:rimefrost_dragon,limit=1]"
+    rcon.run('summon minecraft:villager 2.5 200 7.5 {NoAI:1b,UUID:[I;5,5,5,5],Rotation:[-90f,5f],Tags:["smoke_caster"]}')
+    rcon.run("effect give @e[tag=smoke_caster,limit=1] minecraft:resistance 300 4 true")
+    rcon.run("data merge entity @e[tag=smoke_caster,limit=1] {Health:6.0f}")
+    ice_corpse(11.5, "silver", "smoke_ice_corpse")
+    check("an ice dragon's corpse lies there", "execute if entity @e[tag=smoke_ice_corpse,nbt={ModelDead:1b}]", "Test passed")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:create_rimefrost_dragon 1")
+    # Straight away, before its AI moves it or it heals (its breath feeds it, fighting).
+    rcon.run("execute as @e[type=dreadpatch:rimefrost_dragon] run data merge entity @s {NoAI:1b}")
+    hp_risen = health(raised)
+    time.sleep(0.5)
+    check("the corpse is gone", "execute if entity @e[tag=smoke_ice_corpse]", "Test failed")
+    check("a Rimefrost dragon rises in its place", "execute positioned 11.5 200 7.5 if entity @e[type=dreadpatch:rimefrost_dragon,distance=..3]", "Test passed")
+    check("in its colour", "data get entity " + raised + " Variant", '"silver"')
+    record("at its age", 1300000 <= age_ticks(raised) < 1300000 + 400, f"AgeTicks {age_ticks(raised)}")
+    record("with half its caster's missing health, rounded down", hp_risen == 7.0, f"health {hp_risen} (the caster at 6 of 20)")
+    check("raised by its caster", "data get entity " + raised + " RaisedBy", "[I; 5, 5, 5, 5]")
+    ice_corpse(6.5, "blue", "smoke_ice_corpse_2")
+    rcon.run("tp @e[tag=smoke_caster,limit=1] 0.5 200 7.5 -90 5")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:create_rimefrost_dragon 1")
+    time.sleep(0.5)
+    check("raising another sends the first back: one at a time", "execute if entity @e[type=dreadpatch:rimefrost_dragon]", "Test passed, count: 1")
+    check("the new one is the second corpse", "data get entity " + raised + " Variant", '"blue"')
+    rcon.run("kill @e[type=dreadpatch:rimefrost_dragon]")
+    rcon.run("kill @e[tag=smoke_caster]")
+    rcon.run("kill @e[type=iceandfire:ice_dragon]")
+
+    # And the queen casts it herself (for nothing), once she's lost a quarter of her health: here at
+    # 100 of 300, against a golem under Resistance V, an ice dragon's corpse 8 blocks off. Her first
+    # raising is 10 s in; hers answers to her, and rises with half what she's lost.
+    ice_corpse(12.5, "white", "smoke_ice_corpse_3")
+    rcon.run('summon minecraft:iron_golem 8.5 200 3.5 {PersistenceRequired:1b,Tags:["smoke_target"]}')
+    rcon.run("effect give " + target + " minecraft:resistance 120 4 true")
+    rcon.run('summon dreadpatch:dread_queen 4.5 200 7.5 {UUID:[I;6,6,6,6],Health:100.0f}')
+    risen = False
+    for _ in range(40):
+        time.sleep(0.5)
+        if "Test passed" in rcon.run("execute if entity @e[type=dreadpatch:rimefrost_dragon,nbt={RaisedBy:[I;6,6,6,6]}]"):
+            risen = True
+            break
+    record("the queen raises a Rimefrost dragon of hers from a corpse", risen, "none raised by her within 20 s")
+    if risen:
+        hp = health("@e[type=dreadpatch:rimefrost_dragon,limit=1]")
+        hp_max = max_health("@e[type=dreadpatch:rimefrost_dragon,limit=1]")
+        # At most half her 300 (her health moves meanwhile: the golem hits her, her rime heals her, and
+        # its own breath feeds it a little), and not whole.
+        record("it rises with half what she's lost, not whole", 1.0 <= hp <= 160.0 and hp < hp_max, f"health {hp} of {hp_max}")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:rimefrost_dragon]")
+    rcon.run("kill @e[type=iceandfire:ice_dragon]")
+    rcon.run("kill @e[tag=smoke_target]")
     clear_court()
 
     # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, answering

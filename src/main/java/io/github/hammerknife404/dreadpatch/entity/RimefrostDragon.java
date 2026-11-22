@@ -26,6 +26,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -48,6 +49,7 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A Rimefrost dragon (0.37.0), in the owner's taxonomy a subtype of frost dragon: an Ice and Fire ice
@@ -90,16 +92,51 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
 
     /** Set while Ice and Fire takes a harvest from its corpse, so its heart and egg can be swapped. */
     private boolean harvesting;
+    /** Saved: who raised it with Create Rimefrost Dragon ({@code CreateRimefrostDragonSpell}), if anyone. */
+    public static final String RAISED_BY_KEY = "RaisedBy";
+    @Nullable
+    private UUID raisedBy;
 
     public RimefrostDragon(EntityType<? extends RimefrostDragon> type, Level level) {
         super(type, level);
     }
 
-    /** Whom it answers to among the Dread: none, as one; Syndrigossa answers to her queen. */
+    /**
+     * Whom it answers to among the Dread: whoever raised it, if that wasn't a player (a player's is
+     * their pet, tamed to them, as Ice and Fire's dragons are) and they're loaded; else none.
+     * Syndrigossa answers to her queen.
+     */
     @Nullable
     @Override
     public Entity getCommander() {
-        return null;
+        Entity raiser = this.raiser();
+        return raiser instanceof Player ? null : raiser;
+    }
+
+    /** Who raised it with Create Rimefrost Dragon, while loaded (server side). */
+    @Nullable
+    public Entity raiser() {
+        return this.raisedBy != null && this.level() instanceof ServerLevel level ? level.getEntity(this.raisedBy) : null;
+    }
+
+    @Nullable
+    public UUID getRaisedBy() {
+        return this.raisedBy;
+    }
+
+    public void setRaisedBy(@Nullable UUID raisedBy) {
+        this.raisedBy = raisedBy;
+    }
+
+    /** Sent back: it crumbles away, nothing left, no corpse and no loot (Create Rimefrost Dragon's recast). */
+    public void crumble() {
+        if (this.level() instanceof ServerLevel level) {
+            level.sendParticles(ParticleTypes.SOUL, this.getX(), this.getY(0.5), this.getZ(), 60, this.getBbWidth() / 2, this.getBbHeight() / 2, this.getBbWidth() / 2, 0.05);
+            level.sendParticles(ModRegistries.RIME_SMOKE.get(), this.getX(), this.getY(0.5), this.getZ(), 30, this.getBbWidth() / 2, this.getBbHeight() / 2, this.getBbWidth() / 2, 0.02);
+            this.playSound(this.getDeathSound(), 2.0F, 0.6F);
+        }
+        this.ejectPassengers();
+        this.discard();
     }
 
     /** Its corpse, bones and heart tables: Syndrigossa's are her own (her heart holds her egg). */
@@ -131,6 +168,15 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.setHealth(tag.contains("Health", Tag.TAG_ANY_NUMERIC) ? tag.getFloat("Health") : this.getMaxHealth());
+        this.raisedBy = tag.hasUUID(RAISED_BY_KEY) ? tag.getUUID(RAISED_BY_KEY) : null;
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        if (this.raisedBy != null) {
+            tag.putUUID(RAISED_BY_KEY, this.raisedBy);
+        }
     }
 
     /**
@@ -214,6 +260,11 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
         LivingEntity current = this.getTarget();
         if (current != null && (!current.isAlive() || !this.canAttack(current))) {
             this.setTarget(null);
+        }
+        // Raised by the queen (or another of the Dread): her target is its, as her court's is.
+        if (this.tickCount % 20 == 0 && this.getCommander() instanceof Mob commander && commander.getTarget() != null
+                && commander.getTarget().isAlive() && this.getTarget() != commander.getTarget() && this.canAttack(commander.getTarget())) {
+            this.setTarget(commander.getTarget());
         }
         this.beforeAttacks();
         LivingEntity hunted = this.getTarget();

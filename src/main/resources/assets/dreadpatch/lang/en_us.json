@@ -74,5 +74,9 @@
   "death.attack.dreadpatch.rimefire_crown.item": "%1$s was cut down by the shards of %2$s's Rimefire Crown using %3$s",
   "entity.dreadpatch.rimefrost_dragon": "Rimefrost Dragon",
   "item.dreadpatch.rimefrost_dragon_spawn_egg": "Rimefrost Dragon Spawn Egg",
-  "tooltip.dreadpatch.rimefrost_dragon": "An undead frost dragon of the Rimefrost"
+  "tooltip.dreadpatch.rimefrost_dragon": "An undead frost dragon of the Rimefrost",
+  "spell.dreadpatch.create_rimefrost_dragon": "Create Rimefrost Dragon",
+  "spell.dreadpatch.create_rimefrost_dragon.guide": "Raise the corpse of an ice dragon you look at as a Rimefrost dragon of the same age, your own to ride and command. It rises with half the health you're missing, so the closer you are to death, the stronger it rises. It costs every drop of your mana. You keep one at a time: recast within its cooldown to send it back and raise the corpse you're looking at instead.",
+  "ui.dreadpatch.rises_with": "Rises with %s%% of Your Missing Health",
+  "ui.dreadpatch.all_mana": "Consumes All Your Mana"
 }
