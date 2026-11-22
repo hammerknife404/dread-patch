@@ -38,12 +38,12 @@ public final class QueenRegalia {
 
     /**
      * "There Must Always Be a Dread Queen" (the owner, 0.44.0): all four pieces worn, her sword and staff
-     * in hand, either way round. Checked across every slot when, and only when, a player's equipment
-     * changes (vanilla's own per-tick comparison raises the event; nothing polls), and granted by its
-     * {@code impossible} criterion.
+     * in hand, either way round. Checked across every slot only when one of those six items is put into
+     * a slot (vanilla's own equipment comparison raises the event; nothing polls; any other change costs
+     * one item comparison), never again once earned, and granted by its {@code impossible} criterion.
      */
     private static void onEquip(LivingEquipmentChangeEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !isHers(event.getTo())) {
             return;
         }
         AdvancementHolder advancement = player.server.getAdvancements().get(DreadPatch.id("regalia/enthroned"));
@@ -64,6 +64,11 @@ public final class QueenRegalia {
         if (main.is(sword) && off.is(staff) || main.is(staff) && off.is(sword)) {
             player.getAdvancements().award(advancement, "enthroned");
         }
+    }
+
+    private static boolean isHers(ItemStack stack) {
+        return !stack.isEmpty() && (stack.is(IafItems.DREAD_QUEEN_SWORD.get()) || stack.is(IafItems.DREAD_QUEEN_STAFF.get())
+                || DreadGear.queenArmor().stream().anyMatch(piece -> stack.is(piece.get())));
     }
 
     private static void onDrops(LivingDropsEvent event) {
