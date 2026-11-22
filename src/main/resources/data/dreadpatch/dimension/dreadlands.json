@@ -1,0 +1,11 @@
+{
+  "type": "dreadpatch:dreadlands",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "dreadpatch:dreadlands",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "dreadpatch:dreadlands"
+    }
+  }
+}

@@ -6,7 +6,7 @@ Patching in the Dread Queen for my own world.
 
 **Requires:** Minecraft 1.21.1, NeoForge 21.1.265+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
 
-**Status:** in development. She doesn't spawn naturally yet.
+**Status:** in development. She doesn't spawn naturally yet: her encounters atop the Dreadlands' spires come next.
 
 ## Calling her
 
@@ -68,15 +68,26 @@ Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of t
 
 1. Build a frame of Ice and Fire's dreadstone (any of its stone, bricks, tiles or chiseled skulls) round an opening 2 to 5 blocks wide and 3 to 7 tall, like a Nether portal's. The corners can be left out.
 2. Right-click the frame with a **Gravemaster's Key**, Ice and Fire's Mausoleum key, which the gate uses up.
-3. The opening fills with a dark, cold-fire gate, and 5 seconds later the Dread Queen comes through. The gate shatters, leaving its frame for another key.
+3. The opening fills with a dark, cold-fire gate, and 10 seconds later the Dread Queen comes through. The gate shatters, leaving its frame for another key.
+4. **Or step into it** before she comes, and it takes you to **the Dreadlands** (below) instead. She doesn't come, and the gate stays open 15 to 30 seconds more for anyone to follow you, flickering faster and faster over its last 5 seconds before it closes.
 
 Where there's room for her dragon in front of the gate, she comes as the full boss, riding an ancient Syndrigossa. Where there isn't, she rises out of the gate on foot.
 
 - **In a Mausoleum:** every Mausoleum already has four gates. The arches of the shrine round the ice dragon forge in its far hall are dreadstone frames 3 wide and 6 tall. Its hall is too low for her dragon, so there she comes on foot.
-- **Breaking the frame** during those 5 seconds collapses the gate, and the key is lost.
-- **On Peaceful**, nothing comes through, and the key isn't used.
+- **Breaking the frame** while it's open collapses the gate, and the key is lost.
+- **On Peaceful** the gate still opens, as a way to the Dreadlands, but the queen doesn't come through.
 
 The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now be crafted: three Dread Shards, a Bone and two Gold Ingots in the shape of a key (shards and bone across the top, a shard below, the gold at the bottom right). The recipe unlocks when you pick up a dread shard.
+
+## The Dreadlands
+
+A dimension of bleak frozen waste: rolling snowfields over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning. Its day, night and weather are the overworld's. Nothing lives there.
+
+- **Getting there:** step into a Dread Gate during its ritual (above). You arrive near the foot of the nearest spire, 30 to 40 blocks from it, facing it; anyone who follows through the same gate arrives at the same spot.
+- **The spires:** rare and tall (64 to 100 blocks), standing far apart on the waste. They're dreadstone and dreadstone bricks over stone at the foot, banded with packed and blue ice, giving way to ice and snow toward a flat summit crowned with ice spikes. A ledge of dreadstone bricks winds up the outside from the ground to the summit.
+- **Getting home:** build a Dread Gate there and key it. It opens at once (no queen comes), stays open 15 to 30 seconds, and takes whoever steps in back to the gate they came in by (or to the world's spawn). A key takes three dread shards (dread phantoms drop them), a bone and two gold ingots, so bring the gold; the frame takes any dreadstone, the spires' included. Dying sends you to your usual spawn, as anywhere.
+- **Beds** explode there, as in the Nether, and respawn anchors don't work.
+- **Dread phantoms** come down out of its sky now and then, one or two at a time, whether or not you've slept: about once every 4 minutes for each player out under the sky, never while 4 are already about.
 
 ## Rimefrost dragons
 
@@ -119,7 +130,7 @@ Phantoms of the Dread: as strong as Minecraft's own phantoms, with a phantom's 2
 - **What they do:** they circle above whoever called them, take up their fights, and turn on whatever hurts them or the one who called them, diving on it at once. A dive is committed: hitting a diving phantom doesn't turn it aside, as it does a phantom; only its bite or a wall ends the dive. The harder the difficulty, the more often they dive: every 8 to 11 seconds on Easy (a phantom's pace), 6 to 8 on Normal, 4 to 6 on Hard. With no one to answer to, they hunt players as phantoms do. They're of the Dread: allied with the queen and her court, and untouched by Withering Rime, Whiteout and Rimefrost.
 - **Their bite:** a phantom's, and one bite in three (35%) leaves 5 seconds of **Rimefrost**, the Dread's cold without the withering (25% slower). One in seven (15%), rolled apart, leaves 3 seconds of Withering Rime, so a bite can leave both.
 - **Their drops:** a dread thrall's (bones and dread shards), and when a player kills one, 1 to 3 phantom membranes and 1 to 3 Rimefrost Dragon Scales, each with up to one more a Looting level. The ones a player calls leave nothing.
-- **Natural spawning** will come with the Dreadlands: there, and only there, one or two at a time, rarely, whether or not you've slept.
+- **Natural spawning:** in the Dreadlands, and only there, one or two at a time, rarely, whether or not you've slept (above).
 
 ## Rimefrost dragonscale and dread dragonsteel
 

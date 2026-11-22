@@ -121,5 +121,8 @@
   "effect.dreadpatch.rimefrost": "Rimefrost",
   "spell.dreadpatch.summon_dread_phantoms": "Summon Dread Phantoms",
   "spell.dreadpatch.summon_dread_phantoms.guide": "Call two dread phantoms out of the cold air above you. For a minute they circle over you and dive on whatever hostile mob attacks you, or that you attack; their bite can slow with Rimefrost and leave Withering Rime. Like the Dread Queen's court they never turn on the Dread, nor on anything that isn't hostile, and they leave nothing behind. Casting it again dismisses the phantoms you called before.",
-  "ui.dreadpatch.phantoms": "%s Dread Phantoms"
+  "ui.dreadpatch.phantoms": "%s Dread Phantoms",
+  "dimension.dreadpatch.dreadlands": "The Dreadlands",
+  "biome.dreadpatch.dreadlands": "Dreadlands",
+  "message.dreadpatch.dreadlands.arrive": "The Dreadlands. A Dread Gate keyed here leads home."
 }
