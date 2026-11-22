@@ -75,7 +75,7 @@ What every Rimefrost dragon has:
 - **Its bite** leaves Withering Rime II, which withers twice as fast, for 4.5 seconds. Tail and wing strikes don't.
 - **Shatter-Spine**, its charge: a core of bone and dread-glass that bursts 9 blocks above its target into 5 to 7 shards raining over the ground below. Each cuts everyone within a block and a half and leaves Withering Rime.
 - **In the air:** it takes off far more than other dragons (with a target on the ground it's up in about 3 seconds), favours strafing fly-bys, breathing as it passes, and looses Shatter-Spine every 10 seconds at whatever it's hunting. It can't hunt players in creative or spectator. Its breath is big cold dread-fire flames and soot clouds you can see from the ground, Shatter-Spine flies as a burr of dark ice spikes and bursts in a ring, and its wings keep beating while it breathes on a fly-by.
-- **Undead:** Smite hits it harder, Healing hurts it and Harming heals it, and Poison, Regeneration and Wither don't take. Like ice dragons, it can't freeze or drown.
+- **Undead:** it never sleeps. Smite hits it harder, Healing hurts it and Harming heals it, and Poison, Regeneration and Wither don't take. Like ice dragons, it can't freeze or drown.
 - **Players:** it hunts them even when Ice and Fire's `neutralToPlayer` setting makes other wild dragons leave them alone.
 - **Its corpse:** harvested like any dragon's, empty-handed, but it's Dread. It gives scales of its colour or dread shards (no flesh, and no blood for a bottle), a handful of dread shards and witherbones where a dragon's heart would be, no ice dragon egg, then dragon bones and an ice dragon skull.
 
@@ -95,6 +95,8 @@ The unique, named Rimefrost dragon, risen as the queen's mount; still in progres
   3. The third hatches it into a white Rimefrost dragon hatchling, tamed to whoever laid it. Syndrigossa is unique, so her eggs hatch Rimefrost dragons. Name the egg with a name tag and the hatchling keeps the name.
 
   Strike a laid egg to pick it back up; its storms are lost. Nothing else harms it.
+
+  As with Ice and Fire's own hatchlings, right-click it with an empty hand while it's small to carry it on your shoulder, and sneak to set it down.
 
 ## Her staff and sword
 

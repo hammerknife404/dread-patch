@@ -53,6 +53,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - only Syndrigossa has Sovereign's Eclipse, the boss bar, health by difficulty, the ancient boss, the queen's saddle and tether, and her egg;
   - a plain Rimefrost dragon's health is Ice and Fire's for its age (their pick wasn't given; ours, as "same tiered").
 - **0.38.0, Create Rimefrost Dragon** (below); ours: the queen raises one only once she's lost a quarter of her health (unhurt, hers would rise with 1), first 10 s in.
+- **0.40.0:** "Rimefrost dragons are undead, they do not sleep" (`RimefrostDragon`: the sleep flag never set, `isSleeping` false, `isTimeToWake` true).
 - **0.39.0, hatching her egg** (B, below; ours: the storm must rise with the egg already in it and run its whole course, not cut short; struck by a player, a laid egg pops back into an item and loses its storms).
 - **Decided (2026-11-21):**
   - **Create Rimefrost Dragon**, a spell (scroll only): it raises an Ice and Fire ice dragon corpse as a Rimefrost dragon of the same age, owned by the caster. 3 minutes' cooldown at least; 500 mana and all the rest a player has (the queen pays none). It rises with health of half (rounded down) the caster's missing health: the queen's, or the casting player's. A player has one at a time. "Recasting Create Rimefrost Dragon within its cooldown unsummons the current one and allows the new target".
@@ -173,6 +174,8 @@ Read Ice and Fire's source on the `1.21.1` branch of [IAFEnvoy/IceAndFire-CE](ht
   - `/kill` removes one outright.
 
 **Targets, riders and drawing**
+- **Sleep** is `setInSittingPose`: Ice and Fire's `SLEEPING` flag, saved as `Sleeping` (sitting is `setOrderedToSit`). `IafDragonLogic.updateDragonServer` sets it at night (config `dragon.sleep`; only with no passengers, not when its command is 2, near home if it has one) unless `isTimeToWake()` (day, or its command).
+- **Small dragons on a player:** a tame stage-1 dragon right-clicked by its owner with an empty hand, not sneaking, rides them (`startRiding(player)`, up to three). It gets down when its control state is 16, which Ice and Fire's client sets while its rider holds sneak (`ClientEvents` → `dismount(keyShift.isDown())`), or when they start gliding, unless they're riding something themselves.
 - **Targeting players:**
   - The wild-dragon target goals (`DragonAITargetNonTamedGoal` at 5, `DragonAITargetGoal` at 6) take a player only if config `dragon.neutralToPlayer` is false, and never one in creative. **The owner's pack sets it true.**
   - The non-tamed goal stands down when the dragon is tame or roosting. Asleep, it only takes a player within 4 blocks.
@@ -854,6 +857,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - a storm killed early gives nothing;
   - two more hatch the first into a white Rimefrost hatchling (`AgeTicks` under 400) owned by the egg's owner.
   - Not covered (needs a player): laying it with a right-click, its hint, picking it back up, its look.
+- **Sleep:** an Ice and Fire ice dragon summoned `Sleeping:1b` sleeps; a Rimefrost dragon summoned so is awake.
 - **Create Rimefrost Dragon:**
   - a NoAI villager (Resistance V, at 6 of 20) casts it at a silver ice dragon corpse: the corpse is gone, and a silver Rimefrost of its age rises there with 7 health, `RaisedBy` the villager;
   - cast at a second corpse, the first is sent back and the second (blue) rises;
@@ -886,6 +890,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **The crown check** polls every 0.1 s. Her next bolt comes within 1.25 s of a crown, sometimes within a few ticks, and shatters it.
 - **Shards:** once, a core's burst counted 8 shards (it makes 5–7), never explained. That check prints where they were.
 - **The seat:** once (0.37.0), "she sits on its back" read her 14.7 blocks above her dragon's feet. The same setup repeated eight times seated her at 9.24, its dragon on the ground, and the next full run passed: likely her dragon stirring in the 0.3 s it has its AI before the test sets NoAI.
+- **The queen's raising:** once (0.40.0) she raised nothing within 20 s in the full run; alone it passed 3 runs of 3, each at 10 s, and the next full run passed. The check now prints her position, health and target, and whether the corpse is there, if it fails.
 - **A court member:** "its caster can't hurt it" once read two different members (`limit=1` alone may pick another between reads); it now tags one and reads `/damage`'s own output.
 
 **What it doesn't cover**
@@ -904,6 +909,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Creative mode:** Iron's spends no mana and sets no cooldowns in creative (`CREATIVE_MANA_COST` / `CREATIVE_COOLDOWN`), so check those in survival.
 - **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.35.0 (2026-11-21: at 0.33.0 "everything works, the court follows and ignores golems"; at 0.34.0 "the boss bar works"; at 0.35.0 "everything works, they ignore the corpse now"). Their reports are behind the decisions above.
 - **Never checked:** Fabulous graphics and Iris shader packs, for the storm and its fog.
+- **Seen once, not looked into** (0.39.0, the owner: "Seems to be a dysync issue, reloadign seemed to work, likely after shift+right clicking. Moving on"): something went out of step between client and server while trying the egg's hatchling, and a reload put it right. The hatchling had been riding the player's shoulder (Ice and Fire's), and sneaking gets it down.
 
 ## Working here
 

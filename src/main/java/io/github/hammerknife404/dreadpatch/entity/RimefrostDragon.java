@@ -62,8 +62,8 @@ import java.util.UUID;
  * <li>its breath is Withering Rime, a cone up to 32 blocks ({@link #performNormalBreathAttack});</li>
  * <li>its bite leaves Withering Rime II ({@code SyndrigossaEvents});</li>
  * <li>its charge is Shatter-Spine ({@link ShatterSpineCore}), which it looses on its own every 10 s in the air;</li>
- * <li>undead (tagged; no Wither, in {@code SyndrigossaEvents}), hunting players whatever Ice and
- * Fire's config says, with a Dread corpse;</li>
+ * <li>undead (tagged; no Wither, in {@code SyndrigossaEvents}; it never sleeps), hunting players
+ * whatever Ice and Fire's config says, with a Dread corpse;</li>
  * <li>her animation layers and her breath's particles.</li>
  * </ul>
  * Syndrigossa is the unique, named one ({@link Syndrigossa}): the queen's mount, the boss.
@@ -150,6 +150,27 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
 
     protected ResourceLocation heartLoot() {
         return HEART_LOOT;
+    }
+
+    /**
+     * Rimefrost dragons are undead: they never sleep (0.40.0, the owner). Ice and Fire's sleep is this
+     * pose (its {@code SLEEPING} flag, saved as {@code Sleeping}; sitting is {@code setOrderedToSit}),
+     * which its {@code IafDragonLogic} sets at night (config {@code dragon.sleep}) unless it's time to
+     * wake: never set, it's never asleep, and it's always time to wake. One saved asleep wakes as it loads.
+     */
+    @Override
+    public void setInSittingPose(boolean sleeping) {
+        super.setInSittingPose(false);
+    }
+
+    @Override
+    public boolean isSleeping() {
+        return false;
+    }
+
+    @Override
+    public boolean isTimeToWake() {
+        return true;
     }
 
     /** Anyone on its back: prey in its jaws, or a rider. Syndrigossa doesn't count her queen. */
