@@ -28,9 +28,9 @@ public final class DreadQueenModel<T extends LivingEntity> extends HumanoidModel
     /** The original pose angles each arm this far (radians) away from the body. */
     private static final float ARM_FLARE = 0.10000737F;
     /** How far (radians) her bust tips forward from her chest: its tops slope down from her collar. */
-    private static final float BUST_TILT = 0.17F;
+    static final float BUST_TILT = 0.17F;
     /** And how far (radians) each half turns outward, so the two read apart. */
-    private static final float BUST_SPLAY = 0.15F;
+    static final float BUST_SPLAY = 0.15F;
 
     public DreadQueenModel(ModelPart root) {
         super(root);

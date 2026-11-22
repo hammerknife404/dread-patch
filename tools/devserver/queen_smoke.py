@@ -124,6 +124,9 @@ def main():
         staffs = count(STAFF_WITH_SPELLS)
         record(where + ": her staff holds her spells", staffs == gear["iceandfire:dread_queen_staff"],
                f"{staffs} of {gear['iceandfire:dread_queen_staff']} staffs with her three spells locked in at level 3")
+        # Her regalia (0.43.0) comes only from a player's kill, never from her table or a /kill.
+        regalia = sum(count(f"dreadpatch:dread_queen_{piece}") for piece in ("crown", "bodice", "robe", "greaves"))
+        record(where + ": no regalia without a player's kill", regalia == 0, f"{regalia} pieces")
         rcon.run("kill @e[type=item]")
         return gear["iceandfire:dread_queen_sword"] + gear["iceandfire:dread_queen_staff"]
 
@@ -1239,15 +1242,22 @@ def main():
     rcon.run("fill 1 239 1 30 239 14 minecraft:stone")
     rcon.run("fill 1 240 1 30 250 14 minecraft:air")
 
-    def armoured(tag, x, set_name):
-        rcon.run(f'summon minecraft:zombie {x} 240 4.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["{tag}"],ArmorItems:['
-                 f'{{id:"{set_name}_boots",count:1}},{{id:"{set_name}_leggings",count:1}},{{id:"{set_name}_chestplate",count:1}},{{id:"{set_name}_helmet",count:1}}]}}')
+    def pieces_of(set_name):
+        return [f"{set_name}_{piece}" for piece in ("boots", "leggings", "chestplate", "helmet")]
+
+    regalia = ["dreadpatch:dread_queen_greaves", "dreadpatch:dread_queen_robe", "dreadpatch:dread_queen_bodice", "dreadpatch:dread_queen_crown"]
+
+    def armoured(tag, x, pieces):
+        worn = ",".join(f'{{id:"{piece}",count:1}}' for piece in pieces)
+        rcon.run(f'summon minecraft:zombie {x} 240 4.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["{tag}"],ArmorItems:[{worn}]}}')
         rcon.run(f"attribute @e[tag={tag},limit=1] minecraft:generic.max_health base set 100")
         rcon.run(f"data merge entity @e[tag={tag},limit=1] {{Health:100.0f}}")
 
-    for set_name, label in (("dreadpatch:dread_dragonsteel", "dread dragonsteel"), ("iceandfire:dragonsteel_ice", "Ice and Fire's ice dragonsteel")):
-        armoured("smoke_breathed", 4.5, set_name)
-        armoured("smoke_struck", 8.5, set_name)
+    for pieces, label in ((pieces_of("dreadpatch:dread_dragonsteel"), "dread dragonsteel"),
+                          (pieces_of("iceandfire:dragonsteel_ice"), "Ice and Fire's ice dragonsteel"),
+                          (regalia, "the Dread Queen's regalia")):
+        armoured("smoke_breathed", 4.5, pieces)
+        armoured("smoke_struck", 8.5, pieces)
         time.sleep(0.3)
         rcon.run("damage @e[tag=smoke_breathed,limit=1] 40 dreadpatch:withering_breath")
         # (A mob's attack: armour cuts it as it does the breath; vanilla's generic damage goes straight past armour.)
@@ -1257,6 +1267,22 @@ def main():
                f"breath took {breathed:.2f}, a plain hit {struck:.2f} (30% would be {0.3 * struck:.2f})")
         rcon.run("kill @e[tag=smoke_breathed]")
         rcon.run("kill @e[tag=smoke_struck]")
+    # Her regalia (0.43.0) is as strong as dread dragonsteel: the same armour and toughness, worn.
+    armoured("smoke_regalia", 4.5, regalia)
+    armoured("smoke_steel", 8.5, pieces_of("dreadpatch:dread_dragonsteel"))
+    time.sleep(0.3)
+
+    def worn(tag, attribute):
+        out = rcon.run(f"attribute @e[tag={tag},limit=1] {attribute} get")
+        found = re.search(r"is (-?[\d.]+)", out)
+        return float(found.group(1)) if found else None
+
+    for attribute in ("minecraft:generic.armor", "minecraft:generic.armor_toughness"):
+        queen_value, steel_value = worn("smoke_regalia", attribute), worn("smoke_steel", attribute)
+        record(f"her regalia's {attribute.split('.')[-1]} is dread dragonsteel's", queen_value is not None and queen_value == steel_value and queen_value > 0,
+               f"regalia {queen_value}, dread dragonsteel {steel_value}")
+    rcon.run("kill @e[tag=smoke_regalia]")
+    rcon.run("kill @e[tag=smoke_steel]")
     # A dread dragonsteel sword's hit leaves Withering Rime (a husk's, which goes for iron golems).
     # (No Resistance: a hit brought to nothing carries nothing. An iron golem has 100 health.)
     rcon.run('summon minecraft:iron_golem 12.5 240 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_rimed"]}')

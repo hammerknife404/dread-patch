@@ -1,0 +1,71 @@
+{
+  "parent": "dreadpatch:regalia/root",
+  "display": {
+    "icon": {
+      "id": "dreadpatch:dread_queen_bodice"
+    },
+    "title": {
+      "translate": "advancements.dreadpatch.regalia.complete.title"
+    },
+    "description": {
+      "translate": "advancements.dreadpatch.regalia.complete.description"
+    },
+    "frame": "challenge"
+  },
+  "criteria": {
+    "crown": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "dreadpatch:dread_queen_crown"
+          }
+        ]
+      }
+    },
+    "bodice": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "dreadpatch:dread_queen_bodice"
+          }
+        ]
+      }
+    },
+    "robe": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "dreadpatch:dread_queen_robe"
+          }
+        ]
+      }
+    },
+    "greaves": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "dreadpatch:dread_queen_greaves"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "crown"
+    ],
+    [
+      "bodice"
+    ],
+    [
+      "robe"
+    ],
+    [
+      "greaves"
+    ]
+  ]
+}

@@ -101,5 +101,17 @@
   "item.dreadpatch.dread_dragonsteel_shovel": "Dread Dragonsteel Shovel",
   "item.dreadpatch.dread_dragonsteel_hoe": "Dread Dragonsteel Hoe",
   "tooltip.dreadpatch.dragon_armor": "Takes %s%% off dragon breath, a Rimefrost dragon's too",
-  "tooltip.dreadpatch.dread_dragonsteel.rime": "Leaves %ss of Withering Rime on what it hits"
+  "tooltip.dreadpatch.dread_dragonsteel.rime": "Leaves %ss of Withering Rime on what it hits",
+  "item.dreadpatch.dread_queen_crown": "Crown of the Dreaded Queen",
+  "item.dreadpatch.dread_queen_bodice": "Bodice of the Dreaded Queen",
+  "item.dreadpatch.dread_queen_robe": "Robes of the Dreaded Queen",
+  "item.dreadpatch.dread_queen_greaves": "Greaves of the Dreaded Queen",
+  "advancements.dreadpatch.regalia.root.title": "The Dreaded Queen's Regalia",
+  "advancements.dreadpatch.regalia.root.description": "Slay the Dread Queen. Each of her deaths by your hand yields a piece of her regalia you lack",
+  "advancements.dreadpatch.regalia.crown.description": "Claim the Dread Queen's crown of ice",
+  "advancements.dreadpatch.regalia.bodice.description": "Claim the Dread Queen's bodice and mantle",
+  "advancements.dreadpatch.regalia.robe.description": "Claim the Dread Queen's robes",
+  "advancements.dreadpatch.regalia.greaves.description": "Claim the Dread Queen's greaves",
+  "advancements.dreadpatch.regalia.complete.title": "Long Live the Queen",
+  "advancements.dreadpatch.regalia.complete.description": "Claim every piece of the Dread Queen's regalia"
 }

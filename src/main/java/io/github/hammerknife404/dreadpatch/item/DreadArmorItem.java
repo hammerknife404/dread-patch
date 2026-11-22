@@ -27,7 +27,9 @@ public class DreadArmorItem extends ArmorItem {
         /** From Ice and Fire's white dragonscale armour texture. */
         SCALE("dragon_scales_white"),
         /** From its ice dragonsteel armour texture. */
-        STEEL("dragonsteel_ice");
+        STEEL("dragonsteel_ice"),
+        /** The Dread Queen's regalia (0.43.0): her own texture, as it's drawn on her. */
+        QUEEN(null);
 
         /** The Ice and Fire armour texture it's recoloured from ({@code textures/models/armor/<this>_layer_1|2}). */
         public final String iceAndFireTexture;

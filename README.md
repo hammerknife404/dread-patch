@@ -50,6 +50,15 @@ Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she 
 - Her sword and her staff, each one time in four (Looting raises it: 30% at Looting I, 40% at Looting III).
 - One epic or legendary ink.
 - One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court or Create Rimefrost Dragon. They're Ice spells (they count Ice spell power), found nowhere else.
+- **A piece of her regalia,** when a player kills her (below).
+
+### Her regalia
+
+Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of the Dreaded Queen**. The crown is her ring of ice, the bodice her bodice with its necklace, cloak and silver pauldrons, the robes and greaves the rest, each drawn from her own model and texture.
+
+- **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It's repaired with dread dragonsteel ingots.
+- **Collecting it:** each queen you kill drops a piece you don't have yet, so four kills complete the set. Looting gives a 10% chance a level of a second missing piece. Once you have the set, she drops a random piece one time in four (5% more a Looting level).
+- **Advancements** keep count: one for slaying her, one for each piece you've held, and one for the whole set. A piece counts as yours once it's been in your inventory.
 
 ## The Dread Gate and the Gravemaster's Key
 

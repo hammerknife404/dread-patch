@@ -8,6 +8,7 @@ import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DragonCorpses;
 import io.github.hammerknife404.dreadpatch.entity.DreadGate;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
+import io.github.hammerknife404.dreadpatch.entity.QueenRegalia;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerBolts;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerClimbing;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
@@ -60,6 +61,7 @@ public final class DreadPatch {
         DragonCorpses.register(NeoForge.EVENT_BUS);
         DragonArmor.register(NeoForge.EVENT_BUS);
         DreadDragonsteel.register(NeoForge.EVENT_BUS);
+        QueenRegalia.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {
@@ -92,6 +94,7 @@ public final class DreadPatch {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_INGOT.get());
         } else if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             DreadGear.armor().forEach(item -> event.accept(item.get()));
+            DreadGear.queenArmor().forEach(item -> event.accept(item.get()));
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SWORD.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
         } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {

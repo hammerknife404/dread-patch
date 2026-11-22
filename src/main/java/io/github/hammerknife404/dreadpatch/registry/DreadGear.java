@@ -58,6 +58,22 @@ public final class DreadGear {
                 () -> Ingredient.of(DREAD_DRAGONSTEEL_INGOT.get()), "dread_dragonsteel");
     });
 
+    /**
+     * The Dread Queen's regalia (0.43.0): her outfit to wear, "in line with" the dread sets (the owner): dread
+     * dragonsteel's numbers (Ice and Fire's config), dragon armour against breath, repaired with dread dragonsteel.
+     */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> DREAD_QUEEN_MATERIAL = ARMOR_MATERIALS.register("dread_queen", () -> {
+        IafCommonConfig.ArmorsConfig c = IafCommonConfig.INSTANCE.armors;
+        return material(c.dragonsteelBootsArmor.getValue(), c.dragonsteelLeggingsArmor.getValue(), c.dragonsteelChestplateArmor.getValue(),
+                c.dragonsteelHelmetArmor.getValue(), c.dragonsteelArmorEnchantability.getValue(), SoundEvents.ARMOR_EQUIP_NETHERITE,
+                c.dragonsteelArmorToughness.getValue().floatValue(), c.dragonsteelArmorKnockbackResistance.getValue().floatValue(),
+                () -> Ingredient.of(DREAD_DRAGONSTEEL_INGOT.get()), "dread_queen");
+    });
+    public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_CROWN = queenArmor("dread_queen_crown", ArmorItem.Type.HELMET);
+    public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_BODICE = queenArmor("dread_queen_bodice", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_ROBE = queenArmor("dread_queen_robe", ArmorItem.Type.LEGGINGS);
+    public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_GREAVES = queenArmor("dread_queen_greaves", ArmorItem.Type.BOOTS);
+
     public static final DeferredItem<DreadArmorItem> RIMEFROST_DRAGONSCALE_HELMET = scaleArmor("rimefrost_dragonscale_helmet", ArmorItem.Type.HELMET, 397);
     public static final DeferredItem<DreadArmorItem> RIMEFROST_DRAGONSCALE_CHESTPLATE = scaleArmor("rimefrost_dragonscale_chestplate", ArmorItem.Type.CHESTPLATE, 577);
     public static final DeferredItem<DreadArmorItem> RIMEFROST_DRAGONSCALE_LEGGINGS = scaleArmor("rimefrost_dragonscale_leggings", ArmorItem.Type.LEGGINGS, 541);
@@ -106,6 +122,11 @@ public final class DreadGear {
                 || stack.is(DREAD_DRAGONSTEEL_SHOVEL.get()) || stack.is(DREAD_DRAGONSTEEL_HOE.get());
     }
 
+    /** Her regalia, helmet to boots (the order {@code RegaliaDrops} counts pieces in). */
+    public static List<DeferredItem<DreadArmorItem>> queenArmor() {
+        return List.of(DREAD_QUEEN_CROWN, DREAD_QUEEN_BODICE, DREAD_QUEEN_ROBE, DREAD_QUEEN_GREAVES);
+    }
+
     public static List<DeferredItem<DreadArmorItem>> armor() {
         return List.of(RIMEFROST_DRAGONSCALE_HELMET, RIMEFROST_DRAGONSCALE_CHESTPLATE, RIMEFROST_DRAGONSCALE_LEGGINGS, RIMEFROST_DRAGONSCALE_BOOTS,
                 DREAD_DRAGONSTEEL_HELMET, DREAD_DRAGONSTEEL_CHESTPLATE, DREAD_DRAGONSTEEL_LEGGINGS, DREAD_DRAGONSTEEL_BOOTS);
@@ -118,6 +139,21 @@ public final class DreadGear {
     private static DeferredItem<DreadArmorItem> scaleArmor(String name, ArmorItem.Type type, int durability) {
         return ITEMS.register(name, () -> new DreadArmorItem(RIMEFROST_DRAGONSCALE_MATERIAL, type, DreadArmorItem.Kind.SCALE,
                 new Item.Properties().durability(durability).rarity(Rarity.UNCOMMON)));
+    }
+
+    private static DeferredItem<DreadArmorItem> queenArmor(String name, ArmorItem.Type type) {
+        return ITEMS.register(name, () -> new DreadArmorItem(DREAD_QUEEN_MATERIAL, type, DreadArmorItem.Kind.QUEEN,
+                new Item.Properties().durability(steelDurability(type)).rarity(Rarity.EPIC).fireResistant()));
+    }
+
+    private static int steelDurability(ArmorItem.Type type) {
+        IafCommonConfig.ArmorsConfig c = IafCommonConfig.INSTANCE.armors;
+        return switch (type) {
+            case HELMET -> c.dragonsteelHelmetDurability.getValue();
+            case CHESTPLATE -> c.dragonsteelChestplateDurability.getValue();
+            case LEGGINGS -> c.dragonsteelLeggingsDurability.getValue();
+            default -> c.dragonsteelBootsDurability.getValue();
+        };
     }
 
     private static DeferredItem<DreadArmorItem> steelArmor(String name, ArmorItem.Type type) {
