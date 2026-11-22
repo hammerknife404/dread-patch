@@ -4,7 +4,7 @@ NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinish
 
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
-- **Still to come:** hatching Syndrigossa's egg (decided, under the owner's decisions), and natural spawning. For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
+- **Still to come:** natural spawning. For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
 
 ## The owner's decisions
 
@@ -53,6 +53,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - only Syndrigossa has Sovereign's Eclipse, the boss bar, health by difficulty, the ancient boss, the queen's saddle and tether, and her egg;
   - a plain Rimefrost dragon's health is Ice and Fire's for its age (their pick wasn't given; ours, as "same tiered").
 - **0.38.0, Create Rimefrost Dragon** (below); ours: the queen raises one only once she's lost a quarter of her health (unhurt, hers would rise with 1), first 10 s in.
+- **0.39.0, hatching her egg** (B, below; ours: the storm must rise with the egg already in it and run its whole course, not cut short; struck by a player, a laid egg pops back into an item and loses its storms).
 - **Decided (2026-11-21):**
   - **Create Rimefrost Dragon**, a spell (scroll only): it raises an Ice and Fire ice dragon corpse as a Rimefrost dragon of the same age, owned by the caster. 3 minutes' cooldown at least; 500 mana and all the rest a player has (the queen pays none). It rises with health of half (rounded down) the caster's missing health: the queen's, or the casting player's. A player has one at a time. "Recasting Create Rimefrost Dragon within its cooldown unsummons the current one and allows the new target".
   - **Hatching her egg, B:** placed on dreadstone, it hatches after soaking up three full Whiteout Dominion storms cast over it, into a Rimefrost hatchling (white) tamed to whoever placed it.
@@ -749,6 +750,17 @@ Both are Ice and Fire's items, changed through default components and events. Th
     - Vanilla's snowflake (friction 1.0, then ×0.95 sideways in its own tick, 16–80 ticks) is sent at `snowSpeed`, the speed for its longest life, so none passes its mark.
     - `DragonBreathTest` runs that motion over every lifetime, cone length and stage, and checks the far end is still reached.
 
+### Her egg (`item/SyndrigossaEggItem`, `entity/SyndrigossaEggEntity`, `client/SyndrigossaEggRenderer`; 0.39.0)
+
+- **Laying:** `useOn` the top face of a `DreadGateBlock.FRAME` block (dreadstone) with room above: a `dreadpatch:syndrigossa_egg` entity (0.45 × 0.55, Ice and Fire's egg's size) owned by the player (`Owner`), named if the egg is. Anywhere else, an action-bar hint.
+- **The egg entity:** a plain `Entity`, with gravity, and pickable. A player's hit drops the item back (its storms lost); nothing else harms it, though `/kill` removes it. Saved: `Owner`, `Soaked`. Drawn as its item sprite (`ItemDisplayContext.FIXED`), billboarded, 0.7 blocks.
+- **Soaking** (`WhiteoutDominion`):
+  - on a storm's first tick it records its `fullLifetime` and the eggs inside it;
+  - every 20 ticks it drops eggs no longer inside;
+  - only if it ends by running out a lifetime still equal to `fullLifetime` (hers is cut short when she falls; a recast or `/kill` discards it early, never reaching that), each egg still inside gets `soak()`.
+  - That counts only on dreadstone: +1, with particles, a sound, and an action-bar count to its owner if they're online.
+- **Hatching** (at `STORMS` 3), as Ice and Fire's `DragonEggEntity` hatches: a `RimefrostDragon`, variant white, a random gender, hunger 50, `refreshDirtyAttributes` and whole, the egg's name, `setTame(true, true)` and `setOwnerUUID`, persistent, with Ice and Fire's `EGG_HATCH` sound.
+
 ### The queen and her dragon
 
 **Mounting** (`entity/SoulTether`)
@@ -837,6 +849,11 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Magic:** Withering Rime and the siphon, and each spell, cast through Iron's `/cast` by armor stands.
 - **Fighting:** the sword, her spacing and Barrow-Step, her court, decree, storm and lich.
 - **Summon Court:** cast by a NoAI villager (an armor stand records no attacker, and the court defends its caster from what hurts it). The count by level; leaving a cow and a dread thrall be when they hit the caster or a member; the caster's hit cancelled; a husk that hits the caster attacked; a recast replacing the court; expiry (set through `data merge ... {NeoForgeData:{...}}`). With `attack_friendly_mobs` and `retaliate` switched on by hand, the court killed the cow within 4 s, so the check does catch the filter missing.
+- **Hatching:** an egg summoned on a dreadstone block with an `Owner`, and another on plain stone:
+  - a full summoned storm (`Lifetime` 40) gives the first 1 and the second 0;
+  - a storm killed early gives nothing;
+  - two more hatch the first into a white Rimefrost hatchling (`AgeTicks` under 400) owned by the egg's owner.
+  - Not covered (needs a player): laying it with a right-click, its hint, picking it back up, its look.
 - **Create Rimefrost Dragon:**
   - a NoAI villager (Resistance V, at 6 of 20) casts it at a silver ice dragon corpse: the corpse is gone, and a silver Rimefrost of its age rises there with 7 health, `RaisedBy` the villager;
   - cast at a second corpse, the first is sent back and the second (blue) rises;

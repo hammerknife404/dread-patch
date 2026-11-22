@@ -6,7 +6,7 @@ Patching in the Dread Queen for my own world.
 
 **Requires:** Minecraft 1.21.1, NeoForge 21.1.265+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
 
-**Status:** in development. She doesn't spawn naturally yet, and Syndrigossa's egg doesn't hatch yet.
+**Status:** in development. She doesn't spawn naturally yet.
 
 ## Calling her
 
@@ -89,7 +89,12 @@ The unique, named Rimefrost dragon, risen as the queen's mount; still in progres
 - **Growth:** from her spawn egg or `/summon` she's Ice and Fire's random age (1 to 80 days), with an ice dragon's bite and armor for it.
 - **The boss:** as the boss she's ancient, at full strength: 125 days, so on Hard 1,000 health, and in a pack with Ice and Fire's dragon damage at 20, 21 bite and 20 armor.
 - **Her corpse** gives her white scales.
-- **Her egg:** only the boss, an ancient Syndrigossa, also leaves her **Syndrigossa Egg** with the heart's haul, male or female. It doesn't hatch yet; her hatching ritual is still to come.
+- **Her egg:** only the boss, an ancient Syndrigossa, also leaves her **Syndrigossa Egg** with the heart's haul, male or female. It hatches by a Dread rite:
+  1. Lay it on top of dreadstone (any of the blocks a Dread Gate's frame takes) by right-clicking.
+  2. Let three Whiteout Dominion storms pass over it, start to end; yours or the queen's both count. Each storm must rise with the egg already inside it and run its full course; one cut short, or recast over, doesn't count. You're told how many it has soaked up.
+  3. The third hatches it into a white Rimefrost dragon hatchling, tamed to whoever laid it. Syndrigossa is unique, so her eggs hatch Rimefrost dragons. Name the egg with a name tag and the hatchling keeps the name.
+
+  Strike a laid egg to pick it back up; its storms are lost. Nothing else harms it.
 
 ## Her staff and sword
 

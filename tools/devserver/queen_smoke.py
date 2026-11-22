@@ -850,6 +850,49 @@ def main():
     rcon.run("kill @e[tag=smoke_target]")
     clear_court()
 
+    # Hatching Syndrigossa's egg (0.39.0): laid on dreadstone (summoned as a player would lay it, with
+    # its owner), each full Whiteout Dominion storm over it is one of three; the third hatches it into a
+    # white Rimefrost hatchling tamed to its owner. A storm cut short (killed) doesn't count, nor does
+    # one over an egg on plain stone.
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    rcon.run("setblock 4 199 11 iceandfire:dread_stone_bricks")
+    egg = "@e[tag=smoke_egg,limit=1]"
+    rcon.run('summon dreadpatch:syndrigossa_egg 4.5 200 11.5 {Owner:[I;4,4,4,4],Tags:["smoke_egg"]}')
+    rcon.run('summon dreadpatch:syndrigossa_egg 6.5 200 11.5 {Tags:["smoke_egg_off"]}')
+    time.sleep(0.3)
+
+    def egg_storm(lifetime=40):
+        rcon.run(f"summon dreadpatch:whiteout_dominion 5.5 200 11.5 {{Lifetime:{lifetime},Radius:6f}}")
+
+    def soaked(selector):
+        m = re.search(r"entity data: (\d+)", rcon.run("data get entity " + selector + " Soaked"))
+        return int(m.group(1)) if m else -1
+
+    egg_storm()
+    time.sleep(2.5)
+    record("a full storm over her egg on dreadstone: one of three", soaked(egg) == 1, f"Soaked {soaked(egg)}")
+    record("an egg on plain stone soaks nothing", soaked("@e[tag=smoke_egg_off,limit=1]") == 0, f"Soaked {soaked('@e[tag=smoke_egg_off,limit=1]')}")
+    egg_storm(200)
+    time.sleep(0.5)
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    time.sleep(0.3)
+    record("a storm cut short doesn't count", soaked(egg) == 1, f"Soaked {soaked(egg)}")
+    egg_storm()
+    time.sleep(2.5)
+    record("a second full storm: two", soaked(egg) == 2, f"Soaked {soaked(egg)}")
+    egg_storm()
+    time.sleep(2.5)
+    check("the third hatches it", "execute if entity @e[tag=smoke_egg]", "Test failed")
+    hatchling = "@e[type=dreadpatch:rimefrost_dragon,limit=1]"
+    check("into a Rimefrost dragon", "execute positioned 4.5 200 11.5 if entity @e[type=dreadpatch:rimefrost_dragon,distance=..2]", "Test passed")
+    check("white, like her", "data get entity " + hatchling + " Variant", '"white"')
+    record("a hatchling", 0 <= age_ticks(hatchling) < 400, f"AgeTicks {age_ticks(hatchling)}")
+    check("tamed to whoever laid the egg", "data get entity " + hatchling + " Owner", "[I; 4, 4, 4, 4]")
+    rcon.run("kill @e[type=dreadpatch:rimefrost_dragon]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa_egg]")
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    rcon.run("setblock 4 199 11 minecraft:stone")
+
     # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, answering
     # to her: a dread beast from a cow (Ice and Fire's own mapping); a thrall from a villager or a creeper
     # and a dread beast from a bat (by their shape). A golem stays dead. When she falls her storm clears.

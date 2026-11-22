@@ -15,6 +15,8 @@ import io.github.hammerknife404.dreadpatch.entity.SovereignsEclipse;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineShard;
 import io.github.hammerknife404.dreadpatch.entity.RimefrostDragon;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
+import io.github.hammerknife404.dreadpatch.entity.SyndrigossaEggEntity;
+import io.github.hammerknife404.dreadpatch.item.SyndrigossaEggItem;
 import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
 import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
@@ -91,6 +93,13 @@ public final class ModRegistries {
                     .sized(0.6F, 1.95F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("barrow_husk").toString()));
+
+    /** Syndrigossa's egg, laid: Ice and Fire's egg's size. */
+    public static final DeferredHolder<EntityType<?>, EntityType<SyndrigossaEggEntity>> SYNDRIGOSSA_EGG_ENTITY = ENTITY_TYPES.register("syndrigossa_egg",
+            () -> EntityType.Builder.<SyndrigossaEggEntity>of(SyndrigossaEggEntity::new, MobCategory.MISC)
+                    .sized(0.45F, 0.55F)
+                    .clientTrackingRange(8)
+                    .build(DreadPatch.id("syndrigossa_egg").toString()));
 
     /** A Rimefrost dragon (0.37.0), and Syndrigossa, the unique one: an Ice and Fire ice dragon's base size and category; they grow by stage. */
     public static final DeferredHolder<EntityType<?>, EntityType<RimefrostDragon>> RIMEFROST_DRAGON = ENTITY_TYPES.register("rimefrost_dragon",
@@ -178,10 +187,10 @@ public final class ModRegistries {
 
     /**
      * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's
-     * heart would be. It doesn't hatch yet (her hatching ritual is still to come).
+     * heart would be. Laid on dreadstone, three full Whiteout Dominion storms over it hatch it (0.39.0).
      */
-    public static final DeferredItem<Item> SYNDRIGOSSA_EGG = ITEMS.register("syndrigossa_egg",
-            () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+    public static final DeferredItem<SyndrigossaEggItem> SYNDRIGOSSA_EGG = ITEMS.register("syndrigossa_egg",
+            () -> new SyndrigossaEggItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
     public static final DeferredHolder<MobEffect, WitheringRimeEffect> WITHERING_RIME = MOB_EFFECTS.register("withering_rime", WitheringRimeEffect::new);
 
