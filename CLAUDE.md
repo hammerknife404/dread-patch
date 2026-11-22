@@ -4,7 +4,7 @@ NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinish
 
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
-- **Still to come:** nothing from the big drop (it finished with 0.48.0). The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
+- **Still to come:** nothing from the big drop (it finished with 0.48.0). The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
 ## The owner's decisions
 
@@ -198,8 +198,10 @@ Read Ice and Fire's source on the `1.21.1` branch of [IAFEnvoy/IceAndFire-CE](ht
   - `getRiderPosition()` is where a rider sits.
 - **Drawing riders:**
   - `DragonGeoAttachmentLayer` draws every passenger on the `BodyUpper` bone through the entity render dispatcher, listing them in `DragonRiderRenderState.RENDERING_RIDERS` meanwhile.
-  - GeckoLib 4.9 hands `renderForBone` the pose at the model's origin turned with the bone, not the pose at the bone. So Ice and Fire's rider transform puts a rider upside down at the dragon's feet: our queen hung under Syndrigossa in 0.24.0. Nobody checked whether Ice and Fire's own player riders look the same.
-  - Only players are kept from also drawing at their own position (`ClientEvents.disablePlayerRenderWhenNeed`).
+  - GeckoLib 4.9 hands `renderForBone` the pose at the model's origin turned with the bone, not the pose at the bone. So Ice and Fire's rider transform (a near-zero offset, a half turn about Z) puts a rider upside down at the dragon's feet: our queen hung under Syndrigossa in 0.24.0, and players did too in the owner's pack (they said so on 2026-11-16). Our `SaddleLayer` draws both since 0.49.0 (below).
+  - Only players are kept from also drawing at their own position (`ClientEvents.disablePlayerRenderWhenNeed`, on `RenderPlayerEvent.Pre`: a player riding a dragon draws only while listed in `RENDERING_RIDERS`, and the local player never in first person).
+  - A controlling rider's entity is set at `getRiderPosition()` plus its own height (`positionRider`): its feet a body-height over the seat, for the camera; nothing is drawn there.
+  - Fire, ice and lightning dragons' models (`firedragon`, `icedragon`, `lightningdragon.geo.json`) share the same `BodyUpper` cube.
   - GeckoLib's `getRenderLayers()` is the live list; `addRenderLayer` adds to it.
 
 **Breath and attacks**
@@ -849,14 +851,16 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - A target handed over by the other, or kept from before, isn't rechecked by a target goal.
   - The owner had Syndrigossa breathing at them in creative.
 
-**Drawing her in the saddle** (`client/SaddleLayer`)
+**Drawing her in the saddle, and any dragon's player rider** (`client/SaddleLayer`)
+- **Who:** a queen riding Syndrigossa (0.24.1), and since 0.49.0 the player steering any `DragonBaseEntity` (its `getControllingPassenger`): Ice and Fire's fire, ice and lightning dragons and our Rimefrost ones. Any other passenger (prey) is Ice and Fire's.
+- **On every dragon:** added to each `DragonBaseEntityRenderer` (Ice and Fire's and ours, which extend it) on `EntityRenderersEvent.AddLayers`, every time the renderers are built; no mixin. (Syndrigossa's renderer used to add it itself.)
 - **Where:**
-  - at `SaddleSeat`, the top of `BodyUpper`'s cube, read from Ice and Fire's `icedragon.geo.json` (as `SaddleSeatTest` checks);
+  - at `SaddleSeat`, the top of `BodyUpper`'s cube, the same in all three of Ice and Fire's dragon models (as `SaddleSeatTest` checks, each);
   - measured from the model origin, in the bone-turned pose GeckoLib hands the layer.
 - **How:**
   - turned by the body yaw − 180, with the dragon's scale undone, and 0.6 down;
-  - her shadow is off while she rides.
-- **Elsewhere:** a `RenderLivingEvent.Pre` listener skips drawing her anywhere else while she rides.
+  - their shadow is off while they ride.
+- **Elsewhere:** while it draws a rider it lists them in Ice and Fire's `RENDERING_RIDERS` (so Ice and Fire's player check lets the draw through, still hiding the local player in first person) and its own `DRAWING`; a `RenderLivingEvent.Pre` listener cancels any other draw of a seated rider (Ice and Fire's layer's, or at their own position). Its listeners are registered with their event class (`addListener(Class, Consumer)`): a method reference to a static method of the generic `SaddleLayer` doesn't infer.
 - **History:** 0.24.0 used Ice and Fire's rider transform, and the owner saw her "hanging beneath the dragon".
 
 ### Dragon corpses (`entity/DragonCorpses`)
@@ -1036,6 +1040,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - her regalia: its drop on a player's kill, the advancements (There Must Always Be a Dread Queen too), how it looks worn;
   - trims: at the smithing table, on the icons, worn;
   - the dread phantom's look (skin, eyes, trail), its sounds, its bite's effects on a player, its drops on a player's kill, and Summon Dread Phantoms from a scroll or spellbook.
+  - a player riding an Ice and Fire dragon, seated (0.49.0);
   - the Dreadlands: stepping into a gate, the arrival, the way home, beds, its phantoms coming down; a spire's encounter coming to a summit, its reset, its dais and torches; a storm's fog and blown snow, its lightning and rimefire's look.
 - **Needs her AI in flight:** the forced landing from the air.
 
