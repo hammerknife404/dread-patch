@@ -1,0 +1,90 @@
+{
+  "multipart": [
+    {
+      "apply": [
+        {
+          "model": "dreadpatch:block/rimefire_floor0"
+        },
+        {
+          "model": "dreadpatch:block/rimefire_floor1"
+        }
+      ]
+    },
+    {
+      "apply": [
+        {
+          "model": "dreadpatch:block/rimefire_side0"
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side1"
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt0"
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt1"
+        }
+      ]
+    },
+    {
+      "apply": [
+        {
+          "model": "dreadpatch:block/rimefire_side0",
+          "y": 90
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side1",
+          "y": 90
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt0",
+          "y": 90
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt1",
+          "y": 90
+        }
+      ]
+    },
+    {
+      "apply": [
+        {
+          "model": "dreadpatch:block/rimefire_side0",
+          "y": 180
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side1",
+          "y": 180
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt0",
+          "y": 180
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt1",
+          "y": 180
+        }
+      ]
+    },
+    {
+      "apply": [
+        {
+          "model": "dreadpatch:block/rimefire_side0",
+          "y": 270
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side1",
+          "y": 270
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt0",
+          "y": 270
+        },
+        {
+          "model": "dreadpatch:block/rimefire_side_alt1",
+          "y": 270
+        }
+      ]
+    }
+  ]
+}

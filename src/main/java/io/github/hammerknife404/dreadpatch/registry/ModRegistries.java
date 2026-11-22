@@ -2,6 +2,8 @@ package io.github.hammerknife404.dreadpatch.registry;
 
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.block.DreadGateBlock;
+import io.github.hammerknife404.dreadpatch.block.RimefireBlock;
+import net.minecraft.world.level.material.MapColor;
 import io.github.hammerknife404.dreadpatch.effect.BrittleEffect;
 import io.github.hammerknife404.dreadpatch.effect.RimefrostEffect;
 import io.github.hammerknife404.dreadpatch.effect.RimeboundEffect;
@@ -166,6 +168,18 @@ public final class ModRegistries {
                     .sound(SoundType.GLASS)
                     .lightLevel(state -> 11)
                     .pushReaction(PushReaction.BLOCK)
+                    .noLootTable()));
+
+    /** Rimefire (0.48.0): the cold dread fire lightning leaves in the Dreadlands' storms. Lit like soul fire; no item, no drops. */
+    public static final DeferredBlock<RimefireBlock> RIMEFIRE = BLOCKS.register("rimefire",
+            () -> new RimefireBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                    .replaceable()
+                    .noCollission()
+                    .instabreak()
+                    .lightLevel(state -> 10)
+                    .sound(SoundType.WOOL)
+                    .pushReaction(PushReaction.DESTROY)
                     .noLootTable()));
 
     /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */

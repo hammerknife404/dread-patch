@@ -40,6 +40,7 @@ public final class DreadPatchClient {
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(SaddleLayer::onRenderLiving);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
+        DreadlandsClient.register(NeoForge.EVENT_BUS);
     }
 
     /**
