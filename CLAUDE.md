@@ -834,6 +834,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Its flight is copied, not reused.** Vanilla's goals and `PhantomMoveControl` share package-private fields (`moveTargetPoint`, `anchorPoint`, `attackPhase`), so `DreadPhantom` carries its own copies of the move control, strategy, dive and circle goals on fields of ours (`moveTarget`, `anchor`, `diving`), saved under vanilla's `AX`/`AY`/`AZ` (written after vanilla's, so ours win), plus `Summoner`. Changes from vanilla's:
   - any living target, not only players;
   - **vanilla's dive drops its target after every bite** (`PhantomSweepAttackGoal.stop` → `setTarget(null)`), relying on its player scan to pick one again; ours keeps it, or revenge would last one dive;
+  - **a dive is committed (0.45.1):** vanilla's pulls out when the phantom is hurt (`hurtTime > 0`); ours goes on through hits until it bites or meets a wall (the owner, after trying 0.45.0: "phantoms work, make them commit to hitting and ignore being hit causing them to retreat");
   - time between dives by difficulty (`PhantomRules.swoopTicks`: vanilla's 8–11 s on Easy, 6–8 Normal, 4–6 Hard), and a fresh target (any `setTarget` to a new one) is dived on within `firstSwoopTicks` (10/5/2 ticks);
   - idle, its anchor is 10 over its summoner (within 96 blocks), so it escorts them; it takes its summoner's target every second while it has none.
 - **Targets:** `RevengeGoal` (its own: vanilla's `HurtByTargetGoal` and Iron's `GenericCopyOwnerTargetGoal` need a `PathfinderMob`; it also sets its summoner's other phantoms within 32 on the attacker), `AvengeSummonerGoal`, and vanilla's player hunt (only while it has no target). **Follow range 64:** a `TargetGoal` drops a target past follow range, and a phantom circles 20–40 blocks over its target.
@@ -997,7 +998,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Ask first:** rendering has no automated check, and on the owner's machine `./gradlew runClient` opens a window on their desktop (there's no Xvfb). **Ask before launching it.**
 - **Creative mode:** Iron's spends no mana and sets no cooldowns in creative (`CREATIVE_MANA_COST` / `CREATIVE_COOLDOWN`), so check those in survival.
 - **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.35.0 (2026-11-21: at 0.33.0 "everything works, the court follows and ignores golems"; at 0.34.0 "the boss bar works"; at 0.35.0 "everything works, they ignore the corpse now"). Their reports are behind the decisions above.
-- **Since 0.35.0:** at 0.44.1 (2026-11-22), "the achievements work" (the regalia's and There Must Always Be a Dread Queen).
+- **Since 0.35.0:** at 0.44.1 (2026-11-22), "the achievements work" (the regalia's and There Must Always Be a Dread Queen); at 0.45.0, "phantoms work" (summoning, sounds and their AI, in the dev client).
 - **Never checked:** Fabulous graphics and Iris shader packs, for the storm and its fog.
 - **Seen once, not looked into** (0.39.0, the owner: "Seems to be a dysync issue, reloadign seemed to work, likely after shift+right clicking. Moving on"): something went out of step between client and server while trying the egg's hatchling, and a reload put it right. The hatchling had been riding the player's shoulder (Ice and Fire's), and sneaking gets it down.
 
