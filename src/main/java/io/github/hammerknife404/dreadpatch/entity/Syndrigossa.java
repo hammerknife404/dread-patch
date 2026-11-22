@@ -559,14 +559,20 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
         }
         Vec3 axis = aim.normalize();
         double length = DragonBreath.coneLength(aim.length(), this.burnProgress);
+        double splash = DragonBreath.breathRadius(this.getDragonStage());
+        // Every particle ends where the breath reaches (DragonBreathTest runs vanilla's particle motion on these).
         for (int i = 0; i < BREATH_PARTICLES_SENT; i++) {
             Vec3 v = this.spread(axis);
-            double carry = length * (0.5 + 0.5 * this.random.nextDouble());
-            level.sendParticles(this.createBreathParticle(), head.x, head.y, head.z, 0, v.x, v.y, v.z, DragonBreath.particleSpeed(carry));
+            double carry = DragonBreath.sentDistance(length, splash, this.random.nextDouble());
+            ParticleOptions particle = this.createBreathParticle();
+            level.sendParticles(particle, head.x, head.y, head.z, 0, v.x, v.y, v.z, breathParticleSpeed(particle, carry));
         }
         for (int i = 0; i < BREATH_PARTICLES_SET; i++) {
-            Vec3 at = head.add(this.spread(axis).scale(length * (0.15 + 0.85 * this.random.nextDouble())));
-            level.sendParticles(this.createBreathParticle(), at.x, at.y, at.z, 0, axis.x, axis.y, axis.z, 0.1 + this.random.nextDouble() * 0.15);
+            double along = length * (0.15 + 0.85 * this.random.nextDouble());
+            Vec3 at = head.add(this.spread(axis).scale(along));
+            double drift = DragonBreath.driftDistance(length, along, splash, this.random.nextDouble());
+            ParticleOptions particle = this.createBreathParticle();
+            level.sendParticles(particle, at.x, at.y, at.z, 0, axis.x, axis.y, axis.z, breathParticleSpeed(particle, drift));
         }
         Vec3 end = head.add(axis.scale(length));
         BlockHitResult block = level.clip(new ClipContext(head, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
@@ -591,6 +597,11 @@ public class Syndrigossa extends IceDragonEntity implements IDreadMob {
                 RimefireCrown.drinkFire(level, pos);
             }
         }
+    }
+
+    /** The speed to send one of her breath particles at to carry {@code distance}: vanilla's snowflake goes further for its speed. */
+    private static double breathParticleSpeed(ParticleOptions particle, double distance) {
+        return particle == ParticleTypes.SNOWFLAKE ? DragonBreath.snowSpeed(distance) : DragonBreath.particleSpeed(distance);
     }
 
     /** A direction within the breath cone round {@code axis}, spread evenly over it. */

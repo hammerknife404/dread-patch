@@ -48,6 +48,11 @@ The design comes from the owner's two chats with another assistant, `proposed_st
 - **0.33.0:**
   - In the owner's taxonomy she's a unique, named dragon of the **Rimefrost**, a subtype of frost dragon (they offered "Rime" or "Rimefrost"). Lore only: no one-per-world limit. Her spawn eggs and egg say so in their tooltips.
   - Rimefrost dragons' bites inflict Withering Rime II: hers, 4.5 s.
+- **0.35.1:** "Confirm the dragons breath particles match their distance". Checked by running vanilla's particle motion on them:
+  - flame and smoke from her mouth carried 93–110% of their mark, so they matched;
+  - vanilla's snowflakes flew 70–123%;
+  - the particles set in the cone drifted 1.5–4.4 blocks on, past the end.
+  - Now every particle ends within what the breath reaches (the cone and its splash), and `DragonBreathTest` holds it there.
 - **0.35.0:** "Dread mobs should ignore dragon corpses so they are not stuck attacking them forever", then "perhaps patch the corpse itself for broader compatibility": so it covers every mob and every Ice and Fire dragon's corpse.
 - **0.34.0:** "Syndrigossa should have her own boss bar". Ours is white (the queen's is Ice and Fire's blue), and hidden while she's tame and once she's a corpse.
 
@@ -707,6 +712,11 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Particles:**
   - `rime_flame`/`rime_smoke` (and `_small` for the bolt), our own `TextureSheetParticle`, with exact velocities, swelling;
   - the breath sends particles at `DragonBreath.particleSpeed` and seeds the cone itself, so even a short burst shows it whole.
+  - **Their reach matches the breath's** (0.35.1). Vanilla's `Particle.tick` moves a particle, then keeps `friction` of its speed, for `lifetime` ticks: `DragonBreath.travel`. The numbers are shared with `RimeBreathParticle` (`FLAME_*`, `SMOKE_*`).
+    - From her mouth, each carries `sentDistance`: half to all of the cone, capped so the longest-lived (`PARTICLE_OVERSHOOT`, 1.103) still ends within the cone plus its splash (`breathRadius`).
+    - Set in the cone, each drifts `driftDistance`: 1.5–4 blocks, capped the same way.
+    - Vanilla's snowflake (friction 1.0, then ×0.95 sideways in its own tick, 16–80 ticks) is sent at `snowSpeed`, the speed for its longest life, so none passes its mark.
+    - `DragonBreathTest` runs that motion over every lifetime, cone length and stage, and checks the far end is still reached.
 
 ### The queen and her dragon
 
