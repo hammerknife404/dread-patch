@@ -66,6 +66,14 @@
         {
           "from": "iceandfire:item/dragonsteel_ice_hoe",
           "to": "dreadpatch:item/dread_dragonsteel_hoe"
+        },
+        {
+          "from": "irons_spellbooks:item/scroll_ice",
+          "to": "dreadpatch:item/scroll_rimefrost"
+        },
+        {
+          "from": "irons_spellbooks:item/affinity_ring_ice",
+          "to": "dreadpatch:item/affinity_ring_rimefrost"
         }
       ]
     }
