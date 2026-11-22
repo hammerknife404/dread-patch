@@ -1082,15 +1082,22 @@ def main():
             break
         time.sleep(0.5)
     record("she raises Whiteout Dominion", stormed, "no storm of hers within 25 s more")
-    # Her dread phantoms (0.45.0): 1-2, the first 15 s into a fight (she's been at it at least that long by now), hers.
-    m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_phantom]"))
-    called = int(m.group(1)) if m else 0
+    time.sleep(0.6)
+    record("her storm takes the golem", stormed and has_effect(target, "dreadpatch:whiteout"), "no Whiteout on the golem")
+    # Her dread phantoms (0.45.0): 1-2, the first 15 s into a fight, hers. Her storm's 15 s count from her
+    # spawn and her phantoms' from her first target, a second or two later: wait for them (once, a single
+    # look right after the storm caught them not yet called).
+    called = 0
+    for _ in range(20):
+        m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_phantom]"))
+        called = int(m.group(1)) if m else 0
+        if called:
+            break
+        time.sleep(0.5)
     record("she calls 1-2 dread phantoms", 1 <= called <= 2, f"{called} dread phantoms")
     summoner = re.search(r"\[I; [-0-9, ]+\]", rcon.run("data get entity @e[type=dreadpatch:dread_phantom,limit=1] Summoner"))
     record("her phantoms answer to her", bool(queen_id) and bool(summoner) and summoner.group(0) == queen_id.group(0),
            f"queen {queen_id and queen_id.group(0)}, phantom's summoner {summoner and summoner.group(0)}")
-    time.sleep(0.6)
-    record("her storm takes the golem", stormed and has_effect(target, "dreadpatch:whiteout"), "no Whiteout on the golem")
     # Her Dread Lich: the first 30 s into her fight (she's been at it about 20 s by now), answering to her.
     lich = "@e[type=iceandfire:dread_lich,limit=1]"
     liches = 0
@@ -1404,6 +1411,47 @@ def main():
     rcon.run(dl + "run kill @e[type=dreadpatch:dread_gate]")
     rcon.run(dl + "run kill @e[type=item]")
     rcon.run(dl + "run kill @e[type=minecraft:experience_orb]")
+    # The storms (0.48.0). Rimefire, in clear weather: it heals one of the Dread a quarter a second, and
+    # chills (Rimefrost) and puts out anyone else. Then snow (the overworld's rain): everyone under the
+    # open sky but the Dread is slowed by Rimefrost; under a roof, no. (Lightning comes only near players.)
+    rcon.run("weather clear")
+    # With their AI (a block only acts on what moves, and a NoAI mob never does), held still by Slowness
+    # 255, one at a time (with a husk in reach, the ghoul's AI went for it, off the fire, and killed it):
+    # a dread ghoul (a thrall's AI walked it off the fire anyway), then a husk (the sun doesn't light it).
+    still = 'active_effects:[{id:"minecraft:slowness",amplifier:255b,duration:1200}]'
+    # Walled into a cell a block across over the fire: alone and slowed, it still wandered off it once.
+    rcon.run(dl + f"run fill 49 {pad + 1} 39 51 {pad + 3} 41 minecraft:stone")
+    rcon.run(dl + f"run fill 50 {pad + 1} 40 50 {pad + 3} 40 minecraft:air")
+    rcon.run(dl + f'run summon iceandfire:dread_ghoul 50.5 {pad + 1} 40.5 {{PersistenceRequired:1b,Tags:["smoke_rimefire_dread"],{still}}}')
+    time.sleep(2.0)  # past the ghoul's rise
+    rcon.run(dl + "run damage @e[tag=smoke_rimefire_dread,limit=1] 8 minecraft:generic")
+    dread_hp = health("@e[tag=smoke_rimefire_dread,limit=1]")
+    rcon.run(dl + f"run setblock 50 {pad + 1} 40 dreadpatch:rimefire")
+    record("rimefire lies on the ground", "Test passed" in rcon.run(dl + f"if block 50 {pad + 1} 40 dreadpatch:rimefire"), "no rimefire set")
+    time.sleep(4.5)
+    healed = health("@e[tag=smoke_rimefire_dread,limit=1]") - dread_hp
+    record("rimefire heals one of the Dread a quarter a second", 0.7 <= healed <= 1.6, f"healed {healed:.2f} in 4.5 s")
+    rcon.run(dl + "run kill @e[tag=smoke_rimefire_dread]")
+    rcon.run(dl + f'run summon minecraft:husk 40.5 {pad + 1} 40.5 {{PersistenceRequired:1b,Tags:["smoke_rimefire_zombie"],Fire:200s,{still}}}')
+    rcon.run(dl + f"run setblock 40 {pad + 1} 40 dreadpatch:rimefire")
+    time.sleep(2.5)
+    record("and chills anyone else", has_effect("@e[tag=smoke_rimefire_zombie,limit=1]", "dreadpatch:rimefrost"), "no Rimefrost on the husk")
+    fire = re.search(r"entity data: (-?\d+)s", rcon.run("data get entity @e[tag=smoke_rimefire_zombie,limit=1] Fire"))
+    record("and puts them out", fire is not None and int(fire.group(1)) <= 0, f"Fire {fire and fire.group(1)}")
+    rcon.run(dl + "run kill @e[tag=smoke_rimefire_dread]")
+    rcon.run(dl + "run kill @e[tag=smoke_rimefire_zombie]")
+    rcon.run(dl + f"run fill 38 {pad + 1} 38 60 {pad + 1} 58 minecraft:air replace dreadpatch:rimefire")
+    rcon.run(dl + f"run fill 56 {pad + 3} 38 60 {pad + 3} 42 minecraft:stone")
+    rcon.run(dl + f'run summon minecraft:husk 41.5 {pad + 1} 44.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_storm_out"]}}')
+    rcon.run(dl + f'run summon minecraft:husk 58.5 {pad + 1} 40.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_storm_in"]}}')
+    rcon.run("weather rain")
+    time.sleep(3.0)
+    record("in a Dreadlands storm, Rimefrost under the open sky", has_effect("@e[tag=smoke_storm_out,limit=1]", "dreadpatch:rimefrost"), "no Rimefrost on the husk outside")
+    record("but not under a roof", not has_effect("@e[tag=smoke_storm_in,limit=1]", "dreadpatch:rimefrost"), "Rimefrost on the husk indoors")
+    rcon.run("weather clear")
+    rcon.run(dl + "run kill @e[tag=smoke_storm_out]")
+    rcon.run(dl + "run kill @e[tag=smoke_storm_in]")
+    rcon.run(dl + "run kill @e[type=item]")
     rcon.run(dl + f"run fill 38 {pad} 38 60 {pad + 9} 58 minecraft:air")
     rcon.run(dl + "run forceload remove all")
 

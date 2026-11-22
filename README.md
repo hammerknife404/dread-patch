@@ -6,7 +6,7 @@ Patching in the Dread Queen for my own world.
 
 **Requires:** Minecraft 1.21.1, NeoForge 21.1.265+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
 
-**Status:** in development. In the wild she's met only atop the Dreadlands' spires; their storms come next.
+**Status:** in development. In the wild she's met only atop the Dreadlands' spires.
 
 ## Calling her
 
@@ -82,6 +82,9 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 ## The Dreadlands
 
 A dimension of bleak frozen waste: rolling snowfields over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning. Its day, night and weather are the overworld's. Nothing lives there.
+
+- **Its storms:** when it rains in the overworld, it snows there, and that's a storm. Out under the open sky the fog closes in to about 24 blocks (a warning; a Whiteout Dominion's is 10), snow blows past on the wind, and **Rimefrost** settles on you: the Dread's cold without the withering, 25% slower, for as long as you stay out in it. It does no damage, and the Dread don't feel it. Get under a roof and it lifts.
+- **Its lightning:** when the overworld thunders, lightning strikes round you every 20 seconds or so (Minecraft's own never strikes ground that cold). It hurts what it hits, as lightning does, but sets no fire: it leaves a patch of **rimefire**, cold dread fire burning cyan for 30 to 60 seconds. One of the Dread standing in it heals a quarter of a heart a second; anyone else is chilled (Rimefrost) and put out.
 
 - **Getting there:** step into a Dread Gate during its ritual (above). You arrive near the foot of the nearest spire, 30 to 40 blocks from it, facing it; anyone who follows through the same gate arrives at the same spot.
 - **The spires:** rare and tall (64 to 100 blocks), standing far apart on the waste. They're dreadstone and dreadstone bricks over stone at the foot, banded with packed and blue ice, giving way to packed ice and snow toward a flat summit crowned with ice spikes. A ledge of dreadstone bricks winds up the outside from the ground to the summit.
