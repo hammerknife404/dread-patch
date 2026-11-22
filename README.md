@@ -129,7 +129,7 @@ The unique, named Rimefrost dragon, risen as the queen's mount; still in progres
 
 ## Dread phantoms
 
-Phantoms of the Dread: as strong as Minecraft's own phantoms, with a phantom's 20 health and bite, but they don't burn by day. They look like a phantom gone to the Dread, its hide soot and slate still faintly blue, its bones pale, its wings torn through to the finger bones, its eyes the Dread's cyan, and they leave a sparse trail of rime and snowflakes. Under a phantom's screech, each of their sounds carries something ghostlier. Spawn one with the **Dread Phantom Spawn Egg** (Spawn Eggs tab) or `/summon dreadpatch:dread_phantom`.
+Phantoms of the Dread: as strong as Minecraft's own phantoms, with a phantom's 20 health and bite, but they don't burn by day. They look like a phantom gone to the Dread, its hide soot and slate still faintly blue, its bones pale, its wings torn through to the finger bones, its eyes the Dread's cyan, and they leave a sparse trail of rime, snowflakes and now and then a small cyan flame. Under a phantom's screech, each of their sounds carries something ghostlier. Spawn one with the **Dread Phantom Spawn Egg** (Spawn Eggs tab) or `/summon dreadpatch:dread_phantom`.
 
 - **Who calls them:** the Dread Queen, any Dread Lich, and a wild Syndrigossa, each one or two at a time while they have something to fight: the first 15 seconds in, then every 45 seconds, never more than four of their own at once. Players can call them with the Summon Dread Phantoms scroll (below).
 - **What they do:** they circle above whoever called them, take up their fights, and turn on whatever hurts them or the one who called them, diving on it at once. A dive is committed: hitting a diving phantom doesn't turn it aside, as it does a phantom; only its bite or a wall ends the dive. The harder the difficulty, the more often they dive: every 8 to 11 seconds on Easy (a phantom's pace), 6 to 8 on Normal, 4 to 6 on Hard. With no one to answer to, they hunt players as phantoms do. They're of the Dread: allied with the queen and her court, and untouched by Withering Rime, Whiteout and Rimefrost.
@@ -152,7 +152,7 @@ Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon g
 
 **Her staff** is an Iron's staff now:
 
-- It carries three of her spells at level 3 (Withering Rime-Bolt, Rimefire Crown and Summon Court), on your spell wheel while you hold it, cast with right-click.
+- It carries three of her spells at level 3 (Withering Rime-Bolt, Rimefire Crown and Summon Court), on your spell wheel while you hold it, cast with right-click. Its tooltip lists them a line each; hold Shift for each one's details.
 - It gives +15% Ice Spell Power and +10% Cooldown Reduction in the main hand.
 - **Permafrost Conduit:** Ice spells cost 20% less mana while you stand on snow or ice.
 
@@ -176,6 +176,10 @@ Her scrolls (from her drops) teach her spells to players:
 
 - **Riding a dragon:** a player steering any Ice and Fire dragon (fire, ice, lightning, or a tamed Rimefrost dragon) is drawn sitting upright in the saddle on its back, moving with it as it walks, flies and pitches. Ice and Fire drew them upside down under the dragon's belly. As before, you don't see yourself in first person. Prey shaken in a dragon's jaws is still drawn as Ice and Fire draws it.
 - **Dragon corpses:** Ice and Fire still counts a dead dragon as alive while its corpse lies, so a mob that was fighting a dragon when it died went on attacking its corpse forever. Now nothing fights a dragon's corpse, any Ice and Fire dragon's, and mobs from other mods that use Minecraft's usual targeting leave it be too. Harvesting a corpse is unchanged.
+
+## Settings
+
+Dread Patch's server settings (how a summoned court behaves, how long until a spire's queen comes back for you) are in the mods list: select Dread Patch and press **Config**. In singleplayer you can change them there as you play, and they apply at once. On a server they're in `config/dreadpatch-server.toml` (in the world's `serverconfig` folder).
 
 ## Building
 
