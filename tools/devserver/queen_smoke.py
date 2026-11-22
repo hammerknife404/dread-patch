@@ -1035,6 +1035,38 @@ def main():
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     clear_court()
     rcon.run("kill @e[type=item]")
+    # Nothing fights a dragon's corpse (0.35.0): Ice and Fire counts a corpse alive, so a dread thrall
+    # fighting an ice dragon when it died kept hacking at its corpse (6 s on, still its target, before
+    # the fix). On a platform of its own, higher up, one at a time (an iron golem goes for a thrall): a
+    # dread thrall, then an iron golem (not of the Dread), takes a dragon for its target, the dragon is
+    # killed into a corpse, and within a second the corpse is invulnerable (so vanilla's targeting won't
+    # see it as an enemy) and the fighter has dropped it for good. With no target at all, "on target"
+    # ends the command with no output (as "on vehicle" does).
+    rcon.run("fill 1 239 1 30 239 14 minecraft:stone")
+    rcon.run("fill 1 240 1 30 250 14 minecraft:air")
+    on_corpse = "execute as @e[tag=smoke_corpse_fighter,limit=1] on target if entity @s[tag=smoke_dead_dragon]"
+    for kind, rise, a in (("iceandfire:dread_thrall", 2.5, "a"), ("minecraft:iron_golem", 0.5, "an")):
+        name = kind.split(":")[1].replace("_", " ")
+        rcon.run('summon iceandfire:ice_dragon 20.5 240 7.5 {NoAI:1b,AgeTicks:1300000,Tags:["smoke_dead_dragon"]}')
+        rcon.run(f'summon {kind} 12.5 240 7.5 {{PersistenceRequired:1b,Tags:["smoke_corpse_fighter"]}}')
+        time.sleep(rise)
+        rcon.run("damage @e[tag=smoke_corpse_fighter,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_dead_dragon,limit=1]")
+        time.sleep(1.0)
+        check(f"{a} {name} takes a live dragon for its target", on_corpse, "Test passed")
+        rcon.run("damage @e[tag=smoke_dead_dragon,limit=1] 100000 minecraft:generic")
+        time.sleep(1.0)
+        check("the dragon lies as a corpse", "execute if entity @e[tag=smoke_dead_dragon,nbt={ModelDead:1b}]", "Test passed")
+        check("its corpse is invulnerable", "execute if entity @e[tag=smoke_dead_dragon,nbt={Invulnerable:1b}]", "Test passed")
+        out = rcon.run(on_corpse)
+        record(f"the {name} drops the corpse as its target", "Test passed" not in out, "still its target: " + out.strip())
+        time.sleep(3.0)
+        out = rcon.run(on_corpse)
+        record(f"and doesn't take it back ({name})", "Test passed" not in out, "its target again: " + out.strip())
+        check(f"the {name} is still there to ask", "execute if entity @e[tag=smoke_corpse_fighter]", "Test passed")
+        rcon.run("kill @e[tag=smoke_corpse_fighter]")
+        rcon.run("kill @e[tag=smoke_dead_dragon]")
+    rcon.run("fill 1 239 1 30 239 14 minecraft:air")
+
     rcon.run("fill 3 199 2 7 204 2 minecraft:air")
     rcon.run("fill 9 199 1 17 206 13 minecraft:air")
 
