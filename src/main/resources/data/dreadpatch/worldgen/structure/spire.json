@@ -1,0 +1,7 @@
+{
+  "type": "dreadpatch:spire",
+  "biomes": "#dreadpatch:has_structure/spire",
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "none"
+}

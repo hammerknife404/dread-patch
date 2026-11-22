@@ -4,7 +4,7 @@ NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinish
 
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
-- **Still to come:** natural spawning. For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
+- **Still to come:** the queen's natural spawning (her encounter atop the Dreadlands' spires, 0.47.0) and the Dreadlands' storms (0.48.0). For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
 
 ## The owner's decisions
 
@@ -61,6 +61,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   3. **Dread Queen armour:** "replicate as close as possible" her outfit; stats "in line with their respective scale and steel variants" (ours: the dread dragonsteel set's armour with the scale set's breath resistance, no spell bonuses); drops "tracked via achievements so each kill guarantees a needed piece to complete the set", Looting affecting (ours: a missing piece per kill by a player, per-piece advancements; complete, a random piece at 25%, Looting raising it).
   4. → **0.45.0** (below: the dread phantom; its natural spawning waits for the Dreadlands).
   4. **Dread phantom:** vanilla phantom's stats ("they're hated enough"), not burning by day, dread eyes, a look mixing both with more holes in its wing membranes showing bones, a sparse Rimefrost trail. Spawned by a spell scroll (players can learn it; not on her staff) and by the queen, a Dread Lich and Syndrigossa (not Rimefrost dragons): 1-2 every 45 s. They escort their summoner and aggressively take revenge; aggression scales with difficulty. Its attacks roll Rimefrost (the slow) and Withering Rime independently ("it would still be possible for both to apply"; ours: 35% and 15%). Drops our choice (ours: thrall drops + 1-3 phantom membrane + 1-3 Rimefrost dragon scales, Looting affecting). **Natural spawning (the owner, after 0.42.0): in the Dreadlands only, 1-2 at a time, at a low rate (the owner, after 0.43.0: "Keep natural dread phantom spawn rates low"), "not tied to the player's sanity mechanic"** (vanilla's insomnia, `TIME_SINCE_REST`). Sounds: "a bit of ghostlier sound on top of the normal phantom sounds". Ours: the spell 2 phantoms for 60 s, 90 s cooldown, a summoned court's rules; at most 4 a summoner.
+  5. → **0.46.0** (below: the dimension, its spires, the gate's way in and the way home, its phantoms). Still to come: the summit encounter and its return gate (0.47.0), then the storms (0.48.0).
   5. **The Dreadlands:** bleak frozen waste with rare tall spires (dreadstone, the ice types, snow, stone), each with a chance of the Queen and Syndrigossa encounter at its summit; per player, once, but resetting "after a lengthy time like several IRL hours" (ours: a server config, 6 h). Entered through the Dread Gate: its ritual 10 s; a player stepping in cancels the overworld summoning, and the gate stays open a random 15-30 s, its blocks fading in and out faster and faster over the last ~5 s. Arrival near a spire's base, not close enough to trigger it. Home: a return gate where the encounter's defeated, or a Dread Gate keyed there (ours). Weather follows the overworld's: in a storm, heavy fog (less than Whiteout Dominion's, "a warning"), no damage, and **Rimefrost** (a new effect: the slow, no withering; ours: −25% movement); lightning ignites a rimefire patch that heals dread mobs standing in it 0.25 a second.
 - **0.40.0:** "Rimefrost dragons are undead, they do not sleep" (`RimefrostDragon`: the sleep flag never set, `isSleeping` false, `isTimeToWake` true).
 - **0.39.0, hatching her egg** (B, below; ours: the storm must rise with the egg already in it and run its whole course, not cut short; struck by a player, a laid egg pops back into an item and loses its storms).
@@ -547,8 +548,8 @@ All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). T
 - **The plane:** a side face gives its axis; a top or bottom face tries X, then Z.
 - **No gate there:** an action-bar hint.
 - **A gate:** the event is cancelled with success.
-- **On Peaceful:** a hint, and the key is kept. The queen is a `Monster` and wouldn't stay.
-- **Otherwise, on the server:**
+- **On Peaceful (0.46.0):** it opens all the same (a way to the Dreadlands), but at the ritual's end the queen doesn't come (a `Monster`, she wouldn't stay); the opener gets the hint. Until 0.46.0 the gate refused and kept the key.
+- **On the server:**
   - a `DreadGate` entity is made, holding the axis and the opener's side and UUID;
   - it fills the opening;
   - the key is used up (`ItemStack.consume`; kept in creative).
@@ -557,8 +558,8 @@ All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). T
 - **Saving:** the entity is saved. Summoned bare, it finds its gate round itself on either axis, or discards itself.
 - **Panes:**
   - set with `UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE`, as vanilla's `PortalShape` fills (otherwise the first pane sees open air and falls);
-  - every tick it checks every pane is still there, or it shatters with nothing summoned.
-- **At 100 ticks it summons a `DreadQueen`:**
+  - every tick it checks every pane is still there (faded out, that its frame still stands whole round the opening), or it shatters with nothing summoned.
+- **At `GateTiming.RITUAL_TICKS` (200; 100 until 0.46.0) it summons a `DreadQueen`,** unless someone stepped in (below):
   - through `EventHooks.finalizeMobSpawn` as `MobSpawnType.EVENT`, so she's the boss, with her dragon;
   - where an ancient Syndrigossa fits; else at the gate's foot, on foot (`DreadQueen.setWithDragon(false)`);
   - her target is the opener.
@@ -567,6 +568,9 @@ All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). T
   - set on the ground its half-width + 1.5 out from the plane, the opener's side first;
   - tested with `level.noCollision`.
 - **Afterwards:** it shatters (panes to air with `UPDATE_ALL`), leaving the frame.
+- **Stepping in (0.46.0):** every tick its panes are up, a player (alive, not a spectator) in the slab of its opening ±0.3 round its plane goes through (`passThrough`). The first holds the way open `GateTiming.openTicks` (300–600) more, and the queen doesn't come. Over its last `FADE_TICKS` (100) its panes go and come back (`GateTiming.shown`: blinks from 16 ticks, each 0.86 of the last, down to 2), set with `UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE` like its filling; then it shatters. Saved: `Homeward`, `OpenFor` (-1: not yet), `Shown`, `Arrival*`.
+  - Into the Dreadlands: the arrival is found for the first through (`Dreadlands.arrival`) and kept for the rest, so a party lands together. Where each came from is the gate's front on the side they stepped in from (their previous tick's position), facing away (`cameFrom`), saved in `DreadlandsData`.
+  - A gate in the Dreadlands is **homeward**: it opens at once (`openFor` set on opening), no ritual, no queen, and each through goes to where they came in (`Dreadlands.goHome`).
 
 **The pane** (`block/DreadGateBlock`)
 - **Properties:** no item, no loot, no collision, light 11, unbreakable except in creative.
@@ -578,6 +582,21 @@ All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). T
 - `SBS / S / GG`: dread shards, a bone, `#c:ingots/gold`.
 - Unlocked by holding a dread shard.
 - The tooltip lines on Ice and Fire's key come from `DreadPatchClient`.
+
+### The Dreadlands (`world/Dreadlands`, `world/DreadlandsData`, `world/SpireStructure`, `world/SpirePiece`, `magic/SpireShape`, `magic/GateTiming`; 0.46.0)
+
+- **The dimension** is data: `dimension/dreadlands.json` (a noise generator, a fixed biome source), `dimension_type/dreadlands.json` (the overworld's sky and height, `natural` false, `bed_works` false so beds explode, no anchors, no raids), `worldgen/noise_settings/dreadlands.json`, two noises, `worldgen/biome/dreadlands.json`. A mod's dimension JSON appears in existing worlds too.
+- **Time and weather are the overworld's for free:** every level but the overworld reads its data through `DerivedLevelData`, so its day and its rain (snow there) follow. **Lightning won't strike there on its own:** `ServerLevel.tickChunk` only strikes where `isRainingAt`, and in a biome that cold that's snow, never rain. The storms' lightning (0.48.0) has to be ours.
+- **Terrain** (`noise_settings`): no caves, aquifers or ore veins; `final_density` is `y_clamped_gradient` (zero at y 72, a block of height per 1/24) plus 0.42 × a 2D rolling noise (`dreadlands_rolling`, octave −9) and 0.17 × hummocks (`dreadlands_hummocks`, octave −6), interpolated: ground at 72 ± about 14. Sea level 64, so the deepest hollows hold water, and the biome's `freeze_top_layer` freezes them and lays snow on every top block (and on the spires). Surface: gravel under water; else packed ice, blue ice or Ice and Fire's dreadstone in noise bands, otherwise snow blocks, with packed ice or snow below to the surface depth, then stone. Bedrock floor.
+- **The biome:** temperature −0.7 (snow), grey sky (`0x5E6878`) and fog, drifting snowflakes, the soul sand valley loop and its additions, no spawners, no carvers. Lang has `biome.`/`dimension.dreadpatch.dreadlands` for mods that show them.
+- **Spires** (`SpireStructure`, `dreadpatch:spire`, in `#dreadpatch:spires`): `structure_set/spires.json` random spread 34 / 14 chunks (one in about 540 blocks); `has_structure/spire` is only the Dreadlands. It stands at its chunk's middle, on the lowest of the ground under its foot (`getBaseHeight` at the middle and 8 points round its base radius). One `SpirePiece` (saved as its base and seed) draws its `SpireShape`:
+  - 64–100 tall, base radius 11–14 narrowing (concave) to a flat summit of 6–8, faces roughened by value noise (2 blocks at the foot, 0.5 at the top); a foundation 12 deep;
+  - a ledge winding up outside, a turn every 22 blocks, 2 thick, a block into the face out to 2.6 beyond it, 3 clear over it (cut through the body and the ground); `SpireShapeTest` walks it round and checks no step is over a block;
+  - 8 ice spikes (3–6 tall) round the summit's rim, none where the ledge comes up;
+  - stone, dreadstone and cracked bricks at the foot, dreadstone and its bricks through the middle with packed and blue ice strata, ice, packed ice, snow and blue ice in the top 18%. The ledge is dreadstone bricks. Ice and Fire's dreadstone placed by its default state is breakable (its `unbreakable` property is false).
+- **Arrival** (`Dreadlands.arrival`): `ServerLevel.findNearestMapStructure(#dreadpatch:spires, the gate's x/z, 100 chunks)` (as `/locate`; it doesn't generate chunks), which gives the spire's chunk corner; the middle is +8. 28–36 blocks out at a random angle, the chunk there generated, on `MOTION_BLOCKING_NO_LEAVES`; another of 8 angles if that's open water; facing the spire. With no spire (structures off), the gate's own x/z.
+- **Home** (`Dreadlands.goHome`): to `DreadlandsData`'s origin for the player (`data/dreadpatch_dreadlands.dat` in the overworld), else the overworld's spawn on its surface. Dying there respawns as anywhere.
+- **Its phantoms** (`Dreadlands.onLevelTick`, `LevelTickEvent.Post` in the Dreadlands): every 600 ticks, not on Peaceful, with `doMobSpawning`, each player (not spectating) under open sky has a 1-in-8 chance of 1–2 dread phantoms 20–34 blocks over them, ±10 aside, in valid empty air, never past 4 wild ones within 64. `MobSpawnType.NATURAL`, no summoner, so they hunt players. Not tied to `TIME_SINCE_REST`.
 
 ### Her model and rendering
 
@@ -934,6 +953,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Fighting:** the sword, her spacing and Barrow-Step, her court, decree, storm and lich.
 - **Summon Court:** cast by a NoAI villager (an armor stand records no attacker, and the court defends its caster from what hurts it). The count by level; leaving a cow and a dread thrall be when they hit the caster or a member; the caster's hit cancelled; a husk that hits the caster attacked; a recast replacing the court; expiry (set through `data merge ... {NeoForgeData:{...}}`). With `attack_friendly_mobs` and `retaliate` switched on by hand, the court killed the cow within 4 s, so the check does catch the filter missing.
 - **Scuttler climbing:** a scuttler hit by a golem standing on a solid block 4 high is on top within 10 s.
+- **The Dreadlands:** the biome locates; a spire locates, and with its chunks forceloaded its summit is 50+ blocks over the ground 30 out; the ground's top block is snow or ice (or dreadstone, gravel); a gate built and summoned there opens, brings no queen, is still open at 11 s, fades (an absent pane while it lives) and closes within 30 s, its frame left. The overworld gate's ritual is checked to bring no queen 8 s in. Not covered (needs a player): stepping in, the arrival, the way home, beds, the phantoms coming down.
 - **The dread phantom:** at noon a phantom (the control) burns and a dread phantom doesn't; undead; refuses Withering Rime, Whiteout and Rimefrost; Rimefrost slows a zombie by a quarter; its table gives a thrall's drops and, without a player, no membrane or scales. Summon Dread Phantoms (a villager casting): 2, its caster's, court-marked, circling within 28 blocks of it, unhurt by it, diving on a husk that hits it (within 20 s), leaving nothing when killed, replaced by a recast, gone when their time's up. The queen's AI fight: 1-2 of hers by the time her storm comes. A Dread Lich with its countdown set short (`NeoForgeData:{"dreadpatch:phantom_call":2}`) calls 1-2 of its own at a golem.
 - **Hatching:** an egg summoned on a dreadstone block with an `Owner`, and another on plain stone:
   - a full summoned storm (`Lifetime` 40) gives the first 1 and the second 0;

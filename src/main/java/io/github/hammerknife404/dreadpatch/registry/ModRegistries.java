@@ -28,6 +28,10 @@ import io.github.hammerknife404.dreadpatch.spell.SummonCourtSpell;
 import io.github.hammerknife404.dreadpatch.spell.SummonDreadPhantomsSpell;
 import io.github.hammerknife404.dreadpatch.spell.WhiteoutDominionSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
+import io.github.hammerknife404.dreadpatch.world.SpirePiece;
+import io.github.hammerknife404.dreadpatch.world.SpireStructure;
+import net.minecraft.world.level.levelgen.structure.StructureType;
+import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import net.minecraft.core.component.DataComponentType;
@@ -67,6 +71,13 @@ public final class ModRegistries {
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, DreadPatch.MODID);
     private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, DreadPatch.MODID);
     private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, DreadPatch.MODID);
+    private static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES = DeferredRegister.create(Registries.STRUCTURE_TYPE, DreadPatch.MODID);
+    private static final DeferredRegister<StructurePieceType> STRUCTURE_PIECES = DeferredRegister.create(Registries.STRUCTURE_PIECE, DreadPatch.MODID);
+
+    /** The Dreadlands' spires (0.46.0): a structure of ours, one piece drawn from its shape. */
+    public static final DeferredHolder<StructureType<?>, StructureType<SpireStructure>> SPIRE = STRUCTURE_TYPES.register("spire", () -> () -> SpireStructure.CODEC);
+    public static final DeferredHolder<StructurePieceType, StructurePieceType> SPIRE_PIECE = STRUCTURE_PIECES.register("spire",
+            () -> (StructurePieceType.ContextlessType) SpirePiece::new);
 
     /**
      * Ice and Fire's Dread Queen (which it never registers), through our {@link DreadQueen}. A
@@ -263,5 +274,7 @@ public final class ModRegistries {
         DATA_COMPONENTS.register(modBus);
         PARTICLE_TYPES.register(modBus);
         SOUND_EVENTS.register(modBus);
+        STRUCTURE_TYPES.register(modBus);
+        STRUCTURE_PIECES.register(modBus);
     }
 }

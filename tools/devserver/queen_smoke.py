@@ -1271,8 +1271,9 @@ def main():
            f"storm gone {gone}, {left} frosted ice left")
     # A Dread Gate. A Gravemaster's Key used on its frame needs a player; a gate summoned by hand finds
     # its frame round where it stands, the same way. A dreadstone frame round a 3x4 opening at the
-    # platform's north edge, open sky in front of it: after the 5 s ritual the queen comes through
-    # riding an ancient Syndrigossa, and the gate shatters, its frame left.
+    # platform's north edge, open sky in front of it: after the 10 s ritual (0.46.0; 5 s before) the
+    # queen comes through riding an ancient Syndrigossa, and the gate shatters, its frame left. (Stepping
+    # into it, to the Dreadlands, needs a player.)
     queen_sel = "@e[type=dreadpatch:dread_queen,limit=1]"
     rcon.run("fill 3 199 2 7 204 2 iceandfire:dread_stone_bricks")
     rcon.run("fill 4 200 2 6 203 2 minecraft:air")
@@ -1280,13 +1281,15 @@ def main():
     time.sleep(0.5)
     record("it fills its frame", all(block_is(x, y, 2, "dreadpatch:dread_gate") for x in (4, 5, 6) for y in (200, 203)),
            "no gate across the opening")
+    time.sleep(8.0)
+    record("the ritual runs 10 s: no queen 8 s in", "Test failed" in rcon.run("execute if entity " + queen_sel), "she came before 8.5 s")
     came = False
-    for _ in range(32):
+    for _ in range(24):
         time.sleep(0.25)
         came = "Test passed" in rcon.run("execute if entity " + queen_sel)
         if came:
             break
-    record("the Dread Queen comes through", came, "no queen within 8 s")
+    record("the Dread Queen comes through", came, "no queen within 14.5 s")
     time.sleep(0.6)
     record("riding an ancient Syndrigossa, with room for one",
            "Test passed" in rcon.run("execute as " + queen_sel + " on vehicle if entity @s[type=dreadpatch:syndrigossa,nbt={Ancient:1b}]"),
@@ -1304,7 +1307,7 @@ def main():
     time.sleep(0.5)
     record("breaking its frame collapses it", block_is(5, 201, 2, "minecraft:air") and block_is(4, 200, 2, "minecraft:air")
            and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "the gate outlived its frame")
-    time.sleep(5.0)
+    time.sleep(10.0)
     record("and nothing comes through", "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]"), "a queen came anyway")
     rcon.run("summon dreadpatch:dread_gate 5.5 200 2.5")
     time.sleep(0.5)
@@ -1316,7 +1319,7 @@ def main():
     rcon.run("fill 12 201 7 14 203 7 minecraft:air")
     rcon.run("summon dreadpatch:dread_gate 13.5 201 7.5")
     came = False
-    for _ in range(32):
+    for _ in range(64):
         time.sleep(0.25)
         came = "Test passed" in rcon.run("execute positioned 13.5 201 7.5 if entity @e[type=dreadpatch:dread_queen,distance=..2]")
         if came:
@@ -1328,6 +1331,64 @@ def main():
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     clear_court()
     rcon.run("kill @e[type=item]")
+    # The Dreadlands (0.46.0): the dimension, its frozen ground (snow over snow blocks and ice), a spire
+    # standing far over the land round it; a Dread Gate keyed there leads home: it opens at once, no queen
+    # comes, it stays open past the ritual's 10 s, fades in and out, and closes within 30 s. (Going
+    # through, the arrival by a spire, and its phantoms need a player.)
+    dl = "execute in dreadpatch:dreadlands "
+    check("the Dreadlands exist, one biome", dl + "run locate biome dreadpatch:dreadlands", "is at")
+    out = rcon.run(dl + "run locate structure dreadpatch:spire")
+    m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
+    record("a spire stands in them", m is not None, out.strip())
+    if m:
+        sx, sz = (int(m.group(1)) & ~15) + 8, (int(m.group(2)) & ~15) + 8
+        rcon.run(dl + f"run forceload add {sx - 32} {sz - 32} {sx + 32} {sz + 32}")
+        time.sleep(6.0)
+
+        def surface_y(x, z):
+            rcon.run(dl + f'positioned {x} 0 {z} positioned over world_surface run summon minecraft:marker ~ ~ ~ {{Tags:["smoke_probe"]}}')
+            pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+            rcon.run("kill @e[tag=smoke_probe]")
+            return float(pos.group(1)) if pos else -999.0
+
+        summit, ground = surface_y(sx, sz), min(surface_y(sx + 30, sz), surface_y(sx - 30, sz), surface_y(sx, sz + 30), surface_y(sx, sz - 30))
+        record("tall: its summit 50+ blocks over the ground round it", summit - ground >= 50, f"summit {summit}, ground {ground}")
+        rcon.run(dl + "run forceload remove all")
+    rcon.run(dl + "run forceload add 0 0 15 15")
+    time.sleep(4.0)
+    rcon.run(dl + 'positioned 8 0 8 positioned over world_surface run summon minecraft:marker ~ ~ ~ {Tags:["smoke_probe"]}')
+    pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+    rcon.run("kill @e[tag=smoke_probe]")
+    gy = int(float(pos.group(1))) if pos else 80
+    frozen = [b for b in ("minecraft:snow", "minecraft:snow_block", "minecraft:packed_ice", "minecraft:blue_ice", "minecraft:ice", "iceandfire:dread_stone", "minecraft:gravel")
+              if "Test passed" in rcon.run(dl + f"if block 8 {gy - 1} 8 {b}")]
+    record("its ground is frozen", bool(frozen), f"the top block at 8,{gy - 1},8 is none of snow, ice or dreadstone")
+    # A gate on a pad over the ground: frame 5 wide, 6 tall round a 3x4 opening.
+    gy += 3
+    rcon.run(dl + f"run fill 2 {gy - 1} 4 10 {gy - 1} 12 minecraft:stone")
+    rcon.run(dl + f"run fill 4 {gy} 8 8 {gy + 5} 8 iceandfire:dread_stone_bricks")
+    rcon.run(dl + f"run fill 5 {gy + 1} 8 7 {gy + 4} 8 minecraft:air")
+    rcon.run(dl + f"run summon dreadpatch:dread_gate 6.5 {gy + 1} 8.5")
+    time.sleep(0.5)
+    record("a gate in the Dreadlands opens", "Test passed" in rcon.run(dl + f"if block 6 {gy + 2} 8 dreadpatch:dread_gate"), "no gate in its frame")
+    time.sleep(11.0)
+    record("it leads home: no queen, and still open past the ritual",
+           "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]")
+           and "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "a queen came, or the gate closed at 11 s")
+    faded = False
+    closed = False
+    for _ in range(100):
+        time.sleep(0.2)
+        alive = "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
+        pane = "Test passed" in rcon.run(dl + f"if block 6 {gy + 2} 8 dreadpatch:dread_gate")
+        faded |= alive and not pane
+        if not alive:
+            closed = True
+            break
+    record("it fades in and out, then closes within 30 s", faded and closed, f"faded {faded}, closed {closed}")
+    record("its frame stays", "Test passed" in rcon.run(dl + f"if block 4 {gy + 1} 8 iceandfire:dread_stone_bricks"), "the frame went")
+    rcon.run(dl + "run forceload remove all")
+
     # Dread scuttlers climb walls like spiders (0.41.0): one at the foot of a solid block 4 high, a
     # golem (Resistance V) on top that has hit it, is up on top with it within 10 s; it couldn't jump it.
     rcon.run("fill 1 239 1 30 239 14 minecraft:stone")

@@ -23,6 +23,7 @@ import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.registry.DreadGear;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
+import io.github.hammerknife404.dreadpatch.world.Dreadlands;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -65,6 +66,7 @@ public final class DreadPatch {
         DreadDragonsteel.register(NeoForge.EVENT_BUS);
         QueenRegalia.register(NeoForge.EVENT_BUS);
         PhantomCalling.register(NeoForge.EVENT_BUS);
+        Dreadlands.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

@@ -4,7 +4,10 @@ import com.iafenvoy.iceandfire.registry.IafItems;
 import com.iafenvoy.iceandfire.registry.IafSounds;
 import io.github.hammerknife404.dreadpatch.block.DreadGateBlock;
 import io.github.hammerknife404.dreadpatch.magic.GateShape;
+import io.github.hammerknife404.dreadpatch.magic.GateTiming;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
+import io.github.hammerknife404.dreadpatch.world.Dreadlands;
+import io.github.hammerknife404.dreadpatch.world.DreadlandsData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,6 +17,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -29,6 +33,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.EventHooks;
@@ -41,17 +46,26 @@ import java.util.UUID;
  * A Dread Gate's ritual. A Gravemaster's Key (Ice and Fire's {@code dread_key}, which also opens a
  * Mausoleum's sealed door) used on a dreadstone frame round an opening ({@link GateShape}: 2-5 wide,
  * 3-7 tall; the four arches of a Mausoleum's ice forge shrine are ready-made) is used up, and the
- * opening fills with the gate ({@link DreadGateBlock}). For {@link #RITUAL_TICKS} it pours cold dread
- * fire and snow; then the Dread Queen comes through and the gate shatters, its frame left for
- * another key. She comes as the boss: riding an ancient Syndrigossa where there's room for one in
+ * opening fills with the gate ({@link DreadGateBlock}). For {@link GateTiming#RITUAL_TICKS} it pours
+ * cold dread fire and snow; then the Dread Queen comes through and the gate shatters, its frame left
+ * for another key. She comes as the boss: riding an ancient Syndrigossa where there's room for one in
  * front of the gate (on the opener's side, else the other), otherwise on foot, rising out of the
  * ground in the gate itself (in a Mausoleum, where the shrine's hall is too low for her dragon).
  * Breaking the frame meanwhile collapses the gate, and nothing comes. Saved, so a ritual outlasts a
  * restart. Summoned by hand (the smoke test), it finds the gate round where it stands.
+ * <p>
+ * The way to the Dreadlands (0.46.0): a player who steps into the gate during its ritual goes through
+ * to the Dreadlands ({@link Dreadlands#enter}), and the queen doesn't come. The gate then stays open
+ * for {@link GateTiming#openTicks} for anyone to follow (to the same place), fading in and out faster
+ * and faster over its last {@link GateTiming#FADE_TICKS} ({@link GateTiming#shown}), and closes. A gate
+ * opened in the Dreadlands is the way home: it opens at once, for as long, and takes whoever steps in
+ * back to where they came in ({@link Dreadlands#goHome}).
  */
 public class DreadGate extends Entity {
-    /** The ritual's length: 5 s. */
-    public static final int RITUAL_TICKS = 100;
+    /** The ritual's length: 10 s (5 s before 0.46.0). */
+    public static final int RITUAL_TICKS = GateTiming.RITUAL_TICKS;
+    /** How far either side of the gate's plane counts as stepping in. */
+    static final double THRESHOLD = 0.3;
     /** Room left between her dragon's flank and the gate. */
     static final double DRAGON_CLEARANCE = 1.5;
 
@@ -66,6 +80,15 @@ public class DreadGate extends Entity {
     private BlockPos origin = BlockPos.ZERO;
     private int width;
     private int height;
+    /** Opened in the Dreadlands: the way home. */
+    private boolean homeward;
+    /** Ticks left of the way open; -1 until someone's stepped in (or it opened homeward). */
+    private int openFor = -1;
+    /** Whether its panes are up (they come and go as it fades). */
+    private boolean shown = true;
+    /** Where those who step in arrive in the Dreadlands, found for the first and kept for the rest. */
+    @Nullable
+    private Dreadlands.Arrival arrival;
 
     public DreadGate(EntityType<? extends DreadGate> type, Level level) {
         super(type, level);
@@ -78,7 +101,8 @@ public class DreadGate extends Entity {
 
     /**
      * A Gravemaster's Key on a dreadstone frame block, at the face toward the opening: if that opening
-     * is a gate, it opens and the key is spent (kept in creative). Not on Peaceful: she wouldn't stay.
+     * is a gate, it opens and the key is spent (kept in creative). On Peaceful it opens all the same,
+     * a way to the Dreadlands, but the queen won't come through (she wouldn't stay).
      */
     private static void onUseKey(PlayerInteractEvent.RightClickBlock event) {
         ItemStack key = event.getItemStack();
@@ -111,10 +135,6 @@ public class DreadGate extends Entity {
         event.setCanceled(true);
         event.setCancellationResult(InteractionResult.sidedSuccess(level.isClientSide));
         if (level.isClientSide) {
-            return;
-        }
-        if (level.getDifficulty() == Difficulty.PEACEFUL) {
-            player.displayClientMessage(Component.translatable("message.dreadpatch.dread_gate.peaceful"), true);
             return;
         }
         DreadGate gate = new DreadGate(ModRegistries.DREAD_GATE.get(), level);
@@ -156,6 +176,11 @@ public class DreadGate extends Entity {
                 Vec3 center = this.center();
                 this.moveTo(center.x, this.origin.getY(), center.z);
                 this.opened = true;
+                if (Dreadlands.is(this.level())) {
+                    // The way home: open at once, no ritual, no queen.
+                    this.homeward = true;
+                    this.openFor = GateTiming.openTicks(this.random.nextDouble());
+                }
                 this.level().playSound(null, center.x, center.y, center.z, IafSounds.DREAD_LICH_SUMMON.get(), SoundSource.HOSTILE, 2.0F, 0.6F);
                 return true;
             }
@@ -179,7 +204,7 @@ public class DreadGate extends Entity {
         }
         this.age++;
         Vec3 center = this.center();
-        if (this.age % 2 == 0) {
+        if (this.shown && this.age % 2 == 0) {
             // Cold fire and snow pour out of both faces, harder as it goes on.
             Vec3 normal = this.normal();
             int count = 2 + this.age * 6 / RITUAL_TICKS;
@@ -190,12 +215,91 @@ public class DreadGate extends Entity {
                         at.x, at.y, at.z, 0, normal.x * out, 0.02, normal.z * out, 1.0);
             }
         }
-        if (this.age % 40 == 20) {
+        if (this.shown && this.age % 40 == 20) {
             level.playSound(null, center.x, center.y, center.z, SoundEvents.PORTAL_AMBIENT, SoundSource.HOSTILE, 1.5F, 0.5F);
         }
+        if (this.shown) {
+            // Anyone stepping in goes through; during the ritual, that opens the way and the queen doesn't come.
+            this.passThrough(level);
+        }
+        if (this.openFor >= 0) {
+            this.openFor--;
+            boolean show = GateTiming.shown(this.openFor);
+            if (show != this.shown) {
+                this.setShown(level, show);
+            }
+            if (this.openFor <= 0) {
+                this.shatter(level, false);
+            }
+            return;
+        }
         if (this.age >= RITUAL_TICKS) {
-            this.summon(level);
+            if (level.getDifficulty() != Difficulty.PEACEFUL) {
+                this.summon(level);
+            } else if (this.activator != null && level.getPlayerByUUID(this.activator) instanceof Player opener) {
+                opener.displayClientMessage(Component.translatable("message.dreadpatch.dread_gate.peaceful"), true);
+            }
             this.shatter(level, true);
+        }
+    }
+
+    /** Players in the gate's plane go through: into the Dreadlands, or home from them. */
+    private void passThrough(ServerLevel level) {
+        for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, this.plane(), p -> p.isAlive() && !p.isSpectator())) {
+            if (this.homeward) {
+                this.keepOpen(level);
+                Dreadlands.goHome(player);
+                continue;
+            }
+            if (this.arrival == null) {
+                this.arrival = Dreadlands.arrival(level.getServer(), this.blockPosition(), this.random);
+            }
+            if (this.arrival == null) {
+                return;
+            }
+            this.keepOpen(level);
+            Dreadlands.enter(player, this.arrival, this.cameFrom(player));
+        }
+    }
+
+    /** The first through holds the way open for 15-30 s more. */
+    private void keepOpen(ServerLevel level) {
+        if (this.openFor < 0) {
+            this.openFor = GateTiming.openTicks(this.random.nextDouble());
+            Vec3 center = this.center();
+            level.playSound(null, center.x, center.y, center.z, SoundEvents.PORTAL_TRIGGER, SoundSource.HOSTILE, 1.0F, 0.6F);
+        }
+    }
+
+    /** Where {@code player} stepped in from: in front of the gate on the side they came from, facing away from it. */
+    private DreadlandsData.Origin cameFrom(ServerPlayer player) {
+        Vec3 normal = this.normal();
+        Vec3 center = this.center();
+        double across = this.axis == Direction.Axis.X ? player.zo - center.z : player.xo - center.x;
+        int side = across < 0.0 ? -1 : 1;
+        Vec3 out = normal.scale(side);
+        Vec3 pos = new Vec3(center.x, this.origin.getY(), center.z).add(out.scale(1.5));
+        float yaw = (float) (Mth.atan2(-out.x, out.z) * Mth.RAD_TO_DEG);
+        return new DreadlandsData.Origin(this.level().dimension(), pos, yaw);
+    }
+
+    /** The slab of air in its opening that counts as stepping into it. */
+    private AABB plane() {
+        boolean alongX = this.axis == Direction.Axis.X;
+        Vec3 center = this.center();
+        return alongX
+                ? new AABB(this.origin.getX(), this.origin.getY(), center.z - THRESHOLD, this.origin.getX() + this.width, this.origin.getY() + this.height, center.z + THRESHOLD)
+                : new AABB(center.x - THRESHOLD, this.origin.getY(), this.origin.getZ(), center.x + THRESHOLD, this.origin.getY() + this.height, this.origin.getZ() + this.width);
+    }
+
+    /** Its panes up or down, fading; quietly, as it filled. */
+    private void setShown(ServerLevel level, boolean show) {
+        BlockState state = show ? ModRegistries.DREAD_GATE_BLOCK.get().defaultBlockState().setValue(DreadGateBlock.AXIS, this.axis) : Blocks.AIR.defaultBlockState();
+        this.forEachPane(pos -> level.setBlock(pos, state, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE));
+        this.shown = show;
+        if (!show) {
+            Vec3 center = this.center();
+            level.sendParticles(ModRegistries.RIME_FLAME_SMALL.get(), center.x, center.y, center.z, 8, this.width * 0.25, this.height * 0.25, 0.1, 0.01);
         }
     }
 
@@ -271,8 +375,12 @@ public class DreadGate extends Entity {
         this.discard();
     }
 
-    /** Whether every pane is still there. */
+    /** Whether every pane is still there; faded out, whether its frame still stands whole round the opening. */
     private boolean intact() {
+        if (!this.shown) {
+            GateShape.Found frame = find(this.level(), this.origin, this.axis);
+            return frame != null && frame.left() == 0 && frame.bottom() == 0 && frame.width() == this.width && frame.height() == this.height;
+        }
         boolean[] whole = {true};
         this.forEachPane(pos -> whole[0] &= this.level().getBlockState(pos).is(ModRegistries.DREAD_GATE_BLOCK.get()));
         return whole[0];
@@ -325,6 +433,11 @@ public class DreadGate extends Entity {
         this.origin = new BlockPos(tag.getInt("OriginX"), tag.getInt("OriginY"), tag.getInt("OriginZ"));
         this.width = tag.getInt("Width");
         this.height = tag.getInt("Height");
+        this.homeward = tag.getBoolean("Homeward");
+        this.openFor = tag.contains("OpenFor") ? tag.getInt("OpenFor") : -1;
+        this.shown = !tag.contains("Shown") || tag.getBoolean("Shown");
+        this.arrival = tag.contains("ArrivalX") ? new Dreadlands.Arrival(
+                new Vec3(tag.getDouble("ArrivalX"), tag.getDouble("ArrivalY"), tag.getDouble("ArrivalZ")), tag.getFloat("ArrivalYaw")) : null;
     }
 
     @Override
@@ -343,5 +456,14 @@ public class DreadGate extends Entity {
         tag.putInt("OriginZ", this.origin.getZ());
         tag.putInt("Width", this.width);
         tag.putInt("Height", this.height);
+        tag.putBoolean("Homeward", this.homeward);
+        tag.putInt("OpenFor", this.openFor);
+        tag.putBoolean("Shown", this.shown);
+        if (this.arrival != null) {
+            tag.putDouble("ArrivalX", this.arrival.pos().x);
+            tag.putDouble("ArrivalY", this.arrival.pos().y);
+            tag.putDouble("ArrivalZ", this.arrival.pos().z);
+            tag.putFloat("ArrivalYaw", this.arrival.yaw());
+        }
     }
 }
