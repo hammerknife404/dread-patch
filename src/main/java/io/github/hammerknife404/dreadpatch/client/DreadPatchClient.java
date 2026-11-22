@@ -110,10 +110,11 @@ public final class DreadPatchClient {
         event.registerSpriteSet(ModRegistries.RIME_SMOKE_SMALL.get(), RimeBreathParticle::smallSmoke);
     }
 
-    /** Rimefrost dragons' skins are made from Ice and Fire's textures: remake them when textures reload. */
+    /** Rimefrost dragons' skins are made from Ice and Fire's textures, the dread phantom's from vanilla's: remake them when textures reload. */
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener((ResourceManagerReloadListener) resources -> {
             UndeadDragonSkins.clear();
+            DreadPhantomSkins.clear();
             DreadRecolors.clear();
             QueenArmorModels.clear();
         });
@@ -137,5 +138,6 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), ShatterSpineRenderer::shard);
         event.registerEntityRenderer(ModRegistries.WHITEOUT_DOMINION.get(), WhiteoutRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_GATE.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModRegistries.DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
     }
 }

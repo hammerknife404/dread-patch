@@ -76,7 +76,7 @@ def main():
     # A scroll the loot function wrote a spell on; a blank scroll must not count (checked below).
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
-                  "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon"}
+                  "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -93,7 +93,8 @@ def main():
     def clear_court():
         # Every queen raises a court (and her storm raises the dead into it); clear it, and her storm,
         # with her so they can't wander into later checks.
-        for kind in court_types + ["iceandfire:dread_beast", "iceandfire:dread_horse", "iceandfire:dread_lich", "dreadpatch:whiteout_dominion", "dreadpatch:dread_gate"]:
+        for kind in court_types + ["iceandfire:dread_beast", "iceandfire:dread_horse", "iceandfire:dread_lich", "dreadpatch:whiteout_dominion", "dreadpatch:dread_gate",
+                                   "dreadpatch:dread_phantom"]:
             rcon.run(f"kill @e[type={kind}]")
 
     def has_effect(selector, effect):
@@ -140,6 +141,7 @@ def main():
     # By day: at night monsters spawn on the dark stone platforms and draw her off her targets (her crown
     # check failed in alternate runs as the dev world's clock went round), and dragons sleep.
     rcon.run("time set noon")
+    rcon.run("weather clear")
     # On Easy, as the dev run is (Syndrigossa's health is by difficulty: 500 at full strength on Easy);
     # put back at the end.
     first_difficulty = re.search(r"The difficulty is (\w+)", rcon.run("difficulty"))
@@ -806,6 +808,112 @@ def main():
         rcon.run(f"kill @e[tag={tag}]")
     clear_court()
 
+    # The dread phantom (0.45.0). At noon in open sky a phantom burns and a dread phantom doesn't; it's
+    # undead and of the Dread (no Withering Rime, Whiteout or Rimefrost for it). Rimefrost slows a zombie
+    # by a quarter. Its loot table gives the dread thrall's drops, and membrane and Rimefrost scales
+    # only on a player's kill.
+    rcon.run("time set noon")  # the clock runs: minutes in, it's no longer day
+    rcon.run('summon minecraft:phantom 3.5 212 12.5 {NoAI:1b,Tags:["smoke_vanilla_phantom"]}')
+    rcon.run('summon dreadpatch:dread_phantom 6.5 212 12.5 {NoAI:1b,Tags:["smoke_phantom"]}')
+    phantom = "@e[tag=smoke_phantom,limit=1]"
+    check("a dread phantom summons", "execute if entity " + phantom, "Test passed")
+    time.sleep(2.0)
+    fire = lambda sel: int((re.search(r"entity data: (-?\d+)s", rcon.run("data get entity " + sel + " Fire")) or [0, "0"])[1])
+    record("a phantom burns at noon (the control)", fire("@e[tag=smoke_vanilla_phantom,limit=1]") > 0, "the vanilla phantom isn't burning")
+    record("a dread phantom doesn't burn by day", fire(phantom) <= 0 and health(phantom) >= 20.0,
+           f"Fire {fire(phantom)}, health {health(phantom)}")
+    rcon.run("kill @e[tag=smoke_vanilla_phantom]")
+    check("a dread phantom is undead", "execute if entity @e[tag=smoke_phantom,type=#minecraft:undead]", "Test passed")
+    for effect in ("dreadpatch:withering_rime", "dreadpatch:whiteout", "dreadpatch:rimefrost"):
+        rcon.run(f"effect give {phantom} {effect} 10")
+        time.sleep(0.1)
+        record(f"a dread phantom refuses {effect.split(':')[1]}", not has_effect(phantom, effect), "it took it")
+    rcon.run('summon minecraft:zombie 3.5 200 12.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_slowed"]}')
+    speed = lambda: float((re.search(r"is ([0-9.]+)", rcon.run("attribute @e[tag=smoke_slowed,limit=1] minecraft:generic.movement_speed get")) or [0, "-1"])[1])
+    before = speed()
+    rcon.run("effect give @e[tag=smoke_slowed,limit=1] dreadpatch:rimefrost 10")
+    time.sleep(0.2)
+    after = speed()
+    record("Rimefrost slows by a quarter", before > 0 and abs(after / before - 0.75) < 0.01, f"speed {before} -> {after}")
+    rcon.run("kill @e[tag=smoke_slowed]")
+    rcon.run("kill @e[type=item]")
+    for _ in range(8):
+        rcon.run("loot spawn 6.5 201 12.5 kill " + phantom)
+    time.sleep(0.2)
+    thrall_drops = count("minecraft:bone") + count("iceandfire:dread_shard")
+    record("its loot is a thrall's", thrall_drops > 0, "no bones or dread shards over 8 rolls")
+    no_player = count("minecraft:phantom_membrane") + count("dreadpatch:rimefrost_dragon_scale")
+    record("no membrane or scales without a player's kill", no_player == 0, f"{no_player} dropped")
+    rcon.run("kill @e[type=item]")
+    rcon.run("kill " + phantom)
+    time.sleep(0.3)
+    rcon.run("kill @e[type=item]")
+
+    # Summon Dread Phantoms, cast by a villager (as Summon Court is): 2, answering to it, kept until their
+    # time's up; they circle over it; its caster can't hurt one; a husk that hurts the caster they dive on
+    # (revenge, diving and the bite); killed, they leave nothing; a recast replaces them; their time up, they go.
+    def phantoms_of_caster(extra=""):
+        m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_phantom,nbt={Summoner:[I;7,7,7,7]" + extra + "}]"))
+        return int(m.group(1)) if m else 0
+
+    rcon.run('summon minecraft:villager 7.5 200 7.5 {NoAI:1b,UUID:[I;7,7,7,7],Tags:["smoke_caster"]}')
+    rcon.run("effect give @e[tag=smoke_caster,limit=1] minecraft:resistance 300 4 true")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_dread_phantoms 1")
+    time.sleep(0.5)
+    n = phantoms_of_caster()
+    record("Summon Dread Phantoms calls 2, answering to its caster", n == 2, f"{n} called")
+    marked = "Test passed" in rcon.run('execute as @e[type=dreadpatch:dread_phantom,nbt={Summoner:[I;7,7,7,7]},limit=1] '
+                                      'if data entity @s NeoForgeData."dreadpatch:court_expires"')
+    record("they're a summoned court's, with a time to go", marked, "no court_expires on them")
+    time.sleep(4.0)
+    near = re.search(r"count: (\d+)", rcon.run("execute positioned 7.5 200 7.5 if entity @e[type=dreadpatch:dread_phantom,distance=..28,nbt={Summoner:[I;7,7,7,7]}]"))
+    record("they circle over their caster", near is not None and int(near.group(1)) == 2, f"{near and near.group(1)} of 2 within 28 blocks after 4 s")
+    rcon.run("tag @e[type=dreadpatch:dread_phantom,nbt={Summoner:[I;7,7,7,7]},limit=1] add smoke_member_phantom")
+    out = rcon.run("damage @e[tag=smoke_member_phantom,limit=1] 4 minecraft:mob_attack by @e[tag=smoke_caster,limit=1]")
+    record("its caster can't hurt one", "Applied" not in out, out.strip())
+    rcon.run('summon minecraft:husk 10.5 200 5.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_zombie"]}')
+    rcon.run("damage @e[tag=smoke_caster,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_zombie,limit=1]")
+    dove = False
+    for _ in range(40):
+        time.sleep(0.5)
+        if health("@e[tag=smoke_zombie,limit=1]") < 20.0:
+            dove = True
+            break
+    record("they dive on a hostile mob that hurts their caster", dove, "the husk was untouched 20 s after it hit the caster")
+    rcon.run("kill @e[tag=smoke_zombie]")
+    rcon.run("kill @e[type=item]")
+    rcon.run("kill @e[tag=smoke_member_phantom]")
+    time.sleep(0.3)
+    left = sum(count(i) for i in ("minecraft:bone", "iceandfire:dread_shard", "minecraft:phantom_membrane", "dreadpatch:rimefrost_dragon_scale"))
+    record("killed, a summoned one leaves nothing", left == 0, f"{left} items")
+    rcon.run("kill @e[type=item]")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_dread_phantoms 1")
+    time.sleep(0.5)
+    n = phantoms_of_caster()
+    record("a new cast replaces the last (still 2)", n == 2, f"{n} standing")
+    rcon.run('execute as @e[type=dreadpatch:dread_phantom,nbt={Summoner:[I;7,7,7,7]}] run data merge entity @s {NeoForgeData:{"dreadpatch:court_expires":0L}}')
+    time.sleep(1.5)
+    n = phantoms_of_caster()
+    record("their time up, they go", n == 0, f"{n} still standing")
+    rcon.run("kill @e[tag=smoke_caster]")
+
+    # A Dread Lich calls them too (its countdown set short): 1-2, answering to it, at the golem it fights.
+    rcon.run('summon minecraft:iron_golem 12.5 200 12.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target"]}')
+    rcon.run("effect give @e[tag=smoke_target,limit=1] minecraft:resistance 120 4 true")
+    rcon.run('summon iceandfire:dread_lich 4.5 200 12.5 {UUID:[I;3,3,3,3],PersistenceRequired:1b,NeoForgeData:{"dreadpatch:phantom_call":2}}')
+    lich_called = 0
+    for _ in range(20):
+        time.sleep(0.5)
+        m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_phantom,nbt={Summoner:[I;3,3,3,3]}]"))
+        lich_called = int(m.group(1)) if m else 0
+        if lich_called:
+            break
+    record("a Dread Lich calls 1-2 dread phantoms, its own", 1 <= lich_called <= 2, f"{lich_called} within 10 s")
+    rcon.run("kill @e[type=iceandfire:dread_lich]")
+    rcon.run("kill @e[tag=smoke_target]")
+    clear_court()
+    rcon.run("kill @e[type=item]")
+
     # Create Rimefrost Dragon (0.38.0), cast by a villager (NoAI, Resistance V, at 6 of 20 health) at
     # an Ice and Fire ice dragon's corpse in its sights: the corpse rises as a Rimefrost dragon of the
     # same age and colour, with half the caster's missing health (7), raised by it; cast at another,
@@ -974,6 +1082,13 @@ def main():
             break
         time.sleep(0.5)
     record("she raises Whiteout Dominion", stormed, "no storm of hers within 25 s more")
+    # Her dread phantoms (0.45.0): 1-2, the first 15 s into a fight (she's been at it at least that long by now), hers.
+    m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_phantom]"))
+    called = int(m.group(1)) if m else 0
+    record("she calls 1-2 dread phantoms", 1 <= called <= 2, f"{called} dread phantoms")
+    summoner = re.search(r"\[I; [-0-9, ]+\]", rcon.run("data get entity @e[type=dreadpatch:dread_phantom,limit=1] Summoner"))
+    record("her phantoms answer to her", bool(queen_id) and bool(summoner) and summoner.group(0) == queen_id.group(0),
+           f"queen {queen_id and queen_id.group(0)}, phantom's summoner {summoner and summoner.group(0)}")
     time.sleep(0.6)
     record("her storm takes the golem", stormed and has_effect(target, "dreadpatch:whiteout"), "no Whiteout on the golem")
     # Her Dread Lich: the first 30 s into her fight (she's been at it about 20 s by now), answering to her.

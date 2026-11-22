@@ -115,5 +115,11 @@
   "advancements.dreadpatch.regalia.complete.title": "Long Live the Queen",
   "advancements.dreadpatch.regalia.complete.description": "Claim every piece of the Dread Queen's regalia",
   "advancements.dreadpatch.regalia.enthroned.title": "There Must Always Be a Dread Queen",
-  "advancements.dreadpatch.regalia.enthroned.description": "Wear the whole of the Dread Queen's regalia with her blade and her staff in hand"
+  "advancements.dreadpatch.regalia.enthroned.description": "Wear the whole of the Dread Queen's regalia with her blade and her staff in hand",
+  "entity.dreadpatch.dread_phantom": "Dread Phantom",
+  "item.dreadpatch.dread_phantom_spawn_egg": "Dread Phantom Spawn Egg",
+  "effect.dreadpatch.rimefrost": "Rimefrost",
+  "spell.dreadpatch.summon_dread_phantoms": "Summon Dread Phantoms",
+  "spell.dreadpatch.summon_dread_phantoms.guide": "Call two dread phantoms out of the cold air above you. For a minute they circle over you and dive on whatever hostile mob attacks you, or that you attack; their bite can slow with Rimefrost and leave Withering Rime. Like the Dread Queen's court they never turn on the Dread, nor on anything that isn't hostile, and they leave nothing behind. Casting it again dismisses the phantoms you called before.",
+  "ui.dreadpatch.phantoms": "%s Dread Phantoms"
 }

@@ -7,6 +7,8 @@ import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DragonCorpses;
 import io.github.hammerknife404.dreadpatch.entity.DreadGate;
+import io.github.hammerknife404.dreadpatch.entity.DreadPhantom;
+import io.github.hammerknife404.dreadpatch.entity.PhantomCalling;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.QueenRegalia;
 import io.github.hammerknife404.dreadpatch.entity.ScuttlerBolts;
@@ -62,6 +64,7 @@ public final class DreadPatch {
         DragonArmor.register(NeoForge.EVENT_BUS);
         DreadDragonsteel.register(NeoForge.EVENT_BUS);
         QueenRegalia.register(NeoForge.EVENT_BUS);
+        PhantomCalling.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {
@@ -78,6 +81,7 @@ public final class DreadPatch {
         event.put(ModRegistries.BARROW_HUSK.get(), BarrowHusk.createAttributes().build());
         event.put(ModRegistries.SYNDRIGOSSA.get(), DragonBaseEntity.bakeAttributes().build());
         event.put(ModRegistries.RIMEFROST_DRAGON.get(), DragonBaseEntity.bakeAttributes().build());
+        event.put(ModRegistries.DREAD_PHANTOM.get(), DreadPhantom.createAttributes().build());
     }
 
     private static void onCreativeTabs(BuildCreativeModeTabContentsEvent event) {
@@ -87,6 +91,7 @@ public final class DreadPatch {
             event.accept(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get());
             event.accept(ancientSyndrigossaEgg());
             event.accept(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get());
+            event.accept(ModRegistries.DREAD_PHANTOM_SPAWN_EGG.get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
             event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());

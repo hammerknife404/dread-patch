@@ -390,6 +390,64 @@ def whiteout_effect():
     return im
 
 
+def summon_dread_phantoms():
+    """Two dread phantoms diving out of the dark, wings swept up: bone leading edges, torn slate
+    membrane, her cyan in their eyes; a big one across the top and a small one below; frost flecks."""
+    im = dread_background(16, 71)
+    palette = {
+        "B": BONE_LIGHT, "b": BONE, "d": BONE_DIM,
+        "M": (0x6E, 0x7A, 0x96), "m": (0x4C, 0x58, 0x74),
+        "h": (0x2B, 0x32, 0x47), "c": DREAD_CYAN, "f": ICE_LIGHT,
+    }
+    art = [
+        "B..............B",
+        "Mb............bM",
+        ".MbB........BbM.",
+        ".mMMbB....BbMMm.",
+        "..m.MMbcdcbMM.m.",
+        "...m.mMhhhMm.m..",
+        "......mhhhm.....",
+        ".......dhd......",
+        "........d.......",
+        "..b...b....f....",
+        "..Mbcb..........",
+        "...Mhd.......f..",
+        "....d...........",
+        "..............f.",
+        "........f.......",
+        "................",
+    ]
+    for y, row in enumerate(art):
+        for x, ch in enumerate(row):
+            if ch in palette:
+                im.putpixel((x, y), rgba(palette[ch]))
+    return im
+
+
+def rimefrost_effect():
+    """A six-armed flake of rime in ice blues, barbed, round her cyan: the cold without the withering."""
+    im = Image.new("RGBA", (18, 18), (0, 0, 0, 0))
+    cx = cy = 8
+    pts = {}
+    for i in range(6):
+        a = math.pi / 2 + i * math.pi / 3
+        for r in range(1, 7):
+            x, y = round(cx + math.cos(a) * r), round(cy - math.sin(a) * r)
+            pts[(x, y)] = ICE_LIGHT if r >= 6 else ICE if r >= 3 else ICE_DIM
+        for side in (-1, 1):
+            b = a + side * math.pi / 3
+            bx, by = cx + math.cos(a) * 4, cy - math.sin(a) * 4
+            q = (round(bx + math.cos(b) * 1.5), round(by - math.sin(b) * 1.5))
+            pts.setdefault(q, ICE)
+    for (x, y), c in pts.items():
+        im.putpixel((x, y), rgba(c))
+    for x, y in ((cx, cy), (cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+        im.putpixel((x, y), rgba(FIRE_DEEP))
+    im.putpixel((cx, cy), rgba(DREAD_CYAN))
+    outline(im)
+    return im
+
+
 def periodic_noise(width, height, cells_x, cells_y, rnd):
     """Smooth value noise that wraps in both directions, so an animation scrolled through it loops."""
     grid = [[rnd.random() for _ in range(cells_x)] for _ in range(cells_y)]
@@ -610,6 +668,8 @@ def main():
         "gui/spell_icons/summon_court.png": summon_court(),
         "gui/spell_icons/create_rimefrost_dragon.png": create_rimefrost_dragon(),
         "mob_effect/whiteout.png": whiteout_effect(),
+        "gui/spell_icons/summon_dread_phantoms.png": summon_dread_phantoms(),
+        "mob_effect/rimefrost.png": rimefrost_effect(),
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "item/dread_queen_crown.png": queen_crown(),
         "item/dread_queen_bodice.png": queen_bodice(),

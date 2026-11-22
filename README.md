@@ -11,7 +11,7 @@ Patching in the Dread Queen for my own world.
 ## Calling her
 
 - **A Dread Gate** (below), with a Gravemaster's Key.
-- **Spawn eggs**, in the Spawn Eggs tab: the Dread Queen; the Dread Queen and Syndrigossa (her riding it, as the boss); Syndrigossa; an Ancient Syndrigossa; and a Rimefrost Dragon.
+- **Spawn eggs**, in the Spawn Eggs tab: the Dread Queen; the Dread Queen and Syndrigossa (her riding it, as the boss); Syndrigossa; an Ancient Syndrigossa; a Rimefrost Dragon; and a Dread Phantom.
 - **Commands:** `/summon dreadpatch:dread_queen`, `/summon dreadpatch:dread_queen ~ ~ ~ {WithSyndrigossa:1b}` (riding her dragon), `/summon dreadpatch:syndrigossa`, and `/summon dreadpatch:syndrigossa ~ ~ ~ {Ancient:1b}` (full strength).
 
 ## The Dread Queen
@@ -32,6 +32,7 @@ Her abilities:
 - **Beater's Decree:** she burns one of her court from behind as it presses an enemy, a burst of rime that sends the rest of her court into a frenzy.
 - **A Dread Lich:** half a minute into a fight, and at most every 90 seconds after, she raises one beside her, never two at once. It's Ice and Fire's own, with its skulls and the minions it raises itself (up to 5 over its life), fighting what she fights.
 - **Create Rimefrost Dragon:** in a fight, once she's lost a quarter of her health, she raises the corpse of an ice dragon within 32 blocks as a Rimefrost dragon of hers, at most every 3 minutes and one at a time. It rises with half the health she's lost, and fights what she fights.
+- **Dread phantoms:** 15 seconds into a fight, and every 45 seconds after, she calls one or two dread phantoms out of the air (below), never more than four of hers at once.
 - **Whiteout Dominion:** every two minutes in a fight she calls down a blizzard 32 blocks round over the ground where she stands. It lasts 45 seconds and stays where it was raised; she ends it if she falls.
   - Inside it her enemies are slowed by a fifth, can't see past about 10 blocks through the snow-fog (mobs lose sight of anything past half their usual range), and take a point of freezing damage every 3 seconds. From outside it shows as a wall of driven snow standing on the land.
   - Snow drifts over the ground under it and melts away as it clears. It's only drawn, so it never stays behind.
@@ -49,7 +50,7 @@ Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she 
 
 - Her sword and her staff, each one time in four (Looting raises it: 30% at Looting I, 40% at Looting III).
 - One epic or legendary ink.
-- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court or Create Rimefrost Dragon. They're Ice spells (they count Ice spell power), found nowhere else.
+- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court, Create Rimefrost Dragon or Summon Dread Phantoms. They're Ice spells (they count Ice spell power), found nowhere else.
 - **A piece of her regalia,** when a player kills her (below).
 
 ### Her regalia
@@ -96,6 +97,7 @@ What every Rimefrost dragon has:
 The unique, named Rimefrost dragon, risen as the queen's mount; still in progress. She has everything above, always in white, and what's hers alone:
 
 - **Sovereign's Eclipse:** every 30 seconds, once she's grown, her own Rimefire Crown round her target, 16 blocks across with dark spires and indigo fire, standing 10 seconds. It doesn't root and doesn't close in, but everyone inside is heavily slowed (Slowness IV) and kept under Withering Rime, and it drinks the fire inside it.
+- **Dread phantoms:** wild, she calls them as the queen does (below).
 - **Her own boss bar,** white beside the queen's blue (none while she's tamed).
 - **Health:** set by difficulty, not by Ice and Fire's dragon health setting: 500 at full strength on Easy, 750 on Normal and 1,000 on Hard. A younger one has the same share of that as an ice dragon her age. Change the difficulty and she keeps the same share of her health.
 - **Growth:** from her spawn egg or `/summon` she's Ice and Fire's random age (1 to 80 days), with an ice dragon's bite and armor for it.
@@ -109,10 +111,21 @@ The unique, named Rimefrost dragon, risen as the queen's mount; still in progres
 
   As with Ice and Fire's own hatchlings, right-click it with an empty hand while it's small to carry it on your shoulder, and sneak to set it down.
 
+## Dread phantoms
+
+Phantoms of the Dread: as strong as Minecraft's own phantoms, with a phantom's 20 health and bite, but they don't burn by day. They look like a phantom gone to the Dread, its hide soot and slate still faintly blue, its bones pale, its wings torn through to the finger bones, its eyes the Dread's cyan, and they leave a sparse trail of rime and snowflakes. Under a phantom's screech, each of their sounds carries something ghostlier. Spawn one with the **Dread Phantom Spawn Egg** (Spawn Eggs tab) or `/summon dreadpatch:dread_phantom`.
+
+- **Who calls them:** the Dread Queen, any Dread Lich, and a wild Syndrigossa, each one or two at a time while they have something to fight: the first 15 seconds in, then every 45 seconds, never more than four of their own at once. Players can call them with the Summon Dread Phantoms scroll (below).
+- **What they do:** they circle above whoever called them, take up their fights, and turn on whatever hurts them or the one who called them, diving on it at once. The harder the difficulty, the more often they dive: every 8 to 11 seconds on Easy (a phantom's pace), 6 to 8 on Normal, 4 to 6 on Hard. With no one to answer to, they hunt players as phantoms do. They're of the Dread: allied with the queen and her court, and untouched by Withering Rime, Whiteout and Rimefrost.
+- **Their bite:** a phantom's, and one bite in three (35%) leaves 5 seconds of **Rimefrost**, the Dread's cold without the withering (25% slower). One in seven (15%), rolled apart, leaves 3 seconds of Withering Rime, so a bite can leave both.
+- **Their drops:** a dread thrall's (bones and dread shards), and when a player kills one, 1 to 3 phantom membranes and 1 to 3 Rimefrost Dragon Scales, each with up to one more a Looting level. The ones a player calls leave nothing.
+- **Natural spawning** will come with the Dreadlands: there, and only there, one or two at a time, rarely, whether or not you've slept.
+
 ## Rimefrost dragonscale and dread dragonsteel
 
 Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon gear, with Ice and Fire's ice sets' own numbers and models, recoloured soot, bone and cyan:
 
+- **Rimefrost Dragon Scales:** from a Rimefrost dragon's corpse (above), or from dread phantoms a player kills.
 - **Rimefrost Dragon Blood:** Rimefrost Dragon Scales and a glass bottle in an ice dragonforge, as Ice and Fire makes ice dragon blood.
 - **Dread Dragonsteel Ingot:** an iron ingot and Rimefrost Dragon Blood in an ice dragonforge.
 - **Rimefrost dragonscale armour,** crafted from the scales like Ice and Fire's dragonscale armour.
@@ -138,6 +151,7 @@ Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon g
 Her scrolls (from her drops) teach her spells to players:
 
 - **Summon Court** raises her court round you, Ice and Fire's thralls, ghouls, knights and scuttlers rising out of the ground: 2 at level 1 up to 6 at level 5, standing 70 to 110 seconds, on a two-minute cooldown. They follow you and fall on hostile mobs that attack you or that you attack. They never fight the Dread (the queen and her court leave them be too), never turn on friendly mobs, villagers, golems, pets or other players, and don't fight back when those hit them; and friendly mobs leave them be in turn. You can't hurt them, nor can your spells. Casting it again dismisses the court you raised before. A server can change how they treat friendly mobs and players in `config/dreadpatch-server.toml` (`attack_friendly_mobs`, `retaliate`, `attack_players`, all off by default).
+- **Summon Dread Phantoms** calls two dread phantoms down over you for a minute, on a 90-second cooldown. They circle above you and dive on hostile mobs that attack you or that you attack, under the same rules as Summon Court's court: never the Dread, never friendly mobs, villagers, golems, pets or other players unless the server allows it, and you can't hurt them. They leave nothing behind. Casting it again dismisses the ones you called before.
 - **Create Rimefrost Dragon** raises the corpse of an Ice and Fire ice dragon you look at (within 24 blocks) as a Rimefrost dragon of the same age, gender and colour, tamed to you, to ride and command like any tamed Ice and Fire dragon. It rises with half the health you're missing (rounded down), so the closer you are to death, the stronger it rises; at full health it rises with 1. It costs 500 mana and then every drop you have left. You keep one at a time. Its cooldown is 3 minutes, and within them you can recast it once, for free, to send your dragon back and raise the corpse you're looking at instead; the cooldown still ends 3 minutes after the first cast. Like Iron's own Raise Dead, it can't be cast straight from its scroll: inscribe it in a spellbook.
 - **Barrow-Step** takes you to where you look (11 to 15 blocks, by level) and leaves your own husk behind: rime-glass in your shape and skin.
 - **Whiteout Dominion** (16 to 32 blocks round and 25 to 45 seconds, by level, on a two-minute cooldown) fogs, slows and freezes whoever you'd harm in it, and freezes its water over too, but only hers raises the dead. The Dread walk through anyone's storm untouched.

@@ -5,6 +5,7 @@ import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import com.iafenvoy.iceandfire.registry.IafSounds;
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
+import io.github.hammerknife404.dreadpatch.magic.PhantomRules;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
@@ -59,6 +60,9 @@ import java.util.UUID;
  * <li>The caster's side can't hurt them: their own spells, sweeps and arrows.</li>
  * <li>When their time is up they crumble back into the ground; a new cast dismisses the last.</li>
  * </ul>
+ * The dread phantoms a player's spell calls (0.45.0) are a summoned court too ({@link #raisePhantoms}),
+ * under the same rules: they answer to their {@code Summoner} instead, escort their caster in the air
+ * rather than following on foot, and a new cast of either spell dismisses only its own.
  */
 public final class SummonedCourt {
     /** Game time when a summoned court member goes. Its presence is what makes a dread mob one. */
@@ -76,9 +80,18 @@ public final class SummonedCourt {
         gameBus.addListener(SummonedCourt::onTick);
     }
 
-    /** Whether {@code entity} is a court member a caster raised. */
+    /** Whether {@code entity} is a court member a caster raised: a dread mob of Summon Court's, or a dread phantom of the spell's. */
     public static boolean isMember(@Nullable Entity entity) {
-        return entity instanceof DreadMobEntity mob && mob.getPersistentData().contains(EXPIRES_KEY);
+        return (entity instanceof DreadMobEntity || entity instanceof DreadPhantom) && entity.getPersistentData().contains(EXPIRES_KEY);
+    }
+
+    /** Who a court member answers to: a dread mob's {@code CommanderUUID}, a phantom's {@code Summoner}. */
+    @Nullable
+    static UUID commanderId(Entity member) {
+        if (member instanceof DreadMobEntity mob) {
+            return mob.getCommanderId();
+        }
+        return member instanceof DreadPhantom phantom ? phantom.getSummonerId() : null;
     }
 
     /**
@@ -87,8 +100,8 @@ public final class SummonedCourt {
      * scuttler of a caster's court followed no one, defended no one, and its caster could hurt it (until 0.42.0).
      */
     @Nullable
-    public static Entity commander(DreadMobEntity member) {
-        UUID id = member.getCommanderId();
+    public static Entity commander(Entity member) {
+        UUID id = commanderId(member);
         if (id == null || !(member.level() instanceof ServerLevel level)) {
             return null;
         }
@@ -98,7 +111,7 @@ public final class SummonedCourt {
 
     /** Whether {@code entity} is a court member {@code caster} raised. */
     public static boolean serves(@Nullable Entity entity, @Nullable Entity caster) {
-        return caster != null && isMember(entity) && caster.getUUID().equals(((DreadMobEntity) entity).getCommanderId());
+        return caster != null && isMember(entity) && caster.getUUID().equals(commanderId(entity));
     }
 
     /**
@@ -106,7 +119,7 @@ public final class SummonedCourt {
      * {@link CourtRules#summonSeconds}, after dismissing the court they raised before. How many rose.
      */
     public static int raise(ServerLevel level, LivingEntity caster, int spellLevel) {
-        dismiss(level, caster);
+        dismiss(level, caster, DreadMobEntity.class);
         long expires = level.getGameTime() + CourtRules.summonSeconds(spellLevel) * 20L;
         Vec3 center = caster.position();
         int raised = 0;
@@ -138,19 +151,38 @@ public final class SummonedCourt {
         return raised;
     }
 
-    /** Sends back every court member {@code caster} raised in this level. */
-    static void dismiss(ServerLevel level, Entity caster) {
-        List<DreadMobEntity> court = new ArrayList<>();
+    /**
+     * The spell's dread phantoms (0.45.0): {@link PhantomRules#SPELL_COUNT} rise over {@code caster} for
+     * {@link PhantomRules#SPELL_SECONDS}, after dismissing the phantoms they called before. How many rose.
+     */
+    public static int raisePhantoms(ServerLevel level, LivingEntity caster) {
+        dismiss(level, caster, DreadPhantom.class);
+        long expires = level.getGameTime() + PhantomRules.SPELL_SECONDS * 20L;
+        int raised = 0;
+        for (int i = 0; i < PhantomRules.SPELL_COUNT; i++) {
+            if (PhantomCalling.rise(level, caster, expires) != null) {
+                raised++;
+            }
+        }
+        if (raised > 0) {
+            caster.swing(InteractionHand.MAIN_HAND);
+        }
+        return raised;
+    }
+
+    /** Sends back every court member of {@code kind} {@code caster} raised in this level. */
+    static void dismiss(ServerLevel level, Entity caster, Class<? extends Mob> kind) {
+        List<Mob> court = new ArrayList<>();
         for (Entity entity : level.getAllEntities()) {
-            if (serves(entity, caster)) {
-                court.add((DreadMobEntity) entity);
+            if (kind.isInstance(entity) && serves(entity, caster)) {
+                court.add((Mob) entity);
             }
         }
         court.forEach(SummonedCourt::crumble);
     }
 
-    /** Back into the ground, with whatever dread mount it rode. */
-    private static void crumble(DreadMobEntity member) {
+    /** Back into the ground (or the air), with whatever dread mount it rode. */
+    private static void crumble(Mob member) {
         if (member.level() instanceof ServerLevel level) {
             MagicManager.spawnParticles(level, CHARCOAL, member.getX(), member.getY(0.5), member.getZ(), 25, 0.4, 0.6, 0.4, 0.03, false);
             MagicManager.spawnParticles(level, ParticleTypes.SOUL, member.getX(), member.getY(0.5), member.getZ(), 6, 0.3, 0.5, 0.3, 0.02, false);
@@ -164,6 +196,15 @@ public final class SummonedCourt {
     /** Iron's summons' goals in place of Ice and Fire's targeting, every time one joins a level (goals aren't saved). */
     private static void onJoin(EntityJoinLevelEvent event) {
         if (event.getLevel().isClientSide() || !isMember(event.getEntity())) {
+            return;
+        }
+        if (event.getEntity() instanceof DreadPhantom phantom) {
+            // A phantom escorts its caster in the air (its own flight), so no following goal, and turns on what hurts it its own way.
+            phantom.targetSelector.removeAllGoals(goal -> true);
+            phantom.targetSelector.addGoal(1, new GenericOwnerHurtByTargetGoal(phantom, () -> commander(phantom)));
+            phantom.targetSelector.addGoal(2, new GenericOwnerHurtTargetGoal(phantom, () -> commander(phantom)));
+            phantom.targetSelector.addGoal(4, new DreadPhantom.RevengeGoal(phantom));
+            phantom.targetSelector.addGoal(5, new GenericProtectOwnerTargetGoal(phantom, () -> commander(phantom)));
             return;
         }
         DreadMobEntity member = (DreadMobEntity) event.getEntity();
@@ -187,7 +228,7 @@ public final class SummonedCourt {
             return;
         }
         if (isMember(event.getEntity())) {
-            if (!mayFight((DreadMobEntity) event.getEntity(), target)) {
+            if (!mayFight((Mob) event.getEntity(), target)) {
                 event.setCanceled(true);
             }
         } else if (isMember(target) && friendly(event.getEntity()) && !DreadPatchConfig.courtTerms().attackFriendlyMobs()) {
@@ -203,9 +244,9 @@ public final class SummonedCourt {
             return;
         }
         LivingEntity victim = event.getEntity();
-        if (isMember(victim) && onCastersSide(commander((DreadMobEntity) victim), attacker)) {
+        if (isMember(victim) && onCastersSide(commander(victim), attacker)) {
             event.setCanceled(true);
-        } else if (isMember(attacker) && !mayFight((DreadMobEntity) attacker, victim)) {
+        } else if (isMember(attacker) && !mayFight((Mob) attacker, victim)) {
             event.setCanceled(true);
         }
     }
@@ -217,12 +258,12 @@ public final class SummonedCourt {
             return;
         }
         if (entity.level().getGameTime() >= entity.getPersistentData().getLong(EXPIRES_KEY)) {
-            crumble((DreadMobEntity) entity);
+            crumble((Mob) entity);
         }
     }
 
     /** Whether court member {@code member} may fight {@code target}, by the server config's terms. */
-    public static boolean mayFight(DreadMobEntity member, Entity target) {
+    public static boolean mayFight(Mob member, Entity target) {
         boolean retaliating = target == member.getLastHurtByMob();
         return CourtRules.mayFight(stance(commander(member), target), retaliating, DreadPatchConfig.courtTerms());
     }
