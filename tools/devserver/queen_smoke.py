@@ -352,6 +352,50 @@ def main():
     rcon.run("kill @e[type=item]")
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
 
+    # A Rimefrost dragon (0.37.0), the subtype Syndrigossa is the unique one of: an ice dragon of the
+    # Dread in its own colour (summoned sapphire, it stays sapphire), undead with the ice dragon's tags,
+    # refusing Withering Rime and Wither, whole from a tag, with Ice and Fire's health for its age (not
+    # Syndrigossa's by difficulty: on Hard it keeps it), and a Dread corpse in its own colour's scales
+    # with no egg in its heart. Summoned by hand it's Ice and Fire's random age and ice dragon colour.
+    rime = "@e[type=dreadpatch:rimefrost_dragon,limit=1]"
+    check("a Rimefrost dragon summons", surface + 'summon dreadpatch:rimefrost_dragon ~8 ~ ~ {NoAI:1b,AgeTicks:2500000,Variant:"sapphire"}',
+          "Summoned new Rimefrost Dragon")
+    check("it keeps its colour", "data get entity " + rime + " Variant", '"sapphire"')
+    check("it's one of the Dread: no Withering Rime", "effect give " + rime + " dreadpatch:withering_rime 5", "Unable to apply")
+    check("no Wither on it", "effect give " + rime + " minecraft:wither 5", "Unable to apply")
+    for tag in ("#minecraft:undead", "#minecraft:freeze_immune_entity_types", "#minecraft:can_breathe_under_water", "#iceandfire:ice_dragon"):
+        check("a Rimefrost dragon in " + tag, "execute as " + rime + " if entity @s[type=" + tag + "]", "Test passed")
+    rime_max = max_health(rime)
+    record("whole from a tag, with Ice and Fire's health for its age", rime_max > 100 and health(rime) == rime_max,
+           f"health {health(rime)} of {rime_max}")
+    rcon.run("difficulty hard")
+    time.sleep(0.3)
+    record("its health isn't Syndrigossa's by difficulty", max_health(rime) == rime_max, f"max health {rime_max} on Easy, {max_health(rime)} on Hard")
+    rcon.run("difficulty easy")
+    rcon.run("kill @e[type=item]")
+    for _ in range(20):
+        rcon.run("execute as " + rime + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/rimefrost_dragon/corpse")
+    blue_scales, rime_shards = item_total("iceandfire:dragonscales_sapphire"), item_total("iceandfire:dread_shard")
+    others = count("*") - count("iceandfire:dragonscales_sapphire") - count("iceandfire:dread_shard")
+    record("its corpse gives its own colour's scales and dread shards", blue_scales > 0 and rime_shards > 0 and others == 0,
+           f"{blue_scales} sapphire scales, {rime_shards} shards, {others} other stacks")
+    rcon.run("kill @e[type=item]")
+    for _ in range(5):
+        rcon.run("execute as " + rime + " at @s run loot spawn ~ ~3 ~ loot dreadpatch:entities/rimefrost_dragon/heart")
+    record("its heart is shards and witherbones, never her egg",
+           item_total("dreadpatch:syndrigossa_egg") == 0 and item_total("iceandfire:dread_shard") >= 20 and item_total("iceandfire:witherbone") >= 10,
+           f"{item_total('dreadpatch:syndrigossa_egg')} eggs, {item_total('iceandfire:dread_shard')} shards, {item_total('iceandfire:witherbone')} witherbones from 5 hearts")
+    rcon.run("kill @e[type=item]")
+    rcon.run("kill @e[type=dreadpatch:rimefrost_dragon]")
+    # (Without NBT: a summon with any skips Ice and Fire's finalizeSpawn, its age and colour.)
+    rcon.run(surface + "summon dreadpatch:rimefrost_dragon ~8 ~ ~")
+    rime_age = age_ticks(rime)
+    colour = re.search(r'"(\w+)"', rcon.run("data get entity " + rime + " Variant"))
+    record("summoned by hand, it's a random age and ice dragon colour",
+           0 < rime_age <= 80 * 24000 and colour is not None and colour.group(1) in ("white", "sapphire", "silver", "blue"),
+           f"AgeTicks {rime_age}, Variant {colour and colour.group(1)}")
+    rcon.run("kill @e[type=dreadpatch:rimefrost_dragon]")
+
     # Her spawn animation: 30 ticks rising out of the ground, unable to move, with a pig to tempt her.
     spot = "execute positioned 0 0 0 positioned over world_surface positioned ~0.5 ~ ~0.5 "
     check("summons for the rise", spot + "run summon dreadpatch:dread_queen ~ ~ ~", "Summoned new Dread Queen")
@@ -715,9 +759,13 @@ def main():
     time.sleep(3.0)
     record("the court leaves a friendly mob be, even one that hits it or its caster", health(cow) >= cow_hp, f"cow health {cow_hp} -> {health(cow)}")
     record("the court never fights the Dread", health(thrall) >= thrall_hp, f"dread thrall health {thrall_hp} -> {health(thrall)}")
-    before = health(member)
-    rcon.run("damage " + member + " 4 minecraft:mob_attack by @e[tag=smoke_caster,limit=1]")
-    record("its caster can't hurt it", health(member) >= before, f"court member health {before} -> {health(member)}")
+    # One member, pinned by a tag ("limit=1" alone may pick another between reads), and /damage's own word.
+    rcon.run("tag " + member + " add smoke_member")
+    pinned = "@e[tag=smoke_member,limit=1]"
+    before = health(pinned)
+    out = rcon.run("damage " + pinned + " 4 minecraft:mob_attack by @e[tag=smoke_caster,limit=1]")
+    record("its caster can't hurt it", "Applied" not in out and health(pinned) >= before,
+           f"court member health {before} -> {health(pinned)}: {out.strip()}")
     rcon.run('summon minecraft:husk 10.5 200 5.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_zombie"]}')
     rcon.run("damage @e[tag=smoke_caster,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_zombie,limit=1]")
     fought = False

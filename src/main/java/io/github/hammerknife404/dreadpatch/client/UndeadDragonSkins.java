@@ -2,7 +2,6 @@ package io.github.hammerknife404.dreadpatch.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
-import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -15,10 +14,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Syndrigossa's skins, made on the render thread the first time each is drawn: Ice and Fire's white
- * ice dragon texture for her stage (awake or asleep), rotted with its ice dragon skeleton
- * ({@link UndeadSkin}). Nothing of Ice and Fire's is copied into this mod; resource packs that
- * retexture its ice dragons retexture her too. Remade after a resource reload.
+ * Rimefrost dragons' skins (Syndrigossa's among them), made on the render thread the first time each
+ * is drawn: Ice and Fire's ice dragon texture in the dragon's colour for its stage (awake or asleep),
+ * rotted with its ice dragon skeleton ({@link UndeadSkin}). Nothing of Ice and Fire's is copied into
+ * this mod; resource packs that retexture its ice dragons retexture them too. Remade after a resource
+ * reload.
  */
 final class UndeadDragonSkins {
     private static final Map<String, ResourceLocation> MADE = new HashMap<>();
@@ -26,14 +26,13 @@ final class UndeadDragonSkins {
     private UndeadDragonSkins() {
     }
 
-    static ResourceLocation get(int stage, boolean sleeping) {
+    static ResourceLocation get(String color, int stage, boolean sleeping) {
         int s = Math.max(1, Math.min(5, stage));
-        String key = "syndrigossa_" + s + (sleeping ? "_sleeping" : "");
+        String key = "rimefrost_" + color + "_" + s + (sleeping ? "_sleeping" : "");
         ResourceLocation made = MADE.get(key);
         if (made != null) {
             return made;
         }
-        String color = Syndrigossa.BASE_COLOR;
         ResourceLocation body = iceDragon(color + "_" + s + (sleeping ? "_sleeping" : "") + ".png");
         ResourceLocation bones = iceDragon("ice_skeleton_" + s + ".png");
         try (NativeImage bodyImage = read(body); NativeImage bonesImage = read(bones)) {
@@ -52,7 +51,7 @@ final class UndeadDragonSkins {
             made = DreadPatch.id("dynamic/" + key);
             Minecraft.getInstance().getTextureManager().register(made, new DynamicTexture(out));
         } catch (IOException | RuntimeException e) {
-            DreadPatch.LOGGER.warn("Couldn't make Syndrigossa's skin from {} and {}; she'll wear Ice and Fire's", body, bones, e);
+            DreadPatch.LOGGER.warn("Couldn't make a Rimefrost dragon's skin from {} and {}; it'll wear Ice and Fire's", body, bones, e);
             made = body;
         }
         MADE.put(key, made);

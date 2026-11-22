@@ -1,10 +1,10 @@
 # Dread Patch: notes for the next agent
 
-NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinished Dread Queen to the game, with her undead dragon Syndrigossa, for the owner's modpack. Hard dependencies on Ice and Fire CE and Iron's Spells 'n Spellbooks. It's the owner's largest mod so far.
+NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinished Dread Queen to the game, with the Rimefrost (undead frost dragons of the Dread) and her own, Syndrigossa, for the owner's modpack. Hard dependencies on Ice and Fire CE and Iron's Spells 'n Spellbooks. It's the owner's largest mod so far.
 
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
-- **Still to come:** natural spawning, and hatching Syndrigossa's egg. For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
+- **Still to come:** the Create Rimefrost Dragon spell, hatching Syndrigossa's egg (both decided, under the owner's decisions), and natural spawning. For a public release, also seat player riders properly on Ice and Fire dragons (deferred).
 
 ## The owner's decisions
 
@@ -48,6 +48,13 @@ The design comes from the owner's two chats with another assistant, `proposed_st
 - **0.33.0:**
   - In the owner's taxonomy she's a unique, named dragon of the **Rimefrost**, a subtype of frost dragon (they offered "Rime" or "Rimefrost"). Lore only: no one-per-world limit. Her spawn eggs and egg say so in their tooltips.
   - Rimefrost dragons' bites inflict Withering Rime II: hers, 4.5 s.
+- **0.37.0, the Rimefrost subtype** (the owner, from their notes: "Create the Rimefrost subtype"):
+  - the plan's split, which they didn't change: every Rimefrost dragon has the breath, the bite, Shatter-Spine, undeath, Dread alliance, the rotted look in its own ice dragon colour and a Dread corpse;
+  - only Syndrigossa has Sovereign's Eclipse, the boss bar, health by difficulty, the ancient boss, the queen's saddle and tether, and her egg;
+  - a plain Rimefrost dragon's health is Ice and Fire's for its age (their pick wasn't given; ours, as "same tiered").
+- **Next, decided (2026-11-21):**
+  - **Create Rimefrost Dragon**, a spell (scroll only): it raises an Ice and Fire ice dragon corpse as a Rimefrost dragon of the same age, owned by the caster. 3 minutes' cooldown at least; 500 mana and all the rest a player has (the queen pays none). It rises with health of half (rounded down) the caster's missing health: the queen's, or the casting player's. A player has one at a time. "Recasting Create Rimefrost Dragon within its cooldown unsummons the current one and allows the new target".
+  - **Hatching her egg, B:** placed on dreadstone, it hatches after soaking up three full Whiteout Dominion storms cast over it, into a Rimefrost hatchling (white) tamed to whoever placed it.
 - **0.36.0:** "Make the max distance on the breath 32. Adjust particle speeds accordingly, but keep the cutoff matching its max distance".
   - The cone's max is 32 (30 before), and it's a hard limit: the splash where it lands no longer hits past it, and no particle flies past it.
   - Then "apply this distance to rimefrost dragons too": like the Withering Rime II bite, it's a **Rimefrost trait**. Syndrigossa is the only Rimefrost dragon so far (it's all in her class), so give any Rimefrost dragon added later (one hatched from her egg) both.
@@ -609,15 +616,24 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - So each target gets its own `AttackEntityEvent`, as the swing's own target.
 - Its range is `entity_interaction_range` plus the weapon's.
 
-### Syndrigossa
+### Rimefrost dragons and Syndrigossa
 
-**`entity/Syndrigossa`**
+**The split (0.37.0):** `entity/RimefrostDragon` (`dreadpatch:rimefrost_dragon`) is the subtype; `entity/Syndrigossa` (`dreadpatch:syndrigossa`, its id kept so saved ones load) extends it.
+- **Every Rimefrost dragon** (`RimefrostDragon`):
+  - the breath, the bite's rime, its own Shatter-Spine, takeoff and air-attack weighting;
+  - the player-hunting goal, the Dread corpse (`corpseLoot`/`bonesLoot`/`heartLoot`, `entities/rimefrost_dragon/*`), the tag-made health fix, the animation layers;
+  - Ice and Fire's health for its age (config `dragon.maxHealth`), its own `Variant` (Ice and Fire's random ice colour, or a summon's), `getCommander` null.
+  - `aiStep` (server, alive): drop a bad target, `beforeAttacks()` (a hook), take off, Shatter-Spine. `carriesOthers()` is any passenger.
+- **Only Syndrigossa** (`Syndrigossa`): white (`getVariant`), Sovereign's Eclipse, the boss bar, health by difficulty, ancient spawns, the queen's seat and tether (`positionRider`, `carriesOthers` not counting her queen, `isAllowedToTriggerFlight`, `bringQueenDown` and `followDifficulty` in `beforeAttacks`), her own tables (`entities/syndrigossa/*`, her heart with her egg).
+- **Shared code** names `RimefrostDragon`: `SyndrigossaEvents` (breath events, charges, siphon, bite, Wither), `ShatterSpineCore.launch`, `ShatterSpineShard`. Tags: the four entity type tags list both.
+
+**`entity/RimefrostDragon`**
 - **An `IceDragonEntity` subclass:** Ice and Fire's model, animations, growth, flight, AI and riding all come with it.
 - **An `IDreadMob`:**
   - no Withering Rime;
   - allied with the Dread through `isAlliedTo`, `canAttack` and `shouldTarget`;
-  - `getCommander` is her queen.
-- **Colour:** `getVariant` is always `white`, so every colour lookup works.
+  - `getCommander` is none (Syndrigossa's is her queen).
+- **Colour:** a Rimefrost dragon keeps Ice and Fire's `Variant`, so every colour lookup works and its corpse's scales come out in its colour (`iceandfire:dragon_loot` swaps any scales for `DragonColor.getById(getVariant()).getScaleItem()`). Syndrigossa's `getVariant` is always `white`.
 - **Boss bar:** a `ServerBossEvent` (white, progress), as vanilla's Wither keeps one:
   - players are added in `startSeenByPlayer` and removed in `stopSeenByPlayer`;
   - `aiStep` sets its progress and its visibility (alive, not `isModelDead`, not tame);
@@ -625,9 +641,9 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - Ice and Fire gives its dragons none. `/bossbar` only lists command-made bars, so the smoke test can't see it.
 - **Players:** her own `DragonAITargetNonTamedGoal` at 5 takes them, without the `neutralToPlayer` check.
 
-**Her skin** (`client/SyndrigossaRenderer`, `UndeadDragonSkins`, `UndeadSkin`)
-- **Made:** on the render thread, the first time each is drawn, as a `DynamicTexture` named `dreadpatch:dynamic/syndrigossa_<stage>[_sleeping]`.
-- **From:** Ice and Fire's `white_<stage>` and `ice_skeleton_<stage>`, which share a layout.
+**The skin** (`client/RimefrostDragonRenderer`, `SyndrigossaRenderer` adding `SaddleLayer`, `UndeadDragonSkins`, `UndeadSkin`)
+- **Made:** on the render thread, the first time each is drawn, as a `DynamicTexture` named `dreadpatch:dynamic/rimefrost_<colour>_<stage>[_sleeping]`.
+- **From:** Ice and Fire's `<colour>_<stage>` (the dragon's `getVariant`) and `ice_skeleton_<stage>`, which share a layout.
 - **Rotted by noise:** soot scales, bone where the skeleton has it, torn membrane.
 - **Consequences:**
   - nothing of Ice and Fire's ships with us;
@@ -810,6 +826,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Magic:** Withering Rime and the siphon, and each spell, cast through Iron's `/cast` by armor stands.
 - **Fighting:** the sword, her spacing and Barrow-Step, her court, decree, storm and lich.
 - **Summon Court:** cast by a NoAI villager (an armor stand records no attacker, and the court defends its caster from what hurts it). The count by level; leaving a cow and a dread thrall be when they hit the caster or a member; the caster's hit cancelled; a husk that hits the caster attacked; a recast replacing the court; expiry (set through `data merge ... {NeoForgeData:{...}}`). With `attack_friendly_mobs` and `retaliate` switched on by hand, the court killed the cow within 4 s, so the check does catch the filter missing.
+- **Rimefrost dragons:** a summoned one keeps its colour (sapphire), is undead with the ice dragon's tags, refuses Withering Rime and Wither, starts whole from a tag at Ice and Fire's health for its age (unchanged on Hard, unlike Syndrigossa's), and its corpse gives its own colour's scales and shards, its heart never her egg. Summoned without NBT it's a random age and ice colour (a summon with any NBT skips `finalizeSpawn`: a colourless hatchling).
 - **Her drops:** at most one sword and one staff, one ink and one scroll a kill; over 40 rolls each of sword and staff 3–20 times; over four deaths of a queen saved with `HandDropChances` 2.0, not all eight.
 - **Ice:** Rimewalk, and the storm's ice.
 - **Syndrigossa:**
@@ -835,6 +852,8 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Cleanup:** every queen's court is cleared with her (`clear_court`), or strays turn up in later checks.
 - **The crown check** polls every 0.1 s. Her next bolt comes within 1.25 s of a crown, sometimes within a few ticks, and shatters it.
 - **Shards:** once, a core's burst counted 8 shards (it makes 5–7), never explained. That check prints where they were.
+- **The seat:** once (0.37.0), "she sits on its back" read her 14.7 blocks above her dragon's feet. The same setup repeated eight times seated her at 9.24, its dragon on the ground, and the next full run passed: likely her dragon stirring in the 0.3 s it has its AI before the test sets NoAI.
+- **A court member:** "its caster can't hurt it" once read two different members (`limit=1` alone may pick another between reads); it now tags one and reads `/damage`'s own output.
 
 **What it doesn't cover**
 - **Needs a player:**

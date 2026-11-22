@@ -13,6 +13,7 @@ import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineCore;
 import io.github.hammerknife404.dreadpatch.entity.SovereignsEclipse;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineShard;
+import io.github.hammerknife404.dreadpatch.entity.RimefrostDragon;
 import io.github.hammerknife404.dreadpatch.entity.Syndrigossa;
 import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.entity.WitheringRimeBolt;
@@ -90,7 +91,12 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("barrow_husk").toString()));
 
-    /** Syndrigossa (proof of concept): an Ice and Fire ice dragon's base size and category; it grows by stage. */
+    /** A Rimefrost dragon (0.37.0), and Syndrigossa, the unique one: an Ice and Fire ice dragon's base size and category; they grow by stage. */
+    public static final DeferredHolder<EntityType<?>, EntityType<RimefrostDragon>> RIMEFROST_DRAGON = ENTITY_TYPES.register("rimefrost_dragon",
+            () -> EntityType.Builder.<RimefrostDragon>of(RimefrostDragon::new, MobCategory.CREATURE)
+                    .sized(0.78F, 1.2F)
+                    .clientTrackingRange(10)
+                    .build(DreadPatch.id("rimefrost_dragon").toString()));
     public static final DeferredHolder<EntityType<?>, EntityType<Syndrigossa>> SYNDRIGOSSA = ENTITY_TYPES.register("syndrigossa",
             () -> EntityType.Builder.<Syndrigossa>of(Syndrigossa::new, MobCategory.CREATURE)
                     .sized(0.78F, 1.2F)
@@ -165,6 +171,9 @@ public final class ModRegistries {
     /** Soot spotted with bone. */
     public static final DeferredItem<DeferredSpawnEggItem> SYNDRIGOSSA_SPAWN_EGG = ITEMS.register("syndrigossa_spawn_egg",
             () -> new DeferredSpawnEggItem(SYNDRIGOSSA, 0x14161D, 0xD8DEE9, new Item.Properties()));
+    /** A Rimefrost dragon's: soot spotted with her cyan, where Syndrigossa's is soot and bone. */
+    public static final DeferredItem<DeferredSpawnEggItem> RIMEFROST_DRAGON_SPAWN_EGG = ITEMS.register("rimefrost_dragon_spawn_egg",
+            () -> new DeferredSpawnEggItem(RIMEFROST_DRAGON, 0x14161D, 0x00CBFF, new Item.Properties()));
 
     /**
      * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's

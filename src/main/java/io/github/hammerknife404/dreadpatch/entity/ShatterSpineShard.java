@@ -80,7 +80,7 @@ public class ShatterSpineShard extends ThrowableProjectile {
         if (this.level() instanceof ServerLevel level && !this.isRemoved()) {
             Entity owner = this.getOwner();
             DamageSource source = ModRegistries.damageSource(level, ModRegistries.SHATTER_SPINE_DAMAGE, this, owner);
-            float damage = DragonBreath.shardDamage(this.stage, Syndrigossa.attackDamageIce());
+            float damage = DragonBreath.shardDamage(this.stage, RimefrostDragon.attackDamageIce());
             Entity struck = hit instanceof EntityHitResult entityHit ? entityHit.getEntity() : null;
             // Measured to the nearest point of each one's box: a shard striking a golem's head is 2.7 blocks from its feet.
             for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(DragonBreath.SHARD_RADIUS),

@@ -72,6 +72,8 @@ public final class DreadPatchClient {
         } else if (event.getItemStack().is(ModRegistries.SYNDRIGOSSA_SPAWN_EGG.get())) {
             // What she is, in the owner's taxonomy: a unique, named dragon of the Rimefrost frost dragons.
             tooltip.add(at, line("tooltip.dreadpatch.syndrigossa"));
+        } else if (event.getItemStack().is(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get())) {
+            tooltip.add(at, line("tooltip.dreadpatch.rimefrost_dragon"));
         } else if (event.getItemStack().is(ModRegistries.SYNDRIGOSSA_EGG.get())) {
             tooltip.add(at, line("tooltip.dreadpatch.syndrigossa_egg"));
         }
@@ -101,7 +103,7 @@ public final class DreadPatchClient {
         event.registerSpriteSet(ModRegistries.RIME_SMOKE_SMALL.get(), RimeBreathParticle::smallSmoke);
     }
 
-    /** Syndrigossa's skins are made from Ice and Fire's textures: remake them when textures reload. */
+    /** Rimefrost dragons' skins are made from Ice and Fire's textures: remake them when textures reload. */
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener((ResourceManagerReloadListener) resources -> UndeadDragonSkins.clear());
     }
@@ -118,6 +120,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.SOVEREIGNS_ECLIPSE.get(), context -> new RimefireCrownRenderer(context, RimefireCrownRenderer.ECLIPSE));
         event.registerEntityRenderer(ModRegistries.BARROW_HUSK.get(), BarrowHuskRenderer::new);
         event.registerEntityRenderer(ModRegistries.SYNDRIGOSSA.get(), SyndrigossaRenderer::new);
+        event.registerEntityRenderer(ModRegistries.RIMEFROST_DRAGON.get(), RimefrostDragonRenderer::new);
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE.get(), ShatterSpineRenderer::core);
         event.registerEntityRenderer(ModRegistries.SHATTER_SPINE_SHARD.get(), ShatterSpineRenderer::shard);
         event.registerEntityRenderer(ModRegistries.WHITEOUT_DOMINION.get(), WhiteoutRenderer::new);
