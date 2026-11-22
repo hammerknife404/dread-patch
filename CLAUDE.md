@@ -4,7 +4,7 @@ NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinish
 
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
-- **Still to come:** nothing from the big drop (it finished with 0.48.0) or the second (it finished with 0.54.0). The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
+- **Still to come:** nothing from the big drop (it finished with 0.48.0) or the second (it finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word. Owed: the owner's own look at 0.52.0–0.54.1 in a client (below, Client). The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
 ## The owner's decisions
 
@@ -76,7 +76,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   3. **Spawning, patrols and neutrality:** in the Dreadlands, snowfall raises Dread mob spawns (day and night), a little more in heavy storms; small Dread patrols spawn day and night; dread phantoms come more often round spires, day and night.
   4. → **0.53.0** (below: the spires' flared tops, summit chests and liches, the drifts, the abandoned villages, Lootr).
   4. **Worldgen, structures and Lootr:** spire tops flare a little wider for Syndrigossa; a 50/50 chance of a loot chest on a spire's top, now and then with a Dread Lich; rolling hills like wind-swept snowdrifts and dunes; abandoned (zombie) villages with Dread block replacements; every Dreadlands chest works with Lootr (in the owner's pack, 1.11.38: per-player loot).
-  5. → **0.54.0** (below: the whiteout weather, the ambience). The second drop is done.
+  5. → **0.54.0** (below: the whiteout weather, the ambience); **0.54.1** paced the ice cracking (the owner: "too quick"). The second drop is done.
   5. **Weather and ambience:** a rare Whiteout Dominion weather in the Dreadlands (about one storm in six, the owner: "and never back to back"), never starting while the Dread Queen's alive, turning into a heavy thunderstorm if her fight starts during it; the ambience a little louder, with surface ice cracking and deeper underground rumbles, each sound's volume varying a little.
 - **0.40.0:** "Rimefrost dragons are undead, they do not sleep" (`RimefrostDragon`: the sleep flag never set, `isSleeping` false, `isTimeToWake` true).
 - **0.39.0, hatching her egg** (B, below; ours: the storm must rise with the egg already in it and run its whole course, not cut short; struck by a player, a laid egg pops back into an item and loses its storms).
@@ -964,7 +964,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - **vanilla's box UV:** the region at `(u + depth, v)` is the box's `DOWN` face, drawn upward on an entity; `(u + depth + width, v)` its `UP` face, the underside. Both run u along +x and their top row is the box's max z (the wing's trailing edge). So a hole cut at the same spot in both is see-through, and the mirrored right wing (u from its root too) tears the same. The trailing-edge strip (`SOUTH`) runs against x.
   - Any whole multiple of 64 is torn; another size is only recoloured.
 - **Its trail:** client-side, every 3 ticks at 60%, off its tail: our `rime_flame_small` (the breath's cyan flame at the bolt's size; since 0.50.0, the owner's) 15% of the time, else a snowflake or our `rime_smoke_small`. Vanilla's mycelium motes stay.
-- **Natural spawning:** not yet (the Dreadlands, 5th release).
+- **Natural spawning:** in the Dreadlands only, since 0.46.0 (`Dreadlands.onLevelTick`, under The Dreadlands below), more often round spires since 0.52.0.
 
 ### Rimefrost dragonscale and dread dragonsteel (`registry/DreadGear`, `item/DreadArmorItem`, `item/DragonArmor`, `item/DreadDragonsteel`, `loot/RimefrostScalesFunction`, `client/DreadRecolors`, `magic/DreadRecolor`; 0.42.0)
 
@@ -1013,7 +1013,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Her sword and staff:** each its own pool under `minecraft:random_chance_with_enchanted_bonus` (looting: 25%, 30% at Looting I, +5% a level; vanilla's wither skeleton skull is the model).
 - **Ink:** one, epic or legendary, at 23 : 10 (the odds of Iron's `great_ink`).
 - **Scroll:** one, through `irons_spellbooks:randomize_spell` at quality 0.5–1, with `"spell_filter": {"spells": [...], "force": true}`.
-  - **Add each new spell of hers to that list.**
+  - **Add each new spell of hers to that list**, and a lesser one (not a storm, court or dragon) to the spire summit chest's too (`chests/spire_summit`, 0.53.0).
   - Level = 1 + round(quality × (maxLevel − 1)).
   - The spell itself is picked weighted by rarity.
 - No `killed_by_player` conditions yet.
@@ -1095,7 +1095,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Shards:** once, a core's burst counted 8 shards (it makes 5–7), never explained. That check prints where they were.
 - **The seat:** once (0.37.0), "she sits on its back" read her 14.7 blocks above her dragon's feet. The same setup repeated eight times seated her at 9.24, its dragon on the ground, and the next full run passed: likely her dragon stirring in the 0.3 s it has its AI before the test sets NoAI.
 - **The queen's raising:** once (0.52.0) she was gone altogether by the check (her position unreadable), alone she raised at 10 s untouched; the golem now has no AI and her summon is a check. Once (0.40.0) she raised nothing within 20 s in the full run; alone it passed 3 runs of 3, each at 10 s, and the next full run passed. The check now prints her position, health and target, and whether the corpse is there, if it fails.
-- **Entity UUIDs in the script must differ:** a killed lich lingers in its death animation, so a villager summoned with the same UUID right after was never added, and the Create Rimefrost Dragon checks after it all failed (0.45.0's first run). The UUIDs in use: 3 (the phantom-calling lich), 5 (Create Rimefrost Dragon's caster), 6, 7 (the court casters), 9 (a queen).
+- **Entity UUIDs in the script must differ:** a killed lich lingers in its death animation, so a villager summoned with the same UUID right after was never added, and the Create Rimefrost Dragon checks after it all failed (0.45.0's first run). The UUIDs in use: 2 (Rimefire Blast's caster), 3 (the phantom-calling lich), 5 (Create Rimefrost Dragon's caster), 6 (the wounded queen raising a dragon), 7 (the court's and phantoms' caster), 9 (a queen), 21 (a patrol's leader), 23 (the whiteout's queen).
 - **Dread mobs with their AI go for any living thing in reach** (0.48.0's first run): a slowed dread ghoul on rimefire walked off it to kill a husk 10 blocks off; alone, it still wandered off once. Test them one at a time, and wall the ghoul into a one-block cell over the fire.
 - **Her phantoms come 15 s after her first target, her storm 15 s after she spawns:** a single look right after the storm once found none (0.48.0's first run); the check waits up to 10 s, after the storm's golem check (put before it, the wait made that one fail).
 - **The clock runs, and the weather turns:** `time set noon` and `weather clear` are at the start, but minutes in it's evening, or raining; a check that needs the sun sets both again (the dread phantom's: once the rain came and the vanilla phantom, the control, didn't burn).
@@ -1112,7 +1112,10 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - her regalia: its drop on a player's kill, the advancements (There Must Always Be a Dread Queen too), how it looks worn;
   - trims: at the smithing table, on the icons, worn;
   - the dread phantom's look (skin, eyes, trail), its sounds, its bite's effects on a player, its drops on a player's kill, and Summon Dread Phantoms from a scroll or spellbook.
-  - the Dreadlands: stepping into a gate, the arrival, the way home, beds, its phantoms coming down; a spire's encounter coming to a summit, its reset, its dais and torches; a storm's fog and blown snow, its lightning and rimefire's look.
+  - the Dreadlands: stepping into a gate, the arrival, the way home, beds, its phantoms coming down; a spire's encounter coming to a summit, its reset, its dais and torches; a storm's fog and blown snow, its lightning and rimefire's look;
+  - its spawning (0.52.0): the Dread rising round a player by the weather, patrols rising and crossing, phantoms by the spires;
+  - its worldgen as seen (0.53.0): a spire's flared summit, its chest and lich, the dune fields and the flatter ground between, a village's look, Lootr's per-player chests opened;
+  - its weather and sound (0.54.0): a whiteout's fog, wind and snow, its freezing on a player; the ambience (its loop, the ice cracks' pacing and bursts, the rumbles).
 - **Needs her AI in flight:** the forced landing from the air.
 
 ### Client
@@ -1120,7 +1123,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Ask first:** rendering has no automated check, and on the owner's machine `./gradlew runClient` opens a window on their desktop (there's no Xvfb). **Ask before launching it.**
 - **Creative mode:** Iron's spends no mana and sets no cooldowns in creative (`CREATIVE_MANA_COST` / `CREATIVE_COOLDOWN`), so check those in survival.
 - **The owner's checks:** they've checked each release in the dev client or their pack as it shipped, through 0.35.0 (2026-11-21: at 0.33.0 "everything works, the court follows and ignores golems"; at 0.34.0 "the boss bar works"; at 0.35.0 "everything works, they ignore the corpse now"). Their reports are behind the decisions above.
-- **Since 0.35.0:** at 0.44.1 (2026-11-22), "the achievements work" (the regalia's and There Must Always Be a Dread Queen); at 0.45.0, "phantoms work" (summoning, sounds and their AI, in the dev client); at 0.46.0, "dreadlands work"; at 0.47.0, "encounter works"; at 0.48.0, "storms work!" (so the whole big drop has been tried in the dev client); at 0.49.0, riding an Ice and Fire dragon, "camera and pov's are fine now".
+- **Since 0.35.0:** at 0.44.1 (2026-11-22), "the achievements work" (the regalia's and There Must Always Be a Dread Queen); at 0.45.0, "phantoms work" (summoning, sounds and their AI, in the dev client); at 0.46.0, "dreadlands work"; at 0.47.0, "encounter works"; at 0.48.0, "storms work!" (so the whole big drop has been tried in the dev client); at 0.49.0, riding an Ice and Fire dragon, "camera and pov's are fine now"; at 0.51.0 they found two faults (her Rimefrost scrolls drawn as the missing texture, and a dread shard refused by the Scroll Forge: 0.51.1), and at 0.51.1 "scroll forge works". 0.50.0 went unreported. **0.52.0–0.53.0 are untried** (the owner: "I'll test this alongside the next batch"); of 0.54.0 they reported "The cracking loop is too quick" (0.54.1), nothing else yet.
 - **Never checked:** Fabulous graphics and Iris shader packs, for the storm and its fog.
 - **Seen once, not looked into** (0.39.0, the owner: "Seems to be a dysync issue, reloadign seemed to work, likely after shift+right clicking. Moving on"): something went out of step between client and server while trying the egg's hatchling, and a reload put it right. The hatchling had been riding the player's shoulder (Ice and Fire's), and sneaking gets it down.
 
@@ -1147,7 +1150,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
 ### Dev runs and network
 
 **Dev runs**
-- **Server:** `./gradlew runServer` boots to `Done` with all 16 mods; the dev environment skips the EULA check.
+- **Server:** `./gradlew runServer` boots to `Done`, its mod list 18 long (Minecraft and NeoForge among them; Lootr made it 18 in 0.53.0); the dev environment skips the EULA check.
 - **Stopping:** `stop` over RCON, or SIGTERM to the java process. Both save the world.
 - **Expected noise:**
   - after a `mod_version` change, a warning that the world's `dreadpatch` version changed;
@@ -1168,6 +1171,12 @@ Both are Ice and Fire's items, changed through default components and events. Th
 **PRs**
 - Into `main`, based on `main`. A PR based on another PR's branch merges into that branch, not `main` (#2 did).
 - Bump `mod_version` with user-visible changes; merging the bump releases it. Keep the README in step.
+- **Before committing (the owner's checklist, pasted 2026-11-22 for the second drop, followed since):**
+  - one branch for each group of work;
+  - stage files by name (never `git add .` or `-A`; `compat_mods_testing_better_combat/` and the `.mrpack`s stay untracked), after checking the diff for debug leftovers;
+  - `./gradlew build` (unit tests included) and the smoke test pass before the merge, or a failure is understood and flagged;
+  - the PR says what changed, what was assumed, and what still needs testing by hand;
+  - no commit or PR until all that's done, or a blocker is resolved or clearly flagged.
 - **Merging (since 2026-11-14):**
   - the owner wants each PR merged as soon as its CI passes, without waiting for their review;
   - with merge commits, as they merged #1 and #2.

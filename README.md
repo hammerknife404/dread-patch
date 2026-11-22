@@ -192,7 +192,7 @@ Her scrolls (from her drops) teach her spells to players. They're **Rimefrost** 
 
 ## Settings
 
-Dread Patch's server settings (how a summoned court behaves, how long until a spire's queen comes back for you) are in the mods list: select Dread Patch and press **Config**. In singleplayer you can change them there as you play, and they apply at once. On a server they're in `config/dreadpatch-server.toml` (a copy in the world's `serverconfig` folder overrides it).
+Dread Patch's server settings (how a summoned court behaves, how long until a spire's queen comes back for you, how often the Dread rise, patrol and fly in the Dreadlands, how often its storms are whiteouts) are in the mods list: select Dread Patch and press **Config**. In singleplayer you can change them there as you play, and they apply at once. On a server they're in `config/dreadpatch-server.toml` (a copy in the world's `serverconfig` folder overrides it).
 
 ## Building
 
