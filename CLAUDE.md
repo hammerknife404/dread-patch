@@ -4,6 +4,7 @@ NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinish
 
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
+- **Wiki (since 2026-11-22):** `docs/wiki/` (one page per README part, plus Home, `_Sidebar` and a Settings table of every server config value), mirrored to the GitHub wiki by `.github/workflows/wiki.yml` (the owner's shared copy, catspells-nosumagro's) on each push to `main` that touches it. Edit pages there, never on github.com (the sync overwrites the wiki). Keep it in step with the README, and add any new config value to Settings.
 - **Still to come:** nothing from the big drop (it finished with 0.48.0) or the second (it finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word. Owed: the owner's own look at 0.52.0–0.54.1 in a client (below, Client). The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
 ## The owner's decisions
