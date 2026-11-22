@@ -78,7 +78,8 @@
                   "dreadpatch:barrow_step",
                   "dreadpatch:whiteout_dominion",
                   "dreadpatch:summon_court",
-                  "dreadpatch:create_rimefrost_dragon"
+                  "dreadpatch:create_rimefrost_dragon",
+                  "dreadpatch:summon_dread_phantoms"
                 ],
                 "force": true
               }

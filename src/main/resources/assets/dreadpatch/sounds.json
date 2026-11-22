@@ -1,0 +1,39 @@
+{
+  "entity.dread_phantom.wail": {
+    "sounds": [
+      {"name": "minecraft:mob/ghast/moan1", "volume": 0.3, "pitch": 1.5},
+      {"name": "minecraft:mob/ghast/moan2", "volume": 0.3, "pitch": 1.5},
+      {"name": "minecraft:mob/ghast/moan3", "volume": 0.3, "pitch": 1.5},
+      {"name": "minecraft:mob/ghast/moan4", "volume": 0.3, "pitch": 1.5},
+      {"name": "minecraft:mob/ghast/moan5", "volume": 0.3, "pitch": 1.5},
+      {"name": "minecraft:mob/ghast/moan6", "volume": 0.3, "pitch": 1.5},
+      {"name": "minecraft:mob/ghast/moan7", "volume": 0.3, "pitch": 1.5},
+      {"name": "minecraft:mob/vex/idle1", "volume": 0.5, "pitch": 0.7},
+      {"name": "minecraft:mob/vex/idle2", "volume": 0.5, "pitch": 0.7},
+      {"name": "minecraft:mob/vex/idle3", "volume": 0.5, "pitch": 0.7},
+      {"name": "minecraft:mob/vex/idle4", "volume": 0.5, "pitch": 0.7}
+    ]
+  },
+  "entity.dread_phantom.hurt": {
+    "sounds": [
+      {"name": "minecraft:mob/vex/hurt1", "volume": 0.5, "pitch": 0.75},
+      {"name": "minecraft:mob/vex/hurt2", "volume": 0.5, "pitch": 0.75}
+    ]
+  },
+  "entity.dread_phantom.death": {
+    "sounds": [
+      {"name": "minecraft:mob/ghast/death", "volume": 0.45, "pitch": 1.5},
+      {"name": "minecraft:mob/vex/death1", "volume": 0.6, "pitch": 0.7},
+      {"name": "minecraft:mob/vex/death2", "volume": 0.6, "pitch": 0.7}
+    ]
+  },
+  "entity.dread_phantom.swoop": {
+    "sounds": [
+      {"name": "minecraft:mob/vex/charge1", "volume": 0.6, "pitch": 0.7},
+      {"name": "minecraft:mob/vex/charge2", "volume": 0.6, "pitch": 0.7},
+      {"name": "minecraft:mob/vex/charge3", "volume": 0.6, "pitch": 0.7},
+      {"name": "minecraft:ambient/nether/soulsand_valley/whisper1", "volume": 0.7},
+      {"name": "minecraft:ambient/nether/soulsand_valley/whisper2", "volume": 0.7}
+    ]
+  }
+}

@@ -3,11 +3,13 @@ package io.github.hammerknife404.dreadpatch.registry;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.block.DreadGateBlock;
 import io.github.hammerknife404.dreadpatch.effect.BrittleEffect;
+import io.github.hammerknife404.dreadpatch.effect.RimefrostEffect;
 import io.github.hammerknife404.dreadpatch.effect.RimeboundEffect;
 import io.github.hammerknife404.dreadpatch.effect.WhiteoutEffect;
 import io.github.hammerknife404.dreadpatch.effect.WitheringRimeEffect;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
 import io.github.hammerknife404.dreadpatch.entity.DreadGate;
+import io.github.hammerknife404.dreadpatch.entity.DreadPhantom;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
 import io.github.hammerknife404.dreadpatch.entity.RimefireCrown;
 import io.github.hammerknife404.dreadpatch.entity.ShatterSpineCore;
@@ -23,6 +25,7 @@ import io.github.hammerknife404.dreadpatch.spell.BarrowStepSpell;
 import io.github.hammerknife404.dreadpatch.spell.RimefireCrownSpell;
 import io.github.hammerknife404.dreadpatch.spell.CreateRimefrostDragonSpell;
 import io.github.hammerknife404.dreadpatch.spell.SummonCourtSpell;
+import io.github.hammerknife404.dreadpatch.spell.SummonDreadPhantomsSpell;
 import io.github.hammerknife404.dreadpatch.spell.WhiteoutDominionSpell;
 import io.github.hammerknife404.dreadpatch.spell.WitheringRimeBoltSpell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -32,6 +35,7 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
@@ -62,6 +66,7 @@ public final class ModRegistries {
     private static final DeferredRegister<AbstractSpell> SPELLS = DeferredRegister.create(SpellRegistry.SPELL_REGISTRY_KEY, DreadPatch.MODID);
     private static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, DreadPatch.MODID);
     private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, DreadPatch.MODID);
+    private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, DreadPatch.MODID);
 
     /**
      * Ice and Fire's Dread Queen (which it never registers), through our {@link DreadQueen}. A
@@ -93,6 +98,16 @@ public final class ModRegistries {
                     .sized(0.6F, 1.95F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("barrow_husk").toString()));
+
+    /** The dread phantom (0.45.0): vanilla's phantom's box and tracking. */
+    public static final DeferredHolder<EntityType<?>, EntityType<DreadPhantom>> DREAD_PHANTOM = ENTITY_TYPES.register("dread_phantom",
+            () -> EntityType.Builder.<DreadPhantom>of(DreadPhantom::new, MobCategory.MONSTER)
+                    .sized(0.9F, 0.5F)
+                    .eyeHeight(0.175F)
+                    .passengerAttachments(0.3375F)
+                    .ridingOffset(-0.125F)
+                    .clientTrackingRange(8)
+                    .build(DreadPatch.id("dread_phantom").toString()));
 
     /** Syndrigossa's egg, laid: Ice and Fire's egg's size. */
     public static final DeferredHolder<EntityType<?>, EntityType<SyndrigossaEggEntity>> SYNDRIGOSSA_EGG_ENTITY = ENTITY_TYPES.register("syndrigossa_egg",
@@ -185,6 +200,10 @@ public final class ModRegistries {
     public static final DeferredItem<DeferredSpawnEggItem> RIMEFROST_DRAGON_SPAWN_EGG = ITEMS.register("rimefrost_dragon_spawn_egg",
             () -> new DeferredSpawnEggItem(RIMEFROST_DRAGON, 0x14161D, 0x00CBFF, new Item.Properties()));
 
+    /** A phantom's slate-blue spotted with her cyan. */
+    public static final DeferredItem<DeferredSpawnEggItem> DREAD_PHANTOM_SPAWN_EGG = ITEMS.register("dread_phantom_spawn_egg",
+            () -> new DeferredSpawnEggItem(DREAD_PHANTOM, 0x2B3247, 0x00CBFF, new Item.Properties()));
+
     /**
      * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's
      * heart would be. Laid on dreadstone, three full Whiteout Dominion storms over it hatch it (0.39.0).
@@ -200,6 +219,18 @@ public final class ModRegistries {
 
     public static final DeferredHolder<MobEffect, WhiteoutEffect> WHITEOUT = MOB_EFFECTS.register("whiteout", WhiteoutEffect::new);
 
+    /** The slow without the withering (0.45.0): the dread phantom's bite, and the Dreadlands' storms to come. */
+    public static final DeferredHolder<MobEffect, RimefrostEffect> RIMEFROST = MOB_EFFECTS.register("rimefrost", RimefrostEffect::new);
+
+    /**
+     * The ghostlier layer under the dread phantom's sounds (0.45.0): each plays alongside vanilla's phantom
+     * sound, from vanilla's own ghast, vex and soul sand valley sounds (assets/dreadpatch/sounds.json).
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_WAIL = sound("entity.dread_phantom.wail");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_HURT = sound("entity.dread_phantom.hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_DEATH = sound("entity.dread_phantom.death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_SWOOP = sound("entity.dread_phantom.swoop");
+
     /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",
             builder -> builder.persistent(Unit.CODEC).networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
@@ -210,8 +241,13 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, WhiteoutDominionSpell> WHITEOUT_DOMINION_SPELL = SPELLS.register("whiteout_dominion", WhiteoutDominionSpell::new);
     public static final DeferredHolder<AbstractSpell, SummonCourtSpell> SUMMON_COURT_SPELL = SPELLS.register("summon_court", SummonCourtSpell::new);
     public static final DeferredHolder<AbstractSpell, CreateRimefrostDragonSpell> CREATE_RIMEFROST_DRAGON_SPELL = SPELLS.register("create_rimefrost_dragon", CreateRimefrostDragonSpell::new);
+    public static final DeferredHolder<AbstractSpell, SummonDreadPhantomsSpell> SUMMON_DREAD_PHANTOMS_SPELL = SPELLS.register("summon_dread_phantoms", SummonDreadPhantomsSpell::new);
 
     private ModRegistries() {
+    }
+
+    private static DeferredHolder<SoundEvent, SoundEvent> sound(String name) {
+        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(DreadPatch.id(name)));
     }
 
     public static DamageSource damageSource(Level level, ResourceKey<DamageType> type, @Nullable Entity direct, @Nullable Entity causing) {
@@ -226,5 +262,6 @@ public final class ModRegistries {
         SPELLS.register(modBus);
         DATA_COMPONENTS.register(modBus);
         PARTICLE_TYPES.register(modBus);
+        SOUND_EVENTS.register(modBus);
     }
 }
