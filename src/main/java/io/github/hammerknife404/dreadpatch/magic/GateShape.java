@@ -11,9 +11,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GateShape {
     public static final int MIN_WIDTH = 2;
-    public static final int MAX_WIDTH = 5;
+    /** Vanilla's Nether portal's limits (0.55.1, the owner: "follows the sizes like the vanilla nether portal frames"; 5 × 7 before). */
+    public static final int MAX_WIDTH = 21;
     public static final int MIN_HEIGHT = 3;
-    public static final int MAX_HEIGHT = 7;
+    public static final int MAX_HEIGHT = 21;
 
     public enum Cell { OPEN, FRAME, OTHER }
 

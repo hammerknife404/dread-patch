@@ -26,5 +26,6 @@ class StormRulesTest {
     void itsFogIsAWarningNotAWhiteout() {
         assertTrue(StormRules.FOG_FAR > 10.0F, "further than Whiteout Dominion's 10");
         assertTrue(StormRules.FOG_FAR < 48.0F, "but close: heavy fog");
+        assertTrue(StormRules.FOG_FAR_SNOW > StormRules.FOG_FAR + 16.0F, "plain snow lighter than thunder");
     }
 }
