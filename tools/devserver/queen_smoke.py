@@ -5,6 +5,7 @@ server-ip=127.0.0.1. Then start `./gradlew runServer`, wait for "RCON running", 
 `python3 tools/devserver/queen_smoke.py`. It prints PASS/FAIL per check, stops the server when it
 is done (pass --keep to leave it running) and exits non-zero if anything failed.
 """
+import atexit
 import pathlib
 import random
 import re
@@ -14,6 +15,20 @@ import sys
 import time
 
 PROPERTIES = pathlib.Path(__file__).resolve().parents[2] / "run" / "server.properties"
+# The server config, which NeoForge reloads when it changes on disk.
+SERVER_CONFIG = pathlib.Path(__file__).resolve().parents[2] / "run" / "config" / "dreadpatch-server.toml"
+
+
+def set_config(key, value):
+    """Sets a value in the server config (NeoForge re-reads it) and returns what it was, or None if it isn't there."""
+    text = SERVER_CONFIG.read_text()
+    found = re.search(rf"^\s*{key}\s*=\s*(\S+)", text, flags=re.M)
+    if not found:
+        return None
+    if found.group(1) != str(value):
+        SERVER_CONFIG.write_text(text[:found.start(1)] + str(value) + text[found.end(1):])
+        time.sleep(2.5)
+    return found.group(1)
 
 
 def server_properties():
@@ -144,6 +159,11 @@ def main():
     # check failed in alternate runs as the dev world's clock went round), and dragons sleep.
     rcon.run("time set noon")
     rcon.run("weather clear")
+    # No whiteout weather in the Dreadlands (0.54.0) but where a check asks for it: one could come with any
+    # "weather rain" and put Whiteout on what a check reads. Put back on the way out, however the run ends.
+    whiteouts_were = set_config("whiteout_storms", 0)
+    if whiteouts_were is not None:
+        atexit.register(set_config, "whiteout_storms", whiteouts_were)
     # On Easy, as the dev run is (Syndrigossa's health is by difficulty: 500 at full strength on Easy);
     # put back at the end.
     first_difficulty = re.search(r"The difficulty is (\w+)", rcon.run("difficulty"))
@@ -1476,6 +1496,52 @@ def main():
     rcon.run("weather clear")
     rcon.run(dl + "run kill @e[tag=smoke_storm_out]")
     rcon.run(dl + "run kill @e[tag=smoke_storm_in]")
+    rcon.run(dl + "run kill @e[type=item]")
+    # Whiteout weather (0.54.0): with whiteout_storms 2, every storm that may be one is, so they alternate,
+    # never two in a row; in one, Whiteout and freezing damage under the open sky, not under a roof; a queen
+    # coming breaks it into thunder; and none comes while she's about.
+    rcon.run(dl + f'run summon minecraft:husk 41.5 {pad + 1} 44.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_whiteout_out"]}}')
+    rcon.run(dl + f'run summon minecraft:husk 58.5 {pad + 1} 40.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_whiteout_in"]}}')
+    out_husk, in_husk = "@e[tag=smoke_whiteout_out,limit=1]", "@e[tag=smoke_whiteout_in,limit=1]"
+    set_config("whiteout_storms", 2)
+
+    def next_storm():
+        # The last storm's Whiteout (60 ticks) has run out by the time this one's read.
+        rcon.run("weather clear")
+        time.sleep(2.5)
+        rcon.run("weather rain")
+        time.sleep(3.5)
+        return has_effect(out_husk, "dreadpatch:whiteout")
+
+    storms = [next_storm() for _ in range(3)]
+    record("whiteout weather: every other storm at most, never two in a row", storms in ([True, False, True], [False, True, False]), f"whiteouts in three storms: {storms}")
+    if not storms[-1]:
+        storms.append(next_storm())
+    record("a whiteout doesn't reach under a roof", not has_effect(in_husk, "dreadpatch:whiteout"), "Whiteout on the husk indoors")
+    before = health(out_husk)
+    time.sleep(3.5)
+    after = health(out_husk)
+    record("it freezes what's out in it", after < before, f"the husk outside went from {before} to {after} in 3.5 s")
+    record("and it's still a storm: Rimefrost too", has_effect(out_husk, "dreadpatch:rimefrost"), "no Rimefrost on the husk outside")
+    rcon.run(dl + f'run summon dreadpatch:dread_queen 50.5 {pad + 1} 50.5 {{NoAI:1b,UUID:[I;23,23,23,23],Tags:["smoke_whiteout_queen"]}}')
+    # A level counts as thundering once its thunder, rising 0.01 a tick, passes 0.9: 91 ticks on (0.54.0's
+    # first run read it at 4.5 s and found none, though the whiteout had lifted).
+    thunder = ""
+    for _ in range(20):
+        time.sleep(0.5)
+        thunder = rcon.run(dl + 'run execute if predicate {condition:"minecraft:weather_check",thundering:true}')
+        if "Test passed" in thunder:
+            break
+    record("a queen coming breaks it into a thunderstorm", "Test passed" in thunder, "not thundering 10 s on: " + thunder.strip())
+    record("and its Whiteout lifts", not has_effect(out_husk, "dreadpatch:whiteout"), "the husk outside still has Whiteout after the thunder came")
+    storms = [next_storm() for _ in range(2)]
+    record("no whiteout comes while a queen's about", storms == [False, False], f"whiteouts in two storms with her there: {storms}")
+    rcon.run("kill @e[tag=smoke_whiteout_queen]")
+    clear_court()
+    rcon.run("weather clear")
+    set_config("whiteout_storms", 0)
+    rcon.run(dl + "run kill @e[tag=smoke_whiteout_out]")
+    rcon.run(dl + "run kill @e[tag=smoke_whiteout_in]")
     rcon.run(dl + "run kill @e[type=item]")
     # A Dread patrol (0.52.0): its leader (a thrall here, on the pad) walks to its waypoint, its follower keeps
     # up; the leader killed, the follower leads. (Patrols rising, and the Dread rising by weather, need a player.)

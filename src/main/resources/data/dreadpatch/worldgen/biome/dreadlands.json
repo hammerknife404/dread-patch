@@ -15,11 +15,6 @@
       },
       "probability": 0.004
     },
-    "ambient_sound": "minecraft:ambient.soul_sand_valley.loop",
-    "additions_sound": {
-      "sound": "minecraft:ambient.soul_sand_valley.additions",
-      "tick_chance": 0.0111
-    },
     "mood_sound": {
       "sound": "minecraft:ambient.cave",
       "tick_delay": 6000,

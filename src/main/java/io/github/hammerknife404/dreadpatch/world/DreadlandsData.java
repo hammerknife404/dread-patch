@@ -1,5 +1,6 @@
 package io.github.hammerknife404.dreadpatch.world;
 
+import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +20,8 @@ import java.util.UUID;
  * What the Dreadlands remember, kept with the overworld's data ({@code data/dreadpatch_dreadlands.dat}):
  * where each player came in from, in front of the gate they stepped through, so a gate home takes
  * them back there; and when each player last met each spire's encounter (0.47.0), by real time, so it
- * comes to them once and again only after the server config's hours.
+ * comes to them once and again only after the server config's hours; and its weather (0.54.0): whether
+ * this storm is a Whiteout Dominion, and whether the last one was.
  */
 public class DreadlandsData extends SavedData {
     static final String NAME = "dreadpatch_dreadlands";
@@ -31,6 +33,7 @@ public class DreadlandsData extends SavedData {
     private final Map<UUID, Origin> origins = new HashMap<>();
     /** Each spire's (by its base, packed) last encounter with each player, in epoch milliseconds. */
     private final Map<Long, Map<UUID, Long>> encounters = new HashMap<>();
+    private final WeatherRules.Storms storms = new WeatherRules.Storms();
 
     public static DreadlandsData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(new SavedData.Factory<>(DreadlandsData::new, DreadlandsData::load, null), NAME);
@@ -58,8 +61,18 @@ public class DreadlandsData extends SavedData {
         this.setDirty();
     }
 
+    /** Its weather's memory; {@link #setDirty} after changing it. */
+    public WeatherRules.Storms storms() {
+        return this.storms;
+    }
+
     private static DreadlandsData load(CompoundTag tag, HolderLookup.Provider registries) {
         DreadlandsData data = new DreadlandsData();
+        CompoundTag weather = tag.getCompound("Weather");
+        data.storms.storming = weather.getBoolean("Storming");
+        data.storms.whiteout = weather.getBoolean("Whiteout");
+        data.storms.wasWhiteout = weather.getBoolean("WasWhiteout");
+        data.storms.lastWhiteout = weather.getBoolean("LastWhiteout");
         CompoundTag origins = tag.getCompound("Origins");
         for (String key : origins.getAllKeys()) {
             CompoundTag o = origins.getCompound(key);
@@ -110,6 +123,12 @@ public class DreadlandsData extends SavedData {
             encounters.put(Long.toString(spire), met);
         });
         tag.put("Encounters", encounters);
+        CompoundTag weather = new CompoundTag();
+        weather.putBoolean("Storming", this.storms.storming);
+        weather.putBoolean("Whiteout", this.storms.whiteout);
+        weather.putBoolean("WasWhiteout", this.storms.wasWhiteout);
+        weather.putBoolean("LastWhiteout", this.storms.lastWhiteout);
+        tag.put("Weather", weather);
         return tag;
     }
 }

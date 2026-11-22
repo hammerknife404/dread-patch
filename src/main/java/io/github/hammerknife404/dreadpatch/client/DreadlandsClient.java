@@ -2,6 +2,7 @@ package io.github.hammerknife404.dreadpatch.client;
 
 import com.mojang.blaze3d.shaders.FogShape;
 import io.github.hammerknife404.dreadpatch.magic.StormRules;
+import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.world.Dreadlands;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -10,6 +11,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -20,7 +22,8 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
  * A Dreadlands storm as the player sees it (0.48.0): under the open sky while it snows there, the fog
  * closes in to {@link StormRules#FOG_FAR} blocks (Whiteout Dominion's to 10: this one's a warning),
  * storm-grey by day and dark by night, coming and going with the snow and over a couple of seconds as
- * you go in under cover and out again; and flakes blow past on the day's wind.
+ * you go in under cover and out again; and flakes blow past on the day's wind, three times as thick and
+ * twice as fast in its whiteout weather (0.54.0; its fog and wind are {@link WhiteoutClient}'s).
  */
 public final class DreadlandsClient {
     private static final float FOG_R = 0.62F;
@@ -32,6 +35,8 @@ public final class DreadlandsClient {
 
     private static float storm;
     private static float lastStorm;
+    /** How far into a whiteout the camera is, 0 to 1: Whiteout on it, in the Dreadlands. */
+    private static float whiteout;
 
     private DreadlandsClient() {
     }
@@ -49,13 +54,15 @@ public final class DreadlandsClient {
         lastStorm = storm;
         if (level == null || camera == null || minecraft.isPaused()) {
             if (level == null) {
-                storm = lastStorm = 0.0F;
+                storm = lastStorm = whiteout = 0.0F;
             }
             return;
         }
         boolean out = level.dimension() == Dreadlands.LEVEL && level.canSeeSky(BlockPos.containing(camera.getEyePosition()));
         float target = out ? level.getRainLevel(1.0F) : 0.0F;
         storm = storm < target ? Math.min(target, storm + FADE) : Math.max(target, storm - FADE);
+        boolean blinded = out && camera instanceof LivingEntity living && living.hasEffect(ModRegistries.WHITEOUT);
+        whiteout = Mth.clamp(whiteout + (blinded ? FADE : -FADE), 0.0F, 1.0F);
         if (storm > 0.0F) {
             blowFlakes(level, camera.getEyePosition());
         }
@@ -65,11 +72,11 @@ public final class DreadlandsClient {
     private static void blowFlakes(ClientLevel level, Vec3 eye) {
         RandomSource random = level.random;
         double angle = level.getDayTime() / 24000.0 * 2.4;
-        int count = Math.round(FLAKES * storm);
+        int count = Math.round(FLAKES * storm * (1.0F + 2.0F * whiteout));
         for (int i = 0; i < count; i++) {
             Vec3 at = eye.add((random.nextDouble() - 0.5) * 16.0, (random.nextDouble() - 0.4) * 8.0, (random.nextDouble() - 0.5) * 16.0);
             if (level.getBlockState(BlockPos.containing(at)).isAir()) {
-                double gust = 0.15 + random.nextDouble() * 0.2;
+                double gust = (0.15 + random.nextDouble() * 0.2) * (1.0 + whiteout);
                 level.addParticle(ParticleTypes.SNOWFLAKE, at.x, at.y, at.z, Math.cos(angle) * gust, -0.04 - random.nextDouble() * 0.05, Math.sin(angle) * gust);
             }
         }

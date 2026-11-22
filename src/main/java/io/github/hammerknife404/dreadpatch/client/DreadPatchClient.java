@@ -49,6 +49,7 @@ public final class DreadPatchClient {
         // where it's used, so a change applies at once.
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         DreadlandsClient.register(NeoForge.EVENT_BUS);
+        DreadlandsAmbience.register(NeoForge.EVENT_BUS);
     }
 
     /**
