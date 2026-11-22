@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "dreadpatch:item/dread_dragonsteel_pickaxe"
+  }
+}

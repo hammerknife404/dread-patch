@@ -55,6 +55,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
 - **0.38.0, Create Rimefrost Dragon** (below; the owner raised one in the client, 2026-11-21, which is how they saw it sleep); ours: the queen raises one only once she's lost a quarter of her health (unhurt, hers would rise with 1), first 10 s in.
 - **The big drop (2026-11-21), the owner's answers to our questions** (built in five releases, in this order; record each as it ships):
   1. **Scuttler climbing**, all dread scuttlers (0.41.0).
+  2. → **0.42.0** (below: Rimefrost dragonscale and dread dragonsteel).
   2. **Rimefrost dragon scale** (one item; the "dread dragon scale" and the phantom's "rimefrost dragon scales"): Rimefrost corpses drop it in place of Ice and Fire's coloured scales. **Dread dragonsteel** through Ice and Fire's ice dragonforge, as ice dragonsteel is made (scales + bottle → Rimefrost dragon blood; blood + iron ingot → dread dragonsteel). Full sets: dragonscale armour from the scales, dragonsteel armour and tools from the ingot, with their abilities (ours to propose: Withering Rime where ice dragonsteel freezes; the scale set resists Rimefrost breath), stats as Ice and Fire's ice sets.
   3. **Dread Queen armour:** "replicate as close as possible" her outfit; stats "in line with their respective scale and steel variants" (ours: the dread dragonsteel set's armour with the scale set's breath resistance, no spell bonuses); drops "tracked via achievements so each kill guarantees a needed piece to complete the set", Looting affecting (ours: a missing piece per kill by a player, per-piece advancements; complete, a random piece at 25%, Looting raising it).
   4. **Dread phantom:** vanilla phantom's stats ("they're hated enough"), not burning by day, dread eyes, a look mixing both with more holes in its wing membranes showing bones, a sparse Rimefrost trail. Spawned by a spell scroll (players can learn it; not on her staff) and by the queen, a Dread Lich and Syndrigossa (not Rimefrost dragons): 1-2 every 45 s. They escort their summoner and aggressively take revenge; aggression scales with difficulty. Its attacks roll Rimefrost (the slow) and Withering Rime independently ("it would still be possible for both to apply"; ours: 35% and 15%). Drops our choice (ours: thrall drops + 1-3 phantom membrane + 1-3 Rimefrost dragon scales, Looting affecting). No natural spawning. Ours: the spell 2 phantoms for 60 s, 90 s cooldown, a summoned court's rules; at most 4 a summoner.
@@ -404,6 +405,7 @@ All six are Iron's Ice spells (levels 1–5; Create Rimefrost Dragon has one). T
   - hostile mobs (`Enemy`): always;
   - players and friendly mobs: only as the config allows (joining in, or `retaliate` for what last hurt it).
   - It's enforced on `LivingChangeTargetEvent` (cancelled) and on `LivingIncomingDamageEvent` (a hit it lands on anything it mayn't fight is cancelled), and its scuttlers' bolts pass through those (`WitheringRimeBolt.canHitEntity`).
+- **Its caster** is resolved from its `CommanderUUID` (`SummonedCourt.commander`), not Ice and Fire's `getCommander`: **its scuttler's always returns null** (as its lich's does), so until 0.42.0 a scuttler of a summoned court followed and defended no one and its caster could hurt it. The smoke test checks a scuttler member every time.
 - **Friendly mobs leave it be:** while `attack_friendly_mobs` is off, a mob that isn't hostile, a player or Dread can't take a member as its target (an iron golem goes for any `Enemy`).
 - **Its caster's side can't hurt it** (`LivingIncomingDamageEvent`; Iron's friendly fire only knows `IMagicSummon`), and the caster's crown and storm skip it (`RimefireCrown.canHarm`). `/kill` still works.
 - **Config:** `DreadPatchConfig`, a NeoForge server config, written to `config/dreadpatch-server.toml`; `courtTerms()` gives the defaults before it loads.
@@ -824,6 +826,25 @@ Both are Ice and Fire's items, changed through default components and events. Th
 - **Any mob's target:** `LivingChangeTargetEvent` turns a corpse into no target, and every 10 ticks a mob holding one drops it. That covers targets handed over outside the goals (the queen's rally to her court).
 - **Smoke test:** a dread thrall, then an iron golem (one at a time: a golem goes for a thrall), takes an ice dragon for its target. The dragon is killed into a corpse; the corpse is invulnerable, and the fighter has no target 1 s and 4 s on. With no target, `execute ... on target` prints nothing at all.
 
+### Rimefrost dragonscale and dread dragonsteel (`registry/DreadGear`, `item/DreadArmorItem`, `item/DragonArmor`, `item/DreadDragonsteel`, `loot/RimefrostScalesFunction`, `client/DreadRecolors`, `magic/DreadRecolor`; 0.42.0)
+
+- **Items:** `rimefrost_dragon_scale`, `rimefrost_dragon_blood`, `dread_dragonsteel_ingot`; `rimefrost_dragonscale_*` and `dread_dragonsteel_*` armour; dread dragonsteel sword, axe, pickaxe, shovel and hoe.
+- **Getting them:**
+  - Rimefrost corpses (Syndrigossa's too) drop the scale in place of Ice and Fire's coloured scales. Their count is sized by `dreadpatch:rimefrost_scales` as Ice and Fire's `dragon_loot` sizes its own: age / 25 + a roll up to age / 5. `dragon_loot` itself only counts `DragonScalesItem`s and swaps them to the dragon's colour.
+  - Ice and Fire's dragonforge takes recipes from data (`iceandfire:dragonforge`: `dragonType`, `cookTime`, `input`, `blood`, `result`). Ours: scale + bottle → blood (ice, 750), as Ice and Fire's `ice_dragon_blood`; iron + blood → ingot (ice, 1,000).
+  - Crafting copies Ice and Fire's patterns, with tools on `#c:bones/wither`. Recipe-book unlocks on holding the scale or ingot.
+- **Numbers:**
+  - Scale armour is Ice and Fire's dragonscale material: 5/7/9/5, enchantability 15, toughness 2, durability 397/577/541/469.
+  - Dread dragonsteel armour reads Ice and Fire's config (`armors.dragonsteel*`) as its own does.
+  - Tools: `DreadDragonsteel.TIER` delegates to `IafTiers.DRAGONSTEEL_ICE`, repaired with our ingot, on Ice and Fire's own `ActivePostHit*Item` classes with its ice tools' attack numbers (sword +3/−2.4, pickaxe +1/−2.8, axe +5/−3, shovel +1.5/−3, hoe −4/0).
+- **Abilities:**
+  - `DreadDragonsteel.RIME` (a `PostHitAbility`) leaves 60 ticks of Withering Rime. **Ice and Fire runs these from the item's `hurtEnemy`, which only a player's attack calls** (vanilla `Mob.doHurtTarget` never does), so its own abilities are players' only. Ours also rimes on a mob's `mob_attack` with one (`LivingDamageEvent.Post`).
+  - **Against breath** (`DragonArmor`), Ice and Fire's rule (its `ServerEvents.onEntityDamage`): per piece 0.1/0.3/0.2/0.1 off dragon breath (`IafDamageTypes.DRAGON_*_TYPE`), in `LivingDamageEvent.Pre`, after armour. Ice and Fire applies it for its armour against its breath; we apply it for ours against its breath, and for its and ours against `withering_breath` and `shatter_spine`.
+- **Looks** (nothing of Ice and Fire's ships):
+  - item sprites come from a sprite source of ours (`dreadpatch:dread_recolor`, registered on `RegisterSpriteSourceTypesEvent`, listed in `assets/minecraft/atlases/blocks.json`). Each entry loads Ice and Fire's sprite through NeoForge's `SpriteResourceLoader.loadSprite(..., SpriteContentsConstructor)` and recolours it (`DreadRecolor`, game-free: soot, slate, ash, bone by brightness, cold bright blue to her cyan; `NativeImage` keeps pixels ABGR);
+  - item models copy Ice and Fire's (the sword and axe have its large-texture display transforms);
+  - armour is drawn with Ice and Fire's `IceDragonScaleArmorModel` / `DragonSteelIceArmorModel` (public, standalone; Ice and Fire hands its own to Uranus' `IArmorRendererBase.RENDERERS`, ours go through NeoForge's `IClientItemExtensions.getHumanoidArmorModel`), in layer textures recoloured from Ice and Fire's (`dragon_scales_white_layer_*`, `dragonsteel_ice_layer_*`) as `DynamicTexture`s the first time they're drawn (`DreadArmorItem.getArmorTexture` → `DreadArmorItem.textures`, set by the client), remade on a resource reload.
+
 ### Data
 
 **Her loot table** (`data/dreadpatch/loot_table/entities/dread_queen.json`), the owner's list
@@ -876,6 +897,7 @@ Both are Ice and Fire's items, changed through default components and events. Th
   - cast at a second corpse, the first is sent back and the second (blue) rises;
   - a queen at 100 of 300 with a golem target raises one of hers from a corpse 8 blocks off within 20 s, not whole.
   - The raised dragon is set NoAI right after the cast: with its AI it heals as it fights (it read 87 once) and wanders into the next cast's line of sight.
+- **Gear:** two zombies in the same armour (100 health), one hit by 40 Rimefrost breath, one by 40 `mob_attack` (armour cuts both; vanilla's `generic` goes straight past armour, which once made it look like a 95% cut): the breath lands at 30% of the attack, for dread dragonsteel and for Ice and Fire's ice dragonsteel; a husk's hit with a dread dragonsteel sword rimes an iron golem (no Resistance: a hit brought to nothing carries nothing). Corpses give Rimefrost dragon scales.
 - **Rimefrost dragons:** a summoned one keeps its colour (sapphire), is undead with the ice dragon's tags, refuses Withering Rime and Wither, starts whole from a tag at Ice and Fire's health for its age (unchanged on Hard, unlike Syndrigossa's), and its corpse gives its own colour's scales and shards, its heart never her egg. Summoned without NBT it's a random age and ice colour (a summon with any NBT skips `finalizeSpawn`: a colourless hatchling).
 - **Her drops:** at most one sword and one staff, one ink and one scroll a kill; over 40 rolls each of sword and staff 3–20 times; over four deaths of a queen saved with `HandDropChances` 2.0, not all eight.
 - **Ice:** Rimewalk, and the storm's ice.

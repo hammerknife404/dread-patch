@@ -1,0 +1,14 @@
+{
+  "type": "iceandfire:dragonforge",
+  "dragonType": "ice",
+  "cookTime": 1000,
+  "input": {
+    "item": "minecraft:iron_ingot"
+  },
+  "blood": {
+    "item": "dreadpatch:rimefrost_dragon_blood"
+  },
+  "result": {
+    "id": "dreadpatch:dread_dragonsteel_ingot"
+  }
+}

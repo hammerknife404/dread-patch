@@ -33,6 +33,8 @@ public final class DreadPatchClient {
         modBus.addListener(DreadPatchClient::onClientExtensions);
         modBus.addListener(DreadPatchClient::onReloadListeners);
         modBus.addListener(DreadPatchClient::onParticles);
+        modBus.addListener(DreadRecolors::onRegisterSpriteSources);
+        modBus.addListener(DreadRecolors::onClientExtensions);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(SaddleLayer::onRenderLiving);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
@@ -108,7 +110,10 @@ public final class DreadPatchClient {
 
     /** Rimefrost dragons' skins are made from Ice and Fire's textures: remake them when textures reload. */
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener((ResourceManagerReloadListener) resources -> UndeadDragonSkins.clear());
+        event.registerReloadListener((ResourceManagerReloadListener) resources -> {
+            UndeadDragonSkins.clear();
+            DreadRecolors.clear();
+        });
     }
 
     private static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {

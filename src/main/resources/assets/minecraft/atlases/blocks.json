@@ -1,0 +1,73 @@
+{
+  "sources": [
+    {
+      "type": "dreadpatch:dread_recolor",
+      "entries": [
+        {
+          "from": "iceandfire:item/scales_white",
+          "to": "dreadpatch:item/rimefrost_dragon_scale"
+        },
+        {
+          "from": "iceandfire:item/ice_dragon_blood",
+          "to": "dreadpatch:item/rimefrost_dragon_blood"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_ingot",
+          "to": "dreadpatch:item/dread_dragonsteel_ingot"
+        },
+        {
+          "from": "iceandfire:item/armor_white_helmet",
+          "to": "dreadpatch:item/rimefrost_dragonscale_helmet"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_helmet",
+          "to": "dreadpatch:item/dread_dragonsteel_helmet"
+        },
+        {
+          "from": "iceandfire:item/armor_white_chestplate",
+          "to": "dreadpatch:item/rimefrost_dragonscale_chestplate"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_chestplate",
+          "to": "dreadpatch:item/dread_dragonsteel_chestplate"
+        },
+        {
+          "from": "iceandfire:item/armor_white_leggings",
+          "to": "dreadpatch:item/rimefrost_dragonscale_leggings"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_leggings",
+          "to": "dreadpatch:item/dread_dragonsteel_leggings"
+        },
+        {
+          "from": "iceandfire:item/armor_white_boots",
+          "to": "dreadpatch:item/rimefrost_dragonscale_boots"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_boots",
+          "to": "dreadpatch:item/dread_dragonsteel_boots"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_sword",
+          "to": "dreadpatch:item/dread_dragonsteel_sword"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_axe",
+          "to": "dreadpatch:item/dread_dragonsteel_axe"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_pickaxe",
+          "to": "dreadpatch:item/dread_dragonsteel_pickaxe"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_shovel",
+          "to": "dreadpatch:item/dread_dragonsteel_shovel"
+        },
+        {
+          "from": "iceandfire:item/dragonsteel_ice_hoe",
+          "to": "dreadpatch:item/dread_dragonsteel_hoe"
+        }
+      ]
+    }
+  ]
+}
