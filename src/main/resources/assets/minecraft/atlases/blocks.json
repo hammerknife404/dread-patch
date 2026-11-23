@@ -74,6 +74,14 @@
         {
           "from": "irons_spellbooks:item/affinity_ring_ice",
           "to": "dreadpatch:item/affinity_ring_rimefrost"
+        },
+        {
+          "from": "minecraft:block/soul_lantern",
+          "to": "dreadpatch:block/dread_lantern"
+        },
+        {
+          "from": "minecraft:item/soul_lantern",
+          "to": "dreadpatch:item/dread_lantern"
         }
       ]
     }

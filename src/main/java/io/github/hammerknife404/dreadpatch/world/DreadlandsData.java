@@ -34,6 +34,8 @@ public class DreadlandsData extends SavedData {
     /** Each spire's (by its base, packed) last encounter with each player, in epoch milliseconds. */
     private final Map<Long, Map<UUID, Long>> encounters = new HashMap<>();
     private final WeatherRules.Storms storms = new WeatherRules.Storms();
+    /** Lanterns and torches placed in the Dreadlands still fading (0.57.0): position (packed) to the game time of its next step. */
+    private final Map<Long, Long> fading = new HashMap<>();
 
     public static DreadlandsData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(new SavedData.Factory<>(DreadlandsData::new, DreadlandsData::load, null), NAME);
@@ -59,6 +61,10 @@ public class DreadlandsData extends SavedData {
     public void recordEncounter(long spire, UUID player, long when) {
         this.encounters.computeIfAbsent(spire, s -> new HashMap<>()).put(player, when);
         this.setDirty();
+    }
+
+    public Map<Long, Long> fading() {
+        return this.fading;
     }
 
     /** Its weather's memory; {@link #setDirty} after changing it. */
@@ -89,6 +95,14 @@ public class DreadlandsData extends SavedData {
         data.storms.whiteout = weather.getBoolean("Whiteout");
         data.storms.wasWhiteout = weather.getBoolean("WasWhiteout");
         data.storms.lastWhiteout = weather.getBoolean("LastWhiteout");
+        CompoundTag fading = tag.getCompound("Fading");
+        for (String pos : fading.getAllKeys()) {
+            try {
+                data.fading.put(Long.parseLong(pos), fading.getLong(pos));
+            } catch (NumberFormatException ignored) {
+                // Not a position: skip it.
+            }
+        }
         CompoundTag origins = tag.getCompound("Origins");
         for (String key : origins.getAllKeys()) {
             CompoundTag o = origins.getCompound(key);
@@ -145,6 +159,9 @@ public class DreadlandsData extends SavedData {
         weather.putBoolean("WasWhiteout", this.storms.wasWhiteout);
         weather.putBoolean("LastWhiteout", this.storms.lastWhiteout);
         tag.put("Weather", weather);
+        CompoundTag fading = new CompoundTag();
+        this.fading.forEach((pos, due) -> fading.putLong(Long.toString(pos), due));
+        tag.put("Fading", fading);
         return tag;
     }
 }

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "dreadpatch:block/dread_lantern"
+    },
+    "hanging=true": {
+      "model": "dreadpatch:block/dread_lantern_hanging"
+    }
+  }
+}
