@@ -221,6 +221,11 @@ public final class ModRegistries {
                     .pushReaction(PushReaction.DESTROY)
                     .noLootTable()));
 
+    /** The Dread's lantern (0.57.0): a soul lantern's shape and light, its flame her cyan. Fading lanterns and the villages' end as it. */
+    public static final DeferredBlock<net.minecraft.world.level.block.LanternBlock> DREAD_LANTERN = BLOCKS.register("dread_lantern",
+            () -> new net.minecraft.world.level.block.LanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)));
+    public static final DeferredItem<net.minecraft.world.item.BlockItem> DREAD_LANTERN_ITEM = ITEMS.registerSimpleBlockItem("dread_lantern", DREAD_LANTERN);
+
     /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */
     public static final DeferredHolder<EntityType<?>, EntityType<SovereignsEclipse>> SOVEREIGNS_ECLIPSE = ENTITY_TYPES.register("sovereigns_eclipse",
             () -> EntityType.Builder.<SovereignsEclipse>of(SovereignsEclipse::new, MobCategory.MISC)

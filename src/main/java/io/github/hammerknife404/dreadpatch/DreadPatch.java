@@ -83,6 +83,7 @@ public final class DreadPatch {
         DreadlandsSpawns.register(NeoForge.EVENT_BUS);
         DreadlandsWhiteout.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.command.DreadCommands.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadFlames.register(NeoForge.EVENT_BUS);
         DreadPatrols.register(NeoForge.EVENT_BUS);
     }
 
@@ -122,6 +123,8 @@ public final class DreadPatch {
             event.accept(ancientSyndrigossaEgg());
             event.accept(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get());
             event.accept(ModRegistries.DREAD_PHANTOM_SPAWN_EGG.get());
+        } else if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+            event.accept(ModRegistries.DREAD_LANTERN_ITEM.get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
             event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());

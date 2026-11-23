@@ -82,6 +82,11 @@ public class DreadVillageStructure extends Structure {
     /** The Dread's block for a village's own, its shape kept; null to leave it. */
     @Nullable
     static BlockState dread(BlockState state) {
+        BlockState flame = DreadFlames.dread(state);
+        if (flame != null) {
+            // Its lanterns and torches the Dread's (0.57.0).
+            return flame;
+        }
         if (state.is(BlockTags.PLANKS)) {
             return IafBlocks.DREADWOOD_PLANKS.get().defaultBlockState();
         }
