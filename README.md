@@ -59,7 +59,8 @@ Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of t
 
 - **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It never breaks.
 - **Each piece:** +150 max mana, 5% off the mana Ice and Rimefrost spells cost, 5% more Rimefrost damage dealt, and 5% less Rimefrost damage taken (Rimefrost spells, the Rimefrost dragons' breath and Shatter-Spine, Whiteout's cold, and Withering Rime's withering, counted as dealt by whoever laid the rime). The whole set: a fifth more dealt, a fifth less taken.
-- **The whole set:** you can't freeze (powder snow, Withering Rime's chill and freezing damage don't touch you), and the Dread leave you be: they won't come for you unless you hurt them first, and then only that one, for half a minute. The queen herself, Syndrigossa and anything they command still do.
+- **The whole set:** you can't freeze (powder snow, Withering Rime's chill and freezing damage don't touch you), the Dreadlands' weather slows you a step less (a heavy snowstorm as plain snow, plain snow not at all), and the Dread leave you be: they won't come for you unless you hurt them first, and then only that one, for half a minute. The queen herself, Syndrigossa and anything they command still do.
+- **Her crown's sight:** the Dreadlands' storm fog doesn't close in on whoever wears her crown (snow or heavy snowstorm), and in any whiteout, the weather or a Whiteout Dominion's, they see 75% further.
 - **Collecting it:** each queen you kill drops a piece you don't have yet, so four kills complete the set. Looting gives a 10% chance a level of a second missing piece. Once you have the set, she drops a random piece one time in four (5% more a Looting level).
 - **Advancements** keep count: one for slaying her, one for each piece you've held, and one for the whole set. A piece counts as yours once it's been in your inventory.
 - **There Must Always Be a Dread Queen:** wear all four pieces with her blade and her staff in your hands.
@@ -83,7 +84,7 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 
 ## The Dreadlands
 
-A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning, ice cracking somewhere out on the waste and something rumbling deep below. Its day, night and weather are the overworld's.
+A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning, ice cracking somewhere out on the waste, something rumbling deep below, and now and then, far off and never from the same quarter twice, a dragon's roar. Its day, night and weather are the overworld's.
 
 - **The Dread walk there:** Ice and Fire's thralls, ghouls, knights and scuttlers rise out of the snow in ones, twos and threes, by day and by night, 24 to 48 blocks off: now and then in clear weather, more often while it snows, and a little more often again in a heavy snowstorm (thunder). No more than 8 of them gather round any one player.
 - **Patrols:** now and then a small Dread patrol (a dread knight on foot leading two to four more) crosses the waste, its first leg passing by you, then on from waypoint to waypoint. They fight what they meet, then walk on; if their knight falls, another leads.
@@ -100,7 +101,7 @@ A dimension of bleak frozen waste: gently rolling snowfields, carved here and th
 - **The Queen and Syndrigossa:** half the spires hold her, and you can tell which from below: a dreadstone dais at the summit's middle, with dread torches burning cyan round it. Reach such a summit and she comes, as the full boss, riding an ancient Syndrigossa out of the air beside it (on foot on the summit, if there's no room for her dragon), and turns on you. Each spire's encounter comes to each player once; it comes to you there again only after 6 real hours (a server setting, `encounter_reset_hours` in `config/dreadpatch-server.toml`), and never while that spire's queen is still about. Anyone who reaches the summit while she's there has met it too. Not on Peaceful.
 - **Her defeat:** when she falls, a Dread Gate rises where she fell, open home for 5 minutes (time to take what she dropped, and her dragon's corpse), fading out over its last seconds. Its frame stays for a key.
 - **Getting home:** beat a spire's queen (above), or build a Dread Gate there and key it. It opens at once (no queen comes), stays open 15 to 30 seconds, and takes whoever steps in back to the gate they came in by (or to the world's spawn). A key takes three dread shards (dread phantoms drop them), a bone and two gold ingots, so bring the gold; the frame takes any dreadstone, the spires' included. Dying sends you to your usual spawn, as anywhere.
-- **Flames die cold there:** a lantern or torch you place in the Dreadlands fades, a step every 30 to 60 seconds, to its soul kind and then to the Dread's: a **dread lantern** (a soul lantern burning her cyan; break it with a pickaxe to keep it) or a dread torch.
+- **Flames die cold there:** a lantern or torch you place in the Dreadlands fades, a step every 30 to 45 seconds, to its soul kind and then to the Dread's: a **dread lantern** (a soul lantern burning her cyan; break it with a pickaxe to keep it) or a dread torch.
 - **Beds** explode there, as in the Nether, and respawn anchors don't work.
 - **Dread phantoms** come down out of its sky now and then, one or two at a time, whether or not you've slept: about once every 4 minutes for each player out under the sky, and about every minute and a half near a spire, never while 4 are already about.
 - **All these rates** are server settings (Config, in the mods list, or `config/dreadpatch-server.toml`).
@@ -202,6 +203,7 @@ For operators and the server console, under `/dreadpatch`:
 | `/dreadpatch encounters reset [players]` | Forgets who has met which spire's Queen, so her encounter comes again (everyone's, unless you name players). |
 | `/dreadpatch dreadlands enter [players]` | Sends players into the Dreadlands, by the nearest spire, remembering where they came from. |
 | `/dreadpatch dreadlands home [players]` | Sends players in the Dreadlands home again. |
+| `/dreadpatch config [setting [value]]` | Lists every Dread Patch setting, shows one, or sets one (saved to `config/dreadpatch-server.toml`, applied at once). |
 | `/dreadpatch patrol [pos]` | Raises a Dread patrol there (a dread knight leading 2 to 4 more). |
 | `/dreadpatch rise [count] [pos]` | Raises 1 to 8 of the Dread there (3 by default). |
 

@@ -306,6 +306,8 @@ public final class ModRegistries {
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_ADDITIONS = sound("ambient.dreadlands.additions");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_ICE_CRACK = sound("ambient.dreadlands.ice_crack");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_RUMBLE = sound("ambient.dreadlands.rumble");
+    /** Syndrigossa, far off (0.58.0): Ice and Fire's ice dragon's roars and calls. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_DISTANT_ROAR = sound("ambient.dreadlands.distant_roar");
 
     /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",
