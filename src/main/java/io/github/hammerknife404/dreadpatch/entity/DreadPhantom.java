@@ -178,7 +178,7 @@ public class DreadPhantom extends Phantom implements IDreadMob {
         boolean hit = super.doHurtTarget(target);
         if (hit && target instanceof LivingEntity victim) {
             if (PhantomRules.rimefrost(this.random.nextFloat())) {
-                victim.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, PhantomRules.RIMEFROST_TICKS), this);
+                victim.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, PhantomRules.RIMEFROST_TICKS, io.github.hammerknife404.dreadpatch.effect.RimefrostEffect.HEAVY), this);
             }
             if (PhantomRules.witheringRime(this.random.nextFloat())) {
                 victim.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, PhantomRules.WITHERING_TICKS), this);

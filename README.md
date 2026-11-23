@@ -88,7 +88,7 @@ A dimension of bleak frozen waste: gently rolling snowfields, carved here and th
 - **The Dread walk there:** Ice and Fire's thralls, ghouls, knights and scuttlers rise out of the snow in ones, twos and threes, by day and by night, 24 to 48 blocks off: now and then in clear weather, more often while it snows, and a little more often again in a heavy snowstorm (thunder). No more than 8 of them gather round any one player.
 - **Patrols:** now and then a small Dread patrol (a dread knight on foot leading two to four more) crosses the waste, its first leg passing by you, then on from waypoint to waypoint. They fight what they meet, then walk on; if their knight falls, another leads.
 
-- **Its storms:** when it rains in the overworld, it snows there, and that's a storm. Out under the open sky the fog closes in to about 56 blocks, and to about 24 when it thunders (a warning; a Whiteout Dominion's is 10), snow blows past on the wind, and **Rimefrost** settles on you: the Dread's cold without the withering, 25% slower, for as long as you stay out in it. It does no damage, and the Dread don't feel it. Get under a roof and it lifts.
+- **Its storms:** when it rains in the overworld, it snows there, and that's a storm. Out under the open sky the fog closes in to about 56 blocks, and to about 24 when it thunders (a warning; a Whiteout Dominion's is 10), snow blows past on the wind, and **Rimefrost** settles on you: the Dread's cold without the withering, 10% slower in snow and 25% in a heavy snowstorm (thunder), for as long as you stay out in it. It does no damage, and the Dread don't feel it. Get under a roof and it lifts.
 - **Whiteout storms:** about one storm in six (never two in a row) is a Whiteout Dominion, like the Dread Queen's own storm across the whole land: out under the open sky the fog closes in to 10 blocks, the wind howls and the snow drives past, you're slowed further, and the cold does half a heart of damage every 3 seconds unless you can't freeze (leather, her full regalia). Get under a roof. It never starts while a Dread Queen is about there, and if she comes during one, it breaks into a heavy thunderstorm. How often is a server setting (`whiteout_storms`; 0 for never).
 - **Its lightning:** when the overworld thunders, lightning strikes round you every 20 seconds or so (Minecraft's own never strikes ground that cold). It hurts what it hits, as lightning does, but sets no fire: it leaves a patch of **rimefire**, cold dread fire burning cyan for 30 to 60 seconds. One of the Dread standing in it heals a quarter of a heart a second; anyone else is chilled (Rimefrost), put out, and burned by the cold, half a heart a second. Rimefire is a hazard only: it gives nothing and can't be lit by players. It glows dimly (light 6), too little to melt the snow and ice round it. Rimefrost dragons' breath lights patches of it where it lands (with `mobGriefing` on), and a Withering Rime-Bolt that strikes the ground leaves a few seconds of its embers.
 
@@ -189,6 +189,20 @@ Her scrolls (from her drops) teach her spells to players. They're **Rimefrost** 
 
 - **Riding a dragon:** a player steering any Ice and Fire dragon (fire, ice, lightning, or a tamed Rimefrost dragon) is drawn sitting upright in the saddle on its back, moving with it as it walks, flies and pitches. Ice and Fire drew them upside down under the dragon's belly. As before, you don't see yourself in first person. Prey shaken in a dragon's jaws is still drawn as Ice and Fire draws it.
 - **Dragon corpses:** Ice and Fire still counts a dead dragon as alive while its corpse lies, so a mob that was fighting a dragon when it died went on attacking its corpse forever. Now nothing fights a dragon's corpse, any Ice and Fire dragon's, and mobs from other mods that use Minecraft's usual targeting leave it be too. Harvesting a corpse is unchanged.
+
+## Commands
+
+For operators and the server console, under `/dreadpatch`:
+
+| Command | What it does |
+|---|---|
+| `/dreadpatch weather` | Tells you the Dreadlands' weather: clear, snow, a heavy snowstorm or a whiteout. |
+| `/dreadpatch weather clear\|snow\|storm\|whiteout [seconds]` | Sets it, for 10 minutes unless you say. The Dreadlands share the overworld's weather, so the overworld's changes too. `whiteout` makes the storm a Whiteout Dominion whatever its odds; `snow` and `storm` are plain. |
+| `/dreadpatch encounters reset [players]` | Forgets who has met which spire's Queen, so her encounter comes again (everyone's, unless you name players). |
+| `/dreadpatch dreadlands enter [players]` | Sends players into the Dreadlands, by the nearest spire, remembering where they came from. |
+| `/dreadpatch dreadlands home [players]` | Sends players in the Dreadlands home again. |
+| `/dreadpatch patrol [pos]` | Raises a Dread patrol there (a dread knight leading 2 to 4 more). |
+| `/dreadpatch rise [count] [pos]` | Raises 1 to 8 of the Dread there (3 by default). |
 
 ## Settings
 
