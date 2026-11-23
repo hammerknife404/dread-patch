@@ -21,16 +21,13 @@ import java.util.Map;
 
 /**
  * Flames in the Dreadlands (0.57.0, the owner: "Any lanterns placed fade from lanter to soul lantern to dread
- * lanterns. Same with Torches."): a lantern or torch placed there turns, a step every 30-60 s
- * ({@link #STEP_MIN}-{@link #STEP_MAX}, ours), to its soul kind and then to the Dread's: the dread lantern
+ * lanterns. Same with Torches."): a lantern or torch placed there turns, a step every 30-45 s
+ * (0.58.0, the owner; server config {@code flame_fade_min_seconds}/{@code _max_seconds}), to its soul kind and then to the Dread's: the dread lantern
  * (ours) or Ice and Fire's dread torch, hanging, standing or on its wall as it was, with a puff of smoke and
  * a fizz. Pending steps are kept in {@link DreadlandsData}, so a restart doesn't stop them. Abandoned
  * villages' lanterns and torches are the Dread's from the start ({@link #dread}).
  */
 public final class DreadFlames {
-    public static final int STEP_MIN = 600;
-    public static final int STEP_MAX = 1200;
-
     private DreadFlames() {
     }
 
@@ -91,10 +88,17 @@ public final class DreadFlames {
     }
 
     static void schedule(ServerLevel level, BlockPos pos) {
-        long due = level.getGameTime() + STEP_MIN + level.getRandom().nextInt(STEP_MAX - STEP_MIN + 1);
+        long due = level.getGameTime() + step(level);
         DreadlandsData data = DreadlandsData.get(level.getServer());
         data.fading().put(pos.asLong(), due);
         data.setDirty();
+    }
+
+    /** Ticks to a flame's next step: the config's seconds. */
+    private static int step(ServerLevel level) {
+        int min = io.github.hammerknife404.dreadpatch.DreadPatchConfig.flameFadeMinTicks();
+        int max = io.github.hammerknife404.dreadpatch.DreadPatchConfig.flameFadeMaxTicks();
+        return min + level.getRandom().nextInt(max - min + 1);
     }
 
     private static void onLevelTick(LevelTickEvent.Post event) {
@@ -124,7 +128,7 @@ public final class DreadFlames {
                 if (next(next) == null) {
                     it.remove();
                 } else {
-                    entry.setValue(now + STEP_MIN + level.getRandom().nextInt(STEP_MAX - STEP_MIN + 1));
+                    entry.setValue(now + step(level));
                 }
             }
             changed = true;

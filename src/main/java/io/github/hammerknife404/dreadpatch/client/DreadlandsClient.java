@@ -89,7 +89,7 @@ public final class DreadlandsClient {
     /** Never further than it was: Whiteout's closer fog, or anything else's, still wins. */
     private static void onRenderFog(ViewportEvent.RenderFog event) {
         float amount = storm((float) event.getPartialTick());
-        if (amount <= 0.0F || event.getType() != FogType.NONE) {
+        if (amount <= 0.0F || event.getType() != FogType.NONE || CrownSight.clearsStorms()) {
             return;
         }
         float far = event.getFarPlaneDistance();
@@ -105,6 +105,9 @@ public final class DreadlandsClient {
     private static void onFogColor(ViewportEvent.ComputeFogColor event) {
         float amount = storm((float) event.getPartialTick());
         ClientLevel level = Minecraft.getInstance().level;
+        if (CrownSight.clearsStorms()) {
+            return;
+        }
         if (amount <= 0.0F || level == null || event.getCamera().getFluidInCamera() != FogType.NONE) {
             return;
         }

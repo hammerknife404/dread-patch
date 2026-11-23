@@ -62,7 +62,15 @@ public final class DreadlandsStorms {
     private static void chill(ServerLevel level) {
         for (Entity entity : level.getAllEntities()) {
             if (entity instanceof LivingEntity living && living.isAlive() && !(living instanceof IDreadMob) && !living.isSpectator() && exposed(level, living)) {
-                living.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, StormRules.RIMEFROST_TICKS, level.isThundering() ? io.github.hammerknife404.dreadpatch.effect.RimefrostEffect.HEAVY : 0, true, true));
+                int level0 = level.isThundering() ? io.github.hammerknife404.dreadpatch.effect.RimefrostEffect.HEAVY : 0;
+                // Her full regalia eases it a step (0.58.0, the owner): thunder as plain snow, plain snow not at all.
+                if (io.github.hammerknife404.dreadpatch.DreadPatchConfig.regaliaEasesWeather()
+                        && io.github.hammerknife404.dreadpatch.magic.RegaliaBonuses.fullSet(io.github.hammerknife404.dreadpatch.item.DreadRegalia.pieces(living))) {
+                    level0--;
+                }
+                if (level0 >= 0) {
+                    living.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, StormRules.RIMEFROST_TICKS, level0, true, true));
+                }
             }
         }
     }

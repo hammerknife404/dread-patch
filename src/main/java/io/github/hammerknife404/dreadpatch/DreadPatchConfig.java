@@ -25,6 +25,11 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
     private static final ModConfigSpec.IntValue WHITEOUT_STORMS;
+    private static final ModConfigSpec.IntValue FLAME_FADE_MIN;
+    private static final ModConfigSpec.IntValue FLAME_FADE_MAX;
+    private static final ModConfigSpec.BooleanValue CROWN_STORM_SIGHT;
+    private static final ModConfigSpec.DoubleValue CROWN_WHITEOUT_SIGHT;
+    private static final ModConfigSpec.BooleanValue REGALIA_EASES_WEATHER;
     /** The default: the owner's "after a lengthy time like several IRL hours"; ours, 6. */
     public static final double DEFAULT_ENCOUNTER_RESET_HOURS = 6.0;
 
@@ -57,6 +62,17 @@ public final class DreadPatchConfig {
                 "and a point of freezing damage every 3 s under the open sky. Never two in a row (so 2 or less: every other storm),",
                 "never starting while a Dread Queen is about there, and it breaks into a thunderstorm when her fight starts. 0: never.")
                 .defineInRange("whiteout_storms", WeatherRules.WHITEOUT_ONE_IN, 0, 10000);
+        FLAME_FADE_MIN = builder.comment("A lantern or torch placed in the Dreadlands steps toward the Dread's (soul, then dread) after this many seconds at least...")
+                .defineInRange("flame_fade_min_seconds", 30, 1, 3600);
+        FLAME_FADE_MAX = builder.comment("...and at most (if less than the least, the least).").defineInRange("flame_fade_max_seconds", 45, 1, 3600);
+        builder.pop();
+        builder.comment("The Dread Queen's regalia.").push("regalia");
+        CROWN_STORM_SIGHT = builder.comment("Whether her crown keeps the Dreadlands' storm fog (snow and heavy snowstorms) off its wearer: near clear sight.")
+                .define("crown_storm_sight", true);
+        CROWN_WHITEOUT_SIGHT = builder.comment("How much further her crown lets its wearer see in any whiteout (the weather, or a Whiteout Dominion's):",
+                "0.75 is 75% further. 0: no further.").defineInRange("crown_whiteout_sight", 0.75, 0.0, 10.0);
+        REGALIA_EASES_WEATHER = builder.comment("Whether her full regalia eases the Dreadlands' weather slow a step: a heavy snowstorm slows as plain snow,",
+                "and plain snow not at all.").define("regalia_eases_weather", true);
         builder.pop();
         SPEC = builder.build();
     }
@@ -98,6 +114,78 @@ public final class DreadPatchConfig {
     /** About one Dreadlands storm in how many is a whiteout (0.54.0). */
     public static int whiteoutOneIn() {
         return SPEC.isLoaded() ? WHITEOUT_STORMS.get() : WeatherRules.WHITEOUT_ONE_IN;
+    }
+
+    /** Ticks a fading lantern or torch waits at least, and at most, for its next step (0.58.0). */
+    public static int flameFadeMinTicks() {
+        return (SPEC.isLoaded() ? FLAME_FADE_MIN.get() : 30) * 20;
+    }
+
+    public static int flameFadeMaxTicks() {
+        return Math.max(flameFadeMinTicks(), (SPEC.isLoaded() ? FLAME_FADE_MAX.get() : 45) * 20);
+    }
+
+    public static boolean crownStormSight() {
+        return !SPEC.isLoaded() || CROWN_STORM_SIGHT.get();
+    }
+
+    public static double crownWhiteoutSight() {
+        return SPEC.isLoaded() ? CROWN_WHITEOUT_SIGHT.get() : 0.75;
+    }
+
+    public static boolean regaliaEasesWeather() {
+        return !SPEC.isLoaded() || REGALIA_EASES_WEATHER.get();
+    }
+
+    /** Every setting by its name (the last part of its path; they're unique), in the file's order (0.58.0, for {@code /dreadpatch config}). */
+    public static java.util.Map<String, ModConfigSpec.ConfigValue<?>> values() {
+        java.util.Map<String, ModConfigSpec.ConfigValue<?>> out = new java.util.LinkedHashMap<>();
+        collect(SPEC.getValues(), out);
+        return out;
+    }
+
+    private static void collect(com.electronwill.nightconfig.core.UnmodifiableConfig config, java.util.Map<String, ModConfigSpec.ConfigValue<?>> out) {
+        for (com.electronwill.nightconfig.core.UnmodifiableConfig.Entry entry : config.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof ModConfigSpec.ConfigValue<?> setting) {
+                out.put(entry.getKey(), setting);
+            } else if (value instanceof com.electronwill.nightconfig.core.UnmodifiableConfig section) {
+                collect(section, out);
+            }
+        }
+    }
+
+    /**
+     * Sets {@code setting} from text, if it parses as its kind and is in its range, and saves the file (NeoForge
+     * reloads it, so it applies at once). Whether it took.
+     */
+    @SuppressWarnings("unchecked")
+    public static boolean set(ModConfigSpec.ConfigValue<?> setting, String text) {
+        Object current = setting.get();
+        Object parsed;
+        try {
+            if (current instanceof Boolean) {
+                if (!text.equalsIgnoreCase("true") && !text.equalsIgnoreCase("false")) {
+                    return false;
+                }
+                parsed = Boolean.parseBoolean(text);
+            } else if (current instanceof Integer) {
+                parsed = Integer.parseInt(text);
+            } else if (current instanceof Double) {
+                parsed = Double.parseDouble(text);
+            } else {
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        ModConfigSpec.ValueSpec spec = SPEC.getSpec().get(setting.getPath());
+        if (spec == null || !spec.test(parsed)) {
+            return false;
+        }
+        ((ModConfigSpec.ConfigValue<Object>) setting).set(parsed);
+        setting.save();
+        return true;
     }
 
     /** How long until a spire's encounter comes again to a player, in milliseconds. */

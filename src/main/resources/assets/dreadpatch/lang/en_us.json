@@ -173,5 +173,16 @@
   "commands.dreadpatch.dreadlands.missing": "There's no Dreadlands in this world",
   "commands.dreadpatch.rise.done": "%s of the Dread rose",
   "commands.dreadpatch.rise.none": "None of the Dread could rise there (no open ground)",
-  "block.dreadpatch.dread_lantern": "Dread Lantern"
+  "block.dreadpatch.dread_lantern": "Dread Lantern",
+  "subtitles.dreadpatch.ambient.dreadlands.distant_roar": "Syndrigossa roars, far off",
+  "dreadpatch.configuration.regalia": "Her regalia",
+  "dreadpatch.configuration.flame_fade_min_seconds": "Flames fade after (least seconds)",
+  "dreadpatch.configuration.flame_fade_max_seconds": "Flames fade after (most seconds)",
+  "dreadpatch.configuration.crown_storm_sight": "Her crown sees through storms",
+  "dreadpatch.configuration.crown_whiteout_sight": "Her crown's sight in a whiteout (extra)",
+  "dreadpatch.configuration.regalia_eases_weather": "Her full regalia eases the weather's slow",
+  "commands.dreadpatch.config.value": "%s = %s",
+  "commands.dreadpatch.config.set": "Set %s to %s",
+  "commands.dreadpatch.config.unknown": "No Dread Patch setting %s",
+  "commands.dreadpatch.config.invalid": "%s can't be %s"
 }

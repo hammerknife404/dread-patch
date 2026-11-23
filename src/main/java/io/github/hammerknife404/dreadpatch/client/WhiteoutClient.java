@@ -131,7 +131,7 @@ public final class WhiteoutClient {
         if (amount <= 0.0F || event.getType() != FogType.NONE) {
             return;
         }
-        event.setFarPlaneDistance(Mth.lerp(amount, event.getFarPlaneDistance(), Math.min(FOG_FAR, event.getFarPlaneDistance())));
+        event.setFarPlaneDistance(Mth.lerp(amount, event.getFarPlaneDistance(), Math.min(FOG_FAR * CrownSight.whiteoutReach(), event.getFarPlaneDistance())));
         event.setNearPlaneDistance(Mth.lerp(amount, event.getNearPlaneDistance(), 0.0F));
         event.setFogShape(FogShape.SPHERE);
         event.setCanceled(true);

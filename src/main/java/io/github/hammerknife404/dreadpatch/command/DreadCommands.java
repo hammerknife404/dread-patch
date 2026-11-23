@@ -2,6 +2,10 @@ package io.github.hammerknife404.dreadpatch.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.hammerknife404.dreadpatch.entity.DreadPatrols;
@@ -34,6 +38,7 @@ import java.util.List;
  * weather, so the overworld's changes too; {@code whiteout} makes this storm one, past its rolls;</li>
  * <li>{@code encounters reset [players]}: forgets who's met which spire's encounter (everyone's, by default);</li>
  * <li>{@code dreadlands enter|home [players]}: into the Dreadlands, by the nearest spire, or home again;</li>
+ * <li>{@code config [setting [value]]} (0.58.0): every setting, one, or one set (and saved to the file);</li>
  * <li>{@code patrol [pos]} and {@code rise [count] [pos]}: a Dread patrol, or 1-8 loose Dread, there.</li>
  * </ul>
  */
@@ -66,6 +71,14 @@ public final class DreadCommands {
                                 .executes(context -> home(context, List.of(context.getSource().getPlayerOrException())))
                                 .then(Commands.argument("players", EntityArgument.players())
                                         .executes(context -> home(context, EntityArgument.getPlayers(context, "players"))))))
+                .then(Commands.literal("config")
+                        .executes(DreadCommands::listConfig)
+                        .then(Commands.argument("setting", StringArgumentType.word())
+                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(DreadPatchConfig.values().keySet(), builder))
+                                .executes(context -> showConfig(context, StringArgumentType.getString(context, "setting")))
+                                .then(Commands.argument("value", StringArgumentType.greedyString())
+                                        .executes(context -> setConfig(context, StringArgumentType.getString(context, "setting"),
+                                                StringArgumentType.getString(context, "value"))))))
                 .then(Commands.literal("patrol")
                         .executes(context -> patrol(context, context.getSource().getPosition()))
                         .then(Commands.argument("pos", Vec3Argument.vec3())
@@ -83,6 +96,36 @@ public final class DreadCommands {
                 .executes(context -> setWeather(context, kind, DEFAULT_SECONDS))
                 .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 1_000_000))
                         .executes(context -> setWeather(context, kind, IntegerArgumentType.getInteger(context, "seconds"))));
+    }
+
+    private static int listConfig(CommandContext<CommandSourceStack> context) {
+        DreadPatchConfig.values().forEach((name, setting) -> context.getSource().sendSuccess(
+                () -> Component.translatable("commands.dreadpatch.config.value", name, String.valueOf(setting.get())), false));
+        return DreadPatchConfig.values().size();
+    }
+
+    private static int showConfig(CommandContext<CommandSourceStack> context, String name) {
+        ModConfigSpec.ConfigValue<?> setting = DreadPatchConfig.values().get(name);
+        if (setting == null) {
+            context.getSource().sendFailure(Component.translatable("commands.dreadpatch.config.unknown", name));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.config.value", name, String.valueOf(setting.get())), false);
+        return 1;
+    }
+
+    private static int setConfig(CommandContext<CommandSourceStack> context, String name, String value) {
+        ModConfigSpec.ConfigValue<?> setting = DreadPatchConfig.values().get(name);
+        if (setting == null) {
+            context.getSource().sendFailure(Component.translatable("commands.dreadpatch.config.unknown", name));
+            return 0;
+        }
+        if (!DreadPatchConfig.set(setting, value.trim())) {
+            context.getSource().sendFailure(Component.translatable("commands.dreadpatch.config.invalid", name, value));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.config.set", name, String.valueOf(setting.get())), true);
+        return 1;
     }
 
     private static int queryWeather(CommandContext<CommandSourceStack> context) {

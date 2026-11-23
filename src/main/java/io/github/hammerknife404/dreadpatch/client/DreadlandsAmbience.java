@@ -33,7 +33,13 @@ import org.jetbrains.annotations.Nullable;
  * Every one plays at its own volume, ±15%.
  */
 public final class DreadlandsAmbience {
-    private static final float ADDITIONS_CHANCE = 0.0111F;
+    /** Half vanilla's (0.58.0, the owner: "Reduce the ambient soul sounds some and their frequency"). */
+    private static final float ADDITIONS_CHANCE = 0.0055F;
+    /** Syndrigossa, far off (0.58.0): every 3-8 minutes, from somewhere new each time. */
+    private static final int ROAR_MIN = 3600;
+    private static final int ROAR_MAX = 9600;
+    private static final double ROAR_DISTANCE = 64.0;
+    private static int roarIn = -1;
     private static final int RUMBLE_ONE_IN = 600;
     /** Within this far under the ground's top over you, you hear the ice. */
     private static final int NEAR_SURFACE = 6;
@@ -75,6 +81,7 @@ public final class DreadlandsAmbience {
         if (!here(minecraft)) {
             crackIn = -1;
             burstLeft = 0;
+            roarIn = -1;
             return;
         }
         ClientLevel level = minecraft.level;
@@ -110,6 +117,13 @@ public final class DreadlandsAmbience {
                 burstGap = AmbienceRules.burstGap(random::nextInt);
             }
         }
+        if (roarIn < 0) {
+            roarIn = ROAR_MIN + random.nextInt(ROAR_MAX - ROAR_MIN + 1);
+        }
+        if (--roarIn <= 0) {
+            roarIn = ROAR_MIN + random.nextInt(ROAR_MAX - ROAR_MIN + 1);
+            roar(minecraft, random);
+        }
         if (random.nextInt(RUMBLE_ONE_IN) == 0) {
             float base = player.getEyeY() < top - UNDERGROUND ? 0.8F : 0.55F;
             everywhere(minecraft, ModRegistries.DREADLANDS_RUMBLE.get(), vary(random, base), 0.9F + random.nextFloat() * 0.2F);
@@ -123,6 +137,20 @@ public final class DreadlandsAmbience {
                 vary(random, 0.9F), 0.9F + random.nextFloat() * 0.25F, false);
     }
 
+    /**
+     * Syndrigossa's roar, far off: from a point 64 blocks away in a random direction, high up, unattenuated
+     * (so it's heard) but quiet and pitched low, so it carries direction and sounds distant.
+     */
+    private static void roar(Minecraft minecraft, RandomSource random) {
+        LocalPlayer player = minecraft.player;
+        double angle = random.nextDouble() * Math.PI * 2.0;
+        double x = player.getX() + Math.cos(angle) * ROAR_DISTANCE;
+        double z = player.getZ() + Math.sin(angle) * ROAR_DISTANCE;
+        minecraft.getSoundManager().play(new SimpleSoundInstance(ModRegistries.DREADLANDS_DISTANT_ROAR.get().getLocation(), SoundSource.AMBIENT,
+                vary(random, 0.3F), 0.65F + random.nextFloat() * 0.1F, SoundInstance.createUnseededRandom(), false, 0,
+                SoundInstance.Attenuation.NONE, x, player.getY() + 24.0, z, false));
+    }
+
     /** A sound heard all round, not from anywhere in particular. */
     private static void everywhere(Minecraft minecraft, SoundEvent sound, float volume, float pitch) {
         minecraft.getSoundManager().play(new SimpleSoundInstance(sound.getLocation(), SoundSource.AMBIENT, volume, pitch,
@@ -133,8 +161,8 @@ public final class DreadlandsAmbience {
     private static final class Loop extends AbstractTickableSoundInstance {
         private static final float FADE = 1.0F / 40.0F;
         private float fade;
-        private float drift = 0.94F;
-        private float driftTo = 0.94F;
+        private float drift = 0.86F;
+        private float driftTo = 0.86F;
         private int nextDrift;
 
         Loop() {
@@ -155,7 +183,7 @@ public final class DreadlandsAmbience {
                 return;
             }
             if (--this.nextDrift <= 0) {
-                this.driftTo = 0.88F + this.random.nextFloat() * 0.12F;
+                this.driftTo = 0.80F + this.random.nextFloat() * 0.12F;
                 this.nextDrift = 60 + this.random.nextInt(80);
             }
             this.drift += (this.driftTo - this.drift) * 0.02F;

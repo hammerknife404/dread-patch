@@ -9,6 +9,7 @@ For operators and the server console, under `/dreadpatch`:
 | `/dreadpatch encounters reset [players]` | Forgets who has met which spire's Queen, so her encounter comes again (everyone's, unless you name players). |
 | `/dreadpatch dreadlands enter [players]` | Sends players into the Dreadlands, by the nearest spire, remembering where they came from. |
 | `/dreadpatch dreadlands home [players]` | Sends players in the Dreadlands home again. |
+| `/dreadpatch config [setting [value]]` | Lists every Dread Patch setting, shows one, or sets one (saved to `config/dreadpatch-server.toml`, applied at once). |
 | `/dreadpatch patrol [pos]` | Raises a Dread patrol there (a dread knight leading 2 to 4 more). |
 | `/dreadpatch rise [count] [pos]` | Raises 1 to 8 of the Dread there (3 by default). |
 

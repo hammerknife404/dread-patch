@@ -26,8 +26,19 @@ The "one in" values are chances: 0 turns that thing off.
 | `patrols` | `3` | One in this chance, per player every 2 minutes, of a Dread patrol (a dread knight leading 2-4 more). |
 | `phantoms` | `8` | One in this chance, every 30 s, of dread phantoms coming down on a player under the open sky. |
 | `phantoms_near_spires` | `3` | The same within 96 blocks of a spire. |
+| `flame_fade_min_seconds` / `flame_fade_max_seconds` | `30` / `45` | How long a placed lantern or torch waits for each step toward the Dread's. |
 | `whiteout_storms` | `6` | About one storm in this many is a Whiteout Dominion. Never two in a row (so 2 or less is every other storm), never starting while a Dread Queen is about, breaking into a thunderstorm when her fight starts. |
 
+
+## `[regalia]`
+
+| Option | Default | What it does |
+|---|---|---|
+| `crown_storm_sight` | `true` | Her crown keeps the Dreadlands' storm fog off its wearer. |
+| `crown_whiteout_sight` | `0.75` | How much further her crown lets its wearer see in any whiteout (0.75 is 75%). |
+| `regalia_eases_weather` | `true` | Her full set eases the Dreadlands' weather slow a step. |
+
+Any of these can also be read or set with `/dreadpatch config`.
 
 ---
 *Kept in step with the mod's [README](https://github.com/hammerknife404/dread-patch#readme); edits go in `docs/wiki/` in the repository.*
