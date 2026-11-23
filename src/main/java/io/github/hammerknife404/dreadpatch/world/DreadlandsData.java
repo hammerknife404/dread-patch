@@ -66,6 +66,22 @@ public class DreadlandsData extends SavedData {
         return this.storms;
     }
 
+    /** Forgets {@code player}'s meetings with every spire's encounter, or everyone's if null. How many were forgotten. */
+    public int forgetEncounters(@Nullable UUID player) {
+        int forgotten = 0;
+        for (Map<UUID, Long> met : this.encounters.values()) {
+            if (player == null) {
+                forgotten += met.size();
+                met.clear();
+            } else if (met.remove(player) != null) {
+                forgotten++;
+            }
+        }
+        this.encounters.values().removeIf(Map::isEmpty);
+        this.setDirty();
+        return forgotten;
+    }
+
     private static DreadlandsData load(CompoundTag tag, HolderLookup.Provider registries) {
         DreadlandsData data = new DreadlandsData();
         CompoundTag weather = tag.getCompound("Weather");

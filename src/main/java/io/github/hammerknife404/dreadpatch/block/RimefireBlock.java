@@ -128,7 +128,7 @@ public class RimefireBlock extends Block {
         if (living instanceof IDreadMob) {
             living.heal(HEAL);
         } else {
-            living.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, CHILL_TICKS));
+            living.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, CHILL_TICKS, io.github.hammerknife404.dreadpatch.effect.RimefrostEffect.HEAVY));
             living.hurt(level.damageSources().source(ModRegistries.RIMEFIRE_DAMAGE), DAMAGE);
         }
     }

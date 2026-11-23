@@ -82,6 +82,7 @@ public final class DreadPatch {
         DreadlandsStorms.register(NeoForge.EVENT_BUS);
         DreadlandsSpawns.register(NeoForge.EVENT_BUS);
         DreadlandsWhiteout.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.command.DreadCommands.register(NeoForge.EVENT_BUS);
         DreadPatrols.register(NeoForge.EVENT_BUS);
     }
 

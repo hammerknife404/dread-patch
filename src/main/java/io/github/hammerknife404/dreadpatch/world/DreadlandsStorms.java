@@ -62,7 +62,7 @@ public final class DreadlandsStorms {
     private static void chill(ServerLevel level) {
         for (Entity entity : level.getAllEntities()) {
             if (entity instanceof LivingEntity living && living.isAlive() && !(living instanceof IDreadMob) && !living.isSpectator() && exposed(level, living)) {
-                living.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, StormRules.RIMEFROST_TICKS, 0, true, true));
+                living.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, StormRules.RIMEFROST_TICKS, level.isThundering() ? io.github.hammerknife404.dreadpatch.effect.RimefrostEffect.HEAVY : 0, true, true));
             }
         }
     }

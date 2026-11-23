@@ -160,5 +160,17 @@
   "subtitles.dreadpatch.ambient.dreadlands.rumble": "Something rumbles deep below",
   "dreadpatch.configuration.whiteout_storms": "Whiteout storms (one in)",
   "death.attack.dreadpatch.rimefire": "%1$s burned cold in rimefire",
-  "death.attack.dreadpatch.rimefire.player": "%1$s burned cold in rimefire while fighting %2$s"
+  "death.attack.dreadpatch.rimefire.player": "%1$s burned cold in rimefire while fighting %2$s",
+  "commands.dreadpatch.weather.query": "The Dreadlands' weather: %s (the last storm a whiteout: %s)",
+  "commands.dreadpatch.weather.set": "Set the Dreadlands' weather (and the overworld's, which it shares) to %s for %s s",
+  "commands.dreadpatch.weather.clear": "clear",
+  "commands.dreadpatch.weather.snow": "snow",
+  "commands.dreadpatch.weather.storm": "a heavy snowstorm",
+  "commands.dreadpatch.weather.whiteout": "a whiteout",
+  "commands.dreadpatch.encounters.reset": "Forgot %s spire encounter meetings",
+  "commands.dreadpatch.dreadlands.enter": "Sent %s players into the Dreadlands",
+  "commands.dreadpatch.dreadlands.home": "Sent %s players home from the Dreadlands",
+  "commands.dreadpatch.dreadlands.missing": "There's no Dreadlands in this world",
+  "commands.dreadpatch.rise.done": "%s of the Dread rose",
+  "commands.dreadpatch.rise.none": "None of the Dread could rise there (no open ground)"
 }

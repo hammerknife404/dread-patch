@@ -8,4 +8,5 @@
 - [Gear](Gear)
 - [Spells](Spells)
 - [Fixes to Ice and Fire](Fixes-to-Ice-and-Fire)
+- [Commands](Commands)
 - [Settings](Settings)
