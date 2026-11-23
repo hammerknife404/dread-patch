@@ -5,7 +5,14 @@ NeoForge 1.21.1 mod (Java 21, ModDevGradle) that adds Ice and Fire CE's unfinish
 - **Version:** `mod_version` in `gradle.properties`.
 - **README:** it describes everything as a player sees it. Keep it in step.
 - **Wiki (since 2026-11-22):** `docs/wiki/` (one page per README part, plus Home, `_Sidebar`, Commands and a Settings table of every server config value), mirrored to the GitHub wiki by `.github/workflows/wiki.yml` (the owner's shared copy, catspells-nosumagro's) on each push to `main` that touches it. Edit pages there, never on github.com (the sync overwrites the wiki). Keep it in step with the README, and add any new config value to Settings.
-- **Still to come:** nothing from the big drop (it finished with 0.48.0) or the second (it finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word. Owed: the owner's own look at 0.52.0–0.54.1 in a client (below, Client). The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
+- **Still to come:** nothing from the big drop (it finished with 0.48.0) or the second (it finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word. Owed: the owner's own look at 0.52.0–0.54.1 in a client (below, Client).
+- **Next, planned (2026-11-22), not started: the Rimefrost dragon forge.** Ice and Fire's forges (a 3×3 ring of forge bricks round a core, fed by an input block) work only while their own kind of dragon breathes on them, and ours never reaches their forge code. The plan the owner was given:
+  - its blocks (core, bricks, input) recoloured from Ice and Fire's ice forge (`dread_recolor`), the bricks crafted from Rimefrost dragon scales and dreadstone after Ice and Fire's recipe;
+  - lit by our breath where it lands on it (`RimefrostDragon.performNormalBreathAttack`'s landing): a tamed Rimefrost dragon or Syndrigossa;
+  - recipes in Ice and Fire's `iceandfire:dragonforge` format with a `rimefrost` type (packs can add their own): scales + bottle → Rimefrost dragon blood, iron + that blood → dread dragonsteel ingot, maybe more of the owner's choosing;
+  - **the owner's decision: "Only the new forge"**: the dread recipes come off Ice and Fire's ice forge (`data/dreadpatch/recipe/*` with `dragonType: ice`);
+  - perhaps a forge core in summit chests, or a forge on some spires.
+  Still open: any recipes beyond those two. The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
 ## The owner's decisions
 
