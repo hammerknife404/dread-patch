@@ -9,7 +9,7 @@ This file holds the rules and the shape of the code. How each part works, what I
 - **Version:** `mod_version` in `gradle.properties`.
 - **Done:** the big drop (finished with 0.48.0) and the second (finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word; 0.55.0–0.59.0 came after, at the owner's requests. The Rimefrost dragonforge shipped in 0.59.0.
 - **Left for later, the owner's call:** ready-built forges on some spires.
-- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0): reviewed with them; its music disc and quick fixes (undead unburnt in the Dreadlands, bosses keeping their sight in Whiteout, the NeoForge floor) shipped in 0.60.0. The rest waits on their answers: how the beta's branches work, the arrival (their 0.46.0 decision vs a random barren one), dread water beasts, where mini phantoms come from, the escalation storm's length and reach, the sapling rule's reach. Answered: `main` is held for the beta; the music is theirs to ship. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
+- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0): reviewed with them; its music disc and quick fixes (undead unburnt in the Dreadlands, bosses keeping their sight in Whiteout, the NeoForge floor) shipped in 0.60.0. Their answers on the rest are in `decisions.md` (the beta, 2026-11-23); still open: what turns a bat, parrot or water creature Dread. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
 - **Owed:** the owner's own look at 0.52.0–0.54.1, 0.59.0 and 0.60.0's music in a client ([testing.md](docs/dev/testing.md), Client).
 - The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
@@ -139,7 +139,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - **Merging (since 2026-11-14):**
   - the owner wants each PR merged as soon as its CI passes, without waiting for their review;
   - with merge commits, as they merged #1 and #2.
-- **Held for the beta (since 2026-11-23,** the owner: "hold for the beta"**):** don't merge into `main` (merging a bump releases it) until they say the beta's ready. #86 (0.60.0) waits open. How beta work collects meanwhile is still to settle with them.
+- **The beta (since 2026-11-23,** the owner: "hold for the beta", then "Create a beta branch and follow your recommendations"**):** `main` stays at the last release. Beta work branches from `beta` and its PRs go into `beta`, merged there (merge commits) once CI passes; each still bumps `mod_version`. `beta` merges into `main` once, when the owner says the beta's ready, which releases the version it's at. Pushes to `beta` release nothing and don't sync the wiki (`release.yml` and `wiki.yml` run on `main` only); PR builds still run.
 - **One release at a time:** merge PRs that each bump the version one at a time, letting each Release run finish first. `release.yml`'s concurrency group cancels a pending run when another queues behind it, which would skip that version's release.
 
 **Release**
