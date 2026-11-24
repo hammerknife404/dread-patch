@@ -176,18 +176,17 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         if (this.tickCount % FROST_EVERY == 0) {
             this.frost();
         }
+        // Its cold puts out every fire inside, hers too, every tick (the owner: she burned on in her own storm from a
+        // Fire Aspect sword; 0.64.0 put fire out every 10 ticks, which a sword's every hit relit, 0.66.1 every tick).
+        for (Entity burning : this.level().getEntitiesOfClass(Entity.class, this.area(), e -> e.isOnFire() && this.holds(e))) {
+            burning.clearFire();
+        }
         boolean renew = this.tickCount % RENEW_EVERY == 0;
         boolean freeze = WhiteoutStorm.freezesAt(this.tickCount);
         if (!renew && !freeze) {
             return;
         }
         DamageSource cold = freeze ? this.freezing(owner) : null;
-        if (renew) {
-            // Its cold puts out every fire inside, hers too (0.64.0, the owner: she kept burning in her own storm).
-            for (Entity burning : this.level().getEntitiesOfClass(Entity.class, this.area(), e -> e.isOnFire() && this.holds(e))) {
-                burning.clearFire();
-            }
-        }
         for (LivingEntity victim : this.level().getEntitiesOfClass(LivingEntity.class, this.area(),
                 e -> e.isAlive() && !e.isSpectator() && this.holds(e) && RimefireCrown.canHarm(owner, e))) {
             if (renew) {
