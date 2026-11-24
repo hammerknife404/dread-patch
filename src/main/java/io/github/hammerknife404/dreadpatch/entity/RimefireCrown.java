@@ -137,7 +137,7 @@ public class RimefireCrown extends Entity implements TraceableEntity {
             return true;
         }
         return target != owner && !owner.isAlliedTo(target) && !target.isAlliedTo(owner)
-                && !(owner instanceof IDreadMob && target instanceof IDreadMob)
+                && !(owner instanceof IDreadMob && RisenDread.dread(target))
                 && !SummonedCourt.serves(target, owner) && !SummonedCourt.serves(owner, target);
     }
 

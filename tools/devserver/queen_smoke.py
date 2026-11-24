@@ -1083,18 +1083,41 @@ def main():
 
     # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, answering
     # to her: a dread beast from a cow (Ice and Fire's own mapping); a thrall from a villager or a creeper
-    # and a dread beast from a bat (by their shape). A golem stays dead. When she falls her storm clears.
+    # (by their shape). A golem stays dead. When she falls her storm clears.
     rcon.run('summon dreadpatch:dread_queen 2.5 200 2.5 {NoAI:1b,UUID:[I;9,9,9,9]}')
     check("her Whiteout Dominion stands", 'summon dreadpatch:whiteout_dominion 8.5 200 7.5 {Owner:[I;9,9,9,9],RaisesDead:1b,Radius:16f,Lifetime:600}',
           "Summoned new Whiteout Dominion")
     for kind, at, risen in (("cow", "10.5 200 4.5", "iceandfire:dread_beast"), ("villager", "12.5 200 10.5", "iceandfire:dread_thrall"),
-                            ("creeper", "4.5 200 10.5", "iceandfire:dread_thrall"), ("bat", "5.5 200 4.5", "iceandfire:dread_beast")):
+                            ("creeper", "4.5 200 10.5", "iceandfire:dread_thrall")):
         rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
         rcon.run("kill @e[tag=smoke_dead]")
         time.sleep(0.5)
         check(f"a {kind} killed in her storm rises", f"execute positioned {at} if entity @e[type={risen},distance=..2]", "Test passed")
         check(f"the risen {kind} answers to her", f"execute positioned {at} if entity @e[type={risen},distance=..2,nbt={{CommanderUUID:[I;9,9,9,9]}}]",
               "Test passed")
+    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water as itself,
+    # Dread: marked, twice its health, refusing Withering Rime.
+    for kind, at in (("bat", "5.5 200 4.5"), ("parrot", "7.5 200 4.5")):
+        rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
+        rcon.run("kill @e[tag=smoke_dead]")
+        time.sleep(0.5)
+        check(f"a {kind} killed in her storm rises a miniature dread phantom of hers",
+              f"execute positioned {at} if entity @e[type=dreadpatch:miniature_dread_phantom,distance=..3,nbt={{Summoner:[I;9,9,9,9]}}]", "Test passed")
+    rcon.run("kill @e[type=dreadpatch:miniature_dread_phantom]")
+    rcon.run("setblock 6 201 12 minecraft:stone")  # covered, so her storm doesn't freeze it over
+    rcon.run("setblock 6 200 12 minecraft:water")
+    rcon.run('summon minecraft:cod 6.5 200 12.5 {NoAI:1b,Tags:["smoke_dead"]}')
+    rcon.run("kill @e[tag=smoke_dead]")
+    time.sleep(0.5)
+    fish = '@e[type=minecraft:cod,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
+    check("a cod killed in her storm rises Dread", "execute if entity " + fish[:-1] + ',nbt={NeoForgeData:{"dreadpatch:risen":1b}}]', "Test passed")
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {fish} minecraft:generic.max_health get"))
+    record("with twice a cod's health", m is not None and abs(float(m.group(1)) - 6.0) < 0.01, m.group(0) if m else "no cod")
+    rcon.run(f"effect give {fish} dreadpatch:withering_rime 10")
+    time.sleep(0.1)
+    record("and refuses Withering Rime, as the Dread do", not has_effect(fish, "dreadpatch:withering_rime"), "it took it")
+    rcon.run("kill @e[type=minecraft:cod]")
+    rcon.run("fill 6 200 12 6 201 12 minecraft:air")
     rcon.run('summon minecraft:iron_golem 13.5 200 6.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
     time.sleep(0.5)

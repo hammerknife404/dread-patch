@@ -37,7 +37,7 @@ Her abilities:
   - Inside it her enemies are slowed by a fifth, can't see past about 10 blocks through the snow-fog (mobs lose sight of anything past half their usual range, though a boss keeps its sight and is only slowed), and take a point of freezing damage every 3 seconds. From outside it shows as a wall of driven snow standing on the land.
   - Snow drifts over the ground under it and melts away as it clears. It's only drawn, so it never stays behind.
   - Its still water freezes over in patches as the snow drifts in, so a lake under it is ice to walk on. The ice holds while the storm stands and thaws as it clears. If the storm's chunks unload first, what's left melts in daylight like Frost Walker's.
-  - Whatever dies in her storm rises where it fell as a dread mob of her court, up to 8 a storm: a thrall in its gear from a player or anything that stands upright (a villager, a skeleton, a creeper, an enderman), a ghoul from a zombie, a scuttler from a spider, a dread horse from a horse, and a dread beast its size from an animal or anything else. Golems stay dead.
+  - Whatever dies in her storm rises where it fell as a dread mob of her court, up to 8 a storm: a thrall in its gear from a player or anything that stands upright (a villager, a skeleton, a creeper, an enderman), a ghoul from a zombie, a scuttler from a spider, a dread horse from a horse, a miniature dread phantom from a bat or a parrot, the creature itself turned Dread from anything that lives in water (below, Dread phantoms), and a dread beast its size from an animal or anything else. Golems stay dead.
 
 ### Riding Syndrigossa
 
@@ -157,6 +157,8 @@ Phantoms of the Dread: as strong as Minecraft's own phantoms, with a phantom's 2
 - **Their bite:** a phantom's, and one bite in three (35%) leaves 5 seconds of **Rimefrost**, the Dread's cold without the withering (25% slower). One in seven (15%), rolled apart, leaves 3 seconds of Withering Rime, so a bite can leave both.
 - **Their drops:** a dread thrall's (bones and dread shards), and when a player kills one, 1 to 3 phantom membranes and 1 to 3 Rimefrost Dragon Scales, each with up to one more a Looting level. The ones a player calls leave nothing.
 - **Natural spawning:** in the Dreadlands, and only there, one or two at a time, rarely, whether or not you've slept (above).
+- **Miniature dread phantoms:** a bat or a parrot that dies where the Dread raise the dead (the queen's storm) rises as a dread phantom half the size, with 6 health, a weaker bite (2) with the same chances of Rimefrost and Withering Rime, and a higher voice. Now and then one stirs in a dark cave too, in the overworld or the Dreadlands. When a player kills one, it may drop a phantom membrane.
+- **Dread water creatures:** anything that lives in water and dies there rises as itself, turned Dread: frost-grey, twice its health, much faster, and hunting players and whatever the queen hunts, its bite sized by its health (a fish nips, a great beast mauls) with the dread phantom's chances of Rimefrost and Withering Rime. The Dread's rime and storms don't touch it. Now and then one (a glow squid mostly, or a squid, cod or salmon) stirs in underground water too. Both rare (`cave_dread_phantoms`, `cave_dread_water`).
 
 ## Rimefrost dragonscale and dread dragonsteel
 
