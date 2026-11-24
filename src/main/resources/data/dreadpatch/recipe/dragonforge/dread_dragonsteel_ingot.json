@@ -1,6 +1,6 @@
 {
   "type": "iceandfire:dragonforge",
-  "dragonType": "ice",
+  "dragonType": "rimefrost",
   "cookTime": 1000,
   "input": {
     "item": "minecraft:iron_ingot"

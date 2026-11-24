@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "dreadpatch:block/rimefrost_forge_core_disabled"
+    },
+    "lit=true": {
+      "model": "dreadpatch:block/rimefrost_forge_core"
+    }
+  }
+}

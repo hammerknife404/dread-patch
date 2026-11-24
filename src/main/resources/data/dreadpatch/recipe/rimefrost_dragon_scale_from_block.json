@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "dreadpatch:rimefrost_dragonscale_block"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "dreadpatch:rimefrost_dragon_scale"
+  }
+}

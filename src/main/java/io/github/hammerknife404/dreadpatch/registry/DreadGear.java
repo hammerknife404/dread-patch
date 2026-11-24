@@ -32,8 +32,9 @@ import java.util.function.Supplier;
 
 /**
  * The Rimefrost dragon scale and dread dragonsteel (0.42.0): the scale (a Rimefrost corpse's, in place
- * of Ice and Fire's coloured scales), its blood (scales and a bottle in Ice and Fire's ice dragonforge),
- * the ingot (blood and iron there), and their armour and tools, Ice and Fire's ice dragonscale and ice
+ * of Ice and Fire's coloured scales), its blood (scales and a bottle in a dragonforge; Ice and Fire's ice
+ * one until 0.59.0, the Rimefrost dragonforge since, {@code DreadForge}), the ingot (blood and iron there),
+ * and their armour and tools, Ice and Fire's ice dragonscale and ice
  * dragonsteel sets made Dread: their numbers are Ice and Fire's (the scale set's fixed, dragonsteel's
  * from its config, as its own are), their abilities ours ({@link DreadDragonsteel}, {@code DragonArmor}).
  */

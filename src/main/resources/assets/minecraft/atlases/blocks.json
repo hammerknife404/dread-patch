@@ -82,6 +82,34 @@
         {
           "from": "minecraft:item/soul_lantern",
           "to": "dreadpatch:item/dread_lantern"
+        },
+        {
+          "from": "iceandfire:block/dragonforge_ice_core",
+          "to": "dreadpatch:block/rimefrost_forge_core"
+        },
+        {
+          "from": "iceandfire:block/dragonforge_ice_core_disabled",
+          "to": "dreadpatch:block/rimefrost_forge_core_disabled"
+        },
+        {
+          "from": "iceandfire:block/dragonforge_ice_brick",
+          "to": "dreadpatch:block/rimefrost_forge_brick"
+        },
+        {
+          "from": "iceandfire:block/dragonforge_ice_brick_grill",
+          "to": "dreadpatch:block/rimefrost_forge_brick_grill"
+        },
+        {
+          "from": "iceandfire:block/dragonforge_ice_input",
+          "to": "dreadpatch:block/rimefrost_forge_input"
+        },
+        {
+          "from": "iceandfire:block/dragonforge_ice_input_active",
+          "to": "dreadpatch:block/rimefrost_forge_input_active"
+        },
+        {
+          "from": "iceandfire:block/dragonscale_white",
+          "to": "dreadpatch:block/rimefrost_dragonscale_block"
         }
       ]
     }

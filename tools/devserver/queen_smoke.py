@@ -1900,6 +1900,91 @@ def main():
         check(f"the {name} is still there to ask", "execute if entity @e[tag=smoke_corpse_fighter]", "Test passed")
         rcon.run("kill @e[tag=smoke_corpse_fighter]")
         rcon.run("kill @e[tag=smoke_dead_dragon]")
+
+    # The Rimefrost dragonforge (0.59.0): built of its bricks round its core, Ice and Fire's dragon bone
+    # blocks on the corners above and below, its aperture in the east side (core at 8 241 7).
+    def build_forge(cx, cy, cz, brick, core, aperture, west=False):
+        for y in (cy - 1, cy, cy + 1):
+            rcon.run(f"fill {cx - 1} {y} {cz - 1} {cx + 1} {y} {cz + 1} {brick}")
+        for y in (cy - 1, cy + 1):
+            for dx in (-1, 1):
+                for dz in (-1, 1):
+                    rcon.run(f"setblock {cx + dx} {y} {cz + dz} iceandfire:dragon_bone_block")
+        rcon.run(f"setblock {cx} {cy} {cz} {core}")
+        rcon.run(f"setblock {cx + (-1 if west else 1)} {cy} {cz} {aperture}")
+
+    def forge_items(x, y, z):
+        return rcon.run(f"data get block {x} {y} {z} Items")
+
+    # By day: Ice and Fire's ice dragon (the control, below) sleeps at night and never breathes on its
+    # forge, and by here in a full run it's night (0.59.0's first run). Ours never sleep.
+    rcon.run("time set noon")
+    rcon.run("weather clear")
+    rcon.run("fill 1 240 1 30 250 14 minecraft:air")
+    build_forge(8, 241, 7, "dreadpatch:rimefrost_forge_brick", "dreadpatch:rimefrost_forge_core", "dreadpatch:rimefrost_forge_input")
+    time.sleep(0.5)
+    check("the Rimefrost dragonforge stands whole (its core lit)", "execute if block 8 241 7 dreadpatch:rimefrost_forge_core[lit=true]", "Test passed")
+    check("its grill shows beside the core", "execute if block 8 241 6 dreadpatch:rimefrost_forge_brick[grill=true]", "Test passed")
+    rcon.run("setblock 7 240 6 dreadpatch:rimefrost_forge_brick")
+    time.sleep(0.5)
+    check("a brick where a bone corner goes: not whole", "execute if block 8 241 7 dreadpatch:rimefrost_forge_core[lit=false]", "Test passed")
+    rcon.run("setblock 7 240 6 iceandfire:dragon_bone_block")
+    time.sleep(0.5)
+    check("whole again with the bone back", "execute if block 8 241 7 dreadpatch:rimefrost_forge_core[lit=true]", "Test passed")
+    # Hoppers through its bricks (their capability): from above into what goes in, from a side into its blood.
+    rcon.run('setblock 8 243 7 minecraft:hopper[facing=down]{Items:[{Slot:0b,id:"dreadpatch:rimefrost_dragon_scale",count:1}]}')
+    rcon.run('setblock 8 241 5 minecraft:hopper[facing=south]{Items:[{Slot:0b,id:"minecraft:glass_bottle",count:1}]}')
+    time.sleep(1.5)
+    out = forge_items(8, 241, 7)
+    record("a hopper on its top brick fills what goes in", re.search(r'Slot: 0b, id: "dreadpatch:rimefrost_dragon_scale"', out) is not None, out.strip())
+    record("a hopper on a side brick fills its blood", re.search(r'Slot: 1b, id: "minecraft:glass_bottle"', out) is not None, out.strip())
+    rcon.run("setblock 8 243 7 minecraft:air")
+    rcon.run("setblock 8 241 5 minecraft:air")
+    # A tame Rimefrost dragon (stage 3) 9 blocks east is drawn to its aperture and breathes on it: the
+    # aperture glows and the cook starts. Then the cook is set near its end (750 ticks), so the blood
+    # comes within a few seconds while the breath keeps it lit.
+    check("a tame Rimefrost dragon summons by it",
+          'summon dreadpatch:rimefrost_dragon 18.5 240 7.5 {Owner:[I;11,11,11,11],AgeTicks:1300000,Rotation:[90f,0f],'
+          'PersistenceRequired:1b,Tags:["smoke_forge_dragon"]}', "Summoned new")
+    lit, glowed = False, False
+    for _ in range(40):
+        time.sleep(0.5)
+        glowed = glowed or block_is(9, 241, 7, "dreadpatch:rimefrost_forge_input[active=true]")
+        m = re.search(r"block data: ([0-9.]+)d", rcon.run("data get block 8 241 7 CookTime"))
+        if m and float(m.group(1)) > 0:
+            lit = True
+            break
+    record("its breath lights the forge", lit, "no cook after 20 s; dragon at " + rcon.run("data get entity @e[tag=smoke_forge_dragon,limit=1] Pos").strip())
+    record("its aperture glows under the breath", glowed or block_is(9, 241, 7, "dreadpatch:rimefrost_forge_input[active=true]"), "never active")
+    rcon.run("data merge block 8 241 7 {CookTime:700.0d}")
+    made = False
+    for _ in range(30):
+        time.sleep(0.5)
+        if re.search(r'Slot: 2b, id: "dreadpatch:rimefrost_dragon_blood"', forge_items(8, 241, 7)):
+            made = True
+            break
+    out = forge_items(8, 241, 7)
+    record("it makes Rimefrost dragon blood (scale and bottle used)", made and "glass_bottle" not in out and "rimefrost_dragon_scale" not in out, out.strip())
+    rcon.run("kill @e[tag=smoke_forge_dragon]")
+    # Only the new forge: Ice and Fire's ice dragonforge, lit by a tame ice dragon, no longer makes
+    # Rimefrost blood of our scale; it makes what it makes of anything it has no recipe for, dragon ice.
+    build_forge(24, 241, 7, "iceandfire:dragonforge_ice_brick", "iceandfire:dragonforge_ice_core_disabled", "iceandfire:dragonforge_ice_input", west=True)
+    time.sleep(0.5)
+    rcon.run("item replace block 24 241 7 container.0 with dreadpatch:rimefrost_dragon_scale")
+    rcon.run("item replace block 24 241 7 container.1 with minecraft:glass_bottle")
+    rcon.run('summon iceandfire:ice_dragon 14.5 240 7.5 {Owner:[I;11,11,11,11],AgeTicks:1300000,Rotation:[-90f,0f],'
+             'PersistenceRequired:1b,Tags:["smoke_forge_dragon"]}')
+    ice = False
+    for _ in range(50):
+        time.sleep(0.5)
+        if "iceandfire:dragon_ice" in forge_items(24, 241, 7):
+            ice = True
+            break
+    out = forge_items(24, 241, 7)
+    record("Ice and Fire's ice forge makes dragon ice of our scale, not our blood", ice and "rimefrost_dragon_blood" not in out, out.strip())
+    rcon.run("kill @e[tag=smoke_forge_dragon]")
+    rcon.run("fill 1 240 1 30 250 14 minecraft:air")
+    rcon.run("kill @e[type=item]")
     rcon.run("fill 1 239 1 30 239 14 minecraft:air")
 
     rcon.run("fill 3 199 2 7 204 2 minecraft:air")

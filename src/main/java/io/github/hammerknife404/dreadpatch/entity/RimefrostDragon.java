@@ -8,9 +8,12 @@ import com.iafenvoy.iceandfire.entity.ai.DragonAITargetNonTamedGoal;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import com.iafenvoy.iceandfire.entity.util.dragon.IafDragonAttacks;
 import com.iafenvoy.iceandfire.item.DragonEggItem;
+import com.iafenvoy.iceandfire.item.block.entity.DragonForgeInputBlockEntity;
 import com.iafenvoy.uranus.animation.Animation;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
+import io.github.hammerknife404.dreadpatch.block.RimefrostForgeInputBlockEntity;
 import io.github.hammerknife404.dreadpatch.magic.DragonBreath;
+import io.github.hammerknife404.dreadpatch.magic.ForgeRules;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -66,7 +69,9 @@ import java.util.UUID;
  * <li>its charge is Shatter-Spine ({@link ShatterSpineCore}), which it looses on its own every 10 s in the air;</li>
  * <li>undead (tagged; no Wither, in {@code SyndrigossaEvents}; it never sleeps), hunting players
  * whatever Ice and Fire's config says, with a Dread corpse;</li>
- * <li>her animation layers and her breath's particles.</li>
+ * <li>her animation layers and her breath's particles;</li>
+ * <li>its breath lights the Rimefrost dragonforge, and a tame one is drawn to breathe on one
+ * ({@link #updateBurnTarget}; 0.59.0); Ice and Fire's forges let it be.</li>
  * </ul>
  * Syndrigossa is the unique, named one ({@link Syndrigossa}): the queen's mount, the boss.
  */
@@ -415,15 +420,70 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
                 this.breathHit(victim, source, damage);
             }
         }
+        BlockPos center = BlockPos.containing(lands);
+        boolean forge = this.fuelForges(level, center);
         if (this.tickCount % 4 == 0) {
-            BlockPos center = BlockPos.containing(lands);
             for (BlockPos pos : BlockPos.betweenClosed(center.offset(-2, -2, -2), center.offset(2, 2, 2))) {
                 RimefireCrown.drinkFire(level, pos);
             }
-            if (block.getType() != HitResult.Type.MISS) {
+            // No rimefire on a forge: it would burn whoever's working it.
+            if (block.getType() != HitResult.Type.MISS && !forge) {
                 this.maybeIgnite(level, center);
             }
         }
+    }
+
+    /**
+     * A Rimefrost dragonforge's aperture where its breath lands lights its forge (0.59.0), as Ice and
+     * Fire's breath lights its own: every aperture within {@link ForgeRules#breathReach} of the spot, each
+     * tick it breathes. Any Rimefrost dragon's breath does, tame or not. Whether it reached one.
+     */
+    private boolean fuelForges(ServerLevel level, BlockPos center) {
+        int reach = ForgeRules.breathReach(this.getDragonStage());
+        boolean found = false;
+        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-reach, -reach, -reach), center.offset(reach, reach, reach))) {
+            if (level.getBlockEntity(pos) instanceof RimefrostForgeInputBlockEntity aperture) {
+                aperture.breathedOn(this);
+                found = true;
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Breathing on a Rimefrost dragonforge it's been drawn to ({@code burningTarget}, set by the forge's
+     * aperture): Ice and Fire's own for its forges, to the letter (not asleep, dead or a hatchling; the
+     * forge whole with something to make; within 115 a stage, squared; in sight). Ice and Fire's forges
+     * take it for an ice dragon and draw it too, but its breath never reaches their code, and the dread
+     * recipes are only the new forge's (the owner's call): it lets theirs go.
+     */
+    @Override
+    public void updateBurnTarget() {
+        BlockPos at = this.burningTarget;
+        if (at != null && this.level().getBlockEntity(at) instanceof RimefrostForgeInputBlockEntity aperture) {
+            Vec3 c = Vec3.atCenterOf(at);
+            if (!this.isSleeping() && !this.isModelDead() && !this.isBaby() && aperture.ready()
+                    && ForgeRules.withinBreath(this.distanceToSqr(c), this.getDragonStage()) && this.canPositionBeSeen(c.x, c.y, c.z)) {
+                this.getLookControl().setLookAt(c.x, c.y, c.z, 180.0F, 180.0F);
+                this.breathFireAtPos(at);
+                this.setBreathingFire(true);
+                return;
+            }
+            this.burningTarget = null;
+            this.setBreathingFire(false);
+            return;
+        }
+        if (at != null && this.level().getBlockEntity(at) instanceof DragonForgeInputBlockEntity) {
+            this.burningTarget = null;
+            return;
+        }
+        super.updateBurnTarget();
+    }
+
+    /** Only while it's at a Rimefrost dragonforge (Ice and Fire's wander and idle-look goals stand down meanwhile). */
+    @Override
+    public boolean isFuelingForge() {
+        return this.burningTarget != null && this.level().getBlockEntity(this.burningTarget) instanceof RimefrostForgeInputBlockEntity;
     }
 
     /** The speed to send one of its breath particles at to carry {@code distance}: vanilla's snowflake goes further for its speed. */

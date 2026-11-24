@@ -95,6 +95,11 @@ dependencies {
     // Dev runs only: Lootr as the owner's pack has it, so the smoke test sees the Dreadlands' loot chests
     // (spire summits, abandoned villages) become per-player ones. Never required.
     localRuntime "maven.modrinth:lootr:${lootr_version}"
+    // JEI as the owner's pack has it: the Rimefrost dragonforge's recipes get a page of their own (Ice and
+    // Fire's pages show only its fire, ice and lightning forges'). Compiled against, loaded in the dev
+    // runs; never required (JEI finds our plugin itself, and nothing else touches it).
+    compileOnly "maven.modrinth:jei:${jei_version}"
+    localRuntime "maven.modrinth:jei:${jei_version}"
 
     // Plain JUnit for pure logic (no Minecraft bootstrap).
     testImplementation platform('org.junit:junit-bom:5.11.4')

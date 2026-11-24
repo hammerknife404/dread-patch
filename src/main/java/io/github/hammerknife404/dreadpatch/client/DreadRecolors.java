@@ -40,9 +40,11 @@ import java.util.Optional;
  * retexture its ice gear retexture ours:
  * <ul>
  * <li>item icons by a sprite source ({@code dreadpatch:dread_recolor}, in {@code atlases/blocks.json}),
- * each an Ice and Fire item sprite recoloured as the atlas is stitched;</li>
+ * each an Ice and Fire item sprite recoloured as the atlas is stitched (and, since 0.59.0, the Rimefrost
+ * dragonforge's and scale block's block sprites, its animated ones keeping their animation);</li>
  * <li>armour layers as dynamic textures, made the first time each is drawn (as Syndrigossa's skins are),
- * worn on Ice and Fire's own ice dragonscale and ice dragonsteel armour models.</li>
+ * worn on Ice and Fire's own ice dragonscale and ice dragonsteel armour models;</li>
+ * <li>the Rimefrost dragonforge's screen (0.59.0), the same way ({@link #forgeScreen}).</li>
  * </ul>
  */
 public final class DreadRecolors {
@@ -115,27 +117,40 @@ public final class DreadRecolors {
         if (kind == DreadArmorItem.Kind.QUEEN) {
             return DreadQueenRenderer.TEXTURE;
         }
-        String key = kind.name().toLowerCase() + "_layer_" + (inner ? 2 : 1);
+        String key = "armor/" + kind.name().toLowerCase() + "_layer_" + (inner ? 2 : 1);
+        return recolored(key, ResourceLocation.fromNamespaceAndPath("iceandfire", "textures/models/armor/" + kind.iceAndFireTexture + "_layer_" + (inner ? 2 : 1) + ".png"));
+    }
+
+    /**
+     * An Ice and Fire texture recoloured, as {@code dreadpatch:dynamic/<key>}: made the first time it's
+     * asked for (on the render thread), remade after a resource reload; Ice and Fire's own if it can't
+     * be. Armour layers, and the Rimefrost dragonforge's screen (0.59.0), which isn't an atlas sprite.
+     */
+    public static ResourceLocation recolored(String key, ResourceLocation source) {
         ResourceLocation made = MADE.get(key);
         if (made != null) {
             return made;
         }
-        ResourceLocation source = ResourceLocation.fromNamespaceAndPath("iceandfire", "textures/models/armor/" + kind.iceAndFireTexture + "_layer_" + (inner ? 2 : 1) + ".png");
         try (NativeImage image = read(source)) {
             recolor(image);
             NativeImage copy = new NativeImage(image.getWidth(), image.getHeight(), false);
             copy.copyFrom(image);
-            made = DreadPatch.id("dynamic/armor/" + key);
+            made = DreadPatch.id("dynamic/" + key);
             Minecraft.getInstance().getTextureManager().register(made, new DynamicTexture(copy));
         } catch (IOException | RuntimeException e) {
-            DreadPatch.LOGGER.warn("Couldn't make dread armour from {}; it'll wear Ice and Fire's", source, e);
+            DreadPatch.LOGGER.warn("Couldn't make {} from {}; Ice and Fire's will show", key, source, e);
             made = source;
         }
         MADE.put(key, made);
         return made;
     }
 
-    /** After a resource reload: forget the armour textures, to be made again from what's loaded now. */
+    /** Ice and Fire's ice dragonforge screen, recoloured: the Rimefrost dragonforge's, and its JEI page's. */
+    public static ResourceLocation forgeScreen() {
+        return recolored("gui/rimefrost_forge", ResourceLocation.fromNamespaceAndPath("iceandfire", "textures/gui/dragonforge_ice.png"));
+    }
+
+    /** After a resource reload: forget the textures made, to be made again from what's loaded now. */
     static void clear() {
         for (ResourceLocation made : MADE.values()) {
             if (made.getNamespace().equals(DreadPatch.MODID)) {

@@ -2,6 +2,7 @@ package io.github.hammerknife404.dreadpatch;
 
 import com.iafenvoy.iceandfire.entity.DragonBaseEntity;
 import com.iafenvoy.iceandfire.entity.DreadQueenEntity;
+import com.iafenvoy.iceandfire.registry.IafAttributes;
 import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.effect.DreadEvents;
 import io.github.hammerknife404.dreadpatch.entity.BarrowHusk;
@@ -22,6 +23,7 @@ import io.github.hammerknife404.dreadpatch.item.DreadDragonsteel;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.item.DreadRegalia;
+import io.github.hammerknife404.dreadpatch.registry.DreadForge;
 import io.github.hammerknife404.dreadpatch.registry.DreadGear;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.github.hammerknife404.dreadpatch.world.Dreadlands;
@@ -58,6 +60,7 @@ public final class DreadPatch {
     public DreadPatch(IEventBus modBus, ModContainer container) {
         ModRegistries.register(modBus);
         DreadGear.register(modBus);
+        DreadForge.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
         modBus.addListener(DreadPatch::onEntityAttributes);
         modBus.addListener(DreadPatch::onEntityAttributeModification);
@@ -99,8 +102,9 @@ public final class DreadPatch {
                 .add(Attributes.ARMOR_TOUGHNESS, DreadQueen.ARMOR_TOUGHNESS)
                 .build());
         event.put(ModRegistries.BARROW_HUSK.get(), BarrowHusk.createAttributes().build());
-        event.put(ModRegistries.SYNDRIGOSSA.get(), DragonBaseEntity.bakeAttributes().build());
-        event.put(ModRegistries.RIMEFROST_DRAGON.get(), DragonBaseEntity.bakeAttributes().build());
+        // Ice and Fire adds its dragon forge speed to its own dragons only; ours light the Rimefrost dragonforge (0.59.0).
+        event.put(ModRegistries.SYNDRIGOSSA.get(), DragonBaseEntity.bakeAttributes().add(IafAttributes.DRAGON_FORGE_SPEED).build());
+        event.put(ModRegistries.RIMEFROST_DRAGON.get(), DragonBaseEntity.bakeAttributes().add(IafAttributes.DRAGON_FORGE_SPEED).build());
         event.put(ModRegistries.DREAD_PHANTOM.get(), DreadPhantom.createAttributes().build());
     }
 
@@ -125,6 +129,9 @@ public final class DreadPatch {
             event.accept(ModRegistries.DREAD_PHANTOM_SPAWN_EGG.get());
         } else if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(ModRegistries.DREAD_LANTERN_ITEM.get());
+            DreadForge.forgeItems().forEach(item -> event.accept(item.get()));
+        } else if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
+            event.accept(DreadForge.SCALE_BLOCK_ITEM.get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
             event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());
