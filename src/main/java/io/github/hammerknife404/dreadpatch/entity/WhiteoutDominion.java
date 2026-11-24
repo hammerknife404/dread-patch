@@ -182,6 +182,12 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
             return;
         }
         DamageSource cold = freeze ? this.freezing(owner) : null;
+        if (renew) {
+            // Its cold puts out every fire inside, hers too (0.64.0, the owner: she kept burning in her own storm).
+            for (Entity burning : this.level().getEntitiesOfClass(Entity.class, this.area(), e -> e.isOnFire() && this.holds(e))) {
+                burning.clearFire();
+            }
+        }
         for (LivingEntity victim : this.level().getEntitiesOfClass(LivingEntity.class, this.area(),
                 e -> e.isAlive() && !e.isSpectator() && this.holds(e) && RimefireCrown.canHarm(owner, e))) {
             if (renew) {

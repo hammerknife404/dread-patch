@@ -100,6 +100,11 @@ public final class DefeatStormClient {
         }
     }
 
+    /** How bad it is round the camera (for {@link SoundFilters}). */
+    static float severity() {
+        return strength * io.github.hammerknife404.dreadpatch.magic.SoundRules.DEFEAT_STORM;
+    }
+
     private static float strength(float partialTick) {
         return Mth.lerp(partialTick, lastStrength, strength);
     }

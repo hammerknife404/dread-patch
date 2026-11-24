@@ -13,6 +13,9 @@ package io.github.hammerknife404.dreadpatch.magic;
  * </ul>
  */
 public final class PhantomRules {
+    /** Every sound of theirs at 45% (0.64.0, the owner: "Lower all dread phantom sounds by 55% globally"). */
+    public static final float VOLUME = 0.45F;
+
     public static final float RIMEFROST_CHANCE = 0.35F;
     public static final float WITHERING_CHANCE = 0.15F;
     public static final int RIMEFROST_TICKS = 100;

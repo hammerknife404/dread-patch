@@ -208,6 +208,12 @@ public class DreadPhantom extends Phantom implements IDreadMob {
         }
     }
 
+    /** All its sounds, vanilla's and ours, at {@link PhantomRules#VOLUME} (0.64.0, the owner: "Lower all dread phantom sounds by 55% globally"). */
+    @Override
+    protected float getSoundVolume() {
+        return super.getSoundVolume() * PhantomRules.VOLUME;
+    }
+
     /** A phantom's ambient, hurt and death sounds, with something ghostlier under each. */
     @Override
     public void makeSound(@Nullable SoundEvent sound) {
@@ -341,8 +347,8 @@ public class DreadPhantom extends Phantom implements IDreadMob {
                 DreadPhantom.this.diving = true;
                 this.anchorAboveTarget();
                 this.nextDive = this.adjustedTickDelay(PhantomRules.swoopTicks(DreadPhantom.this.difficulty(), DreadPhantom.this.random.nextDouble()));
-                DreadPhantom.this.playSound(SoundEvents.PHANTOM_SWOOP, 10.0F, 0.95F + DreadPhantom.this.random.nextFloat() * 0.1F);
-                DreadPhantom.this.playSound(ModRegistries.DREAD_PHANTOM_SWOOP.get(), 3.0F, 0.95F + DreadPhantom.this.random.nextFloat() * 0.1F);
+                DreadPhantom.this.playSound(SoundEvents.PHANTOM_SWOOP, 10.0F * PhantomRules.VOLUME, 0.95F + DreadPhantom.this.random.nextFloat() * 0.1F);
+                DreadPhantom.this.playSound(ModRegistries.DREAD_PHANTOM_SWOOP.get(), 3.0F * PhantomRules.VOLUME, 0.95F + DreadPhantom.this.random.nextFloat() * 0.1F);
             }
         }
 

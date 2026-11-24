@@ -35,7 +35,7 @@ public class RimefrostForgeCoreBlock extends BaseEntityBlock implements DragonPr
     public static final MapCodec<RimefrostForgeCoreBlock> CODEC = simpleCodec(RimefrostForgeCoreBlock::new);
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     /** Its light while lit. */
-    public static final int LIGHT = 10;
+    public static final int LIGHT = io.github.hammerknife404.dreadpatch.registry.DreadLights.LIGHT;
 
     public RimefrostForgeCoreBlock(Properties properties) {
         super(properties);
