@@ -46,6 +46,8 @@ public final class SpireShape {
     public static final double ENCOUNTER_CHANCE = 0.5;
     /** The flare at its top: over this many blocks, 3-4 out past its narrowest. */
     public static final int FLARE_HEIGHT = 8;
+    /** The most any spire's {@link #reach} can be: a base of 14 ({@link #roll}'s 11 + up to 3), roughened and ledged. */
+    public static final int MAX_REACH = 21;
     public static final double SUMMIT_CHEST_CHANCE = 0.5;
     /** Of the spires with a chest, how many have a Dread Lich by it. */
     public static final double LICH_CHANCE = 1.0 / 3.0;

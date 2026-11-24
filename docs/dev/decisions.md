@@ -128,4 +128,7 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   4. **mini dread phantoms** (from bats and parrots): "Same as the Dread water beasts basically";
   5. **the post-defeat storm:** "about 30-60 seconds varying";
   6. **dreadwood saplings only on graveyard soil:** "Dreadlands only. Farmin' 'aint easy."
-  Still open: what turns a bat, parrot or water creature Dread (ours to propose: after her first defeat, a share of their natural spawns near a Mausoleum, in cold biomes, come as Dread).
+  - **what turns a bat, parrot or water creature Dread:** "Dying to whiteout dominion or other conditions that would turn a corpse into a dread mob" (her storm's raising of the dead is the one so far);
+  - **the order:** "begin 1-3" (the Dreadlands basics: 0.61.0; the post-defeat escalation; mini phantoms and water beasts), the worldgen last;
+  - **for the worldgen, later:** "Caves should be much more sheered in the cracked biomes. Dim the sunlight to never brighter than 6, and the suns texture/brightness map reflects this. Save #4 for last."
+- **0.61.0, the Dreadlands basics:** the random arrival (above; ours: within 256 of the gate's x/z, 48 counted past the most a spire reaches, facing anywhere); dreadwood saplings only on graveyard soil there (ours: graveyard soil into `#minecraft:dirt` so a sapling goes on it at all; dreadwood leaves drop saplings); vanilla's undead strayed in (ours: our spawner, one in 16 a player every 10 s, 1–2, stray 3 : zombie 2 : skeleton 2 : zombie villager 1, at most 4 near; config `undead_spawns`, `undead_cap`).

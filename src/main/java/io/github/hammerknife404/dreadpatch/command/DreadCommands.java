@@ -15,6 +15,7 @@ import io.github.hammerknife404.dreadpatch.world.DreadlandsData;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.coordinates.ColumnPosArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -37,7 +38,8 @@ import java.util.List;
  * <li>{@code weather clear|snow|storm|whiteout [seconds]}: sets it. The Dreadlands share the overworld's
  * weather, so the overworld's changes too; {@code whiteout} makes this storm one, past its rolls;</li>
  * <li>{@code encounters reset [players]}: forgets who's met which spire's encounter (everyone's, by default);</li>
- * <li>{@code dreadlands enter|home [players]}: into the Dreadlands, by the nearest spire, or home again;</li>
+ * <li>{@code dreadlands enter|home [players]}: into the Dreadlands (where a gate would set them down), or home again;</li>
+ * <li>{@code dreadlands arrival [x z]} (0.60.0): where a gate there would set someone down, and how far from a spire;</li>
  * <li>{@code config [setting [value]]} (0.58.0): every setting, one, or one set (and saved to the file);</li>
  * <li>{@code patrol [pos]} and {@code rise [count] [pos]}: a Dread patrol, or 1-8 loose Dread, there.</li>
  * </ul>
@@ -70,7 +72,11 @@ public final class DreadCommands {
                         .then(Commands.literal("home")
                                 .executes(context -> home(context, List.of(context.getSource().getPlayerOrException())))
                                 .then(Commands.argument("players", EntityArgument.players())
-                                        .executes(context -> home(context, EntityArgument.getPlayers(context, "players"))))))
+                                        .executes(context -> home(context, EntityArgument.getPlayers(context, "players")))))
+                        .then(Commands.literal("arrival")
+                                .executes(context -> arrival(context, BlockPos.containing(context.getSource().getPosition())))
+                                .then(Commands.argument("pos", ColumnPosArgument.columnPos())
+                                        .executes(context -> arrival(context, column(ColumnPosArgument.getColumnPos(context, "pos")))))))
                 .then(Commands.literal("config")
                         .executes(DreadCommands::listConfig)
                         .then(Commands.argument("setting", StringArgumentType.word())
@@ -189,6 +195,31 @@ public final class DreadCommands {
         int count = sent;
         context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.dreadlands.enter", count), true);
         return count;
+    }
+
+    /**
+     * Where someone coming through a gate near {@code near} would arrive (0.60.0), and how far that is from the
+     * nearest spire's middle: an arrival is random, so each call may differ. Generates the ground there.
+     */
+    private static int arrival(CommandContext<CommandSourceStack> context, BlockPos near) {
+        MinecraftServer server = context.getSource().getServer();
+        ServerLevel lands = server.getLevel(Dreadlands.LEVEL);
+        Dreadlands.Arrival arrival = lands == null ? null : Dreadlands.arrival(server, near, lands.getRandom());
+        if (arrival == null) {
+            context.getSource().sendFailure(Component.translatable("commands.dreadpatch.dreadlands.missing"));
+            return 0;
+        }
+        BlockPos at = BlockPos.containing(arrival.pos());
+        BlockPos spire = lands.findNearestMapStructure(Dreadlands.SPIRES, at, 100, false);
+        String distance = spire == null ? "-" : String.valueOf((int) Math.floor(Math.hypot((spire.getX() & ~15) + 8.5 - arrival.pos().x,
+                (spire.getZ() & ~15) + 8.5 - arrival.pos().z)));
+        context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.dreadlands.arrival",
+                near.getX(), near.getZ(), at.getX(), at.getY(), at.getZ(), distance), false);
+        return 1;
+    }
+
+    private static BlockPos column(net.minecraft.server.level.ColumnPos column) {
+        return new BlockPos(column.x(), 64, column.z());
     }
 
     private static int home(CommandContext<CommandSourceStack> context, Collection<ServerPlayer> players) {

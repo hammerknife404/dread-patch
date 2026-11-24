@@ -49,4 +49,23 @@ class DreadlandsSpawningTest {
     void phantomsComeMoreOftenNearASpire() {
         assertTrue(DreadlandsSpawning.PHANTOM_NEAR_SPIRE_ONE_IN < DreadlandsSpawning.PHANTOM_ONE_IN);
     }
+
+    @Test
+    void strayUndeadAreFewerThanTheDreadAndMostlyCold() {
+        assertTrue(DreadlandsSpawning.UNDEAD_ONE_IN > DreadlandsSpawning.CLEAR_ONE_IN, "rarer than the Dread in clear weather");
+        assertTrue(DreadlandsSpawning.UNDEAD_CAP < DreadlandsSpawning.CAP);
+        int[] counts = new int[DreadlandsSpawning.Undead.values().length];
+        int total = 0;
+        for (DreadlandsSpawning.Undead kind : DreadlandsSpawning.Undead.values()) {
+            total += kind.weight;
+        }
+        assertEquals(DreadlandsSpawning.UNDEAD_WEIGHT, total);
+        for (int roll = 0; roll < DreadlandsSpawning.UNDEAD_WEIGHT; roll++) {
+            counts[DreadlandsSpawning.undead(roll).ordinal()]++;
+        }
+        for (DreadlandsSpawning.Undead kind : DreadlandsSpawning.Undead.values()) {
+            assertEquals(kind.weight, counts[kind.ordinal()], kind.name());
+        }
+        assertEquals(DreadlandsSpawning.Undead.STRAY, DreadlandsSpawning.undead(0), "strays the commonest");
+    }
 }
