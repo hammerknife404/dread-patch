@@ -4,8 +4,72 @@
     "type": "minecraft:noise",
     "settings": "dreadpatch:dreadlands",
     "biome_source": {
-      "type": "minecraft:fixed",
-      "biome": "dreadpatch:dreadlands"
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "dreadpatch:dreadlands",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": [
+              -1.0,
+              0.14
+            ],
+            "erosion": [
+              -1.0,
+              1.0
+            ],
+            "weirdness": [
+              -1.0,
+              1.0
+            ],
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "dreadpatch:sastrugi_wastes",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": [
+              0.14,
+              1.0
+            ],
+            "erosion": [
+              -1.0,
+              1.0
+            ],
+            "weirdness": [
+              -1.0,
+              0.45
+            ],
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "dreadpatch:rime_chasma",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": [
+              0.2,
+              1.0
+            ],
+            "erosion": [
+              -1.0,
+              1.0
+            ],
+            "weirdness": [
+              0.45,
+              1.0
+            ],
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        }
+      ]
     }
   }
 }

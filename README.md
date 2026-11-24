@@ -89,8 +89,14 @@ The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now 
 
 ## The Dreadlands
 
-A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning, ice cracking somewhere out on the waste, something rumbling deep below, and now and then, far off and never from the same quarter twice, a dragon's roar. Its day, night and weather are the overworld's.
+A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, under a grey sky with snow drifting and the wind moaning, ice cracking somewhere out on the waste, something rumbling deep below, and now and then, far off and never from the same quarter twice, a dragon's roar. Its day, night and weather are the overworld's.
 
+- **Its lands:** three kinds, side by side.
+  - **The plains:** the snowfields above.
+  - **The Sastrugi Wastes:** a sunken, dry seabed about 20 blocks lower, its tall smooth dunes making blind valleys, reached down long shelves or sheer bluffs of packed ice and dreadstone. Spires rise there too.
+  - **The Rime Chasma:** a lower lakebed still within the wastes, fractured into polygons by deep trenches with sheer walls, pinching shut here and there into snow bridges, and splitting into narrower sheer fissures. They drop straight into the caves.
+  - **Below:** caves run down to bedrock through stone, dreadstone and packed ice, and very rarely a pocket of lava lies sealed in a crust of ice, basalt, dreadstone and obsidian. Nothing floods: the basins stay dry.
+  - Ground generated before this keeps its old shape, so a seam can show where old meets new.
 - **The Dread walk there:** Ice and Fire's thralls, ghouls, knights and scuttlers rise out of the snow in ones, twos and threes, by day and by night, 24 to 48 blocks off: now and then in clear weather, more often while it snows, and a little more often again in a heavy snowstorm (thunder). No more than 8 of them gather round any one player.
 - **Patrols:** now and then a small Dread patrol (a dread knight on foot leading two to four more) crosses the waste, its first leg passing by you, then on from waypoint to waypoint. They fight what they meet, then walk on; if their knight falls, another leads.
 

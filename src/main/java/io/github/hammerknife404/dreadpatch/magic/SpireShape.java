@@ -31,7 +31,8 @@ public final class SpireShape {
     }
 
     /** How deep its foundation goes under the ground it stands on. */
-    public static final int FOUNDATION = 12;
+    /** How deep its stone goes under its foot: 24 since the dunes (0.66.0), 12 before. */
+    public static final int FOUNDATION = 24;
     /** The ledge: how far out from the spire's face it reaches, how far it climbs a turn, and the room above it. */
     public static final double LEDGE_WIDTH = 2.6;
     public static final int LEDGE_PITCH = 22;

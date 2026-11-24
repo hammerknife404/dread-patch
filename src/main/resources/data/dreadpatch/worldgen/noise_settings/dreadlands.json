@@ -1,5 +1,5 @@
 {
-  "sea_level": 64,
+  "sea_level": -63,
   "disable_mob_generation": false,
   "aquifers_enabled": false,
   "ore_veins_enabled": false,
@@ -26,123 +26,291 @@
     "lava": 0.0,
     "temperature": 0.0,
     "vegetation": 0.0,
-    "continents": 0.0,
-    "erosion": 0.0,
+    "continents": {
+      "type": "minecraft:mul",
+      "argument1": 1.6,
+      "argument2": {
+        "type": "minecraft:noise",
+        "noise": "dreadpatch:dreadlands_basins",
+        "xz_scale": 1.0,
+        "y_scale": 0.0
+      }
+    },
+    "erosion": {
+      "type": "minecraft:noise",
+      "noise": "dreadpatch:dreadlands_shores",
+      "xz_scale": 1.0,
+      "y_scale": 0.0
+    },
     "depth": 0.0,
-    "ridges": 0.0,
+    "ridges": {
+      "type": "minecraft:noise",
+      "noise": "dreadpatch:dreadlands_chasma",
+      "xz_scale": 1.0,
+      "y_scale": 0.0
+    },
     "initial_density_without_jaggedness": {
       "type": "minecraft:add",
       "argument1": {
-        "type": "minecraft:y_clamped_gradient",
-        "from_y": -64,
-        "to_y": 320,
-        "from_value": 5.666666666666667,
-        "to_value": -10.333333333333334
-      },
-      "argument2": {
         "type": "minecraft:add",
         "argument1": {
-          "type": "minecraft:mul",
-          "argument1": 0.42,
-          "argument2": {
-            "type": "minecraft:noise",
-            "noise": "dreadpatch:dreadlands_rolling",
-            "xz_scale": 1.0,
-            "y_scale": 0.0
-          }
-        },
-        "argument2": {
           "type": "minecraft:add",
           "argument1": {
-            "type": "minecraft:mul",
-            "argument1": 0.32,
-            "argument2": {
-              "type": "minecraft:mul",
+            "type": "minecraft:add",
+            "argument1": {
+              "type": "minecraft:add",
               "argument1": {
-                "type": "minecraft:clamp",
-                "min": 0.0,
-                "max": 1.0,
-                "input": {
+                "type": "minecraft:add",
+                "argument1": {
+                  "type": "minecraft:y_clamped_gradient",
+                  "from_y": -64,
+                  "to_y": 320,
+                  "from_value": 5.666666666666667,
+                  "to_value": -10.333333333333334
+                },
+                "argument2": {
                   "type": "minecraft:mul",
-                  "argument1": 4.0,
+                  "argument1": 0.42,
                   "argument2": {
-                    "type": "minecraft:add",
-                    "argument1": -0.15,
-                    "argument2": {
-                      "type": "minecraft:noise",
-                      "noise": "dreadpatch:dreadlands_dune_fields",
-                      "xz_scale": 1.0,
-                      "y_scale": 0.0
-                    }
+                    "type": "minecraft:noise",
+                    "noise": "dreadpatch:dreadlands_rolling",
+                    "xz_scale": 1.0,
+                    "y_scale": 0.0
                   }
                 }
               },
               "argument2": {
-                "type": "minecraft:add",
-                "argument1": 0.55,
+                "type": "minecraft:mul",
+                "argument1": 0.06,
                 "argument2": {
-                  "type": "minecraft:mul",
-                  "argument1": -1.1,
-                  "argument2": {
-                    "type": "minecraft:abs",
-                    "argument": {
-                      "type": "minecraft:noise",
-                      "noise": "dreadpatch:dreadlands_drifts",
-                      "xz_scale": 1.0,
-                      "y_scale": 0.0
+                  "type": "minecraft:noise",
+                  "noise": "dreadpatch:dreadlands_hummocks",
+                  "xz_scale": 1.0,
+                  "y_scale": 0.0
+                }
+              }
+            },
+            "argument2": {
+              "type": "minecraft:spline",
+              "spline": {
+                "coordinate": {
+                  "type": "minecraft:noise",
+                  "noise": "dreadpatch:dreadlands_shores",
+                  "xz_scale": 1.0,
+                  "y_scale": 0.0
+                },
+                "points": [
+                  {
+                    "location": -1.0,
+                    "derivative": 0.0,
+                    "value": {
+                      "coordinate": {
+                        "type": "minecraft:mul",
+                        "argument1": 1.6,
+                        "argument2": {
+                          "type": "minecraft:noise",
+                          "noise": "dreadpatch:dreadlands_basins",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        }
+                      },
+                      "points": [
+                        {
+                          "location": 0.1,
+                          "derivative": 0.0,
+                          "value": 0.0
+                        },
+                        {
+                          "location": 0.14,
+                          "derivative": 0.0,
+                          "value": -0.92
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "location": 0.0,
+                    "derivative": 0.0,
+                    "value": {
+                      "coordinate": {
+                        "type": "minecraft:mul",
+                        "argument1": 1.6,
+                        "argument2": {
+                          "type": "minecraft:noise",
+                          "noise": "dreadpatch:dreadlands_basins",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        }
+                      },
+                      "points": [
+                        {
+                          "location": 0.08,
+                          "derivative": 0.0,
+                          "value": 0.0
+                        },
+                        {
+                          "location": 0.2,
+                          "derivative": 0.0,
+                          "value": -0.92
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "location": 1.0,
+                    "derivative": 0.0,
+                    "value": {
+                      "coordinate": {
+                        "type": "minecraft:mul",
+                        "argument1": 1.6,
+                        "argument2": {
+                          "type": "minecraft:noise",
+                          "noise": "dreadpatch:dreadlands_basins",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        }
+                      },
+                      "points": [
+                        {
+                          "location": 0.04,
+                          "derivative": 0.0,
+                          "value": 0.0
+                        },
+                        {
+                          "location": 0.28,
+                          "derivative": 0.0,
+                          "value": -0.92
+                        }
+                      ]
                     }
                   }
-                }
+                ]
               }
             }
           },
           "argument2": {
             "type": "minecraft:mul",
-            "argument1": 0.06,
-            "argument2": {
-              "type": "minecraft:noise",
-              "noise": "dreadpatch:dreadlands_hummocks",
-              "xz_scale": 1.0,
-              "y_scale": 0.0
-            }
-          }
-        }
-      }
-    },
-    "final_density": {
-      "type": "minecraft:interpolated",
-      "argument": {
-        "type": "minecraft:add",
-        "argument1": {
-          "type": "minecraft:y_clamped_gradient",
-          "from_y": -64,
-          "to_y": 320,
-          "from_value": 5.666666666666667,
-          "to_value": -10.333333333333334
-        },
-        "argument2": {
-          "type": "minecraft:add",
-          "argument1": {
-            "type": "minecraft:mul",
-            "argument1": 0.42,
-            "argument2": {
-              "type": "minecraft:noise",
-              "noise": "dreadpatch:dreadlands_rolling",
-              "xz_scale": 1.0,
-              "y_scale": 0.0
-            }
-          },
-          "argument2": {
-            "type": "minecraft:add",
             "argument1": {
+              "type": "minecraft:add",
+              "argument1": 1.0,
+              "argument2": {
+                "type": "minecraft:mul",
+                "argument1": -1.0,
+                "argument2": {
+                  "type": "minecraft:clamp",
+                  "input": {
+                    "type": "minecraft:mul",
+                    "argument1": {
+                      "type": "minecraft:spline",
+                      "spline": {
+                        "coordinate": {
+                          "type": "minecraft:noise",
+                          "noise": "dreadpatch:dreadlands_shores",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        },
+                        "points": [
+                          {
+                            "location": -1.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.1,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.14,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "location": 0.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.08,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.2,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "location": 1.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.04,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.28,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "argument2": -1.0869565217391304
+                  },
+                  "min": 0.0,
+                  "max": 1.0
+                }
+              }
+            },
+            "argument2": {
               "type": "minecraft:mul",
               "argument1": 0.32,
               "argument2": {
                 "type": "minecraft:mul",
                 "argument1": {
                   "type": "minecraft:clamp",
-                  "min": 0.0,
-                  "max": 1.0,
                   "input": {
                     "type": "minecraft:mul",
                     "argument1": 4.0,
@@ -156,7 +324,9 @@
                         "y_scale": 0.0
                       }
                     }
-                  }
+                  },
+                  "min": 0.0,
+                  "max": 1.0
                 },
                 "argument2": {
                   "type": "minecraft:add",
@@ -176,15 +346,1288 @@
                   }
                 }
               }
+            }
+          }
+        },
+        "argument2": {
+          "type": "minecraft:mul",
+          "argument1": {
+            "type": "minecraft:clamp",
+            "input": {
+              "type": "minecraft:mul",
+              "argument1": {
+                "type": "minecraft:spline",
+                "spline": {
+                  "coordinate": {
+                    "type": "minecraft:noise",
+                    "noise": "dreadpatch:dreadlands_shores",
+                    "xz_scale": 1.0,
+                    "y_scale": 0.0
+                  },
+                  "points": [
+                    {
+                      "location": -1.0,
+                      "derivative": 0.0,
+                      "value": {
+                        "coordinate": {
+                          "type": "minecraft:mul",
+                          "argument1": 1.6,
+                          "argument2": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_basins",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        },
+                        "points": [
+                          {
+                            "location": 0.1,
+                            "derivative": 0.0,
+                            "value": 0.0
+                          },
+                          {
+                            "location": 0.14,
+                            "derivative": 0.0,
+                            "value": -0.92
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "location": 0.0,
+                      "derivative": 0.0,
+                      "value": {
+                        "coordinate": {
+                          "type": "minecraft:mul",
+                          "argument1": 1.6,
+                          "argument2": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_basins",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        },
+                        "points": [
+                          {
+                            "location": 0.08,
+                            "derivative": 0.0,
+                            "value": 0.0
+                          },
+                          {
+                            "location": 0.2,
+                            "derivative": 0.0,
+                            "value": -0.92
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "location": 1.0,
+                      "derivative": 0.0,
+                      "value": {
+                        "coordinate": {
+                          "type": "minecraft:mul",
+                          "argument1": 1.6,
+                          "argument2": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_basins",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        },
+                        "points": [
+                          {
+                            "location": 0.04,
+                            "derivative": 0.0,
+                            "value": 0.0
+                          },
+                          {
+                            "location": 0.28,
+                            "derivative": 0.0,
+                            "value": -0.92
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "argument2": -1.0869565217391304
+            },
+            "min": 0.0,
+            "max": 1.0
+          },
+          "argument2": {
+            "type": "minecraft:add",
+            "argument1": {
+              "type": "minecraft:mul",
+              "argument1": 0.7,
+              "argument2": {
+                "type": "minecraft:add",
+                "argument1": 0.55,
+                "argument2": {
+                  "type": "minecraft:mul",
+                  "argument1": -1.1,
+                  "argument2": {
+                    "type": "minecraft:abs",
+                    "argument": {
+                      "type": "minecraft:noise",
+                      "noise": "dreadpatch:dreadlands_drifts",
+                      "xz_scale": 1.0,
+                      "y_scale": 0.0
+                    }
+                  }
+                }
+              }
             },
             "argument2": {
               "type": "minecraft:mul",
-              "argument1": 0.06,
+              "argument1": 0.25,
               "argument2": {
                 "type": "minecraft:noise",
-                "noise": "dreadpatch:dreadlands_hummocks",
+                "noise": "dreadpatch:dreadlands_rolling",
                 "xz_scale": 1.0,
                 "y_scale": 0.0
+              }
+            }
+          }
+        }
+      },
+      "argument2": {
+        "type": "minecraft:mul",
+        "argument1": -0.45,
+        "argument2": {
+          "type": "minecraft:mul",
+          "argument1": {
+            "type": "minecraft:clamp",
+            "input": {
+              "type": "minecraft:mul",
+              "argument1": {
+                "type": "minecraft:spline",
+                "spline": {
+                  "coordinate": {
+                    "type": "minecraft:noise",
+                    "noise": "dreadpatch:dreadlands_shores",
+                    "xz_scale": 1.0,
+                    "y_scale": 0.0
+                  },
+                  "points": [
+                    {
+                      "location": -1.0,
+                      "derivative": 0.0,
+                      "value": {
+                        "coordinate": {
+                          "type": "minecraft:mul",
+                          "argument1": 1.6,
+                          "argument2": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_basins",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        },
+                        "points": [
+                          {
+                            "location": 0.1,
+                            "derivative": 0.0,
+                            "value": 0.0
+                          },
+                          {
+                            "location": 0.14,
+                            "derivative": 0.0,
+                            "value": -0.92
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "location": 0.0,
+                      "derivative": 0.0,
+                      "value": {
+                        "coordinate": {
+                          "type": "minecraft:mul",
+                          "argument1": 1.6,
+                          "argument2": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_basins",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        },
+                        "points": [
+                          {
+                            "location": 0.08,
+                            "derivative": 0.0,
+                            "value": 0.0
+                          },
+                          {
+                            "location": 0.2,
+                            "derivative": 0.0,
+                            "value": -0.92
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "location": 1.0,
+                      "derivative": 0.0,
+                      "value": {
+                        "coordinate": {
+                          "type": "minecraft:mul",
+                          "argument1": 1.6,
+                          "argument2": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_basins",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        },
+                        "points": [
+                          {
+                            "location": 0.04,
+                            "derivative": 0.0,
+                            "value": 0.0
+                          },
+                          {
+                            "location": 0.28,
+                            "derivative": 0.0,
+                            "value": -0.92
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "argument2": -1.0869565217391304
+            },
+            "min": 0.0,
+            "max": 1.0
+          },
+          "argument2": {
+            "type": "minecraft:clamp",
+            "input": {
+              "type": "minecraft:mul",
+              "argument1": 4.0,
+              "argument2": {
+                "type": "minecraft:add",
+                "argument1": -0.4,
+                "argument2": {
+                  "type": "minecraft:noise",
+                  "noise": "dreadpatch:dreadlands_chasma",
+                  "xz_scale": 1.0,
+                  "y_scale": 0.0
+                }
+              }
+            },
+            "min": 0.0,
+            "max": 1.0
+          }
+        }
+      }
+    },
+    "final_density": {
+      "type": "minecraft:min",
+      "argument1": {
+        "type": "minecraft:interpolated",
+        "argument": {
+          "type": "minecraft:min",
+          "argument1": {
+            "type": "minecraft:add",
+            "argument1": {
+              "type": "minecraft:add",
+              "argument1": {
+                "type": "minecraft:add",
+                "argument1": {
+                  "type": "minecraft:add",
+                  "argument1": {
+                    "type": "minecraft:add",
+                    "argument1": {
+                      "type": "minecraft:add",
+                      "argument1": {
+                        "type": "minecraft:y_clamped_gradient",
+                        "from_y": -64,
+                        "to_y": 320,
+                        "from_value": 5.666666666666667,
+                        "to_value": -10.333333333333334
+                      },
+                      "argument2": {
+                        "type": "minecraft:mul",
+                        "argument1": 0.42,
+                        "argument2": {
+                          "type": "minecraft:noise",
+                          "noise": "dreadpatch:dreadlands_rolling",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        }
+                      }
+                    },
+                    "argument2": {
+                      "type": "minecraft:mul",
+                      "argument1": 0.06,
+                      "argument2": {
+                        "type": "minecraft:noise",
+                        "noise": "dreadpatch:dreadlands_hummocks",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      }
+                    }
+                  },
+                  "argument2": {
+                    "type": "minecraft:spline",
+                    "spline": {
+                      "coordinate": {
+                        "type": "minecraft:noise",
+                        "noise": "dreadpatch:dreadlands_shores",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      },
+                      "points": [
+                        {
+                          "location": -1.0,
+                          "derivative": 0.0,
+                          "value": {
+                            "coordinate": {
+                              "type": "minecraft:mul",
+                              "argument1": 1.6,
+                              "argument2": {
+                                "type": "minecraft:noise",
+                                "noise": "dreadpatch:dreadlands_basins",
+                                "xz_scale": 1.0,
+                                "y_scale": 0.0
+                              }
+                            },
+                            "points": [
+                              {
+                                "location": 0.1,
+                                "derivative": 0.0,
+                                "value": 0.0
+                              },
+                              {
+                                "location": 0.14,
+                                "derivative": 0.0,
+                                "value": -0.92
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "location": 0.0,
+                          "derivative": 0.0,
+                          "value": {
+                            "coordinate": {
+                              "type": "minecraft:mul",
+                              "argument1": 1.6,
+                              "argument2": {
+                                "type": "minecraft:noise",
+                                "noise": "dreadpatch:dreadlands_basins",
+                                "xz_scale": 1.0,
+                                "y_scale": 0.0
+                              }
+                            },
+                            "points": [
+                              {
+                                "location": 0.08,
+                                "derivative": 0.0,
+                                "value": 0.0
+                              },
+                              {
+                                "location": 0.2,
+                                "derivative": 0.0,
+                                "value": -0.92
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "location": 1.0,
+                          "derivative": 0.0,
+                          "value": {
+                            "coordinate": {
+                              "type": "minecraft:mul",
+                              "argument1": 1.6,
+                              "argument2": {
+                                "type": "minecraft:noise",
+                                "noise": "dreadpatch:dreadlands_basins",
+                                "xz_scale": 1.0,
+                                "y_scale": 0.0
+                              }
+                            },
+                            "points": [
+                              {
+                                "location": 0.04,
+                                "derivative": 0.0,
+                                "value": 0.0
+                              },
+                              {
+                                "location": 0.28,
+                                "derivative": 0.0,
+                                "value": -0.92
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "argument2": {
+                  "type": "minecraft:mul",
+                  "argument1": {
+                    "type": "minecraft:add",
+                    "argument1": 1.0,
+                    "argument2": {
+                      "type": "minecraft:mul",
+                      "argument1": -1.0,
+                      "argument2": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:mul",
+                          "argument1": {
+                            "type": "minecraft:spline",
+                            "spline": {
+                              "coordinate": {
+                                "type": "minecraft:noise",
+                                "noise": "dreadpatch:dreadlands_shores",
+                                "xz_scale": 1.0,
+                                "y_scale": 0.0
+                              },
+                              "points": [
+                                {
+                                  "location": -1.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.1,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.14,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "location": 0.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.08,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.2,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "location": 1.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.04,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.28,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "argument2": -1.0869565217391304
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      }
+                    }
+                  },
+                  "argument2": {
+                    "type": "minecraft:mul",
+                    "argument1": 0.32,
+                    "argument2": {
+                      "type": "minecraft:mul",
+                      "argument1": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:mul",
+                          "argument1": 4.0,
+                          "argument2": {
+                            "type": "minecraft:add",
+                            "argument1": -0.15,
+                            "argument2": {
+                              "type": "minecraft:noise",
+                              "noise": "dreadpatch:dreadlands_dune_fields",
+                              "xz_scale": 1.0,
+                              "y_scale": 0.0
+                            }
+                          }
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      },
+                      "argument2": {
+                        "type": "minecraft:add",
+                        "argument1": 0.55,
+                        "argument2": {
+                          "type": "minecraft:mul",
+                          "argument1": -1.1,
+                          "argument2": {
+                            "type": "minecraft:abs",
+                            "argument": {
+                              "type": "minecraft:noise",
+                              "noise": "dreadpatch:dreadlands_drifts",
+                              "xz_scale": 1.0,
+                              "y_scale": 0.0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "argument2": {
+                "type": "minecraft:mul",
+                "argument1": {
+                  "type": "minecraft:clamp",
+                  "input": {
+                    "type": "minecraft:mul",
+                    "argument1": {
+                      "type": "minecraft:spline",
+                      "spline": {
+                        "coordinate": {
+                          "type": "minecraft:noise",
+                          "noise": "dreadpatch:dreadlands_shores",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        },
+                        "points": [
+                          {
+                            "location": -1.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.1,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.14,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "location": 0.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.08,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.2,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "location": 1.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.04,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.28,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "argument2": -1.0869565217391304
+                  },
+                  "min": 0.0,
+                  "max": 1.0
+                },
+                "argument2": {
+                  "type": "minecraft:add",
+                  "argument1": {
+                    "type": "minecraft:mul",
+                    "argument1": 0.7,
+                    "argument2": {
+                      "type": "minecraft:add",
+                      "argument1": 0.55,
+                      "argument2": {
+                        "type": "minecraft:mul",
+                        "argument1": -1.1,
+                        "argument2": {
+                          "type": "minecraft:abs",
+                          "argument": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_drifts",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "argument2": {
+                    "type": "minecraft:mul",
+                    "argument1": 0.25,
+                    "argument2": {
+                      "type": "minecraft:noise",
+                      "noise": "dreadpatch:dreadlands_rolling",
+                      "xz_scale": 1.0,
+                      "y_scale": 0.0
+                    }
+                  }
+                }
+              }
+            },
+            "argument2": {
+              "type": "minecraft:mul",
+              "argument1": -0.45,
+              "argument2": {
+                "type": "minecraft:mul",
+                "argument1": {
+                  "type": "minecraft:clamp",
+                  "input": {
+                    "type": "minecraft:mul",
+                    "argument1": {
+                      "type": "minecraft:spline",
+                      "spline": {
+                        "coordinate": {
+                          "type": "minecraft:noise",
+                          "noise": "dreadpatch:dreadlands_shores",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        },
+                        "points": [
+                          {
+                            "location": -1.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.1,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.14,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "location": 0.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.08,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.2,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "location": 1.0,
+                            "derivative": 0.0,
+                            "value": {
+                              "coordinate": {
+                                "type": "minecraft:mul",
+                                "argument1": 1.6,
+                                "argument2": {
+                                  "type": "minecraft:noise",
+                                  "noise": "dreadpatch:dreadlands_basins",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                }
+                              },
+                              "points": [
+                                {
+                                  "location": 0.04,
+                                  "derivative": 0.0,
+                                  "value": 0.0
+                                },
+                                {
+                                  "location": 0.28,
+                                  "derivative": 0.0,
+                                  "value": -0.92
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "argument2": -1.0869565217391304
+                  },
+                  "min": 0.0,
+                  "max": 1.0
+                },
+                "argument2": {
+                  "type": "minecraft:clamp",
+                  "input": {
+                    "type": "minecraft:mul",
+                    "argument1": 4.0,
+                    "argument2": {
+                      "type": "minecraft:add",
+                      "argument1": -0.4,
+                      "argument2": {
+                        "type": "minecraft:noise",
+                        "noise": "dreadpatch:dreadlands_chasma",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      }
+                    }
+                  },
+                  "min": 0.0,
+                  "max": 1.0
+                }
+              }
+            }
+          },
+          "argument2": {
+            "type": "minecraft:min",
+            "argument1": {
+              "type": "minecraft:add",
+              "argument1": "minecraft:overworld/caves/spaghetti_2d",
+              "argument2": "minecraft:overworld/caves/spaghetti_roughness_function"
+            },
+            "argument2": {
+              "type": "minecraft:min",
+              "argument1": "minecraft:overworld/caves/entrances",
+              "argument2": {
+                "type": "minecraft:add",
+                "argument1": {
+                  "type": "minecraft:add",
+                  "argument1": 0.27,
+                  "argument2": {
+                    "type": "minecraft:noise",
+                    "noise": "minecraft:cave_cheese",
+                    "xz_scale": 1.0,
+                    "y_scale": 0.6666666666666666
+                  }
+                },
+                "argument2": {
+                  "type": "minecraft:y_clamped_gradient",
+                  "from_y": 16,
+                  "to_y": 60,
+                  "from_value": 0.0,
+                  "to_value": 1.5
+                }
+              }
+            }
+          }
+        }
+      },
+      "argument2": {
+        "type": "minecraft:min",
+        "argument1": "minecraft:overworld/caves/noodle",
+        "argument2": {
+          "type": "minecraft:min",
+          "argument1": {
+            "type": "minecraft:add",
+            "argument1": 64.0,
+            "argument2": {
+              "type": "minecraft:mul",
+              "argument1": -128.0,
+              "argument2": {
+                "type": "minecraft:mul",
+                "argument1": {
+                  "type": "minecraft:cache_2d",
+                  "argument": {
+                    "type": "minecraft:mul",
+                    "argument1": {
+                      "type": "minecraft:mul",
+                      "argument1": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:mul",
+                          "argument1": {
+                            "type": "minecraft:spline",
+                            "spline": {
+                              "coordinate": {
+                                "type": "minecraft:noise",
+                                "noise": "dreadpatch:dreadlands_shores",
+                                "xz_scale": 1.0,
+                                "y_scale": 0.0
+                              },
+                              "points": [
+                                {
+                                  "location": -1.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.1,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.14,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "location": 0.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.08,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.2,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "location": 1.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.04,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.28,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "argument2": -1.0869565217391304
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      },
+                      "argument2": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:mul",
+                          "argument1": 4.0,
+                          "argument2": {
+                            "type": "minecraft:add",
+                            "argument1": -0.4,
+                            "argument2": {
+                              "type": "minecraft:noise",
+                              "noise": "dreadpatch:dreadlands_chasma",
+                              "xz_scale": 1.0,
+                              "y_scale": 0.0
+                            }
+                          }
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      }
+                    },
+                    "argument2": {
+                      "type": "minecraft:clamp",
+                      "input": {
+                        "type": "minecraft:add",
+                        "argument1": {
+                          "type": "minecraft:add",
+                          "argument1": 3.5,
+                          "argument2": {
+                            "type": "minecraft:mul",
+                            "argument1": 5.0,
+                            "argument2": {
+                              "type": "minecraft:noise",
+                              "noise": "dreadpatch:dreadlands_bridges",
+                              "xz_scale": 1.0,
+                              "y_scale": 0.0
+                            }
+                          }
+                        },
+                        "argument2": {
+                          "type": "minecraft:mul",
+                          "argument1": -1.0,
+                          "argument2": {
+                            "type": "dreadpatch:cell_edges",
+                            "noise": "dreadpatch:dreadlands_cells",
+                            "size": 80.0,
+                            "jitter": 0.9
+                          }
+                        }
+                      },
+                      "min": 0.0,
+                      "max": 1.0
+                    }
+                  }
+                },
+                "argument2": {
+                  "type": "minecraft:y_clamped_gradient",
+                  "from_y": -30,
+                  "to_y": -24,
+                  "from_value": 0.0,
+                  "to_value": 1.0
+                }
+              }
+            }
+          },
+          "argument2": {
+            "type": "minecraft:add",
+            "argument1": 64.0,
+            "argument2": {
+              "type": "minecraft:mul",
+              "argument1": -128.0,
+              "argument2": {
+                "type": "minecraft:mul",
+                "argument1": {
+                  "type": "minecraft:cache_2d",
+                  "argument": {
+                    "type": "minecraft:mul",
+                    "argument1": {
+                      "type": "minecraft:mul",
+                      "argument1": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:mul",
+                          "argument1": {
+                            "type": "minecraft:spline",
+                            "spline": {
+                              "coordinate": {
+                                "type": "minecraft:noise",
+                                "noise": "dreadpatch:dreadlands_shores",
+                                "xz_scale": 1.0,
+                                "y_scale": 0.0
+                              },
+                              "points": [
+                                {
+                                  "location": -1.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.1,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.14,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "location": 0.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.08,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.2,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "location": 1.0,
+                                  "derivative": 0.0,
+                                  "value": {
+                                    "coordinate": {
+                                      "type": "minecraft:mul",
+                                      "argument1": 1.6,
+                                      "argument2": {
+                                        "type": "minecraft:noise",
+                                        "noise": "dreadpatch:dreadlands_basins",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "points": [
+                                      {
+                                        "location": 0.04,
+                                        "derivative": 0.0,
+                                        "value": 0.0
+                                      },
+                                      {
+                                        "location": 0.28,
+                                        "derivative": 0.0,
+                                        "value": -0.92
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "argument2": -1.0869565217391304
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      },
+                      "argument2": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:mul",
+                          "argument1": 4.0,
+                          "argument2": {
+                            "type": "minecraft:add",
+                            "argument1": -0.4,
+                            "argument2": {
+                              "type": "minecraft:noise",
+                              "noise": "dreadpatch:dreadlands_chasma",
+                              "xz_scale": 1.0,
+                              "y_scale": 0.0
+                            }
+                          }
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      }
+                    },
+                    "argument2": {
+                      "type": "minecraft:mul",
+                      "argument1": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:add",
+                          "argument1": 1.0,
+                          "argument2": {
+                            "type": "minecraft:mul",
+                            "argument1": -1.0,
+                            "argument2": {
+                              "type": "dreadpatch:cell_edges",
+                              "noise": "dreadpatch:dreadlands_cells",
+                              "size": 20.0,
+                              "jitter": 0.9
+                            }
+                          }
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      },
+                      "argument2": {
+                        "type": "minecraft:clamp",
+                        "input": {
+                          "type": "minecraft:mul",
+                          "argument1": 3.0,
+                          "argument2": {
+                            "type": "minecraft:noise",
+                            "noise": "dreadpatch:dreadlands_fissures",
+                            "xz_scale": 1.0,
+                            "y_scale": 0.0
+                          }
+                        },
+                        "min": 0.0,
+                        "max": 1.0
+                      }
+                    }
+                  }
+                },
+                "argument2": {
+                  "type": "minecraft:mul",
+                  "argument1": {
+                    "type": "minecraft:y_clamped_gradient",
+                    "from_y": -48,
+                    "to_y": -40,
+                    "from_value": 0.0,
+                    "to_value": 1.0
+                  },
+                  "argument2": {
+                    "type": "minecraft:y_clamped_gradient",
+                    "from_y": 52,
+                    "to_y": 60,
+                    "from_value": 1.0,
+                    "to_value": 0.0
+                  }
+                }
               }
             }
           }
