@@ -24,6 +24,8 @@ The "one in" values are chances: 0 turns that thing off.
 | `dread_spawns_storm` | `5` | The same in a heavy snowstorm (thunder). |
 | `dread_cap` | `8` | No more rise while this many of the Dread are within 64 blocks of the player. |
 | `patrols` | `3` | One in this chance, per player every 2 minutes, of a Dread patrol (a dread knight leading 2-4 more). |
+| `undead_spawns` | `16` | One in this chance, per player every 10 seconds, of 1-2 of vanilla's undead (strays, zombies, skeletons, zombie villagers) rising 24-48 blocks off in the Dreadlands, day or night. 0 for never. |
+| `undead_cap` | `4` | No more of them rise while this many of vanilla's undead are within 64 blocks of the player. |
 | `phantoms` | `8` | One in this chance, every 30 s, of dread phantoms coming down on a player under the open sky. |
 | `phantoms_near_spires` | `3` | The same within 96 blocks of a spire. |
 | `flame_fade_min_seconds` / `flame_fade_max_seconds` | `30` / `45` | How long a placed lantern or torch waits for each step toward the Dread's. |

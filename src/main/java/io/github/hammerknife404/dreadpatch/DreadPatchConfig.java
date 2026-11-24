@@ -22,6 +22,8 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue DREAD_STORM;
     private static final ModConfigSpec.IntValue DREAD_CAP;
     private static final ModConfigSpec.IntValue PATROLS;
+    private static final ModConfigSpec.IntValue UNDEAD;
+    private static final ModConfigSpec.IntValue UNDEAD_CAP;
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
     private static final ModConfigSpec.IntValue WHITEOUT_STORMS;
@@ -54,6 +56,11 @@ public final class DreadPatchConfig {
                 .defineInRange("dread_cap", DreadlandsSpawning.CAP, 0, 100);
         PATROLS = builder.comment("Dread patrols (a dread knight leading 2-4 more): each player has a one-in-this chance every 2 minutes. 0: never.")
                 .defineInRange("patrols", DreadlandsSpawning.PATROL_ONE_IN, 0, 10000);
+        UNDEAD = builder.comment("Vanilla's undead (strays, zombies, skeletons, zombie villagers) strayed into the Dreadlands: each player has a",
+                "one-in-this chance every 10 s of 1-2 rising 24-48 blocks off, day or night (the sun there doesn't burn them). 0: never.")
+                .defineInRange("undead_spawns", DreadlandsSpawning.UNDEAD_ONE_IN, 0, 10000);
+        UNDEAD_CAP = builder.comment("No more of them rise while this many of vanilla's undead are within 64 blocks of the player.")
+                .defineInRange("undead_cap", DreadlandsSpawning.UNDEAD_CAP, 0, 100);
         PHANTOMS = builder.comment("Dread phantoms coming down on a player under the open sky: a one-in-this chance every 30 s. 0: never.")
                 .defineInRange("phantoms", DreadlandsSpawning.PHANTOM_ONE_IN, 0, 10000);
         PHANTOMS_NEAR_SPIRES = builder.comment("The same within 96 blocks of a spire.")
@@ -98,6 +105,14 @@ public final class DreadPatchConfig {
 
     public static int dreadCap() {
         return SPEC.isLoaded() ? DREAD_CAP.get() : DreadlandsSpawning.CAP;
+    }
+
+    public static int undeadOneIn() {
+        return SPEC.isLoaded() ? UNDEAD.get() : DreadlandsSpawning.UNDEAD_ONE_IN;
+    }
+
+    public static int undeadCap() {
+        return SPEC.isLoaded() ? UNDEAD_CAP.get() : DreadlandsSpawning.UNDEAD_CAP;
     }
 
     public static int patrolOneIn() {

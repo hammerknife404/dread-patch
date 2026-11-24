@@ -1404,6 +1404,25 @@ def main():
     record("a spire stands in them", m is not None, out.strip())
     if m:
         sx, sz = (int(m.group(1)) & ~15) + 8, (int(m.group(2)) & ~15) + 8
+        # The arrival (0.60.0, the owner: "somewhere random, but never on a tower or within 48 blocks from one"):
+        # through a gate standing right at a spire's middle, and at the world's origin, someone arrives within 256
+        # blocks, on dry ground with room to stand, and 69+ blocks from any spire's middle (48 past the most a
+        # spire reaches).
+        for gx, gz in ((sx, sz), (sx, sz), (0, 0)):
+            out = rcon.run(f"dreadpatch dreadlands arrival {gx} {gz}")
+            a = re.search(r"arrive at (-?\d+) (-?\d+) (-?\d+), (\S+) blocks", out)
+            if not a:
+                record("an arrival is found", False, out.strip())
+                continue
+            ax, ay, az, far = int(a.group(1)), int(a.group(2)), int(a.group(3)), a.group(4)
+            rcon.run(dl + f"run forceload add {ax} {az}")
+            time.sleep(1.0)
+            dry = "Test passed" in rcon.run(dl + f"if block {ax} {ay} {az} #minecraft:replaceable") \
+                and "Test failed" in rcon.run(dl + f"if block {ax} {ay - 1} {az} #minecraft:replaceable") \
+                and "Test failed" in rcon.run(dl + f"if block {ax} {ay - 1} {az} minecraft:water")
+            rcon.run(dl + f"run forceload remove {ax} {az}")
+            record(f"through a gate at {gx} {gz}, an arrival on dry ground, within 256, clear of the spires",
+                   dry and abs(ax - gx) <= 257 and abs(az - gz) <= 257 and (far == "-" or int(far) >= 69), out.strip())
         rcon.run(dl + f"run forceload add {sx - 32} {sz - 32} {sx + 32} {sz + 32}")
         time.sleep(6.0)
 
@@ -1626,7 +1645,8 @@ def main():
     rcon.run("weather clear")
     rcon.run(dl + f'run summon minecraft:zombie 58.5 {pad + 1} 56.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_sunless"]}}')
     rcon.run('summon minecraft:zombie 3.5 212 12.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_sunlit"]}')
-    time.sleep(4.0)
+    # 8 s: at full sun a zombie catches fire with a chance of about 4% a tick, so 4 s once left the control unlit.
+    time.sleep(8.0)
     fire_read = lambda command: int((re.search(r"entity data: (-?\d+)s", rcon.run(command)) or [0, "0"])[1])
     lit = fire_read("data get entity @e[tag=smoke_sunlit,limit=1] Fire")
     unlit = fire_read(dl + "run data get entity @e[tag=smoke_sunless,limit=1] Fire")
@@ -1635,6 +1655,39 @@ def main():
     record("one doesn't in the Dreadlands'", unlit <= 0 and float(whole) >= 20.0, f"Fire {unlit}, health {whole}")
     rcon.run("kill @e[tag=smoke_sunlit]")
     rcon.run(dl + "run kill @e[tag=smoke_sunless]")
+    # Dreadwood saplings in the Dreadlands take only graveyard soil (0.61.0): bone-mealed by a dispenser beside
+    # it, one on graveyard soil there grows, one on dirt there doesn't; one on dirt in the overworld (the control)
+    # grows. (Random ticks come only near a player, so a sped-up randomTickSpeed grew nothing. A player's
+    # placing one on dirt there being refused needs a player.)
+    def bone_meal(prefix, x, y, z):
+        rcon.run(prefix + f"run setblock {x} {y - 1} {z} " + ("iceandfire:graveyard_soil" if prefix == dl and x == 40 else "minecraft:dirt"))
+        rcon.run(prefix + f"run setblock {x} {y} {z} iceandfire:dreadwood_sapling")
+        rcon.run(prefix + f'run setblock {x + 1} {y} {z} minecraft:dispenser[facing=west]{{Items:[{{Slot:0b,id:"minecraft:bone_meal",count:64}}]}}')
+    for prefix, x, y, z in ((dl, 40, pad + 1, 56), (dl, 46, pad + 1, 56), ("execute ", 28, 220, 3)):
+        bone_meal(prefix, x, y, z)
+    for _ in range(24):
+        for prefix, x, y, z in ((dl, 40, pad + 1, 56), (dl, 46, pad + 1, 56), ("execute ", 28, 220, 3)):
+            rcon.run(prefix + f"run setblock {x + 2} {y} {z} minecraft:redstone_block")
+        time.sleep(0.25)
+        for prefix, x, y, z in ((dl, 40, pad + 1, 56), (dl, 46, pad + 1, 56), ("execute ", 28, 220, 3)):
+            rcon.run(prefix + f"run setblock {x + 2} {y} {z} minecraft:air")
+        time.sleep(0.25)
+    grown = lambda prefix, x, y, z: "Test passed" in rcon.run(prefix + f"if block {x} {y} {z} iceandfire:dreadwood_log")
+    record("a dreadwood sapling on dirt grows in the overworld (the control)", grown("execute ", 28, 220, 3), "it didn't grow")
+    record("in the Dreadlands, one on graveyard soil grows", grown(dl, 40, pad + 1, 56), "it didn't grow")
+    record("and one on dirt doesn't", "Test passed" in rcon.run(dl + f"if block 46 {pad + 1} 56 iceandfire:dreadwood_sapling"),
+           "it grew, or it's gone")
+    rcon.run(dl + f"run fill 36 {pad} 52 50 {pad + 12} 60 minecraft:air")
+    rcon.run("fill 24 219 0 32 232 7 minecraft:air")
+    rcon.run("kill @e[type=item]")
+    # Dreadwood leaves drop saplings (and sticks) now; Ice and Fire ships no loot table for them, so they dropped nothing.
+    rcon.run(dl + f"run setblock 50 {pad + 1} 56 iceandfire:dreadwood_leaves[persistent=true]")
+    for _ in range(400):
+        rcon.run(dl + f"run loot spawn 50.5 {pad + 2} 56.5 mine 50 {pad + 1} 56")
+    saplings, leaves = count("iceandfire:dreadwood_sapling"), count("iceandfire:dreadwood_leaves")
+    record("dreadwood leaves drop saplings, broken by hand", saplings >= 1 and leaves == 0, f"{saplings} saplings, {leaves} leaves in 400")
+    rcon.run(dl + f"run setblock 50 {pad + 1} 56 minecraft:air")
+    rcon.run(dl + "run kill @e[type=item]")
     rcon.run(dl + f"run fill 38 {pad} 38 60 {pad + 9} 58 minecraft:air")
     rcon.run(dl + "run forceload remove all")
 
@@ -1670,8 +1723,11 @@ def main():
         return total
 
     # Somewhere new each run (the world is kept between runs, and old chunks keep what they were made with).
-    far = random.randrange(8, 40) * 1000
-    out = rcon.run(dl + f"positioned {far} 0 {far} run locate structure dreadpatch:dread_village")
+    # Anywhere in a wide ring, either way on each axis: 32 spots on one diagonal (until 0.61.0) came round
+    # again, and once found a village made before 0.57.0 turned its lights (all 4 still vanilla's).
+    far_x = random.choice((-1, 1)) * random.randrange(8_000, 200_000)
+    far_z = random.choice((-1, 1)) * random.randrange(8_000, 200_000)
+    out = rcon.run(dl + f"positioned {far_x} 0 {far_z} run locate structure dreadpatch:dread_village")
     v = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
     record("abandoned villages stand in the Dreadlands", v is not None, out.strip())
     if v:
@@ -1689,7 +1745,7 @@ def main():
         record("its chests are Lootr's", plain_chests == 0, f"{loot_chests} Lootr chests, {plain_chests} plain chests")
         rcon.run(dl + "run forceload remove all")
     summit_chests, plain_summit, torches = 0, 0, 0
-    for sx_far, sz_far in ((-far, far), (far, -far)):
+    for sx_far, sz_far in ((-far_x, far_z), (far_x, -far_z)):
         out = rcon.run(dl + f"positioned {sx_far} 0 {sz_far} run locate structure dreadpatch:spire")
         m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
         if not m:
