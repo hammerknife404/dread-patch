@@ -153,6 +153,11 @@ def main():
         {"type": "minecraft:height_range", "height": {"type": "minecraft:uniform", "min_inclusive": {"absolute": -50}, "max_inclusive": {"absolute": 20}}},
         {"type": "minecraft:biome"}]}, indent=2) + "\n")
 
+    # The plains' grave patches (0.67.0): graveyard soil, wither roses, now and then a dead dreadwood tree.
+    (DATA / "worldgen/configured_feature/grave_patch.json").write_text(json.dumps({"type": "dreadpatch:grave_patch", "config": {}}, indent=2) + "\n")
+    (DATA / "worldgen/placed_feature/grave_patch.json").write_text(json.dumps({"feature": "dreadpatch:grave_patch", "placement": [
+        {"type": "minecraft:rarity_filter", "chance": 6}, {"type": "minecraft:in_square"},
+        {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
     plains = json.loads((DATA / "worldgen/biome/dreadlands.json").read_text())
     underground = ["dreadpatch:dreadstone_blobs", "dreadpatch:packed_ice_blobs", "dreadpatch:crusted_lava_pocket"]
     for name in ("dreadlands", "sastrugi_wastes", "rime_chasma"):
@@ -162,6 +167,10 @@ def main():
             steps.append([])
         # Step 6: underground ores.
         steps[6] = [f for f in steps[6] if f not in underground] + underground
+        while len(steps) < 10:
+            steps.append([])
+        # Step 9: vegetal decoration; the plains only.
+        steps[9] = [f for f in steps[9] if f != "dreadpatch:grave_patch"] + (["dreadpatch:grave_patch"] if name == "dreadlands" else [])
         biome["features"] = steps
         (DATA / f"worldgen/biome/{name}.json").write_text(json.dumps(biome, indent=2) + "\n")
 
