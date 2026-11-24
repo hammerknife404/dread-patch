@@ -2091,6 +2091,26 @@ def main():
     rcon.run("kill @e[type=item]")
     rcon.run("fill 1 239 1 30 239 14 minecraft:air")
 
+    # Dread lights at most 6 (0.64.0): a dread lantern and a Dread Gate's face, each alone in a stone box, light it to 6;
+    # Ice and Fire's dread torch is 5 of its own.
+    for block, level in (("iceandfire:dread_torch", 5), ("dreadpatch:dread_lantern", 6), ("dreadpatch:dread_gate", 6)):
+        rcon.run("fill 25 229 11 27 231 13 minecraft:stone")
+        rcon.run(f"setblock 26 230 12 {block}")
+        time.sleep(0.5)
+        lit = lambda lo, hi: "Test passed" in rcon.run("execute positioned 26 230 12 if predicate "
+                                                     f'{{condition:"minecraft:location_check",predicate:{{light:{{light:{{min:{lo},max:{hi}}}}}}}}}')
+        record(f"{block.split(':')[1]} lights to {level}, no more than 6", lit(level, level), f"not {level} (more than 6: {lit(7, 15)})")
+    rcon.run("fill 25 229 11 27 231 13 minecraft:air")
+    # Her storm puts out her fire, as everyone's (0.64.0, the owner: she burned on in her own).
+    rcon.run('summon dreadpatch:dread_queen 20.5 230 3.5 {NoAI:1b,UUID:[I;24,24,24,24],Tags:["smoke_burning"]}')
+    rcon.run("summon dreadpatch:whiteout_dominion 20.5 230 3.5 {Owner:[I;24,24,24,24],Lifetime:200,Radius:6f}")
+    rcon.run("data merge entity @e[tag=smoke_burning,limit=1] {Fire:300s}")
+    time.sleep(1.5)
+    burn = int((re.search(r"entity data: (-?\d+)s", rcon.run("data get entity @e[tag=smoke_burning,limit=1] Fire")) or [0, "999"])[1])
+    record("in her own storm her fire goes out", burn <= 0, f"Fire {burn}")
+    rcon.run("kill @e[tag=smoke_burning]")
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    clear_court()
     # What her defeat stirs (0.62.0): a queen killed by damage is a defeat (the world's first: the Mausoleums stir for
     # good) and brings a defeat storm of 30-60 s; another within the cooldown brings no new one; /kill is no defeat.
     # (The storm's fog, rime, sound and Rimefrost, and the Dread rising round Mausoleums, are a player's.)

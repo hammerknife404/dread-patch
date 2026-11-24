@@ -82,6 +82,14 @@ public final class DreadlandsClient {
         }
     }
 
+    /** How bad its weather is round the camera (for {@link SoundFilters}): snow, more in thunder, all in a whiteout. */
+    static float severity() {
+        ClientLevel level = Minecraft.getInstance().level;
+        float thunder = level == null ? 0.0F : level.getThunderLevel(1.0F);
+        return Math.max(storm * Mth.lerp(thunder, io.github.hammerknife404.dreadpatch.magic.SoundRules.SNOW,
+                io.github.hammerknife404.dreadpatch.magic.SoundRules.THUNDER), whiteout * io.github.hammerknife404.dreadpatch.magic.SoundRules.WHITEOUT);
+    }
+
     private static float storm(float partialTick) {
         return Mth.lerp(partialTick, lastStorm, storm);
     }

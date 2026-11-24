@@ -9,7 +9,7 @@ This file holds the rules and the shape of the code. How each part works, what I
 - **Version:** `mod_version` in `gradle.properties`.
 - **Done:** the big drop (finished with 0.48.0) and the second (finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word; 0.55.0–0.59.0 came after, at the owner's requests. The Rimefrost dragonforge shipped in 0.59.0.
 - **Left for later, the owner's call:** ready-built forges on some spires.
-- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0), being built on `beta` (below, PRs) in the owner's order: 0.60.0 the music and quick fixes; 0.61.0 the Dreadlands basics (random arrival, dreadwood saplings, stray undead); 0.62.0 the post-defeat escalation; 0.63.0 risen Dread (miniature phantoms, water creatures; also stirring in caves); then the dread lights kept to light 6 or less (the owner, low priority), the multi-biome worldgen last. The owner's answers and notes for each are in `decisions.md`. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
+- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0), being built on `beta` (below, PRs) in the owner's order: 0.60.0 the music and quick fixes; 0.61.0 the Dreadlands basics (random arrival, dreadwood saplings, stray undead); 0.62.0 the post-defeat escalation; 0.63.0 risen Dread (miniature phantoms, water creatures; also stirring in caves); 0.64.0 the owner's notes from the dev client (sound filters, dread lights at 6, her fire, the crown); next dreadwood variants and freezing dread lights, Guard Villagers rising in her storm, then the multi-biome worldgen. The owner's answers and notes for each are in `decisions.md`. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
 - **Owed:** the owner's own look at 0.52.0–0.54.1, 0.59.0 and 0.60.0's music in a client ([testing.md](docs/dev/testing.md), Client).
 - The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
@@ -48,6 +48,8 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - Its dread mobs' models can't be reused: `DreadBaseModel` and an abstract method of its parent are package-private, and NeoForge won't load two mods that share a package.
 - Don't add a `DragonColor`: its constructor adds it to every dragon of its type, and armour gets made for it.
 - An attribute it adds only to its own dragon types (`dragon_forge_speed`) must be added to ours in `DreadPatch`: reading one an entity lacks throws, and once crashed the dev server's tick.
+
+**Dread lights:** none brighter than 6 (`registry/DreadLights.LIGHT`, the owner's); give a new one that.
 
 **Spawning:** mobs we raise go through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn.
 

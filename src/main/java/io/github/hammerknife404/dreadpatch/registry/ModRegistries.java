@@ -209,13 +209,13 @@ public final class ModRegistries {
                     .updateInterval(20)
                     .build(DreadPatch.id("dread_gate").toString()));
 
-    /** A Dread Gate's open face: no item, no drops, unbreakable but in creative, lit like a Nether portal. */
+    /** A Dread Gate's open face: no item, no drops, unbreakable but in creative, lit as every dread light ({@link DreadLights}). */
     public static final DeferredBlock<DreadGateBlock> DREAD_GATE_BLOCK = BLOCKS.register("dread_gate",
             () -> new DreadGateBlock(BlockBehaviour.Properties.of()
                     .noCollission()
                     .strength(-1.0F, 3600000.0F)
                     .sound(SoundType.GLASS)
-                    .lightLevel(state -> 11)
+                    .lightLevel(state -> DreadLights.LIGHT)
                     .pushReaction(PushReaction.BLOCK)
                     .noLootTable()));
 
@@ -233,7 +233,8 @@ public final class ModRegistries {
 
     /** The Dread's lantern (0.57.0): a soul lantern's shape and light, its flame her cyan. Fading lanterns and the villages' end as it. */
     public static final DeferredBlock<net.minecraft.world.level.block.LanternBlock> DREAD_LANTERN = BLOCKS.register("dread_lantern",
-            () -> new net.minecraft.world.level.block.LanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)));
+            () -> new net.minecraft.world.level.block.LanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)
+                    .lightLevel(state -> DreadLights.LIGHT)));
     public static final DeferredItem<net.minecraft.world.item.BlockItem> DREAD_LANTERN_ITEM = ITEMS.registerSimpleBlockItem("dread_lantern", DREAD_LANTERN);
 
     /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */

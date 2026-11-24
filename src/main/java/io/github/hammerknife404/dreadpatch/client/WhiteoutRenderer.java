@@ -132,7 +132,9 @@ public class WhiteoutRenderer extends EntityRenderer<WhiteoutDominion> {
      * it's drawn): the snow on the ground and the wall's far side; the falling snow; the wall's near side.
      */
     private static void draw(WhiteoutDominion storm, float partialTick, Vec3 camera, PoseStack.Pose pose, MultiBufferSource.BufferSource buffers) {
-        float strength = storm.strength(partialTick);
+        // Her crown's sight (0.64.0, the owner: it "does not reduce the ... whiteout dominion fog at all or should a little more"):
+        // its snow drawn thinner by as much as its fog is pushed out.
+        float strength = storm.strength(partialTick) / CrownSight.whiteoutReach();
         if (strength <= 0.0F) {
             return;
         }
