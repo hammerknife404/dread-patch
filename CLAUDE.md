@@ -9,7 +9,8 @@ This file holds the rules and the shape of the code. How each part works, what I
 - **Version:** `mod_version` in `gradle.properties`.
 - **Done:** the big drop (finished with 0.48.0) and the second (finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word; 0.55.0–0.59.0 came after, at the owner's requests. The Rimefrost dragonforge shipped in 0.59.0.
 - **Left for later, the owner's call:** ready-built forges on some spires.
-- **Owed:** the owner's own look at 0.52.0–0.54.1 and 0.59.0 in a client ([testing.md](docs/dev/testing.md), Client).
+- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0): reviewed with them; its music disc and quick fixes (undead unburnt in the Dreadlands, bosses keeping their sight in Whiteout, the NeoForge floor) shipped in 0.60.0. Their answers on the rest are in `decisions.md` (the beta, 2026-11-23); still open: what turns a bat, parrot or water creature Dread. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
+- **Owed:** the owner's own look at 0.52.0–0.54.1, 0.59.0 and 0.60.0's music in a client ([testing.md](docs/dev/testing.md), Client).
 - The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
 ## Keep in step
@@ -50,9 +51,11 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 
 **Spawning:** mobs we raise go through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn.
 
+**Network:** one payload so far (`world/DreadlandsMusic.FirstArrival`, 0.60.0), registered in common code on `RegisterPayloadHandlersEvent`, its handler a lambda that calls into a client class (only a client ever runs it, so a dedicated server never loads that class). Do the same for another.
+
 **Assets:** nothing of Ice and Fire's, Iron's or vanilla's ships.
 - Item and block sprites are recoloured as they load by our sprite source `dreadpatch:dread_recolor` (listed in `assets/minecraft/atlases/blocks.json`; the colours in the game-free `magic/DreadRecolor`). Entity, armour and screen textures are `DynamicTexture`s made the first time they're drawn and remade on a resource reload.
-- Every sound event points at vanilla's or Ice and Fire's files.
+- Every sound event points at vanilla's or Ice and Fire's files, but the Dreadlands' music: the owner's own track, made by `tools/music/make_music.py` (edit and re-run it as the icons' script).
 - Spell icons, effect icons, Syndrigossa's egg, the dread fire and the gate's texture come from `tools/sprites/make_icons.py` (deterministic; needs Pillow). Edit and re-run it rather than editing the PNGs.
 
 **Config** (`DreadPatchConfig`, a NeoForge server config, `config/dreadpatch-server.toml`):
@@ -95,6 +98,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
   - Use version ids, not version numbers: Uranus 2.4.1 names both a NeoForge and a Fabric file.
 - **As mods:** they're `implementation`, so the dev runs load them as mods, along with the jars bundled inside them (Architectury from Uranus, Integration from Ice and Fire).
 - **Iron's Spells:** it and its required libraries (Iron's Lib, playerAnimator, Curios) come the same way.
+- **NeoForge:** `neo_version` is the pack's, which the dev runs use; `neo_version_range` is the floor the jar declares (0.60.0: `[21.1.230,)`, Ice and Fire CE's own; 0.59.0 and before declared the pack's build).
 - **JEI** (0.59.0): the pack's file (19.70.0.469, `jei_version`, Modrinth version id `1vC6z8wV`), `compileOnly` for our plugin and `localRuntime` for the dev runs. Never required: JEI finds the plugin itself, and nothing else of ours touches JEI's classes.
 - **Test-only mods** go in `localRuntime`: Better Combat 2.4.0, Better Mob Combat Reimagined 1.1.22, Cloth Config 15.0.140, and (0.53.0) Lootr 1.11.38.127, the pack's file (`lootr_version`, its Modrinth version id from the pack export).
   - They're the owner's files, from the untracked `compat_mods_testing_better_combat/`, pinned by the Modrinth version ids their SHA-1s resolve to.
@@ -135,6 +139,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - **Merging (since 2026-11-14):**
   - the owner wants each PR merged as soon as its CI passes, without waiting for their review;
   - with merge commits, as they merged #1 and #2.
+- **The beta (since 2026-11-23,** the owner: "hold for the beta", then "Create a beta branch and follow your recommendations"**):** `main` stays at the last release. Beta work branches from `beta` and its PRs go into `beta`, merged there (merge commits) once CI passes; each still bumps `mod_version`. `beta` merges into `main` once, when the owner says the beta's ready, which releases the version it's at. Pushes to `beta` release nothing and don't sync the wiki (`release.yml` and `wiki.yml` run on `main` only); PR builds still run.
 - **One release at a time:** merge PRs that each bump the version one at a time, letting each Release run finish first. `release.yml`'s concurrency group cancels a pending run when another queues behind it, which would skip that version's release.
 
 **Release**

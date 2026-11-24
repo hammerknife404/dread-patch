@@ -94,5 +94,15 @@
       {"name": "iceandfire:mobs/dragon/ice/adult_idle_1", "volume": 0.8},
       {"name": "iceandfire:mobs/dragon/ice/adult_idle_2", "volume": 0.8}
     ]
+  },
+  "music.dreadlands": {
+    "sounds": [
+      {"name": "dreadpatch:music/entombed_in_rimefrost", "stream": true}
+    ]
+  },
+  "music_disc.entombed_in_rimefrost": {
+    "sounds": [
+      {"name": "dreadpatch:records/entombed_in_rimefrost", "stream": true}
+    ]
   }
 }

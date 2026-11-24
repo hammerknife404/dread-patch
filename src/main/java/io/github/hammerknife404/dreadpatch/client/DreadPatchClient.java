@@ -53,6 +53,7 @@ public final class DreadPatchClient {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         DreadlandsClient.register(NeoForge.EVENT_BUS);
         DreadlandsAmbience.register(NeoForge.EVENT_BUS);
+        DreadlandsMusicClient.register(NeoForge.EVENT_BUS);
     }
 
     /**

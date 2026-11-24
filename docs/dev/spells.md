@@ -91,6 +91,7 @@ Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have
 - **The entity:** never saved; a 1×1 point whose culling box is its whole cylinder.
 - **Its space:** a cylinder of `Radius` round where it was raised, from 16 below to 48 above.
 - **Every 10 ticks:** everyone inside it may harm gets 40 ticks of Whiteout: speed −20%, follow range −50%. The Dread refuse it.
+- **Bosses keep their sight (0.60.0;** the owner's dump: verify it "does not cause large external melee bosses (#c:bosses, such as Cataclysm bruisers) to drop aggro prematurely inside the 32-block dome"**):** it did (a `TargetGoal` drops a target past follow range), so `WhiteoutEffect.onEffectStarted` takes the follow-range modifier off anything in `#c:bosses`. Vanilla's `addEffect` calls it after every application, renewals too, just after putting the modifiers back; the slow stays. The whiteout weather's Whiteout is the same effect.
 - **Every 60 ticks:** everyone not freeze-immune takes 1 `dreadpatch:whiteout` damage.
   - That type is tagged as vanilla's `freeze` is.
   - With no caster, the damage is vanilla's `freeze` itself, so a death message never lacks its `%2$s`.

@@ -114,3 +114,18 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - recipes in Ice and Fire's `iceandfire:dragonforge` format with `"dragonType": "rimefrost"` (packs can add their own); **"Only the new forge"** (the owner, 2026-11-22): the dread recipes left Ice and Fire's ice forge;
   - the five: (1) a **block of Rimefrost dragon scales** (9 scales, and back), and bricks after Ice and Fire's (5 scale blocks round 4 **dreadstone bricks** make 4: about 360 scales a forge); (2) the core's heart is Ice and Fire's **ice dragon heart** (Rimefrost corpses have none); (3) its corners are Ice and Fire's **dragon bone blocks**; (4) a **core in spire summit chests at 5%**, ready-built forges on spires left for later; (5) **no recipes beyond the two** (blood, ingot);
   - ours: a JEI page for its recipes (Ice and Fire's pages show only fire, ice and lightning ones); its progress holds while unlit, as Ice and Fire's actually does (we'd told the owner it cools 2 a tick: that branch of Ice and Fire's can never run).
+- **0.60.0, from the owner's feature dump** (2026-11-23, `Feature_Dump_11-23.md`, local; reviewed with them, then "start with the music disc and the quick fixes"):
+  - **the music disc** "Entombed In Rimefrost": "not played too loudly", "only played ambiently in the dreadlands, no other normal music can", for a first arrival, "possibly track to the advancement of arring there"; ours: −17 LUFS (vanilla's −15 to −16.5), vanilla's 10–20 minutes between plays, the advancement "Into the Dreadlands" starting it, the disc from spire summit chests at 10%;
+  - **no undead burn in the Dreadlands' sun** (the dump's "Dimension-Wide Daylight Undead Immunity");
+  - **bosses keep their sight in Whiteout** (the dump asked to verify that bosses don't drop aggro in the storm; they did; ours: the slow stays);
+  - **the NeoForge floor** lowered from the pack's 21.1.265 to Ice and Fire CE's 21.1.230 (the dump: "avoid unnecessarily locking players to the exact 21.1.265 pack build");
+  - **the track is the owner's** ("I am the creator of the music, Generated with my Claude Pro sub account"), so it ships, credited to them in the README;
+  - **`main` held for the beta** (the dump's "Freeze main"; the owner, asked: "hold for the beta"): 0.60.0 (#86) isn't merged.
+- **The beta (2026-11-23), the owner's answers to our review of the dump:**
+  1. a `beta` branch, "follow your recommendations": beta PRs into it, merged on CI; `beta` into `main` once, to release;
+  2. **the arrival** (replaces the big drop's "near a spire's base"): "somewhere random, but never on a tower or within 48 blocks from one. And prefer the surface, but caves or similar are ok";
+  3. **dread water beasts:** "intended for overworld only or places that have water and aquatic life" (not the Dreadlands);
+  4. **mini dread phantoms** (from bats and parrots): "Same as the Dread water beasts basically";
+  5. **the post-defeat storm:** "about 30-60 seconds varying";
+  6. **dreadwood saplings only on graveyard soil:** "Dreadlands only. Farmin' 'aint easy."
+  Still open: what turns a bat, parrot or water creature Dread (ours to propose: after her first defeat, a share of their natural spawns near a Mausoleum, in cold biomes, come as Dread).
