@@ -2154,6 +2154,13 @@ def main():
     record("a crusted lava pocket: lava sealed in its crust", "Placed" in out and "Test passed" in rcon.run("execute if block 8 228 12 minecraft:lava")
            and "Test failed" in rcon.run("execute if block 8 233 12 minecraft:lava"), out.strip())
     rcon.run("fill 3 223 9 13 233 15 minecraft:air")
+    # A grave patch (0.67.0), placed on a stone pad: graveyard soil round its foot, and a wither rose or more on it.
+    rcon.run("fill 2 225 2 12 225 12 minecraft:stone")
+    out = rcon.run("place feature dreadpatch:grave_patch 7 226 7")
+    soil = sum("Test passed" in rcon.run(f"execute if block {x} 225 {z} iceandfire:graveyard_soil") for x in range(4, 11) for z in range(4, 11))
+    roses = sum("Test passed" in rcon.run(f"execute if block {x} 226 {z} minecraft:wither_rose") for x in range(4, 11) for z in range(4, 11))
+    record("a grave patch: graveyard soil, and wither roses on it", "Placed" in out and soil >= 3 and roses >= 1, f"{out.strip()}; {soil} soil, {roses} roses")
+    rcon.run("fill 1 224 1 13 236 13 minecraft:air")
     # What her defeat stirs (0.62.0): a queen killed by damage is a defeat (the world's first: the Mausoleums stir for
     # good) and brings a defeat storm of 30-60 s; another within the cooldown brings no new one; /kill is no defeat.
     # (The storm's fog, rime, sound and Rimefrost, and the Dread rising round Mausoleums, are a player's.)

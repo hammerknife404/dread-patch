@@ -23,6 +23,9 @@ public final class TerrainRules {
     }
 
     public static final int CRUST_WEIGHT = 12;
+    /** A grave patch on the plains: one chunk in this many; a dead tree in it at this chance. */
+    public static final int GRAVE_PATCH_ONE_IN = 6;
+    public static final float TREE_CHANCE = 0.4F;
 
     private TerrainRules() {
     }

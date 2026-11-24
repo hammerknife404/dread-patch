@@ -38,6 +38,7 @@ public final class DreadTerrain {
     public static final DeferredHolder<MapCodec<? extends DensityFunction>, MapCodec<CellEdges>> CELL_EDGES =
             DENSITY_FUNCTIONS.register("cell_edges", () -> CellEdges.CODEC.codec());
     public static final DeferredHolder<Feature<?>, LavaPocket> CRUSTED_LAVA_POCKET = FEATURES.register("crusted_lava_pocket", LavaPocket::new);
+    public static final DeferredHolder<Feature<?>, GravePatch> GRAVE_PATCH = FEATURES.register("grave_patch", GravePatch::new);
 
     private DreadTerrain() {
     }
@@ -127,6 +128,75 @@ public final class DreadTerrain {
                 case OBSIDIAN -> Blocks.OBSIDIAN.defaultBlockState();
                 case CRYING_OBSIDIAN -> Blocks.CRYING_OBSIDIAN.defaultBlockState();
             };
+        }
+    }
+
+    /**
+     * A grave patch on the plains (0.67.0, the owner's dump: "sparse Wither Roses, and sparse gnarled dreadwood trees with
+     * rare dread leaf blocks"): the ground's top 1-2 blocks round turned to Ice and Fire's graveyard soil (the only soil a
+     * wither rose or, in the Dreadlands, a dreadwood sapling takes), 1-3 wither roses on it, and now and then
+     * ({@link TerrainRules#TREE_CHANCE}) a dead dreadwood tree in its middle, 3-6 logs, a leaf or two near its top at most.
+     */
+    public static final class GravePatch extends Feature<NoneFeatureConfiguration> {
+        GravePatch() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            RandomSource random = context.random();
+            BlockPos ground = context.origin().below();
+            if (!level.getBlockState(ground).isSolidRender(level, ground) || !level.getBlockState(context.origin()).isAir()) {
+                return false;
+            }
+            BlockState soil = com.iafenvoy.iceandfire.registry.IafBlocks.GRAVEYARD_SOIL.get().defaultBlockState();
+            int radius = 1 + random.nextInt(2);
+            java.util.List<BlockPos> soiled = new java.util.ArrayList<>();
+            for (BlockPos at : BlockPos.betweenClosed(ground.offset(-radius, -1, -radius), ground.offset(radius, 1, radius))) {
+                if (at.distSqr(ground) <= radius * radius + 1 && level.getBlockState(at).isSolidRender(level, at) && level.getBlockState(at.above()).isAir()
+                        && random.nextFloat() < 0.85F) {
+                    level.setBlock(at, soil, Block.UPDATE_CLIENTS);
+                    soiled.add(at.immutable());
+                }
+            }
+            if (soiled.isEmpty()) {
+                return false;
+            }
+            BlockState rose = Blocks.WITHER_ROSE.defaultBlockState();
+            for (int i = 1 + random.nextInt(3); i > 0; i--) {
+                BlockPos on = soiled.get(random.nextInt(soiled.size())).above();
+                if (level.getBlockState(on).isAir() && rose.canSurvive(level, on)) {
+                    level.setBlock(on, rose, Block.UPDATE_CLIENTS);
+                }
+            }
+            if (random.nextFloat() < TerrainRules.TREE_CHANCE && level.getBlockState(ground).is(soil.getBlock())) {
+                BlockState log = com.iafenvoy.iceandfire.registry.IafBlocks.DREADWOOD_LOG.get().defaultBlockState();
+                BlockState leaves = com.iafenvoy.iceandfire.registry.IafBlocks.DREADWOOD_LEAVES.get().defaultBlockState();
+                int height = 3 + random.nextInt(4);
+                BlockPos top = ground;
+                for (int y = 1; y <= height; y++) {
+                    BlockPos at = ground.above(y);
+                    if (!level.getBlockState(at).isAir() && !level.getBlockState(at).is(Blocks.WITHER_ROSE)) {
+                        break;
+                    }
+                    level.setBlock(at, log, Block.UPDATE_CLIENTS);
+                    top = at;
+                }
+                // A gnarled stub of a branch, and a leaf or two near the top at most.
+                net.minecraft.core.Direction side = net.minecraft.core.Direction.Plane.HORIZONTAL.getRandomDirection(random);
+                BlockPos branch = top.below(random.nextInt(2)).relative(side);
+                if (top != ground && level.getBlockState(branch).isAir()) {
+                    level.setBlock(branch, log.setValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS, side.getAxis()), Block.UPDATE_CLIENTS);
+                }
+                for (int i = random.nextInt(3); i > 0; i--) {
+                    BlockPos leaf = top.relative(net.minecraft.core.Direction.getRandom(random));
+                    if (level.getBlockState(leaf).isAir()) {
+                        level.setBlock(leaf, leaves, Block.UPDATE_CLIENTS);
+                    }
+                }
+            }
+            return true;
         }
     }
 

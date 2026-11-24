@@ -57,6 +57,7 @@ public final class DreadPatchClient {
         DefeatStormClient.register(NeoForge.EVENT_BUS);
         RisenDreadClient.register(NeoForge.EVENT_BUS);
         SoundFilters.register(NeoForge.EVENT_BUS);
+        DreadlandsSky.register(modBus, NeoForge.EVENT_BUS);
     }
 
     /**

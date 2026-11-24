@@ -45,7 +45,9 @@
     ],
     [],
     [],
-    [],
+    [
+      "dreadpatch:grave_patch"
+    ],
     [
       "minecraft:freeze_top_layer"
     ]
