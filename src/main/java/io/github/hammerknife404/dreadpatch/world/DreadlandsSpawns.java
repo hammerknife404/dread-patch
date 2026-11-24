@@ -25,6 +25,7 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
+import java.util.function.Predicate;
 
 /**
  * What rises on its own in the Dreadlands (0.52.0, the owner's second drop; {@link DreadlandsSpawning}):
@@ -122,6 +123,12 @@ public final class DreadlandsSpawns {
     /** Open ground {@code min}-{@code max} blocks from the player, in a loaded chunk, not under water; null if the tries find none. */
     @Nullable
     static Vec3 ground(ServerLevel level, ServerPlayer player, double min, double max, RandomSource random) {
+        return ground(level, player, min, max, random, pos -> true);
+    }
+
+    /** The same, where {@code ok} takes the spot (the feet's block). */
+    @Nullable
+    static Vec3 ground(ServerLevel level, ServerPlayer player, double min, double max, RandomSource random, Predicate<BlockPos> ok) {
         for (int attempt = 0; attempt < 8; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             double distance = min + random.nextDouble() * (max - min);
@@ -131,7 +138,8 @@ public final class DreadlandsSpawns {
                 continue;
             }
             int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-            if (!level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty() || !level.noCollision(new AABB(x, y, z, x + 1, y + 2, z + 1))) {
+            if (!level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty() || !level.noCollision(new AABB(x, y, z, x + 1, y + 2, z + 1))
+                    || !ok.test(new BlockPos(x, y, z))) {
                 continue;
             }
             return new Vec3(x + 0.5, y, z + 0.5);

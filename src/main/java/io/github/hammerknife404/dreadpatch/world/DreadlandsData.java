@@ -36,6 +36,10 @@ public class DreadlandsData extends SavedData {
     private final WeatherRules.Storms storms = new WeatherRules.Storms();
     /** Lanterns and torches placed in the Dreadlands still fading (0.57.0): position (packed) to the game time of its next step. */
     private final Map<Long, Long> fading = new HashMap<>();
+    /** The overworld's escalation (0.62.0): whether a Dread Queen has ever been defeated, and the defeat storm's end (game time) and last start (real time). */
+    private boolean queenFallen;
+    private long defeatStormUntil;
+    private long lastDefeatStorm;
 
     public static DreadlandsData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(new SavedData.Factory<>(DreadlandsData::new, DreadlandsData::load, null), NAME);
@@ -68,6 +72,30 @@ public class DreadlandsData extends SavedData {
     }
 
     /** Its weather's memory; {@link #setDirty} after changing it. */
+    public boolean queenFallen() {
+        return this.queenFallen;
+    }
+
+    public long defeatStormUntil() {
+        return this.defeatStormUntil;
+    }
+
+    public long lastDefeatStorm() {
+        return this.lastDefeatStorm;
+    }
+
+    public void setQueenFallen(boolean fallen) {
+        this.queenFallen = fallen;
+        this.setDirty();
+    }
+
+    /** A defeat storm until {@code until} (game time), started at {@code startedAt} (real time; 0 forgets it). */
+    public void setDefeatStorm(long until, long startedAt) {
+        this.defeatStormUntil = until;
+        this.lastDefeatStorm = startedAt;
+        this.setDirty();
+    }
+
     public WeatherRules.Storms storms() {
         return this.storms;
     }
@@ -95,6 +123,10 @@ public class DreadlandsData extends SavedData {
         data.storms.whiteout = weather.getBoolean("Whiteout");
         data.storms.wasWhiteout = weather.getBoolean("WasWhiteout");
         data.storms.lastWhiteout = weather.getBoolean("LastWhiteout");
+        CompoundTag escalation = tag.getCompound("Escalation");
+        data.queenFallen = escalation.getBoolean("QueenFallen");
+        data.defeatStormUntil = escalation.getLong("StormUntil");
+        data.lastDefeatStorm = escalation.getLong("LastStorm");
         CompoundTag fading = tag.getCompound("Fading");
         for (String pos : fading.getAllKeys()) {
             try {
@@ -162,6 +194,11 @@ public class DreadlandsData extends SavedData {
         CompoundTag fading = new CompoundTag();
         this.fading.forEach((pos, due) -> fading.putLong(Long.toString(pos), due));
         tag.put("Fading", fading);
+        CompoundTag escalation = new CompoundTag();
+        escalation.putBoolean("QueenFallen", this.queenFallen);
+        escalation.putLong("StormUntil", this.defeatStormUntil);
+        escalation.putLong("LastStorm", this.lastDefeatStorm);
+        tag.put("Escalation", escalation);
         return tag;
     }
 }

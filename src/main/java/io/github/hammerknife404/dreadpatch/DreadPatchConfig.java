@@ -2,6 +2,7 @@ package io.github.hammerknife404.dreadpatch;
 
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
+import io.github.hammerknife404.dreadpatch.magic.EscalationRules;
 import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -24,6 +25,9 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue PATROLS;
     private static final ModConfigSpec.IntValue UNDEAD;
     private static final ModConfigSpec.IntValue UNDEAD_CAP;
+    private static final ModConfigSpec.IntValue MAUSOLEUM_DREAD;
+    private static final ModConfigSpec.DoubleValue DEFEAT_STORM_HOURS;
+    private static final ModConfigSpec.BooleanValue DEFEAT_STORM_COLD_ONLY;
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
     private static final ModConfigSpec.IntValue WHITEOUT_STORMS;
@@ -73,6 +77,17 @@ public final class DreadPatchConfig {
                 .defineInRange("flame_fade_min_seconds", 30, 1, 3600);
         FLAME_FADE_MAX = builder.comment("...and at most (if less than the least, the least).").defineInRange("flame_fade_max_seconds", 45, 1, 3600);
         builder.pop();
+        builder.comment("What her defeat stirs in the overworld.").push("overworld");
+        MAUSOLEUM_DREAD = builder.comment("Once a Dread Queen has been defeated in this world, the Dread rise round its Mausoleums for good: each",
+                "player within 128 blocks of one, in a cold biome, has a one-in-this chance every 10 s of 1-3 rising 24-48 blocks off on",
+                "snow, ice or dreadstone (never in a village), and patrols cross there as in the Dreadlands. 0: never, nor the patrols.")
+                .defineInRange("mausoleum_dread", EscalationRules.MAUSOLEUM_ONE_IN, 0, 10000);
+        DEFEAT_STORM_HOURS = builder.comment("Her defeat brings a dry storm over the cold lands for 30-60 s, then none for this many real hours,",
+                "whoever defeats her again. 0: one every defeat.")
+                .defineInRange("defeat_storm_hours", EscalationRules.DEFAULT_STORM_HOURS, 0.0, 8760.0);
+        DEFEAT_STORM_COLD_ONLY = builder.comment("Whether it reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky).")
+                .define("defeat_storm_cold_only", true);
+        builder.pop();
         builder.comment("The Dread Queen's regalia.").push("regalia");
         CROWN_STORM_SIGHT = builder.comment("Whether her crown keeps the Dreadlands' storm fog (snow and heavy snowstorms) off its wearer: near clear sight.")
                 .define("crown_storm_sight", true);
@@ -113,6 +128,18 @@ public final class DreadPatchConfig {
 
     public static int undeadCap() {
         return SPEC.isLoaded() ? UNDEAD_CAP.get() : DreadlandsSpawning.UNDEAD_CAP;
+    }
+
+    public static int mausoleumDreadOneIn() {
+        return SPEC.isLoaded() ? MAUSOLEUM_DREAD.get() : EscalationRules.MAUSOLEUM_ONE_IN;
+    }
+
+    public static long defeatStormCooldownMillis() {
+        return (long) ((SPEC.isLoaded() ? DEFEAT_STORM_HOURS.get() : EscalationRules.DEFAULT_STORM_HOURS) * 3_600_000.0);
+    }
+
+    public static boolean defeatStormColdOnly() {
+        return !SPEC.isLoaded() || DEFEAT_STORM_COLD_ONLY.get();
     }
 
     public static int patrolOneIn() {

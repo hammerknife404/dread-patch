@@ -9,7 +9,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.hammerknife404.dreadpatch.entity.DreadPatrols;
+import io.github.hammerknife404.dreadpatch.magic.EscalationRules;
 import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
+import io.github.hammerknife404.dreadpatch.world.Escalation;
 import io.github.hammerknife404.dreadpatch.world.Dreadlands;
 import io.github.hammerknife404.dreadpatch.world.DreadlandsData;
 import net.minecraft.commands.CommandSourceStack;
@@ -40,6 +42,8 @@ import java.util.List;
  * <li>{@code encounters reset [players]}: forgets who's met which spire's encounter (everyone's, by default);</li>
  * <li>{@code dreadlands enter|home [players]}: into the Dreadlands (where a gate would set them down), or home again;</li>
  * <li>{@code dreadlands arrival [x z]} (0.60.0): where a gate there would set someone down, and how far from a spire;</li>
+ * <li>{@code escalation [storm [seconds]|reset]} (0.62.0): whether a queen's been defeated here (the Mausoleums stir) and the
+ * defeat storm; a storm now; or all forgotten;</li>
  * <li>{@code config [setting [value]]} (0.58.0): every setting, one, or one set (and saved to the file);</li>
  * <li>{@code patrol [pos]} and {@code rise [count] [pos]}: a Dread patrol, or 1-8 loose Dread, there.</li>
  * </ul>
@@ -77,6 +81,13 @@ public final class DreadCommands {
                                 .executes(context -> arrival(context, BlockPos.containing(context.getSource().getPosition())))
                                 .then(Commands.argument("pos", ColumnPosArgument.columnPos())
                                         .executes(context -> arrival(context, column(ColumnPosArgument.getColumnPos(context, "pos")))))))
+                .then(Commands.literal("escalation")
+                        .executes(DreadCommands::queryEscalation)
+                        .then(Commands.literal("storm")
+                                .executes(context -> defeatStorm(context, -1))
+                                .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 3600))
+                                        .executes(context -> defeatStorm(context, IntegerArgumentType.getInteger(context, "seconds")))))
+                        .then(Commands.literal("reset").executes(DreadCommands::resetEscalation)))
                 .then(Commands.literal("config")
                         .executes(DreadCommands::listConfig)
                         .then(Commands.argument("setting", StringArgumentType.word())
@@ -102,6 +113,36 @@ public final class DreadCommands {
                 .executes(context -> setWeather(context, kind, DEFAULT_SECONDS))
                 .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 1_000_000))
                         .executes(context -> setWeather(context, kind, IntegerArgumentType.getInteger(context, "seconds"))));
+    }
+
+    /** Whether a queen has been defeated in this world (so the Mausoleums stir), and the defeat storm: its time left, or when one's due. */
+    private static int queryEscalation(CommandContext<CommandSourceStack> context) {
+        MinecraftServer server = context.getSource().getServer();
+        DreadlandsData data = DreadlandsData.get(server);
+        long left = Escalation.stormLeft(server);
+        long wait = data.lastDefeatStorm() == 0L ? 0L
+                : Math.max(0L, data.lastDefeatStorm() + DreadPatchConfig.defeatStormCooldownMillis() - System.currentTimeMillis());
+        Component storm = left > 0 ? Component.translatable("commands.dreadpatch.escalation.storm_on", left / 20)
+                : wait > 0 ? Component.translatable("commands.dreadpatch.escalation.storm_wait", String.format(java.util.Locale.ROOT, "%.1f", wait / 3_600_000.0))
+                : Component.translatable("commands.dreadpatch.escalation.storm_due");
+        context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.escalation.query",
+                Component.translatable(data.queenFallen() ? "gui.yes" : "gui.no"), storm), false);
+        return data.queenFallen() ? 1 : 0;
+    }
+
+    /** A defeat storm now, for {@code seconds} (-1: as a defeat brings, 30-60 s), whatever the cooldown. */
+    private static int defeatStorm(CommandContext<CommandSourceStack> context, int seconds) {
+        MinecraftServer server = context.getSource().getServer();
+        int ticks = seconds > 0 ? seconds * 20 : EscalationRules.stormTicks(server.overworld().getRandom()::nextInt);
+        Escalation.startStorm(server, ticks, System.currentTimeMillis());
+        context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.escalation.storm", ticks / 20), true);
+        return ticks / 20;
+    }
+
+    private static int resetEscalation(CommandContext<CommandSourceStack> context) {
+        Escalation.reset(context.getSource().getServer());
+        context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.escalation.reset"), true);
+        return 1;
     }
 
     private static int listConfig(CommandContext<CommandSourceStack> context) {

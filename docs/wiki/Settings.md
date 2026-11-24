@@ -32,6 +32,16 @@ The "one in" values are chances: 0 turns that thing off.
 | `whiteout_storms` | `6` | About one storm in this many is a Whiteout Dominion. Never two in a row (so 2 or less is every other storm), never starting while a Dread Queen is about, breaking into a thunderstorm when her fight starts. |
 
 
+## `[overworld]`
+
+What the Dread Queen's defeat stirs.
+
+| Option | Default | What it does |
+|---|---|---|
+| `mausoleum_dread` | `12` | Once a Dread Queen has been defeated in the world, one in this chance per player every 10 seconds of 1-3 Dread rising round a Mausoleum within 128 blocks (cold biomes, on snow, ice or dreadstone, never in a village); patrols cross there too. 0 for never, patrols included. |
+| `defeat_storm_hours` | `6.0` | Real hours after a defeat storm before her defeat brings another. 0 for one every defeat. |
+| `defeat_storm_cold_only` | `true` | Whether the defeat storm reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky). |
+
 ## `[regalia]`
 
 | Option | Default | What it does |

@@ -865,7 +865,7 @@ def main():
     rcon.run('summon dreadpatch:dread_phantom 6.5 212 12.5 {NoAI:1b,Tags:["smoke_phantom"]}')
     phantom = "@e[tag=smoke_phantom,limit=1]"
     check("a dread phantom summons", "execute if entity " + phantom, "Test passed")
-    time.sleep(2.0)
+    time.sleep(6.0)  # a phantom in full sun catches fire about 4% of ticks: 2 s once left the control unlit (0.62.0)
     fire = lambda sel: int((re.search(r"entity data: (-?\d+)s", rcon.run("data get entity " + sel + " Fire")) or [0, "0"])[1])
     record("a phantom burns at noon (the control)", fire("@e[tag=smoke_vanilla_phantom,limit=1]") > 0, "the vanilla phantom isn't burning")
     record("a dread phantom doesn't burn by day", fire(phantom) <= 0 and health(phantom) >= 20.0,
@@ -2068,6 +2068,30 @@ def main():
     rcon.run("kill @e[type=item]")
     rcon.run("fill 1 239 1 30 239 14 minecraft:air")
 
+    # What her defeat stirs (0.62.0): a queen killed by damage is a defeat (the world's first: the Mausoleums stir for
+    # good) and brings a defeat storm of 30-60 s; another within the cooldown brings no new one; /kill is no defeat.
+    # (The storm's fog, rime, sound and Rimefrost, and the Dread rising round Mausoleums, are a player's.)
+    status = lambda: rcon.run("dreadpatch escalation")
+    left = lambda: int((re.search(r"on, (\d+) s left", status()) or [0, "0"])[1])
+    rcon.run("dreadpatch escalation reset")
+    rcon.run('summon dreadpatch:dread_queen 10.5 230 10.5 {NoAI:1b,Tags:["smoke_defeat"]}')
+    rcon.run("kill @e[tag=smoke_defeat]")
+    time.sleep(0.5)
+    record("/kill is no defeat", "defeated in this world: No" in status() and left() == 0, status().strip())
+    rcon.run('summon dreadpatch:dread_queen 10.5 230 10.5 {NoAI:1b,Tags:["smoke_defeat"]}')
+    rcon.run("damage @e[tag=smoke_defeat,limit=1] 1000 minecraft:generic")
+    time.sleep(1.0)
+    first = left()
+    record("her defeat stirs the Mausoleums and brings a 30-60 s storm", "defeated in this world: Yes" in status() and 25 <= first <= 60, status().strip())
+    rcon.run('summon dreadpatch:dread_queen 10.5 230 10.5 {NoAI:1b,Tags:["smoke_defeat"]}')
+    time.sleep(1.5)
+    rcon.run("damage @e[tag=smoke_defeat,limit=1] 1000 minecraft:generic")
+    time.sleep(0.5)
+    record("another within the cooldown brings none", 0 < left() < first, f"{first} s left, then {left()} s")
+    rcon.run("dreadpatch escalation reset")
+    record("/dreadpatch escalation reset forgets it", "defeated in this world: No" in status() and left() == 0, status().strip())
+    rcon.run("kill @e[type=item]")
+    clear_court()
     # Whiteout and bosses (0.60.0): a storm halves a zombie's follow range, but a boss (#c:bosses: Iron's Dead
     # King; vanilla's Wither and dragon take no effects at all) keeps its own, and only slows. In the air over the
     # platform, everything NoAI.
