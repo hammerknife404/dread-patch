@@ -38,7 +38,11 @@
     [],
     [],
     [],
-    [],
+    [
+      "dreadpatch:dreadstone_blobs",
+      "dreadpatch:packed_ice_blobs",
+      "dreadpatch:crusted_lava_pocket"
+    ],
     [],
     [],
     [],

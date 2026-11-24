@@ -1421,7 +1421,10 @@ def main():
     # comes, it stays open past the ritual's 10 s, fades in and out, and closes within 30 s. (Going
     # through, the arrival by a spire, and its phantoms need a player.)
     dl = "execute in dreadpatch:dreadlands "
-    check("the Dreadlands exist, one biome", dl + "run locate biome dreadpatch:dreadlands", "is at")
+    check("the Dreadlands' plains exist", dl + "run locate biome dreadpatch:dreadlands", "is at")
+    # Its three biomes (0.66.0): the plains, the sunken Sastrugi Wastes, the Rime Chasma's trenches.
+    check("the Sastrugi Wastes exist", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:sastrugi_wastes", "is at")
+    check("the Rime Chasma exists", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:rime_chasma", "is at")
     out = rcon.run(dl + "run locate structure dreadpatch:spire")
     m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
     record("a spire stands in them", m is not None, out.strip())
@@ -2145,6 +2148,12 @@ def main():
     record("water out of their reach stays water", "Test passed" in rcon.run("execute if block 19 229 4 minecraft:water"), "it froze")
     set_config("dread_light_freeze_minutes", freeze_was)
     rcon.run("fill 15 224 2 23 229 6 minecraft:air")
+    # A crusted lava pocket (0.66.0), placed in a block of stone: lava at its heart, sealed in its crust.
+    rcon.run("fill 4 224 10 12 232 14 minecraft:stone")
+    out = rcon.run("place feature dreadpatch:crusted_lava_pocket 8 228 12")
+    record("a crusted lava pocket: lava sealed in its crust", "Placed" in out and "Test passed" in rcon.run("execute if block 8 228 12 minecraft:lava")
+           and "Test failed" in rcon.run("execute if block 8 233 12 minecraft:lava"), out.strip())
+    rcon.run("fill 3 223 9 13 233 15 minecraft:air")
     # What her defeat stirs (0.62.0): a queen killed by damage is a defeat (the world's first: the Mausoleums stir for
     # good) and brings a defeat storm of 30-60 s; another within the cooldown brings no new one; /kill is no defeat.
     # (The storm's fog, rime, sound and Rimefrost, and the Dread rising round Mausoleums, are a player's.)

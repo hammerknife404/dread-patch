@@ -62,6 +62,7 @@ public final class DreadPatch {
         DreadGear.register(modBus);
         DreadForge.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
+        io.github.hammerknife404.dreadpatch.world.DreadTerrain.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
         modBus.addListener(DreadPatch::onEntityAttributes);
         modBus.addListener(DreadPatch::onEntityAttributeModification);
@@ -89,6 +90,7 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.command.DreadCommands.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadFlames.register(NeoForge.EVENT_BUS);
         DreadPatrols.register(NeoForge.EVENT_BUS);
+        DevKit.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadlandsMusic.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadlandsUndead.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadwoodSaplings.register(NeoForge.EVENT_BUS);
