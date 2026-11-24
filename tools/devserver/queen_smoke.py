@@ -1761,6 +1761,10 @@ def main():
         dread_wood = count_blocks("iceandfire:dreadwood_planks", *area) + count_blocks("iceandfire:dreadwood_log", *area)
         left = count_blocks("minecraft:spruce_planks", *area) + count_blocks("minecraft:cobblestone", *area) + count_blocks("minecraft:spruce_log", *area)
         record("its wood and stone are the Dread's", dread_wood > 50 and left == 0, f"{dread_wood} dreadwood, {left} spruce planks, logs and cobblestone left")
+        # Wood's other shapes too (0.65.0): dreadwood's stairs, slabs, fences and doors where spruce's stood.
+        spruce = sum(count_blocks(f"minecraft:spruce_{shape}", *area) for shape in ("stairs", "slab", "fence", "door", "trapdoor"))
+        shapes = sum(count_blocks(f"dreadpatch:dreadwood_{shape}", *area) for shape in ("stairs", "slab", "fence", "door", "trapdoor"))
+        record("its stairs, slabs, fences and doors are dreadwood", spruce == 0 and shapes > 0, f"{shapes} dreadwood, {spruce} spruce left")
         flames = sum(count_blocks(b, *area) for b in ("minecraft:lantern", "minecraft:soul_lantern", "minecraft:torch", "minecraft:wall_torch"))
         dread_flames = sum(count_blocks(b, *area) for b in ("dreadpatch:dread_lantern", "iceandfire:dread_torch", "iceandfire:dread_torch_wall"))
         record("its lanterns and torches are the Dread's", flames == 0, f"{flames} vanilla lanterns and torches left, {dread_flames} of the Dread's")
@@ -2111,6 +2115,36 @@ def main():
     rcon.run("kill @e[tag=smoke_burning]")
     rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
     clear_court()
+    # Dreadwood's block set (0.65.0): each of its blocks sets.
+    for shape in ("stairs", "slab", "fence", "fence_gate", "door", "trapdoor", "button", "pressure_plate"):
+        check(f"dreadwood {shape.replace('_', ' ')} is a block", f"setblock 26 230 12 dreadpatch:dreadwood_{shape}", "Changed the block")
+        rcon.run("setblock 26 230 12 minecraft:air")
+    # Dread lights as sources of cold (0.65.0): with the freezing time cut to 3 s (a second a stage), water beside a
+    # dread torch and under a dread lantern turns to blue ice, stage by stage as it's counted (every 5 s); water out of
+    # reach stays water.
+    freeze_was = set_config("dread_light_freeze_minutes", 0.05) or "20.0"
+    atexit.register(set_config, "dread_light_freeze_minutes", freeze_was)
+    time.sleep(2.0)
+    # Each water a sealed cell in stone (water flowing into a torch's block washes it away: the first run's did), the
+    # torch and lantern on the stone over them, 2 up and 1 across.
+    rcon.run("fill 15 224 2 23 226 6 minecraft:stone")
+    rcon.run("setblock 16 225 4 minecraft:water")
+    rcon.run("setblock 22 225 4 minecraft:water")
+    rcon.run("setblock 17 227 4 iceandfire:dread_torch")
+    rcon.run("setblock 21 227 4 dreadpatch:dread_lantern")
+    rcon.run("fill 18 228 3 20 229 5 minecraft:stone")  # out of reach: 2 over the torch and the lantern
+    rcon.run("setblock 19 229 4 minecraft:water")
+    frozen = False
+    for _ in range(40):
+        time.sleep(1.0)
+        frozen = all("Test passed" in rcon.run(f"execute if block {x} 225 4 minecraft:blue_ice") for x in (16, 22))
+        if frozen:
+            break
+    record("water by a dread torch and under a dread lantern freezes to blue ice", frozen,
+           "; ".join(f"{x}: " + ",".join(b for b in ("water", "ice", "packed_ice", "blue_ice") if "Test passed" in rcon.run(f"execute if block {x} 225 4 minecraft:{b}")) for x in (16, 22)))
+    record("water out of their reach stays water", "Test passed" in rcon.run("execute if block 19 229 4 minecraft:water"), "it froze")
+    set_config("dread_light_freeze_minutes", freeze_was)
+    rcon.run("fill 15 224 2 23 229 6 minecraft:air")
     # What her defeat stirs (0.62.0): a queen killed by damage is a defeat (the world's first: the Mausoleums stir for
     # good) and brings a defeat storm of 30-60 s; another within the cooldown brings no new one; /kill is no defeat.
     # (The storm's fog, rime, sound and Rimefrost, and the Dread rising round Mausoleums, are a player's.)

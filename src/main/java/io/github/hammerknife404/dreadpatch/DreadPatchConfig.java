@@ -1,5 +1,6 @@
 package io.github.hammerknife404.dreadpatch;
 
+import io.github.hammerknife404.dreadpatch.magic.ColdRules;
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
 import io.github.hammerknife404.dreadpatch.magic.EscalationRules;
@@ -36,6 +37,7 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue WHITEOUT_STORMS;
     private static final ModConfigSpec.IntValue FLAME_FADE_MIN;
     private static final ModConfigSpec.IntValue FLAME_FADE_MAX;
+    private static final ModConfigSpec.DoubleValue DREAD_LIGHT_FREEZE;
     private static final ModConfigSpec.BooleanValue CROWN_STORM_SIGHT;
     private static final ModConfigSpec.DoubleValue CROWN_WHITEOUT_SIGHT;
     private static final ModConfigSpec.BooleanValue REGALIA_EASES_WEATHER;
@@ -79,6 +81,9 @@ public final class DreadPatchConfig {
         FLAME_FADE_MIN = builder.comment("A lantern or torch placed in the Dreadlands steps toward the Dread's (soul, then dread) after this many seconds at least...")
                 .defineInRange("flame_fade_min_seconds", 30, 1, 3600);
         FLAME_FADE_MAX = builder.comment("...and at most (if less than the least, the least).").defineInRange("flame_fade_max_seconds", 45, 1, 3600);
+        DREAD_LIGHT_FREEZE = builder.comment("Dread torches and lanterns are sources of cold, anywhere: water within 2 blocks across (2 below, 1 above) turns",
+                "to ice, packed ice, then blue ice, a third of this many minutes of game time each (sleeping doesn't skip it). 20: a day. 0: never.")
+                .defineInRange("dread_light_freeze_minutes", ColdRules.DEFAULT_MINUTES, 0.0, 100000.0);
         builder.pop();
         builder.comment("What her defeat stirs in the overworld.").push("overworld");
         MAUSOLEUM_DREAD = builder.comment("Once a Dread Queen has been defeated in this world, the Dread rise round its Mausoleums for good: each",
@@ -177,6 +182,10 @@ public final class DreadPatchConfig {
     }
 
     /** Ticks a fading lantern or torch waits at least, and at most, for its next step (0.58.0). */
+    public static double dreadLightFreezeMinutes() {
+        return SPEC.isLoaded() ? DREAD_LIGHT_FREEZE.get() : ColdRules.DEFAULT_MINUTES;
+    }
+
     public static int flameFadeMinTicks() {
         return (SPEC.isLoaded() ? FLAME_FADE_MIN.get() : 30) * 20;
     }

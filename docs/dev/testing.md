@@ -52,6 +52,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **0.62.0:** a NoAI queen `/kill`ed is no defeat; one killed by `/damage` is (the world's first: `escalation` says so) and brings a 25-60 s storm; another within the cooldown leaves it running down, not renewed; `escalation reset` forgets it all.
 - **0.63.0:** in her storm (a NoAI queen's), a bat and a parrot killed rise as miniature dread phantoms with her as `Summoner`; a cod killed in water (stone over it, or her storm freezes it) rises a cod marked `dreadpatch:risen`, with 6 max health, refusing Withering Rime. (The bat rose a dread beast before.)
 - **0.64.0:** a dread lantern and a Dread Gate's face, each alone in a stone box, light it to exactly 6 (a dread torch, Ice and Fire's, to 5) (`location_check` light); a NoAI queen set burning (`Fire:300s`) inside her own storm is put out within 1.5 s.
+- **0.65.0:** each dreadwood block sets; an abandoned village has dreadwood stairs, slabs, fences or doors and no spruce ones; with `dread_light_freeze_minutes` at 0.05 (a second a stage), water beside a dread torch and under a dread lantern (set by `/setblock`, tracked by its neighbour update) is blue ice within 40 s, and water 3 over them stays water.
 - **Her regalia:** worn, its armour and toughness equal dread dragonsteel's; all twelve armour pieces of ours are `#minecraft:trimmable_armor`; it's in the breath check below; a queen not killed by a player (her table rolled, `/kill`) drops none.
 - **Gear:** two zombies in the same armour (100 health), one hit by 40 Rimefrost breath, one by 40 `mob_attack` (armour cuts both; vanilla's `generic` goes straight past armour, which once made it look like a 95% cut): the breath lands at 30% of the attack, for dread dragonsteel and for Ice and Fire's ice dragonsteel; a husk's hit with a dread dragonsteel sword rimes an iron golem (no Resistance: a hit brought to nothing carries nothing). Corpses give Rimefrost dragon scales.
 - **Rimefrost dragons:** a summoned one keeps its colour (sapphire), is undead with the ice dragon's tags, refuses Withering Rime and Wither, starts whole from a tag at Ice and Fire's health for its age (unchanged on Hard, unlike Syndrigossa's), and its corpse gives its own colour's scales and shards, its heart never her egg. Summoned without NBT it's a random age and ice colour (a summon with any NBT skips `finalizeSpawn`: a colourless hatchling).
@@ -90,6 +91,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **Vanilla's Wither and Ender Dragon take no effects at all** (each overrides `addEffect`): a check that needs a boss under an effect uses Iron's Dead King (`#c:bosses` too).
 - **Random ticks come only near a player** (a forceloaded chunk gets none, whatever `randomTickSpeed` is): the sapling check grew nothing that way (0.61.0's first run); it bone-meals with a dispenser, pulsed by a redstone block set and cleared (scheduled ticks run in forceloaded chunks).
 - **Far-out structure checks pick fresh ground each run:** the village check's 32 spots on one diagonal came round again (0.61.0) onto a village made before 0.57.0, all of whose lights were still vanilla's; it picks anywhere 8,000–200,000 out on each axis, either way, now (the spire-summit check, its mirror images).
+- **Water washes a torch away:** the cold check's first layout let its water flow into the dread torch's block (0.65.0); each water is a sealed cell in stone now, the lights on the stone over it.
 - **A zombie in full sun catches fire about 4% of ticks:** 4 s once left the sun check's control unlit; it waits 8.
 - **A court member:** "its caster can't hurt it" once read two different members (`limit=1` alone may pick another between reads); it now tags one and reads `/damage`'s own output.
 
@@ -103,6 +105,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - her hunting a player in the owner's pack;
   - her regalia: its drop on a player's kill, the advancements (There Must Always Be a Dread Queen too), how it looks worn;
   - trims: at the smithing table, on the icons, worn;
+  - dreadwood's blocks crafted, placed and looking right (the door's and trapdoor's recoloured art), a dread light's cold over a real day;
   - the sound filters (0.64.0): the muffling, the softened highs, the phantoms' volume;
   - risen Dread (0.63.0): their look (the frost tint, a miniature phantom's size), their hunting and bites, stirring in caves and underground water;
   - the escalation (0.62.0): the Dread round a Mausoleum, the defeat storm's fog, rime, wind, cracking and Rimefrost on a player, the first-defeat message;

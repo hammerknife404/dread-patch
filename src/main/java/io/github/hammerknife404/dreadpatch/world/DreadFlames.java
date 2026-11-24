@@ -123,6 +123,9 @@ public final class DreadFlames {
                 it.remove();
             } else {
                 level.setBlock(pos, next, Block.UPDATE_ALL);
+                if (DreadCold.isDreadLight(next)) {
+                    DreadCold.track(level, pos);
+                }
                 level.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 0.6, pos.getZ() + 0.5, 6, 0.15, 0.1, 0.15, 0.01);
                 level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.3F, 1.6F);
                 if (next(next) == null) {
