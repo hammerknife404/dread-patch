@@ -7,6 +7,8 @@ Phantoms of the Dread: as strong as Minecraft's own phantoms, with a phantom's 2
 - **Their bite:** a phantom's, and one bite in three (35%) leaves 5 seconds of **Rimefrost**, the Dread's cold without the withering (25% slower). One in seven (15%), rolled apart, leaves 3 seconds of Withering Rime, so a bite can leave both.
 - **Their drops:** a dread thrall's (bones and dread shards), and when a player kills one, 1 to 3 phantom membranes and 1 to 3 Rimefrost Dragon Scales, each with up to one more a Looting level. The ones a player calls leave nothing.
 - **Natural spawning:** in the Dreadlands, and only there, one or two at a time, rarely, whether or not you've slept (above).
+- **Miniature dread phantoms:** a bat or a parrot that dies where the Dread raise the dead (the queen's storm) rises as a dread phantom half the size, with 6 health, a weaker bite (2) with the same chances of Rimefrost and Withering Rime, and a higher voice. Now and then one stirs in a dark cave too, in the overworld or the Dreadlands. When a player kills one, it may drop a phantom membrane.
+- **Dread water creatures:** anything that lives in water and dies there rises as itself, turned Dread: frost-grey, twice its health, much faster, and hunting players and whatever the queen hunts, its bite sized by its health (a fish nips, a great beast mauls) with the dread phantom's chances of Rimefrost and Withering Rime. The Dread's rime and storms don't touch it. Now and then one (a glow squid mostly, or a squid, cod or salmon) stirs in underground water too. Both rare (`cave_dread_phantoms`, `cave_dread_water`).
 
 ---
 *Kept in step with the mod's [README](https://github.com/hammerknife404/dread-patch#readme); edits go in `docs/wiki/` in the repository.*

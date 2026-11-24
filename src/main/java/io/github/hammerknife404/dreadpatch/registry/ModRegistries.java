@@ -154,6 +154,15 @@ public final class ModRegistries {
                     .ridingOffset(-0.125F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("dread_phantom").toString()));
+    /** The miniature dread phantom (0.63.0): the dread phantom's box, which its scale of 0.5 halves. */
+    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>> MINIATURE_DREAD_PHANTOM =
+            ENTITY_TYPES.register("miniature_dread_phantom",
+                    () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>of(
+                                    io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom::new, MobCategory.MONSTER)
+                            .sized(0.9F, 0.5F)
+                            .eyeHeight(0.175F)
+                            .clientTrackingRange(8)
+                            .build(DreadPatch.id("miniature_dread_phantom").toString()));
 
     /** Rimefire Blast's cone (0.51.0): Iron's Cone of Cold's size and tracking; it draws itself in particles. */
     public static final DeferredHolder<EntityType<?>, EntityType<RimefireBlastProjectile>> RIMEFIRE_BLAST_PROJECTILE = ENTITY_TYPES.register("rimefire_blast",
@@ -275,6 +284,8 @@ public final class ModRegistries {
     /** A phantom's slate-blue spotted with her cyan. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_PHANTOM_SPAWN_EGG = ITEMS.register("dread_phantom_spawn_egg",
             () -> new DeferredSpawnEggItem(DREAD_PHANTOM, 0x2B3247, 0x00CBFF, new Item.Properties()));
+    public static final DeferredItem<DeferredSpawnEggItem> MINIATURE_DREAD_PHANTOM_SPAWN_EGG = ITEMS.register("miniature_dread_phantom_spawn_egg",
+            () -> new DeferredSpawnEggItem(MINIATURE_DREAD_PHANTOM, 0x3E465C, 0x9CF0FF, new Item.Properties()));
 
     /**
      * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's

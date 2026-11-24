@@ -29,7 +29,7 @@ public final class DreadEvents {
      * they see and walk through its storms, and its cold doesn't slow them (Rimefrost): they're of them.
      */
     private static void onEffectApplicable(MobEffectEvent.Applicable event) {
-        if (event.getEntity() instanceof IDreadMob
+        if (io.github.hammerknife404.dreadpatch.entity.RisenDread.dread(event.getEntity())
                 && (event.getEffectInstance().is(ModRegistries.WITHERING_RIME) || event.getEffectInstance().is(ModRegistries.WHITEOUT)
                 || event.getEffectInstance().is(ModRegistries.RIMEFROST))) {
             event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);

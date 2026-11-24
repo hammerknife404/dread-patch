@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch;
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
 import io.github.hammerknife404.dreadpatch.magic.EscalationRules;
+import io.github.hammerknife404.dreadpatch.magic.RisenRules;
 import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -26,6 +27,8 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue UNDEAD;
     private static final ModConfigSpec.IntValue UNDEAD_CAP;
     private static final ModConfigSpec.IntValue MAUSOLEUM_DREAD;
+    private static final ModConfigSpec.IntValue CAVE_PHANTOMS;
+    private static final ModConfigSpec.IntValue CAVE_WATER;
     private static final ModConfigSpec.DoubleValue DEFEAT_STORM_HOURS;
     private static final ModConfigSpec.BooleanValue DEFEAT_STORM_COLD_ONLY;
     private static final ModConfigSpec.IntValue PHANTOMS;
@@ -88,6 +91,13 @@ public final class DreadPatchConfig {
         DEFEAT_STORM_COLD_ONLY = builder.comment("Whether it reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky).")
                 .define("defeat_storm_cold_only", true);
         builder.pop();
+        builder.comment("Risen Dread: bats, parrots and water creatures the Dread raise, and those stirring on their own.").push("risen");
+        CAVE_PHANTOMS = builder.comment("Risen Dread stirring on their own, in the overworld and the Dreadlands: each player has a one-in-this chance",
+                "every 10 s of a miniature dread phantom in dark cave air near them. 0: never.")
+                .defineInRange("cave_dread_phantoms", RisenRules.CAVE_PHANTOM_ONE_IN, 0, 10000);
+        CAVE_WATER = builder.comment("The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them. 0: never.")
+                .defineInRange("cave_dread_water", RisenRules.CAVE_WATER_ONE_IN, 0, 10000);
+        builder.pop();
         builder.comment("The Dread Queen's regalia.").push("regalia");
         CROWN_STORM_SIGHT = builder.comment("Whether her crown keeps the Dreadlands' storm fog (snow and heavy snowstorms) off its wearer: near clear sight.")
                 .define("crown_storm_sight", true);
@@ -140,6 +150,14 @@ public final class DreadPatchConfig {
 
     public static boolean defeatStormColdOnly() {
         return !SPEC.isLoaded() || DEFEAT_STORM_COLD_ONLY.get();
+    }
+
+    public static int cavePhantomOneIn() {
+        return SPEC.isLoaded() ? CAVE_PHANTOMS.get() : RisenRules.CAVE_PHANTOM_ONE_IN;
+    }
+
+    public static int caveWaterOneIn() {
+        return SPEC.isLoaded() ? CAVE_WATER.get() : RisenRules.CAVE_WATER_ONE_IN;
     }
 
     public static int patrolOneIn() {

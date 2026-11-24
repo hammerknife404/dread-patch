@@ -55,6 +55,7 @@ public final class DreadPatchClient {
         DreadlandsAmbience.register(NeoForge.EVENT_BUS);
         DreadlandsMusicClient.register(NeoForge.EVENT_BUS);
         DefeatStormClient.register(NeoForge.EVENT_BUS);
+        RisenDreadClient.register(NeoForge.EVENT_BUS);
     }
 
     /**
@@ -164,6 +165,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.WHITEOUT_DOMINION.get(), WhiteoutRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_GATE.get(), NoopRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
+        event.registerEntityRenderer(ModRegistries.MINIATURE_DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
         // Drawn by its particles, as Iron's draws Cone of Cold.
         event.registerEntityRenderer(ModRegistries.RIMEFIRE_BLAST_PROJECTILE.get(), NoopRenderer::new);
     }

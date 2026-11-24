@@ -42,6 +42,15 @@ What the Dread Queen's defeat stirs.
 | `defeat_storm_hours` | `6.0` | Real hours after a defeat storm before her defeat brings another. 0 for one every defeat. |
 | `defeat_storm_cold_only` | `true` | Whether the defeat storm reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky). |
 
+## `[risen]`
+
+Bats, parrots and water creatures risen Dread, stirring on their own.
+
+| Option | Default | What it does |
+|---|---|---|
+| `cave_dread_phantoms` | `40` | In the overworld and the Dreadlands, one in this chance per player every 10 seconds of a miniature dread phantom stirring in dark cave air near them. 0 for never. |
+| `cave_dread_water` | `40` | The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them. 0 for never. |
+
 ## `[regalia]`
 
 | Option | Default | What it does |
