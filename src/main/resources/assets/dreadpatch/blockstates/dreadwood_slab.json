@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "dreadpatch:block/dreadwood_slab"
+    },
+    "type=double": {
+      "model": "iceandfire:block/dreadwood_planks"
+    },
+    "type=top": {
+      "model": "dreadpatch:block/dreadwood_slab_top"
+    }
+  }
+}

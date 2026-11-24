@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "dreadpatch:dreadwood_stairs",
+    "dreadpatch:dreadwood_slab",
+    "dreadpatch:dreadwood_fence",
+    "dreadpatch:dreadwood_fence_gate",
+    "dreadpatch:dreadwood_door",
+    "dreadpatch:dreadwood_trapdoor",
+    "dreadpatch:dreadwood_button",
+    "dreadpatch:dreadwood_pressure_plate"
+  ]
+}

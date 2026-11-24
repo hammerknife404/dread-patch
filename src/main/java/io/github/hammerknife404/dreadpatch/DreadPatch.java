@@ -61,6 +61,7 @@ public final class DreadPatch {
         ModRegistries.register(modBus);
         DreadGear.register(modBus);
         DreadForge.register(modBus);
+        io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
         modBus.addListener(DreadPatch::onEntityAttributes);
         modBus.addListener(DreadPatch::onEntityAttributeModification);
@@ -94,6 +95,7 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.world.Escalation.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.RisenDread.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.RisenSpawns.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadCold.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {
@@ -140,6 +142,7 @@ public final class DreadPatch {
             DreadForge.forgeItems().forEach(item -> event.accept(item.get()));
         } else if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(DreadForge.SCALE_BLOCK_ITEM.get());
+            io.github.hammerknife404.dreadpatch.registry.Dreadwood.items().forEach(item -> event.accept(item.get()));
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
             event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());

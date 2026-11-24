@@ -114,6 +114,22 @@
         {
           "from": "minecraft:item/music_disc_relic",
           "to": "dreadpatch:item/music_disc_entombed_in_rimefrost"
+        },
+        {
+          "from": "minecraft:block/dark_oak_door_top",
+          "to": "dreadpatch:block/dreadwood_door_top"
+        },
+        {
+          "from": "minecraft:block/dark_oak_door_bottom",
+          "to": "dreadpatch:block/dreadwood_door_bottom"
+        },
+        {
+          "from": "minecraft:block/dark_oak_trapdoor",
+          "to": "dreadpatch:block/dreadwood_trapdoor"
+        },
+        {
+          "from": "minecraft:item/dark_oak_door",
+          "to": "dreadpatch:item/dreadwood_door"
         }
       ]
     }

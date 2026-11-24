@@ -29,6 +29,7 @@ The "one in" values are chances: 0 turns that thing off.
 | `phantoms` | `8` | One in this chance, every 30 s, of dread phantoms coming down on a player under the open sky. |
 | `phantoms_near_spires` | `3` | The same within 96 blocks of a spire. |
 | `flame_fade_min_seconds` / `flame_fade_max_seconds` | `30` / `45` | How long a placed lantern or torch waits for each step toward the Dread's. |
+| `dread_light_freeze_minutes` | `20.0` | Dread torches and lanterns are sources of cold: water within 2 blocks across (2 below, 1 above) turns to ice, packed ice, then blue ice, a third of this many minutes of game time each (sleeping doesn't skip it; 20 is a Minecraft day). 0 for never. |
 | `whiteout_storms` | `6` | About one storm in this many is a Whiteout Dominion. Never two in a row (so 2 or less is every other storm), never starting while a Dread Queen is about, breaking into a thunderstorm when her fight starts. |
 
 
