@@ -400,10 +400,20 @@ def main():
     record("its health isn't Syndrigossa's by difficulty", max_health(rime) == rime_max, f"max health {rime_max} on Easy, {max_health(rime)} on Hard")
     rcon.run("difficulty easy")
     # Undead, it never sleeps (0.40.0): loaded asleep it wakes, where Ice and Fire's own ice dragon sleeps on.
+    # At midnight: by day Ice and Fire wakes its own on their first tick, so a read a tick late failed (0.60.0's
+    # run on NeoForge 21.1.230; eight tries there slept on at midnight, and woke within a second at noon).
+    # No mob spawning meanwhile: monsters spawn on the dark platform, and one stayed to push the rising queen
+    # off her spot in the next check (0.60.0's first run with it).
+    spawning = re.search(r"set to: (\w+)", rcon.run("gamerule doMobSpawning"))
+    rcon.run("gamerule doMobSpawning false")
+    rcon.run("time set midnight")
     rcon.run(surface + 'summon iceandfire:ice_dragon ~16 ~ ~ {NoAI:1b,AgeTicks:2500000,Sleeping:1b,Tags:["smoke_sleeper"]}')
     rcon.run(surface + 'summon dreadpatch:rimefrost_dragon ~16 ~ ~8 {NoAI:1b,AgeTicks:2500000,Sleeping:1b,Tags:["smoke_waker"]}')
+    time.sleep(1.0)
     check("an ice dragon loaded asleep sleeps", "data get entity @e[tag=smoke_sleeper,limit=1] Sleeping", "1b")
-    check("a Rimefrost dragon loaded asleep is awake", "data get entity @e[tag=smoke_waker,limit=1] Sleeping", "0b")
+    check("a Rimefrost dragon loaded asleep is awake, even at night", "data get entity @e[tag=smoke_waker,limit=1] Sleeping", "0b")
+    rcon.run("time set noon")
+    rcon.run("gamerule doMobSpawning " + (spawning.group(1) if spawning else "true"))
     rcon.run("kill @e[tag=smoke_sleeper]")
     rcon.run("kill @e[tag=smoke_waker]")
     rcon.run("kill @e[type=item]")
@@ -1610,6 +1620,21 @@ def main():
     leads = "Test passed" in rcon.run(dl + 'if data entity @e[tag=smoke_patrol_follow,limit=1] NeoForgeData."dreadpatch:patrol_waypoint"')
     record("its leader killed, the next leads", leads, "the ghoul has no waypoint of its own")
     rcon.run(dl + "run kill @e[tag=smoke_patrol_follow]")
+    # The Dreadlands' sun burns no undead (0.60.0): at noon, clear, a zombie on the pad stays unlit and
+    # whole, where one in the overworld's sun (the control) burns. Summoned with NBT, so no helmet.
+    rcon.run("time set noon")
+    rcon.run("weather clear")
+    rcon.run(dl + f'run summon minecraft:zombie 58.5 {pad + 1} 56.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_sunless"]}}')
+    rcon.run('summon minecraft:zombie 3.5 212 12.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_sunlit"]}')
+    time.sleep(4.0)
+    fire_read = lambda command: int((re.search(r"entity data: (-?\d+)s", rcon.run(command)) or [0, "0"])[1])
+    lit = fire_read("data get entity @e[tag=smoke_sunlit,limit=1] Fire")
+    unlit = fire_read(dl + "run data get entity @e[tag=smoke_sunless,limit=1] Fire")
+    whole = (re.search(r"entity data: ([0-9.]+)f", rcon.run(dl + "run data get entity @e[tag=smoke_sunless,limit=1] Health")) or [0, "-1"])[1]
+    record("a zombie burns in the overworld's sun (the control)", lit > 0, "it isn't burning")
+    record("one doesn't in the Dreadlands'", unlit <= 0 and float(whole) >= 20.0, f"Fire {unlit}, health {whole}")
+    rcon.run("kill @e[tag=smoke_sunlit]")
+    rcon.run(dl + "run kill @e[tag=smoke_sunless]")
     rcon.run(dl + f"run fill 38 {pad} 38 60 {pad + 9} 58 minecraft:air")
     rcon.run(dl + "run forceload remove all")
 
@@ -1986,6 +2011,39 @@ def main():
     rcon.run("fill 1 240 1 30 250 14 minecraft:air")
     rcon.run("kill @e[type=item]")
     rcon.run("fill 1 239 1 30 239 14 minecraft:air")
+
+    # Whiteout and bosses (0.60.0): a storm halves a zombie's follow range, but a boss (#c:bosses: Iron's Dead
+    # King; vanilla's Wither and dragon take no effects at all) keeps its own, and only slows. In the air over the
+    # platform, everything NoAI.
+    rcon.run("summon dreadpatch:whiteout_dominion 24.5 220 7.5 {Lifetime:200,Radius:6f}")
+    rcon.run('summon irons_spellbooks:dead_king 22.5 221 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_boss"]}')
+    rcon.run('summon minecraft:zombie 26.5 221 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_blinded"]}')
+    time.sleep(1.5)
+    reach = lambda sel, how: float((re.search(r"is ([0-9.]+)", rcon.run(f"attribute {sel} minecraft:generic.follow_range {how}")) or [0, "-1"])[1])
+    boss, zombie = "@e[tag=smoke_boss,limit=1]", "@e[tag=smoke_blinded,limit=1]"
+    record("a storm's Whiteout halves a zombie's sight", has_effect(zombie, "dreadpatch:whiteout") and reach(zombie, "get") <= reach(zombie, "base get") / 2 + 0.01,
+           f"follow range {reach(zombie, 'get')} of {reach(zombie, 'base get')}")
+    record("but a boss in it keeps its own, and is slowed", has_effect(boss, "dreadpatch:whiteout") and reach(boss, "get") >= reach(boss, "base get") - 0.01,
+           f"Whiteout {has_effect(boss, 'dreadpatch:whiteout')}, follow range {reach(boss, 'get')} of {reach(boss, 'base get')}")
+    rcon.run("kill @e[tag=smoke_boss]")
+    rcon.run("kill @e[tag=smoke_blinded]")
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    rcon.run("kill @e[type=item]")
+    # The Dreadlands' music on a disc (0.60.0): in a jukebox, its song plays (a jukebox only starts a song its
+    # registry knows); a spire's summit chest holds one now and then (one in ten: none in 60 is 0.2%).
+    rcon.run("setblock 20 220 12 minecraft:jukebox")
+    rcon.run("item replace block 20 220 12 container.0 with dreadpatch:music_disc_entombed_in_rimefrost")
+    time.sleep(0.5)
+    playing = "Test passed" in rcon.run("execute if block 20 220 12 minecraft:jukebox[has_record=true]") \
+        and "ticks_since_song_started" in rcon.run("data get block 20 220 12")
+    record("the disc plays in a jukebox", playing, rcon.run("data get block 20 220 12").strip())
+    rcon.run("setblock 20 220 12 minecraft:air")
+    rcon.run("kill @e[type=item]")
+    for _ in range(60):
+        rcon.run("loot spawn 20.5 221 12.5 loot dreadpatch:chests/spire_summit")
+    discs = count("dreadpatch:music_disc_entombed_in_rimefrost")
+    record("spire summit chests hold the disc now and then", 1 <= discs <= 20, f"{discs} in 60 chests")
+    rcon.run("kill @e[type=item]")
 
     rcon.run("fill 3 199 2 7 204 2 minecraft:air")
     rcon.run("fill 9 199 1 17 206 13 minecraft:air")

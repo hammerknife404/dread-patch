@@ -110,6 +110,10 @@
         {
           "from": "iceandfire:block/dragonscale_white",
           "to": "dreadpatch:block/rimefrost_dragonscale_block"
+        },
+        {
+          "from": "minecraft:item/music_disc_relic",
+          "to": "dreadpatch:item/music_disc_entombed_in_rimefrost"
         }
       ]
     }

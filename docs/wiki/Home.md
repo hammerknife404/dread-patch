@@ -4,7 +4,7 @@ Patching in the Dread Queen for my own world.
 
 [Ice and Fire: Community Edition](https://modrinth.com/mod/iceandfire-ce) ships a Dread Queen (her class, textures, name, sword and staff) but never puts her in the game. This NeoForge mod finishes her, and gives her the Rimefrost, undead frost dragons of the Dread, among them her own: Syndrigossa.
 
-**Requires:** Minecraft 1.21.1, NeoForge 21.1.265+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
+**Requires:** Minecraft 1.21.1, NeoForge 21.1.230+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
 
 **Status:** in development. In the wild she's met only atop the Dreadlands' spires.
 

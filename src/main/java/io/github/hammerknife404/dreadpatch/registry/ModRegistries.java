@@ -65,6 +65,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -308,6 +309,16 @@ public final class ModRegistries {
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_RUMBLE = sound("ambient.dreadlands.rumble");
     /** Syndrigossa, far off (0.58.0): Ice and Fire's ice dragon's roars and calls. */
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_DISTANT_ROAR = sound("ambient.dreadlands.distant_roar");
+    /**
+     * The Dreadlands' music (0.60.0): the owner's "Entombed In Rimefrost" (tools/music/make_music.py), the only
+     * music played there (the biome's music, kept so by {@code client/DreadlandsMusic}). Its disc plays a mono
+     * copy, so a jukebox's fades with distance.
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_MUSIC = sound("music.dreadlands");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTOMBED_IN_RIMEFROST_RECORD = sound("music_disc.entombed_in_rimefrost");
+    public static final ResourceKey<JukeboxSong> ENTOMBED_IN_RIMEFROST = ResourceKey.create(Registries.JUKEBOX_SONG, DreadPatch.id("entombed_in_rimefrost"));
+    public static final DeferredItem<Item> MUSIC_DISC_ENTOMBED_IN_RIMEFROST = ITEMS.registerSimpleItem("music_disc_entombed_in_rimefrost",
+            new Item.Properties().stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(ENTOMBED_IN_RIMEFROST));
 
     /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",

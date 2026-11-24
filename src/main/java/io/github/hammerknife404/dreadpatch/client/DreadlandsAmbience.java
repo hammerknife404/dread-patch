@@ -23,9 +23,9 @@ import org.jetbrains.annotations.Nullable;
  * and deeper underground rumbles, each sound's volume varying a little"), in place of the biome's own loop
  * and additions (its cave mood is still the biome's):
  * <ul>
- * <li>its loop, the soul sand valley's at full volume (vanilla plays it at 0.85), drifting slowly between
- * 0.88 and 1 like the wind rising and falling, fading in and out as you come and go;</li>
- * <li>its whispers and shifting sand, vanilla's, a fifth louder, as often as vanilla's (0.0111 a tick);</li>
+ * <li>its loop, the soul sand valley's (vanilla plays it at 0.85), drifting slowly between 0.80 and 0.92
+ * like the wind rising and falling, fading in and out as you come and go;</li>
+ * <li>its whispers and shifting sand, vanilla's, at 0.8 of their volume and half as often (0.0055 a tick);</li>
  * <li>ice cracking on the surface round you, 6-20 blocks off, every 30-120 s while you're near the top, half
  * the time a burst of two or three back to back ({@link AmbienceRules}; 0.54.1);</li>
  * <li>a deep rumble from below about every 30 s, louder when you're underground.</li>

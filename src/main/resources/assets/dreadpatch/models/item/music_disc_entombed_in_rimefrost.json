@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/template_music_disc",
+  "textures": {
+    "layer0": "dreadpatch:item/music_disc_entombed_in_rimefrost"
+  }
+}

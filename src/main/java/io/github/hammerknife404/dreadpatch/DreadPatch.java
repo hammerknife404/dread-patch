@@ -88,6 +88,8 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.command.DreadCommands.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadFlames.register(NeoForge.EVENT_BUS);
         DreadPatrols.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadlandsMusic.register(modBus, NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadlandsUndead.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {
@@ -147,6 +149,7 @@ public final class DreadPatch {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SHOVEL.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_HOE.get());
+            event.accept(ModRegistries.MUSIC_DISC_ENTOMBED_IN_RIMEFROST.get());
         }
     }
 
