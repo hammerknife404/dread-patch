@@ -6,6 +6,7 @@ import io.github.hammerknife404.dreadpatch.item.DreadQueenStaff;
 import io.github.hammerknife404.dreadpatch.item.DreadQueenSword;
 import io.github.hammerknife404.dreadpatch.magic.GateShape;
 import io.github.hammerknife404.dreadpatch.magic.PermafrostConduit;
+import io.github.hammerknife404.dreadpatch.registry.DreadForge;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.entity.NoopRenderer;
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RenderLivingEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
@@ -36,6 +38,7 @@ public final class DreadPatchClient {
         modBus.addListener(DreadPatchClient::onClientExtensions);
         modBus.addListener(DreadPatchClient::onReloadListeners);
         modBus.addListener(DreadPatchClient::onParticles);
+        modBus.addListener(DreadPatchClient::onMenuScreens);
         modBus.addListener(DreadRecolors::onRegisterSpriteSources);
         modBus.addListener(DreadRecolors::onClientExtensions);
         modBus.addListener(QueenArmorModels::onRegisterLayers);
@@ -88,6 +91,11 @@ public final class DreadPatchClient {
             tooltip.add(at, line("tooltip.dreadpatch.syndrigossa"));
         } else if (event.getItemStack().is(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get())) {
             tooltip.add(at, line("tooltip.dreadpatch.rimefrost_dragon"));
+        } else if (event.getItemStack().is(DreadForge.CORE_ITEM.get()) || event.getItemStack().is(DreadForge.INPUT_ITEM.get())) {
+            // Ice and Fire's forges say nothing of how they're built or lit; ours differs from theirs in what lights it.
+            tooltip.addAll(at, List.of(
+                    line("tooltip.dreadpatch.rimefrost_forge"),
+                    line("tooltip.dreadpatch.rimefrost_forge.lit")));
         } else if (event.getItemStack().is(ModRegistries.SYNDRIGOSSA_EGG.get())) {
             tooltip.addAll(at, List.of(
                     line("tooltip.dreadpatch.syndrigossa_egg"),
@@ -111,6 +119,11 @@ public final class DreadPatchClient {
         } catch (IllegalStateException e) {
             DreadPatch.LOGGER.warn("Another mod already draws {} in hand; her sword's guard won't show its pose", IafItems.DREAD_QUEEN_SWORD.getId(), e);
         }
+    }
+
+    /** The Rimefrost dragonforge's screen (0.59.0). */
+    private static void onMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(DreadForge.MENU.get(), RimefrostForgeScreen::new);
     }
 
     private static void onParticles(RegisterParticleProvidersEvent event) {

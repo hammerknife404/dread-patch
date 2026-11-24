@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "B": {
+      "item": "iceandfire:dread_stone_bricks"
+    },
+    "S": {
+      "item": "dreadpatch:rimefrost_dragonscale_block"
+    }
+  },
+  "pattern": [
+    "SBS",
+    "BSB",
+    "SBS"
+  ],
+  "result": {
+    "count": 4,
+    "id": "dreadpatch:rimefrost_forge_brick"
+  },
+  "show_notification": true
+}

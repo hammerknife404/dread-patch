@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "dreadpatch:block/rimefrost_forge_input"
+    },
+    "active=true": {
+      "model": "dreadpatch:block/rimefrost_forge_input_active"
+    }
+  }
+}

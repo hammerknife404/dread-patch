@@ -1,6 +1,6 @@
 {
   "type": "iceandfire:dragonforge",
-  "dragonType": "ice",
+  "dragonType": "rimefrost",
   "cookTime": 750,
   "input": {
     "item": "dreadpatch:rimefrost_dragon_scale"

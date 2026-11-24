@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "grill=false": {
+      "model": "dreadpatch:block/rimefrost_forge_brick"
+    },
+    "grill=true": {
+      "model": "dreadpatch:block/rimefrost_forge_brick_grill"
+    }
+  }
+}

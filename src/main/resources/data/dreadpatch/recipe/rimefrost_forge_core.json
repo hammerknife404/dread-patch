@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "B": {
+      "item": "dreadpatch:rimefrost_forge_brick"
+    },
+    "H": {
+      "item": "iceandfire:ice_dragon_heart"
+    }
+  },
+  "pattern": [
+    "BBB",
+    "BHB",
+    "BBB"
+  ],
+  "result": {
+    "id": "dreadpatch:rimefrost_forge_core"
+  },
+  "show_notification": true
+}
