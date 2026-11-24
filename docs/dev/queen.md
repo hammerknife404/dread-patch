@@ -204,6 +204,14 @@ Both are Ice and Fire's items, changed through default components and events. Th
 
 Drawing her in the saddle: [dragons.md](dragons.md), Riders.
 
+## What her defeat stirs (`world/Escalation`, `client/DefeatStormClient`, `magic/EscalationRules`; 0.62.0)
+
+- **The owner** (the dump's "Post-Defeat Overworld Escalation"; asked: the storm "should last about 30-60 seconds varying"): a defeat is her `LivingDeathEvent` (not cancelled) by anything but `generic_kill` (`/kill`) or `fell_out_of_world`, in any level (`EscalationRules.defeat`).
+- **The Mausoleums stir:** the world's first defeat sets `DreadlandsData.queenFallen` (saved under `Escalation`, in the overworld's data) for good and tells every player (`message.dreadpatch.queen_fallen`). From then, in the overworld, on the Dreadlands' 200- and 2,400-tick rolls (`mausoleum_dread`, one in 12, ours; `patrols`), a player near a Mausoleum (`#dreadpatch:mausoleums` = Ice and Fire's `mausoleum`, `findNearestMapStructure` within 12 chunks, its chunk middle within 128 + 48; searched only after the roll comes up) gets 1-3 of the Dread, or a patrol, 24-48 off on ground (`DreadlandsSpawns.ground` with a filter) within 128 of its middle (the dump's "100-to-128": ours, 128), in `#c:is_cold` or `#c:is_snowy`, in a snow layer or on `#minecraft:snow`, `#minecraft:ice` or dreadstone (`#dreadpatch:dread_gate_frame`), outside any village piece (ours: Ice and Fire's Dread attack villagers). The Dread cap is `dread_cap`'s.
+- **The defeat storm:** each defeat, if `defeat_storm_hours` (6, real time) have passed since the last one began (`DreadlandsData.lastDefeatStorm`), sets `defeatStormUntil` (overworld game time, so sleeping, which sets only the day's time, doesn't end it; no vanilla weather) 600-1,200 ticks on, and sends every client `DefeatStorm(until)` (also on login and on changing dimension). Every 20 ticks while it lasts, every overworld player (not spectating) with the sky over their eyes, in a cold or snowy biome (unless `defeat_storm_cold_only` is off), not in her full regalia (with `regalia_eases_weather`), gets 60 ticks of Rimefrost I, ambient. Nothing else: no damage, freezing, raising or griefing.
+- **On the client** (`DefeatStormClient`, the same test, eased over 40 ticks): fog to 48 (never further than it was) in ash grey × the sky's light, unless her crown's sight clears storms; snowflakes blown along the ground on the Dreadlands' daily wind (5 a tick within 14 blocks); and `DreadlandsAmbience` in its defeat-storm mode, its loop and ice cracking only (no rumbles, whispers or roars), not while a Whiteout Dominion's wind plays (the dump's guard against "duplicate wind tracks").
+- **`/dreadpatch escalation [storm [seconds] | reset]`.**
+
 ## Her loot table and tags
 
 **Her loot table** (`data/dreadpatch/loot_table/entities/dread_queen.json`), the owner's list

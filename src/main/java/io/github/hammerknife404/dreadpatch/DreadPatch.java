@@ -91,6 +91,7 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.world.DreadlandsMusic.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadlandsUndead.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadwoodSaplings.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.Escalation.register(modBus, NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {

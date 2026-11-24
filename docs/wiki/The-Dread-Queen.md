@@ -59,5 +59,10 @@ Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of t
 
 **Armour trims** go on her regalia, Rimefrost dragonscale and dread dragonsteel armour at a smithing table, as on vanilla armour. Worn, a trim sits on vanilla armour's shape over the piece.
 
+## What her defeat stirs
+
+- **Round the Mausoleums:** once a Dread Queen has been defeated in a world (her death by anything but `/kill`, wherever she falls), the Dread rise for good round Ice and Fire's Mausoleums as they do in the Dreadlands on a clear day, and patrols cross there: within 128 blocks of one, in cold and snowy biomes, on snow, ice or dreadstone, never in a village. Everyone is told the first time. Off with `mausoleum_dread` at 0.
+- **The defeat storm:** each defeat brings a dry storm over the cold lands for 30 to 60 seconds, then none for 6 real hours (`defeat_storm_hours`), whoever defeats her: out under the sky in a cold or snowy biome (or anywhere, with `defeat_storm_cold_only` off), an ash-grey fog closes in to about 48 blocks, rime blows along the ground, the Dreadlands' wind moans and its ice cracks, and a mild Rimefrost (10% slower) settles on you. No snow falls, nothing is hurt, frozen or raised, and sleeping doesn't end it. Get under a roof and it lifts; her full regalia keeps the Rimefrost off, and her crown the fog.
+
 ---
 *Kept in step with the mod's [README](https://github.com/hammerknife404/dread-patch#readme); edits go in `docs/wiki/` in the repository.*
