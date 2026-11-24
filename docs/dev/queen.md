@@ -1,0 +1,218 @@
+# The Dread Queen
+
+Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the rules and the index.
+
+## The queen
+
+**`entity/DreadQueen`**, our subclass:
+- **Animation:** it ticks her animations.
+- **Rising** (`ANIMATION_SPAWN` ticks 0–29):
+  - `isImmobile()` is true, so there's no AI step;
+  - she throws ground particles;
+  - Ice and Fire's thrall instead zeroes its velocity at the end of `aiStep`, after its AI has already moved it.
+- **Goals:** `registerGoals` swaps Ice and Fire's `MeleeAttackGoal` for `KeepDistanceGoal`.
+- **Casting:** in `customServerAiStep` (so never while rising), on her target, in sight:
+  - a crown every 15 s within 20 blocks, then her next bolt 1.25 s later to shatter it;
+  - a bolt every 4 s at 3–32 blocks.
+- **Drops:** `getEquipmentDropChance` is 0 for her hands (her loot table drops the sword and staff). It also beats a saved `HandDropChances`.
+
+**Attributes** (in `DreadPatch`):
+- Ice and Fire's `bakeAttributes()` with our health 300, armor 20 and toughness 12.
+- A queen saved before 0.12.0 keeps her saved base values.
+- Vanilla toughness keeps the armor's cut (at most 80%) against bigger hits.
+- Iron's spell damage doesn't bypass armor.
+
+**Registration** (`registry/ModRegistries`): `dread_queen` (0.6 × 1.95, tracking range 10) and the spawn eggs.
+
+**Movement** (`entity/KeepDistanceGoal`, `magic/Spacing`):
+- **Models:** after Iron's `WizardAttackGoal` and Ice and Fire's `DreadLichAIStrifeGoal`. Neither works for her: one needs an `IMagicEntity`, the other a `DreadLichEntity`.
+- **By distance:**
+  - out of sight, or past 16: she closes in;
+  - 9–16: she circles;
+  - under 9: she gives ground;
+  - under 5: she breaks away, once every 3 s. That's Barrow-Step if it's off its 12 s cooldown, else on foot (`DefaultRandomPos.getPosAway`).
+- **Barrow-Step's spot is her own search** (`DreadQueen.barrowStep`):
+  - 16 tries, 10–15 blocks away, within ±45°, then ±90°;
+  - dropped to the ground, ≥ 9 blocks from her target, on sturdy, dry ground with room for her;
+  - `getPosAway` found nothing often enough on the test platform that she ran instead.
+- Her sword swings at whoever is in reach.
+
+**Withering Rime** (`effect/WitheringRimeEffect`, `effect/DreadEvents`):
+- **What it does:**
+  - withers 1 through armor every 20 ticks;
+  - builds freezing faster than the body thaws;
+  - cancels all healing (`LivingHealEvent`).
+- **Who refuses it:** the Dread (`IDreadMob`), through `MobEffectEvent.Applicable`.
+- **The siphon** (`effect/RimeSiphon`):
+  - `MobEffectEvent.Added` records who laid each victim's rime. Every place we apply it passes a source, and the last to lay it owns it.
+  - Each withering tick of a `DreadQueen`'s that takes health heals her by difficulty, within 32 blocks.
+  - A withering hit inside the victim's `invulnerableTime` after a bigger hit takes nothing and feeds nothing.
+- **The cap** (`magic/DreadDamage`): the share-of-max-health part of her damage, capped at 20.
+
+**Rimewalk** (`entity/Rimewalk`), run from her `aiStep` on the server every tick (so NoAI queens too):
+- **Base:** vanilla Frost Walker II's `replace_disk`:
+  - radius 4, on the layer under her feet;
+  - still water with air above, and `isUnobstructed`;
+  - `setBlockAndUpdate` to frosted ice, with a `BLOCK_PLACE` game event.
+- **Unlike the enchantment:**
+  - aged frosted ice in her disk is set back to age 0;
+  - in water, the layer is the top water block in her column, so the surface freezes round her and she climbs out.
+- **Pathing:** her `PathType.WATER` and `WATER_BORDER` malus are 0. With Ice and Fire's `FloatGoal`, her paths run along the surface, and she walks them on the new ice.
+- **Griefing:** not gated on `mobGriefing` (Frost Walker isn't either).
+- **Shared:** `Rimewalk.canFreeze` is also used by the storm.
+
+**Frosted ice**, vanilla's:
+- **Melting:** `onPlace` schedules a tick 60–120 out. In light above 11 − age it ages every 20–40 ticks, and turns to water at age 3. It never melts in the dark.
+- **Its `neighborChanged` melts it outright** when a neighbouring frosted ice block changes and it has fewer than 2 frosted neighbours.
+
+## Her court and lich
+
+**The court** (`entity/DreadCourt`, `magic/CourtRules`)
+- **Waves:**
+  - every 20 s with a target, up to 3 at a time;
+  - weighted thrall 3 : ghoul 2 : knight 1 : scuttler 1;
+  - up to 6 standing at once;
+  - on solid ground 2–5 blocks off.
+- **Spawning:** through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn. She commands them (`CommanderUUID`).
+- **Targets:** Ice and Fire only syncs targets for a lich's minions, so every second she hands hers her target.
+- **Ground spot:** Iron's `moveToRelativeGroundLevel` returns a point a hair under the surface (199.996 on a block top at 200). Lift it before checking the block below.
+
+**Beater's Decree** (every 15 s)
+- The member pressing an enemy closest (within 2.5 blocks) is consumed: discarded, with no loot.
+- The burst does 2 + 12% (at most 20) and 4.5 s of rime within 3 blocks.
+- Her court within 8 blocks frenzies: Speed I and Strength I for 6 s.
+- All Dread are allied (`DreadMobEntity.isAlliedTo`), so her magic never hits her court.
+
+**Her lich**
+- **Timing:**
+  - first at 600 ticks in (her cooldowns tick whenever she can act);
+  - then every 1,800 ticks;
+  - never while one of hers stands (she retries every 20 ticks).
+- **Spawning:** on a court spot, through `EventHooks.finalizeMobSpawn`, with her `CommanderUUID`, so it gets her target.
+- **Not court:** it isn't counted in her court's 6, it's never burnt for the decree, and its minions answer to it, not to her.
+
+**Scuttler climbing** (`entity/ScuttlerClimbing`; 0.41.0)
+- Every `DreadScuttlerEntity` climbs walls as vanilla's spider does, done from outside (Ice and Fire's class):
+  - as it joins a level, its `navigation` (a protected field, set by reflection: `ObfuscationReflectionHelper.findField(Mob.class, "navigation")`; mojmap at runtime) becomes a `WallClimberNavigation`, which heads straight for a target it has no ground path to;
+  - each server tick it's against a wall (`horizontalCollision`; not riding, not NoAI) its upward motion is at least 0.2, a climbing spider's, and its fall distance is reset.
+- Probed: from 6 blocks off a 4-block wall, up and on top by 3 s.
+
+**Scuttler bolts** (`entity/ScuttlerBolts`)
+- Every Ice and Fire `DreadScuttlerEntity` spits a weak bolt: 3 + 4%, and 2 s of rime.
+- At its target 3–12 blocks off, in sight, every 60–80 ticks. The next time is kept in its persistent data.
+- Not while it's rising.
+- It runs from `EntityTickEvent.Post`, since the class is Ice and Fire's.
+
+## Her model and rendering
+
+**`client/DreadQueenModel`**
+- **Origin:** Ice and Fire's unused `ModelDreadQueen` (LGPL-3.0, branch 1.18.2 of AlexModGuy/Ice_and_Fire), rebuilt as a vanilla `HumanoidModel`:
+  - the same boxes and texture offsets;
+  - extras (headware, chestplate, necklace, cloak, sleeves, robe) hanging off the vanilla parts;
+  - an empty `hat`, because `HumanoidModel` requires one.
+- **Her bust** is ours:
+  - two 4×4×3 boxes on the chestplate, tipped forward and splayed, with a gap between them for the pendant;
+  - in the chestplate's armor from rows 39–45 of her texture;
+  - rows 32–38 hold the chestplate's cut-out straps and neckline, so faces taken from there would show holes.
+- **The spawn animation:** Ice and Fire's `DreadBaseModel.animate` + `setRotationAnglesSpawn`, redone on vanilla parts in `client/RisePose`.
+
+**Previewing a model change** before a release: render its quads offline.
+- A throwaway test dumps a baked model's `ModelPart.render` through a recording `VertexConsumer`.
+- A Python script rasterizes the quads with the texture.
+- Otherwise a missing or misnamed part only shows up as a crash when a client loads.
+
+**`client/DreadQueenRenderer`**
+- A `HumanoidMobRenderer`, so held items come with it.
+- Ice and Fire's texture, plus an `EyesLayer` for `_eyes`.
+- `_inactive` and `_injured` aren't used yet.
+
+## Her staff and sword
+
+Both are Ice and Fire's items, changed through default components and events. The components come from `ModifyDefaultComponentsEvent`, so stacks already dropped get them too: a stack stores only changes.
+
+**The staff** (`item/DreadQueenStaff`, `magic/PermafrostConduit`)
+- **Spells:** `irons_spellbooks:spell_container` holds three of her spells (bolt, crown, Summon Court), locked at level 3: `create(3, true, false)`.
+  - That puts them on the spell wheel, not "must equip".
+  - "Must equip" would keep them off the wheel in hand (Iron's `SpellSelectionManager`).
+- **Casting:** `casting_implement`. Iron's casts the selected spell on right-click with any item that has it.
+- **Attributes:** in the main hand, +15% Ice Spell Power, +5% Rimefrost Spell Power (0.51.0) and +10% Cooldown Reduction (`ADD_MULTIPLIED_BASE`).
+- **Locked in:** the spells can't be taken out, because the Inscription Table takes only `SpellBook`s.
+- **The conduit:** on `SpellOnCastEvent` (players only, before the mana is taken):
+  - an Ice spell (or Rimefrost, since 0.51.0), the staff in the main hand, standing on or in `#dreadpatch:permafrost` (`#minecraft:ice`, `#minecraft:snow`, and Ice and Fire's dragon ice and frozen ground);
+  - costs 20% less;
+  - Iron's checks the full cost before the cast.
+
+**Her staff's tooltip (`client/StaffTooltip`, 0.50.0):** with up to three spells Iron's (`ClientPlayerEvents.handleImbuedSpellTooltip`) writes each in full via `TooltipsUtils.formatActiveSpellTooltip`: a blank line, its name, its unique info, cast time, mana, cooldown, with its header inserted after the first blank line; four or more it lists a line each with Shift for the selected one. For her staff only, at `EventPriority.LOWEST`, that block (found by Iron's header key, its length recomputed from the same formatter) becomes a blank line, the header, a line a spell, and a "hold Shift" line; with Shift, each spell's details under its name, indented, no blank lines.
+
+**The sword** (`item/DreadQueenSword`, `magic/RimeCombo`, `effect/BrittleEffect`, `client/SwordGuardPose`)
+- **Attributes:**
+  - attack modifiers on vanilla's base ids (`Item.BASE_ATTACK_DAMAGE_ID`/`_SPEED_ID`), so tooltips add the player's base;
+  - +0.5 `entity_interaction_range`;
+  - `unbreakable`.
+- **Thermodynamic Theft:** on `LivingDamageEvent.Pre` from a `player_attack` or `mob_attack`, sweeps included.
+- **Glass-Rime Shatter:**
+  - counted per wielder, per target: up to 16 targets, each count lapsing 100 ticks after its last strike;
+  - until 0.10.1 it counted strikes in a row, which a Better Combat swing through a crowd reset.
+  - Player strikes count only:
+    - at ≥ 0.9 charge (NeoForge resets the charge after the attack, so it's still readable in `Pre`);
+    - on the swing's own target, recorded in `AttackEntityEvent` (vanilla's sweep hurts others with the same damage type).
+  - A target is chilled if it has Withering Rime or `TicksFrozen` > 0, checked before this strike's rime lands.
+- **The guard:**
+  - **Starting it:** `RightClickItem` starts using the sword, and `LivingEntityUseItemEvent.Start` makes the use last 72,000 ticks (a sword's is 0).
+  - **Not when** the off hand `hasOwnUse`: a use animation, a `BlockItem`, a `ProjectileItem`, an ender pearl, or a casting implement.
+  - **Our own blocking:** the use animation stays `NONE`, so vanilla's `isBlocking` is false. Ours rises 5 ticks after starting (`72000 - remaining`).
+  - **What it stops:** it cancels `#dreadpatch:fire_drinking_guard` from the front, by vanilla's shield test, unless the damage `bypasses_shield`. The tag holds:
+    - `#minecraft:is_fire`;
+    - `#neoforge:is_magic`, with Iron's schools;
+    - optional `iceandfire:dragon_fire`, which Ice and Fire doesn't tag as fire.
+  - **Charging:** a stopped hit sets `dreadpatch:frost_charge` and a glint, and the next full strike shatters at once.
+  - **The pose:** an `IClientItemExtensions`. Ice and Fire registers none for the sword, and a duplicate would throw, so ours is caught and logged.
+
+**Better Combat** (in the owner's pack, and in the dev runs since 2026-11-16)
+- Its server handler restores the attack charge before each target in a swing, and attacks each through `Player.attack`.
+- So each target gets its own `AttackEntityEvent`, as the swing's own target.
+- Its range is `entity_interaction_range` plus the weapon's.
+
+## The queen and her dragon
+
+**Mounting** (`entity/SoulTether`)
+- **When:** a queen spawned as the boss (`DragonAge.spawnsAncient`), or with `WithSyndrigossa:1b`.
+- **On her first server tick:**
+  - she raises a Syndrigossa, before Uranus sends her rise, which is then cleared;
+  - bonds the two (UUIDs saved on each);
+  - and rides it.
+- **Seating:** Syndrigossa seats a `DreadQueenEntity` passenger at `getRiderPosition()` plus her height, instead of shaking her as prey. 0.24.0 left off the height and put her inside the dragon's body, out of reach.
+- **Flying with her aboard:** takeoff, Shatter-Spine, and Ice and Fire's flight checks ignore a queen aboard (`carriesOthers`).
+
+**In the saddle**
+- Her `KeepDistanceGoal` stands down.
+- She casts as on foot.
+- Her court rises on the ground under her (`DreadCourt.findSpot`, searching 64 down).
+- The two share prey every second.
+
+**Getting down**
+- **Forced landing:** at half its health, with her aboard, the dragon is forced down (`doesWantToLand`; flying turned to hovering; no takeoff).
+- **On the ground:** she `leaveSaddle`s, and the dragon is grounded for 200 ticks.
+- **Backstop:** at half her own health, or thrown off in the air, she Barrow-Steps to the ground, or gets Slow Falling if there's nowhere to land.
+- She never remounts.
+
+**The tether, and targets**
+- **Tether:** her Rime siphon and its breath siphon heal half each, while the other lives within 28 blocks.
+- **Dropping bad targets:** each tick, both drop a target they can't attack (a player gone creative, one of the Dread).
+  - A target handed over by the other, or kept from before, isn't rechecked by a target goal.
+  - The owner had Syndrigossa breathing at them in creative.
+
+Drawing her in the saddle: [dragons.md](dragons.md), Riders.
+
+## Her loot table and tags
+
+**Her loot table** (`data/dreadpatch/loot_table/entities/dread_queen.json`), the owner's list
+- **Her sword and staff:** each its own pool under `minecraft:random_chance_with_enchanted_bonus` (looting: 25%, 30% at Looting I, +5% a level; vanilla's wither skeleton skull is the model).
+- **Ink:** one, epic or legendary, at 23 : 10 (the odds of Iron's `great_ink`).
+- **Scroll:** one, through `irons_spellbooks:randomize_spell` at quality 0.5–1, with `"spell_filter": {"spells": [...], "force": true}`.
+  - Every spell of hers is in it (keep it so: CLAUDE.md, Her spells); the lesser ones are in the spire summit chest's too (`chests/spire_summit`, 0.53.0).
+  - Level = 1 + round(quality × (maxLevel − 1)).
+  - The spell itself is picked weighted by rarity.
+- No `killed_by_player` conditions yet.
+
+**Entity type tags:** `#minecraft:undead`, `#minecraft:freeze_immune_entity_types`, and `#c:bosses` (so other mods treat her as a boss).
