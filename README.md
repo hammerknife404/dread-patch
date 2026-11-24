@@ -237,4 +237,4 @@ Dread Patch's server settings (how a summoned court behaves, how long until a sp
 
 ## Credits
 
-Her model is the geometry of Ice and Fire's unused `ModelDreadQueen` (Alexthe666 and contributors, LGPL-3.0). Her textures, name, sword, staff and behavior come from Ice and Fire CE at runtime.
+Her model is the geometry of Ice and Fire's unused `ModelDreadQueen` (Alexthe666 and contributors, LGPL-3.0). Her textures, name, sword, staff and behavior come from Ice and Fire CE at runtime. The Dreadlands' music, "Entombed In Rimefrost", is hammerknife404's own.

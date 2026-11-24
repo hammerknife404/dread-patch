@@ -118,4 +118,6 @@ The design comes from the owner's two chats with another assistant, `proposed_st
   - **the music disc** "Entombed In Rimefrost": "not played too loudly", "only played ambiently in the dreadlands, no other normal music can", for a first arrival, "possibly track to the advancement of arring there"; ours: −17 LUFS (vanilla's −15 to −16.5), vanilla's 10–20 minutes between plays, the advancement "Into the Dreadlands" starting it, the disc from spire summit chests at 10%;
   - **no undead burn in the Dreadlands' sun** (the dump's "Dimension-Wide Daylight Undead Immunity");
   - **bosses keep their sight in Whiteout** (the dump asked to verify that bosses don't drop aggro in the storm; they did; ours: the slow stays);
-  - **the NeoForge floor** lowered from the pack's 21.1.265 to Ice and Fire CE's 21.1.230 (the dump: "avoid unnecessarily locking players to the exact 21.1.265 pack build").
+  - **the NeoForge floor** lowered from the pack's 21.1.265 to Ice and Fire CE's 21.1.230 (the dump: "avoid unnecessarily locking players to the exact 21.1.265 pack build");
+  - **the track is the owner's** ("I am the creator of the music, Generated with my Claude Pro sub account"), so it ships, credited to them in the README;
+  - **`main` held for the beta** (the dump's "Freeze main"; the owner, asked: "hold for the beta"): 0.60.0 (#86) isn't merged.
