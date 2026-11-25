@@ -116,6 +116,10 @@
           "to": "dreadpatch:item/music_disc_entombed_in_rimefrost"
         },
         {
+          "from": "minecraft:item/music_disc_otherside",
+          "to": "dreadpatch:item/music_disc_beneath_the_permafrost"
+        },
+        {
           "from": "minecraft:block/dark_oak_door_top",
           "to": "dreadpatch:block/dreadwood_door_top"
         },

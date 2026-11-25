@@ -56,6 +56,21 @@
           }
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:random_chance",
+          "chance": 0.25
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "dreadpatch:music_disc_beneath_the_permafrost"
+        }
+      ]
     }
   ]
 }

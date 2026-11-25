@@ -24,6 +24,7 @@ The unique, named Rimefrost dragon, risen as the queen's mount; still in progres
 - **Health:** set by difficulty, not by Ice and Fire's dragon health setting: 500 at full strength on Easy, 750 on Normal and 1,000 on Hard. A younger one has the same share of that as an ice dragon her age. Change the difficulty and she keeps the same share of her health.
 - **Growth:** from her spawn egg or `/summon` she's Ice and Fire's random age (1 to 80 days), with an ice dragon's bite and armor for it.
 - **The boss:** as the boss she's ancient, at full strength: 125 days, so on Hard 1,000 health, and in a pack with Ice and Fire's dragon damage at 20, 21 bite and 20 armor.
+- **Her theme's disc:** one Syndrigossa in four leaves the music disc **Beneath the Permafrost** with the heart's haul. It plays a little quieter than other discs.
 - **Her egg:** only the boss, an ancient Syndrigossa, also leaves her **Syndrigossa Egg** with the heart's haul, male or female. It hatches by a Dread rite:
   1. Lay it on top of dreadstone (any of the blocks a Dread Gate's frame takes) by right-clicking.
   2. Let three Whiteout Dominion storms pass over it, start to end; yours or the queen's both count. Each storm must rise with the egg already inside it and run its full course; one cut short, or recast over, doesn't count. You're told how many it has soaked up.

@@ -17,6 +17,8 @@ Patching in the Dread Queen for my own world.
 
 A lean sovereign: 300 health behind 20 armor and 12 toughness (a full netherite set's), with a boss bar and her sword and staff. She has her original model from Ice and Fire, given a woman's figure (a bust in her chestplate's armor, as body mods give female player models), and she rises out of the ground when she spawns.
 
+**Her theme**, "Beneath the Permafrost", plays once for everyone within 96 blocks when she or Syndrigossa spawns, cutting off whatever music was playing. It never starts over or plays twice at once (she spawns with her dragon), and no other music cuts it off. Once it ends, the usual music comes back after the usual wait.
+
 She fights like a necromancer. She keeps her distance, circling at casting range and giving ground when pressed, and saves her sword for whoever still reaches her.
 
 **Withering Rime** is the mark of all her magic. It withers through armor, freezes and stops all healing, and it feeds her: each second it withers anyone she afflicted (by her bolt, her crown's shrapnel, her sword, her Decree or her husk), she heals 1 on Easy, 2 on Normal and 3 on Hard for each of them, while she's within 32 blocks. Her victims lose 1 a second, as under anyone's Withering Rime; a player's Withering Rime feeds no one. No share of anything's max health she takes, from any spell or her sword, is ever more than 20, so a warden or a dragon is a long fight for her too.
@@ -146,6 +148,7 @@ The unique, named Rimefrost dragon, risen as the queen's mount; still in progres
 - **Health:** set by difficulty, not by Ice and Fire's dragon health setting: 500 at full strength on Easy, 750 on Normal and 1,000 on Hard. A younger one has the same share of that as an ice dragon her age. Change the difficulty and she keeps the same share of her health.
 - **Growth:** from her spawn egg or `/summon` she's Ice and Fire's random age (1 to 80 days), with an ice dragon's bite and armor for it.
 - **The boss:** as the boss she's ancient, at full strength: 125 days, so on Hard 1,000 health, and in a pack with Ice and Fire's dragon damage at 20, 21 bite and 20 armor.
+- **Her theme's disc:** one Syndrigossa in four leaves the music disc **Beneath the Permafrost** with the heart's haul. It plays a little quieter than other discs.
 - **Her egg:** only the boss, an ancient Syndrigossa, also leaves her **Syndrigossa Egg** with the heart's haul, male or female. It hatches by a Dread rite:
   1. Lay it on top of dreadstone (any of the blocks a Dread Gate's frame takes) by right-clicking.
   2. Let three Whiteout Dominion storms pass over it, start to end; yours or the queen's both count. Each storm must rise with the egg already inside it and run its full course; one cut short, or recast over, doesn't count. You're told how many it has soaked up.
@@ -269,4 +272,4 @@ Dread Patch's server settings (how a summoned court behaves, how long until a sp
 
 ## Credits
 
-Her model is the geometry of Ice and Fire's unused `ModelDreadQueen` (Alexthe666 and contributors, LGPL-3.0). Her textures, name, sword, staff and behavior come from Ice and Fire CE at runtime. The Dreadlands' music, "Entombed In Rimefrost", is hammerknife404's own.
+Her model is the geometry of Ice and Fire's unused `ModelDreadQueen` (Alexthe666 and contributors, LGPL-3.0). Her textures, name, sword, staff and behavior come from Ice and Fire CE at runtime. The Dreadlands' music, "Entombed In Rimefrost", and her theme, "Beneath the Permafrost", are hammerknife404's own.
