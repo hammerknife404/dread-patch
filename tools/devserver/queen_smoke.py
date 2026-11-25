@@ -1497,6 +1497,10 @@ def main():
             record("water's sealed in its ice", water > 0, f"{water} water blocks at 14-28")
             heaved = chasma_share(lambda t: 33 <= t <= 40)
             record("slabs are heaved up at its cracks", heaved > 0, f"{heaved:.1%} of columns at 33-40")
+            # The world's floor (0.69.0, the owner: bedrock "at least 1 layer thick throughout the entire dimension"):
+            # no cave, crack or trench opens it, here where they're thickest.
+            bedrock = chasma_count("minecraft:bedrock", -64, -64)
+            record("the Dreadlands' floor is bedrock throughout", bedrock == 64 * 64, f"{bedrock} of {64 * 64} at -64")
             rcon.run(dl + "run forceload remove all")
     else:
         record("the Rime Chasma is found far out", False, "locate found none")

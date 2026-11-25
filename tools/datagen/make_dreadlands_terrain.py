@@ -12,7 +12,7 @@ blocks. Deterministic; tune the numbers here and re-run rather than editing the 
 - Rime Chasma (0.68.0, the owner's two pictures; "No canyon walls. The floor is flat as shown with the hexegonal
   ridges and shattered deep cracks and ravines"): in the basins where the chasma noise (ridges) passes 0.35, the
   ground eases down gentle slopes to a flat floor at FLOOR_Y, an ice sheet (packed ice and blue ice in bands, its top
-  clear blue ice or snow plates). Polygonal plates (dreadpatch:cell_edges) with ridges a block or two high along their
+  clear blue ice or snow plates). Hexagonal plates (dreadpatch:cell_edges, hex, since 0.69.0) with ridges a block or two high along their
   edges; where the fissures noise says so an edge is a crack instead, and on wider cells trenches (pinching shut into
   snow bridges). Cracks reach CRACK_MIN below the floor at least ("almost always deep enough to cause fall damage"),
   mostly 10-30, and now and then to bedrock ("Rarely").
@@ -32,6 +32,7 @@ ICE_SHEET = 16        # how deep its ice goes
 CELL = 80.0           # a trench cell's size (blocks)
 FISSURE_CELL = 18.0   # a plate's size
 RIDGE_WIDTH = 1.2     # a ridge is the blocks this near a plate's edge
+HEX_JITTER = 0.3      # how far a plate's point strays from its hexagonal lattice (of a plate); 0.9 before 0.69.0
 CRACK_MIN = 6         # every crack at least this deep
 BEDROCK_TOP = -59     # a crack to bedrock stops here (bedrock fades in from -64 to -60)
 
@@ -173,7 +174,8 @@ def main():
     width = add(1.5, mul(2.5, noise("dreadpatch:dreadlands_bridges")))  # half-width: up to about 4
     trench = {"type": "minecraft:cache_2d", "argument": mul(on_floor, clamp(add(width, mul(-1.0, cells)), 0.0, 1.0))}
     trench_carve = carve(trench, bottom)
-    plates = {"type": "dreadpatch:cell_edges", "noise": "dreadpatch:dreadlands_cells", "size": FISSURE_CELL, "jitter": 0.9}
+    # Hexagons (0.69.0, the owner: "not nearly as sharply defined as a hexagon"): a hexagonal lattice, jittered a little.
+    plates = {"type": "dreadpatch:cell_edges", "noise": "dreadpatch:dreadlands_cells", "size": FISSURE_CELL, "jitter": HEX_JITTER, "hex": True}
     cracked = clamp(mul(3.0, add(-0.1, noise("dreadpatch:dreadlands_fissures"))), 0.0, 1.0)  # an edge is a crack here (about a third)
     crack_width = add(0.7, mul(0.6, clamp(noise("dreadpatch:dreadlands_bridges"), 0.0, 1.0)))  # 1-2 blocks across
     fissure = {"type": "minecraft:cache_2d", "argument": mul(on_floor, mul(clamp(add(crack_width, mul(-1.0, plates)), 0.0, 1.0), cracked))}
@@ -187,6 +189,9 @@ def main():
     ground = {"type": "minecraft:max", "argument1": minimum({"type": "minecraft:interpolated", "argument": minimum(terrain, caves)},
                                                              noodle), "argument2": ridges}
     final = minimum(ground, minimum(trench_carve, fissure_carve))
+    # The world's floor solid whatever's carved (0.69.0, the owner: "Make sure Bedrock is at least 1 layer thick
+    # throughout the entire dimension"): -64 and -63 never air, so the surface rule's bedrock is always there at -64.
+    final = {"type": "minecraft:max", "argument1": final, "argument2": grad(-64, -61, 3.0, -3.0)}
 
     path = DATA / "worldgen/noise_settings/dreadlands.json"
     settings = json.loads(path.read_text())

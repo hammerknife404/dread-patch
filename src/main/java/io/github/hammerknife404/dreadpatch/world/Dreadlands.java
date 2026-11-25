@@ -46,6 +46,9 @@ import java.util.List;
 public final class Dreadlands {
     public static final ResourceKey<Level> LEVEL = ResourceKey.create(Registries.DIMENSION, DreadPatch.id("dreadlands"));
     public static final TagKey<Structure> SPIRES = TagKey.create(Registries.STRUCTURE, DreadPatch.id("spires"));
+    /** Its biomes but the plains (0.66.0). */
+    public static final ResourceKey<net.minecraft.world.level.biome.Biome> RIME_CHASMA = ResourceKey.create(Registries.BIOME, DreadPatch.id("rime_chasma"));
+    public static final ResourceKey<net.minecraft.world.level.biome.Biome> SASTRUGI_WASTES = ResourceKey.create(Registries.BIOME, DreadPatch.id("sastrugi_wastes"));
     /**
      * Its dread phantoms (the owner: 1-2 at a time, at a low rate, not tied to sleep): every 30 s, a
      * player under open sky has a one-in-8 chance of 1-2 (about one flight every 4 minutes), one in 3

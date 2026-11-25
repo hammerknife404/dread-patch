@@ -5,6 +5,11 @@ import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.magic.SoundRules;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.client.sounds.ChannelAccess;
+import net.minecraft.client.sounds.SoundEngine;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.sounds.SoundSource;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
@@ -18,6 +23,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 /**
  * OpenAL low-pass filters on sounds as they start (0.64.0, the owner):
@@ -26,11 +32,12 @@ import java.lang.reflect.Field;
  * the dread phantoms' layer) loses a little of its highs ({@link SoundRules#OUR_HIGHS});</li>
  * <li>"Dread weather severity should muffle sounds around the player faster the further the source is away":
  * in the Dreadlands' snow and storms, a whiteout, a Whiteout Dominion or the defeat storm, every sound placed in
- * the world (not one heard all round, like music) is quieter and duller the further off it is, the more so the
- * worse the weather ({@link SoundRules#muffle}).</li>
+ * the world is quieter and duller the further off it is, the more so the worse the weather ({@link SoundRules#muffle});
+ * and (0.69.0) music, jukeboxes and note blocks too, as though at least {@link SoundRules#MUSIC_AT} off.</li>
  * </ul>
  * Through OpenAL's EFX (OpenAL Soft, which Minecraft ships, has it); with no EFX, nothing. A source is reused,
- * so each start sets its filter, or clears it.
+ * so each start sets its filter, or clears it. Every {@link #RECHECK} ticks (0.69.0; until then only at its start)
+ * each sound still playing is set again, so a song or a long sound follows the weather as it comes and goes.
  */
 public final class SoundFilters {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -38,6 +45,12 @@ public final class SoundFilters {
     private static long context;
     private static int filter;
     private static boolean efx;
+    /** How often playing sounds are set again: ticks. */
+    private static final int RECHECK = 10;
+    private static Field channelsField;
+    private static int ticks;
+    /** Off if reaching the sound engine's playing sounds failed: then each is set only at its start, as before. */
+    private static boolean following = true;
 
     private SoundFilters() {
     }
@@ -45,6 +58,7 @@ public final class SoundFilters {
     public static void register(IEventBus gameBus) {
         gameBus.addListener(PlaySoundSourceEvent.class, SoundFilters::onStart);
         gameBus.addListener(PlayStreamingSourceEvent.class, SoundFilters::onStart);
+        gameBus.addListener(ClientTickEvent.Post.class, SoundFilters::onTick);
     }
 
     /** How bad the Dread's weather is round the camera now: 0 none to 1 a whiteout. */
@@ -53,22 +67,56 @@ public final class SoundFilters {
     }
 
     private static void onStart(SoundEvent.SoundSourceEvent event) {
+        apply(event.getSound(), event.getChannel(), severity(), Minecraft.getInstance().gameRenderer.getMainCamera().getPosition());
+    }
+
+    /** Every playing sound set again for the weather now: on the sound thread, as each start is. */
+    private static void onTick(ClientTickEvent.Post event) {
+        if (++ticks % RECHECK != 0 || context == -1L || !following) {
+            return;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        try {
+            if (channelsField == null) {
+                channelsField = ObfuscationReflectionHelper.findField(SoundEngine.class, "instanceToChannel");
+            }
+            SoundEngine engine = ObfuscationReflectionHelper.getPrivateValue(SoundManager.class, minecraft.getSoundManager(), "soundEngine");
+            @SuppressWarnings("unchecked")
+            Map<SoundInstance, ChannelAccess.ChannelHandle> channels = (Map<SoundInstance, ChannelAccess.ChannelHandle>) channelsField.get(engine);
+            float severity = severity();
+            Vec3 ear = minecraft.gameRenderer.getMainCamera().getPosition();
+            for (Map.Entry<SoundInstance, ChannelAccess.ChannelHandle> entry : channels.entrySet()) {
+                SoundInstance sound = entry.getKey();
+                if (!entry.getValue().isStopped()) {
+                    entry.getValue().execute(channel -> apply(sound, channel, severity, ear));
+                }
+            }
+        } catch (Exception | LinkageError e) {
+            LOGGER.warn("Dread Patch's sound filters won't follow the weather: {}", e.toString());
+            following = false;
+        }
+    }
+
+    /** Music, a jukebox's record or a note block (vanilla's records source has both). */
+    private static boolean music(SoundInstance sound) {
+        return sound.getSource() == SoundSource.MUSIC || sound.getSource() == SoundSource.RECORDS;
+    }
+
+    private static void apply(SoundInstance sound, Channel channel, float severity, Vec3 ear) {
         try {
             if (!ready()) {
                 return;
             }
-            SoundInstance sound = event.getSound();
             float gain = 1.0F;
             float highs = DreadPatch.MODID.equals(sound.getLocation().getNamespace()) ? SoundRules.OUR_HIGHS : 1.0F;
-            float severity = severity();
-            Minecraft minecraft = Minecraft.getInstance();
-            if (severity > 0.0F && !sound.isRelative() && sound.getAttenuation() == SoundInstance.Attenuation.LINEAR) {
-                Vec3 ear = minecraft.gameRenderer.getMainCamera().getPosition();
-                float muffle = SoundRules.muffle(severity, ear.distanceTo(new Vec3(sound.getX(), sound.getY(), sound.getZ())));
+            boolean placed = !sound.isRelative() && sound.getAttenuation() == SoundInstance.Attenuation.LINEAR;
+            if (severity > 0.0F && (placed || music(sound))) {
+                double distance = placed ? ear.distanceTo(new Vec3(sound.getX(), sound.getY(), sound.getZ())) : 0.0;
+                float muffle = SoundRules.muffle(severity, SoundRules.heardAt(music(sound), distance));
                 gain *= muffle;
                 highs *= muffle;
             }
-            int source = sourceField.getInt(event.getChannel());
+            int source = sourceField.getInt(channel);
             if (gain >= 0.999F && highs >= 0.999F) {
                 AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, EXTEfx.AL_FILTER_NULL);
                 return;

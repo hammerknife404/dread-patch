@@ -40,9 +40,6 @@ import java.util.Random;
  * sealed in its ice ({@link DreadTerrain.ChasmaPocket}), searched for column by column under the floor.
  */
 public final class RisenSpawns {
-    private static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.biome.Biome> RIME_CHASMA = net.minecraft.resources.ResourceKey.create(
-            net.minecraft.core.registries.Registries.BIOME, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("dreadpatch", "rime_chasma"));
-
     private RisenSpawns() {
     }
 
@@ -64,7 +61,7 @@ public final class RisenSpawns {
             Random roll = new Random(random.nextLong());
             boolean phantom = DreadlandsSpawning.comesUp(DreadPatchConfig.cavePhantomOneIn(), roll);
             boolean water = DreadlandsSpawning.comesUp(DreadPatchConfig.caveWaterOneIn(), roll);
-            boolean pocket = Dreadlands.is(level) && level.getBiome(player.blockPosition()).is(RIME_CHASMA)
+            boolean pocket = Dreadlands.is(level) && level.getBiome(player.blockPosition()).is(Dreadlands.RIME_CHASMA)
                     && DreadlandsSpawning.comesUp(DreadPatchConfig.chasmaWaterOneIn(), roll);
             if (!phantom && !water && !pocket || level.getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(DreadlandsSpawning.CAP_RANGE),
                     mob -> mob instanceof MiniatureDreadPhantom || RisenDread.is(mob)).size() >= RisenRules.CAVE_CAP) {

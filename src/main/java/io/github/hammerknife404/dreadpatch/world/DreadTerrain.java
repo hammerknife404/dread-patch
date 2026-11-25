@@ -55,24 +55,28 @@ public final class DreadTerrain {
     /**
      * Distance (blocks) from a column to the nearest edge of a jittered cell pattern, {@code size} blocks a cell:
      * half the gap between its two nearest cell points' distances ({@link TerrainRules#edgeDistance}). Each cell's
-     * point is jittered by {@code noise} sampled at the cell, so it's the world seed's.
+     * point is jittered by {@code noise} sampled at the cell, so it's the world seed's. With {@code hex} (0.69.0) the
+     * points sit on a hexagonal lattice ({@link TerrainRules#hexEdgeDistance}), so the cells are hexagons.
      */
-    public record CellEdges(DensityFunction.NoiseHolder noise, double size, double jitter) implements DensityFunction.SimpleFunction {
+    public record CellEdges(DensityFunction.NoiseHolder noise, double size, double jitter, boolean hex) implements DensityFunction.SimpleFunction {
         public static final KeyDispatchDataCodec<CellEdges> CODEC = KeyDispatchDataCodec.of(RecordCodecBuilder.mapCodec(instance -> instance.group(
                 DensityFunction.NoiseHolder.CODEC.fieldOf("noise").forGetter(CellEdges::noise),
                 Codec.doubleRange(1.0, 4096.0).fieldOf("size").forGetter(CellEdges::size),
-                Codec.doubleRange(0.0, 1.0).fieldOf("jitter").forGetter(CellEdges::jitter)).apply(instance, CellEdges::new)));
+                Codec.doubleRange(0.0, 1.0).fieldOf("jitter").forGetter(CellEdges::jitter),
+                Codec.BOOL.optionalFieldOf("hex", false).forGetter(CellEdges::hex)).apply(instance, CellEdges::new)));
 
         @Override
         public double compute(FunctionContext context) {
-            return TerrainRules.edgeDistance(context.blockX() / this.size, context.blockZ() / this.size, this.jitter,
-                    // A noise sampled at scattered points stays small (about ±0.3): tripled, so the cells are irregular polygons, not a grid.
-                    (cx, cz, axis) -> 3.0 * this.noise.getValue(cx * 17.31 + axis * 101.7, axis * 53.9, cz * 11.73 - axis * 37.3)) * this.size;
+            // A noise sampled at scattered points stays small (about ±0.3): tripled, so the cells are irregular polygons, not a grid.
+            TerrainRules.Jitter at = (cx, cz, axis) -> 3.0 * this.noise.getValue(cx * 17.31 + axis * 101.7, axis * 53.9, cz * 11.73 - axis * 37.3);
+            double x = context.blockX() / this.size;
+            double z = context.blockZ() / this.size;
+            return (this.hex ? TerrainRules.hexEdgeDistance(x, z, this.jitter, at) : TerrainRules.edgeDistance(x, z, this.jitter, at)) * this.size;
         }
 
         @Override
         public DensityFunction mapAll(Visitor visitor) {
-            return visitor.apply(new CellEdges(visitor.visitNoise(this.noise), this.size, this.jitter));
+            return visitor.apply(new CellEdges(visitor.visitNoise(this.noise), this.size, this.jitter, this.hex));
         }
 
         @Override
