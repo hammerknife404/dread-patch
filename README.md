@@ -4,13 +4,12 @@ Patching in the Dread Queen for my own world.
 
 [Ice and Fire: Community Edition](https://modrinth.com/mod/iceandfire-ce) ships a Dread Queen (her class, textures, name, sword and staff) but never puts her in the game. This NeoForge mod finishes her, and gives her the Rimefrost, undead frost dragons of the Dread, among them her own: Syndrigossa.
 
-**Requires:** Minecraft 1.21.1, NeoForge 21.1.265+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
+**Requires:** Minecraft 1.21.1, NeoForge 21.1.230+, Ice and Fire CE 2.1-beta.1+ (with Uranus, Jupiter and GeckoLib, which it requires anyway), and Iron's Spells 'n Spellbooks 3.x for 1.21.1.
 
 **Status:** in development. In the wild she's met only atop the Dreadlands' spires.
 
 ## Calling her
 
-- **A Dread Gate** (below), with a Gravemaster's Key.
 - **Spawn eggs**, in the Spawn Eggs tab: the Dread Queen; the Dread Queen and Syndrigossa (her riding it, as the boss); Syndrigossa; an Ancient Syndrigossa; a Rimefrost Dragon; and a Dread Phantom.
 - **Commands:** `/summon dreadpatch:dread_queen`, `/summon dreadpatch:dread_queen ~ ~ ~ {WithSyndrigossa:1b}` (riding her dragon), `/summon dreadpatch:syndrigossa`, and `/summon dreadpatch:syndrigossa ~ ~ ~ {Ancient:1b}` (full strength).
 
@@ -34,10 +33,10 @@ Her abilities:
 - **Create Rimefrost Dragon:** in a fight, once she's lost a quarter of her health, she raises the corpse of an ice dragon within 32 blocks as a Rimefrost dragon of hers, at most every 3 minutes and one at a time. It rises with half the health she's lost, and fights what she fights.
 - **Dread phantoms:** 15 seconds into a fight, and every 45 seconds after, she calls one or two dread phantoms out of the air (below), never more than four of hers at once.
 - **Whiteout Dominion:** every two minutes in a fight she calls down a blizzard 32 blocks round over the ground where she stands. It lasts 45 seconds and stays where it was raised; she ends it if she falls.
-  - Inside it her enemies are slowed by a fifth, can't see past about 10 blocks through the snow-fog (mobs lose sight of anything past half their usual range), and take a point of freezing damage every 3 seconds. From outside it shows as a wall of driven snow standing on the land.
+  - Inside it her enemies are slowed by a fifth, can't see past about 10 blocks through the snow-fog (mobs lose sight of anything past half their usual range, though a boss keeps its sight and is only slowed), and take a point of freezing damage every 3 seconds. Its cold puts out any fire inside it, hers too. From outside it shows as a wall of driven snow standing on the land.
   - Snow drifts over the ground under it and melts away as it clears. It's only drawn, so it never stays behind.
   - Its still water freezes over in patches as the snow drifts in, so a lake under it is ice to walk on. The ice holds while the storm stands and thaws as it clears. If the storm's chunks unload first, what's left melts in daylight like Frost Walker's.
-  - Whatever dies in her storm rises where it fell as a dread mob of her court, up to 8 a storm: a thrall in its gear from a player or anything that stands upright (a villager, a skeleton, a creeper, an enderman), a ghoul from a zombie, a scuttler from a spider, a dread horse from a horse, and a dread beast its size from an animal or anything else. Golems stay dead.
+  - Whatever dies in her storm rises where it fell as a dread mob of her court, up to 8 a storm: a thrall in its gear from a player or anything that stands upright (a villager, a skeleton, a creeper, an enderman), a ghoul from a zombie, a scuttler from a spider, a dread horse from a horse, a miniature dread phantom from a bat or a parrot, the creature itself turned Dread from anything that lives in water (below, Dread phantoms), and a dread beast its size from an animal or anything else. Golems stay dead. A thrall's armour looks as it did on the dead (a guard's iron, a player's diamond); only chainmail, which Ice and Fire's own thralls wear, takes their ragged look. What the dead carried still drops where they fell, as their own.
 
 ### Riding Syndrigossa
 
@@ -60,32 +59,42 @@ Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of t
 - **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It never breaks.
 - **Each piece:** +150 max mana, 5% off the mana Ice and Rimefrost spells cost, 5% more Rimefrost damage dealt, and 5% less Rimefrost damage taken (Rimefrost spells, the Rimefrost dragons' breath and Shatter-Spine, Whiteout's cold, and Withering Rime's withering, counted as dealt by whoever laid the rime). The whole set: a fifth more dealt, a fifth less taken.
 - **The whole set:** you can't freeze (powder snow, Withering Rime's chill and freezing damage don't touch you), the Dreadlands' weather slows you a step less (a heavy snowstorm as plain snow, plain snow not at all), and the Dread leave you be: they won't come for you unless you hurt them first, and then only that one, for half a minute. The queen herself, Syndrigossa and anything they command still do.
-- **Her crown's sight:** the Dreadlands' storm fog doesn't close in on whoever wears her crown (snow or heavy snowstorm), and in any whiteout, the weather or a Whiteout Dominion's, they see 75% further.
+- **Her crown's sight:** the Dreadlands' storm fog doesn't close in on whoever wears her crown (snow or heavy snowstorm), and in any whiteout, the weather or a Whiteout Dominion's, they see 75% further, and a Whiteout Dominion's driven snow is that much thinner to them.
 - **Collecting it:** each queen you kill drops a piece you don't have yet, so four kills complete the set. Looting gives a 10% chance a level of a second missing piece. Once you have the set, she drops a random piece one time in four (5% more a Looting level).
 - **Advancements** keep count: one for slaying her, one for each piece you've held, and one for the whole set. A piece counts as yours once it's been in your inventory.
 - **There Must Always Be a Dread Queen:** wear all four pieces with her blade and her staff in your hands.
 
 **Armour trims** go on her regalia, Rimefrost dragonscale and dread dragonsteel armour at a smithing table, as on vanilla armour. Worn, a trim sits on vanilla armour's shape over the piece.
 
+### What her defeat stirs
+
+- **Round the Mausoleums:** once a Dread Queen has been defeated in a world (her death by anything but `/kill`, wherever she falls), the Dread rise for good round Ice and Fire's Mausoleums as they do in the Dreadlands on a clear day, and patrols cross there: within 128 blocks of one, in cold and snowy biomes, on snow, ice or dreadstone, never in a village. Everyone is told the first time. Off with `mausoleum_dread` at 0.
+- **The defeat storm:** each defeat brings a dry storm over the cold lands for 30 to 60 seconds, then none for 6 real hours (`defeat_storm_hours`), whoever defeats her: out under the sky in a cold or snowy biome (or anywhere, with `defeat_storm_cold_only` off), an ash-grey fog closes in to about 48 blocks, rime blows along the ground, the Dreadlands' wind moans and its ice cracks, and a mild Rimefrost (10% slower) settles on you. No snow falls, nothing is hurt, frozen or raised, and sleeping doesn't end it. Get under a roof and it lifts; her full regalia keeps the Rimefrost off, and her crown the fog.
+
 ## The Dread Gate and the Gravemaster's Key
 
 1. Build a frame of Ice and Fire's dreadstone (any of its stone, bricks, tiles or chiseled skulls) round an opening 2 to 21 blocks wide and 3 to 21 tall, as a Nether portal's can be. The corners can be left out.
 2. Right-click the frame with a **Gravemaster's Key**, Ice and Fire's Mausoleum key, which the gate uses up.
-3. The opening fills with a dark, cold-fire gate, and 10 seconds later the Dread Queen comes through. The gate shatters, leaving its frame for another key.
-4. **Or step into it** before she comes, and it takes you to **the Dreadlands** (below) instead. She doesn't come, and the gate stays open 15 to 30 seconds more for anyone to follow you, flickering faster and faster over its last 5 seconds before it closes.
+3. The opening fills with a dark, cold-fire gate: a way to **the Dreadlands** (below). Step into it and it takes you there. Anyone who follows through the same gate arrives where you did.
+4. It stays open until its frame is broken. Nothing comes through it, and over the minutes it's open, snow drifts up round its foot, up to three layers deep beside it and thinning out to a single layer 3 to 4 blocks out.
 
-Where there's room for her dragon in front of the gate, she comes as the full boss, riding an ancient Syndrigossa. Where there isn't, she rises out of the gate on foot.
-
-- **In a Mausoleum:** every Mausoleum already has four gates. The arches of the shrine round the ice dragon forge in its far hall are dreadstone frames 3 wide and 6 tall. Its hall is too low for her dragon, so there she comes on foot.
-- **Breaking the frame** while it's open collapses the gate, and the key is lost.
-- **On Peaceful** the gate still opens, as a way to the Dreadlands, but the queen doesn't come through.
+- **In a Mausoleum:** every Mausoleum already has four gates. The arches of the shrine round the ice dragon forge in its far hall are dreadstone frames 3 wide and 6 tall.
+- **Breaking the frame** closes the gate, and the key is lost.
 
 The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now be crafted: three Dread Shards, a Bone and two Gold Ingots in the shape of a key (shards and bone across the top, a shard below, the gold at the bottom right). The recipe unlocks when you pick up a dread shard.
 
 ## The Dreadlands
 
-A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, frozen lakes in the hollows, under a grey sky with snow drifting and the wind moaning, ice cracking somewhere out on the waste, something rumbling deep below, and now and then, far off and never from the same quarter twice, a dragon's roar. Its day, night and weather are the overworld's.
+A dimension of bleak frozen waste: gently rolling snowfields, carved here and there by the wind into fields of long drifts like dunes, over packed and blue ice, black dreadstone breaking through here and there, under a grey sky with snow drifting and the wind moaning, ice cracking somewhere out on the waste, something rumbling deep below, and now and then, far off and never from the same quarter twice, a dragon's roar. Its day, night and weather are the overworld's.
 
+- **Its lands:** three kinds, side by side.
+  - **The plains:** the snowfields above.
+  - **The Sastrugi Wastes:** a sunken, dry seabed about 20 blocks lower, its tall smooth dunes making blind valleys, reached down long shelves or sheer bluffs of packed ice and dreadstone. A gale blows across them, driving snow past even in clear weather, and harder in their storms. Spires rise there too.
+  - **The Rime Chasma:** a frozen lakebed sunk well below the wastes, reached down gentle slopes. Its floor is a flat sheet of ice, clear blue in places and snow-covered in others, broken into hexagonal plates outlined by low ridges of snow. A faint haze hangs over it in any weather. Some plate edges have split into cracks too deep to fall into safely, and wider ravines cut through it, pinching shut here and there into snow bridges. Now and then one drops all the way to bedrock. Slabs of ice lie heaved up at the cracks' edges, and pockets of water are sealed in the ice beneath, where Dread water creatures stir.
+  - **Below:** caves run down to bedrock (a floor of it everywhere, never holed) through stone, dreadstone and packed ice, and very rarely a pocket of lava lies sealed in a crust of ice, basalt, dreadstone and obsidian. Nothing floods: the basins stay dry.
+  - **The sky:** dim. However high the sun, the open ground looks no brighter than light 6, and the sun itself burns small, pale and cyan. Torches and lanterns still light as they do. Only how it's drawn changes; with a shader pack on, the pack's own sky likely shows instead.
+  - **Grave patches:** here and there on the plains, a patch of graveyard soil with a wither rose or three, and now and then a dead dreadwood tree, a stub of a branch and a leaf or two at most, the only dreadwood growing wild.
+  - Ground generated before this keeps its old shape, so a seam can show where old meets new.
 - **The Dread walk there:** Ice and Fire's thralls, ghouls, knights and scuttlers rise out of the snow in ones, twos and threes, by day and by night, 24 to 48 blocks off: now and then in clear weather, more often while it snows, and a little more often again in a heavy snowstorm (thunder). No more than 8 of them gather round any one player.
 - **Patrols:** now and then a small Dread patrol (a dread knight on foot leading two to four more) crosses the waste, its first leg passing by you, then on from waypoint to waypoint. They fight what they meet, then walk on; if their knight falls, another leads.
 
@@ -93,15 +102,22 @@ A dimension of bleak frozen waste: gently rolling snowfields, carved here and th
 - **Whiteout storms:** about one storm in six (never two in a row) is a Whiteout Dominion, like the Dread Queen's own storm across the whole land: out under the open sky the fog closes in to 10 blocks, the wind howls and the snow drives past, you're slowed further, and the cold does half a heart of damage every 3 seconds unless you can't freeze (leather, her full regalia). Get under a roof. It never starts while a Dread Queen is about there, and if she comes during one, it breaks into a heavy thunderstorm. How often is a server setting (`whiteout_storms`; 0 for never).
 - **Its lightning:** when the overworld thunders, lightning strikes round you every 20 seconds or so (Minecraft's own never strikes ground that cold). It hurts what it hits, as lightning does, but sets no fire: it leaves a patch of **rimefire**, cold dread fire burning cyan for 30 to 60 seconds. One of the Dread standing in it heals a quarter of a heart a second; anyone else is chilled (Rimefrost), put out, and burned by the cold, half a heart a second. Rimefire is a hazard only: it gives nothing and can't be lit by players. It glows dimly (light 6), too little to melt the snow and ice round it. Rimefrost dragons' breath lights patches of it where it lands (with `mobGriefing` on), and a Withering Rime-Bolt that strikes the ground leaves a few seconds of its embers.
 
-- **Getting there:** step into a Dread Gate during its ritual (above). You arrive near the foot of the nearest spire, 30 to 40 blocks from it, facing it; anyone who follows through the same gate arrives at the same spot.
+- **Getting there:** step into an open Dread Gate (above). You arrive somewhere random within about 256 blocks of where the gate stands, never on a spire or within 48 blocks of one, on open ground (or, if there's none, lower down); anyone who follows through the same gate arrives at the same spot.
 - **The spires:** rare and tall (64 to 100 blocks), standing far apart on the waste. They're dreadstone and dreadstone bricks over stone at the foot, banded with packed and blue ice, giving way to packed ice and snow, flaring out again near the top to a broad, flat summit (room for Syndrigossa) crowned with ice spikes. A ledge of dreadstone bricks winds up the outside from the ground to the summit.
-- **Summit chests:** half the spires keep a chest on the summit: dread shards, bones, Rimefrost scales, iron, gold, sometimes diamonds or ink, sometimes a Gravemaster's Key (a way home), now and then a scroll of one of her lesser spells, and rarely a Rimefrost Dragonforge Core. Now and then a Dread Lich guards it.
-- **Abandoned villages:** snowy villages overrun by the dead, their houses rebuilt in dreadwood and dreadstone among bare dead trees, lit by dread lanterns and torches burning cyan, zombie villagers still shambling through them. Their chests hold what any village's would.
+- **Summit chests:** half the spires keep a chest on the summit: dread shards, bones, Rimefrost scales, iron, gold, sometimes diamonds or ink, sometimes a Gravemaster's Key (a way home), now and then a scroll of one of her lesser spells, rarely a Rimefrost Dragonforge Core, and now and then the music disc **Entombed In Rimefrost**. Now and then a Dread Lich guards it.
+- **Abandoned villages:** snowy villages overrun by the dead, their houses rebuilt in dreadwood and dreadstone among bare dead trees, lit by dread lanterns and torches burning cyan, zombie villagers still shambling through them. About one in three is kept by a Dread Lich, which raises the dead to guard it. Their chests hold what any village's would.
 - **Lootr:** with Lootr installed, every chest in the Dreadlands (summits and villages) gives each player their own loot.
 - **The Queen and Syndrigossa:** half the spires hold her, and you can tell which from below: a dreadstone dais at the summit's middle, with dread torches burning cyan round it. Reach such a summit and she comes, as the full boss, riding an ancient Syndrigossa out of the air beside it (on foot on the summit, if there's no room for her dragon), and turns on you. Each spire's encounter comes to each player once; it comes to you there again only after 6 real hours (a server setting, `encounter_reset_hours` in `config/dreadpatch-server.toml`), and never while that spire's queen is still about. Anyone who reaches the summit while she's there has met it too. Not on Peaceful.
 - **Her defeat:** when she falls, a Dread Gate rises where she fell, open home for 5 minutes (time to take what she dropped, and her dragon's corpse), fading out over its last seconds. Its frame stays for a key.
-- **Getting home:** beat a spire's queen (above), or build a Dread Gate there and key it. It opens at once (no queen comes), stays open 15 to 30 seconds, and takes whoever steps in back to the gate they came in by (or to the world's spawn). A key takes three dread shards (dread phantoms drop them), a bone and two gold ingots, so bring the gold; the frame takes any dreadstone, the spires' included. Dying sends you to your usual spawn, as anywhere.
+- **Getting home:** beat a spire's queen (above), or build a Dread Gate there and key it. It stays open until its frame is broken, and takes whoever steps in back to the gate they came in by (or to the world's spawn). A key takes three dread shards (dread phantoms drop them), a bone and two gold ingots, so bring the gold; the frame takes any dreadstone, the spires' included. Dying sends you to your usual spawn, as anywhere.
 - **Flames die cold there:** a lantern or torch you place in the Dreadlands fades, a step every 30 to 45 seconds, to its soul kind and then to the Dread's: a **dread lantern** (a soul lantern burning her cyan; break it with a pickaxe to keep it) or a dread torch.
+- **Its music:** "Entombed In Rimefrost", the only music that plays there, and only there, coming now and then as Minecraft's own music does (every 10 to 20 minutes). The first time you arrive (the advancement **Into the Dreadlands**) it starts at once. Its disc (from summit chests) plays it in any jukebox.
+- **The weather muffles:** in its snow and storms (and in any whiteout, or the defeat storm) distant sounds are quieter and duller, the further off the more so, and the worse the weather the more. Music, jukeboxes and note blocks are muffled too, even close by, and every sound follows the weather as it comes and goes. Its own sounds and music are a little softened at the top.
+- **Dread lights:** every dread light, a dread torch, a dread lantern, a Dread Gate's face, rimefire, a lit Rimefrost dragonforge, glows at light 6 at most, too dim to melt snow or ice. A dread torch or lantern is cold, too, anywhere: still water within 2 blocks of it (2 below, 1 above) turns to ice, then packed ice, then blue ice over about a Minecraft day, a third of it each, and sleeping doesn't hurry it (`dread_light_freeze_minutes`).
+- **The sun burns no undead there:** zombies, skeletons and the rest walk its snow by day unharmed, the abandoned villages' zombie villagers among them.
+- **Stray undead:** now and then one or two of Minecraft's own undead (strays mostly, zombies, skeletons, zombie villagers) rise there too, by day or night, never more than 4 round any one player. The Dread fall on them as on anything living.
+- **Dreadwood:** there a dreadwood sapling takes root only in graveyard soil (Ice and Fire's, which raises ghosts at night); on anything else it won't go down, and one already standing elsewhere never grows. Farming isn't easy.
+- **Dreadwood's block set:** stairs, slabs, fences, fence gates, doors, trapdoors, buttons and pressure plates of dreadwood planks, crafted as oak's are. The abandoned villages' wooden ones are dreadwood's.
 - **Beds** explode there, as in the Nether, and respawn anchors don't work.
 - **Dread phantoms** come down out of its sky now and then, one or two at a time, whether or not you've slept: about once every 4 minutes for each player out under the sky, and about every minute and a half near a spire, never while 4 are already about.
 - **All these rates** are server settings (Config, in the mods list, or `config/dreadpatch-server.toml`).
@@ -145,9 +161,12 @@ Phantoms of the Dread: as strong as Minecraft's own phantoms, with a phantom's 2
 
 - **Who calls them:** the Dread Queen, any Dread Lich, and a wild Syndrigossa, each one or two at a time while they have something to fight: the first 15 seconds in, then every 45 seconds, never more than four of their own at once. Players can call them with the Summon Dread Phantoms scroll (below).
 - **What they do:** they circle above whoever called them, take up their fights, and turn on whatever hurts them or the one who called them, diving on it at once. A dive is committed: hitting a diving phantom doesn't turn it aside, as it does a phantom; only its bite or a wall ends the dive. The harder the difficulty, the more often they dive: every 8 to 11 seconds on Easy (a phantom's pace), 6 to 8 on Normal, 4 to 6 on Hard. With no one to answer to, they hunt players as phantoms do. They're of the Dread: allied with the queen and her court, and untouched by Withering Rime, Whiteout and Rimefrost.
+- **Their sounds:** a phantom's, under something ghostlier, all of them quieter than a phantom's (45%).
 - **Their bite:** a phantom's, and one bite in three (35%) leaves 5 seconds of **Rimefrost**, the Dread's cold without the withering (25% slower). One in seven (15%), rolled apart, leaves 3 seconds of Withering Rime, so a bite can leave both.
 - **Their drops:** a dread thrall's (bones and dread shards), and when a player kills one, 1 to 3 phantom membranes and 1 to 3 Rimefrost Dragon Scales, each with up to one more a Looting level. The ones a player calls leave nothing.
 - **Natural spawning:** in the Dreadlands, and only there, one or two at a time, rarely, whether or not you've slept (above).
+- **Miniature dread phantoms:** a bat or a parrot that dies where the Dread raise the dead (the queen's storm) rises as a dread phantom half the size, with 6 health, a weaker bite (2) with the same chances of Rimefrost and Withering Rime, and a higher voice. Now and then one stirs in a dark cave too, in the overworld or the Dreadlands. When a player kills one, it may drop a phantom membrane.
+- **Dread water creatures:** anything that lives in water and dies there rises as itself, turned Dread: frost-grey, twice its health, much faster, and hunting players and whatever the queen hunts, its bite sized by its health (a fish nips, a great beast mauls) with the dread phantom's chances of Rimefrost and Withering Rime. The Dread's rime and storms don't touch it. Now and then one (a glow squid mostly, or a squid, cod or salmon) stirs in underground water too. Both rare (`cave_dread_phantoms`, `cave_dread_water`), but far likelier in the water sealed in the Rime Chasma's ice (`chasma_dread_water`).
 
 ## Rimefrost dragonscale and dread dragonsteel
 
@@ -203,12 +222,13 @@ Her scrolls (from her drops) teach her spells to players. They're **Rimefrost** 
 - **Summon Dread Phantoms** calls two dread phantoms down over you for a minute, on a 90-second cooldown. They circle above you and dive on hostile mobs that attack you or that you attack, under the same rules as Summon Court's court: never the Dread, never friendly mobs, villagers, golems, pets or other players unless the server allows it, and you can't hurt them. They leave nothing behind. Casting it again dismisses the ones you called before.
 - **Create Rimefrost Dragon** raises the corpse of an Ice and Fire ice dragon you look at (within 24 blocks) as a Rimefrost dragon of the same age, gender and colour, tamed to you, to ride and command like any tamed Ice and Fire dragon. It rises with half the health you're missing (rounded down), so the closer you are to death, the stronger it rises; at full health it rises with 1. It costs 500 mana and then every drop you have left. You keep one at a time. Its cooldown is 3 minutes, and within them you can recast it once, for free, to send your dragon back and raise the corpse you're looking at instead; the cooldown still ends 3 minutes after the first cast. Like Iron's own Raise Dead, it can't be cast straight from its scroll: inscribe it in a spellbook.
 - **Barrow-Step** takes you to where you look (11 to 15 blocks, by level) and leaves your own husk behind: rime-glass in your shape and skin.
-- **Whiteout Dominion** (16 to 32 blocks round and 25 to 45 seconds, by level, on a two-minute cooldown) fogs, slows and freezes whoever you'd harm in it, and freezes its water over too, but only hers raises the dead. The Dread walk through anyone's storm untouched.
+- **Whiteout Dominion** (16 to 32 blocks round and 25 to 45 seconds, by level, on a two-minute cooldown) fogs, slows and freezes whoever you'd harm in it (a boss is slowed but keeps its sight, so it won't lose you in the snow), and freezes its water over too, but only hers raises the dead. The Dread walk through anyone's storm untouched.
 
 ## Fixes to Ice and Fire
 
 - **Riding a dragon:** a player steering any Ice and Fire dragon (fire, ice, lightning, or a tamed Rimefrost dragon) is drawn sitting upright in the saddle on its back, moving with it as it walks, flies and pitches. Ice and Fire drew them upside down under the dragon's belly. As before, you don't see yourself in first person. Prey shaken in a dragon's jaws is still drawn as Ice and Fire draws it.
 - **Dragon corpses:** Ice and Fire still counts a dead dragon as alive while its corpse lies, so a mob that was fighting a dragon when it died went on attacking its corpse forever. Now nothing fights a dragon's corpse, any Ice and Fire dragon's, and mobs from other mods that use Minecraft's usual targeting leave it be too. Harvesting a corpse is unchanged.
+- **Dreadwood leaves:** Ice and Fire gives them no loot, so they dropped nothing. Now they drop dreadwood saplings and sticks as oak leaves drop theirs (the leaves themselves with shears or Silk Touch).
 
 ## Commands
 
@@ -219,8 +239,10 @@ For operators and the server console, under `/dreadpatch`:
 | `/dreadpatch weather` | Tells you the Dreadlands' weather: clear, snow, a heavy snowstorm or a whiteout. |
 | `/dreadpatch weather clear\|snow\|storm\|whiteout [seconds]` | Sets it, for 10 minutes unless you say. The Dreadlands share the overworld's weather, so the overworld's changes too. `whiteout` makes the storm a Whiteout Dominion whatever its odds; `snow` and `storm` are plain. |
 | `/dreadpatch encounters reset [players]` | Forgets who has met which spire's Queen, so her encounter comes again (everyone's, unless you name players). |
-| `/dreadpatch dreadlands enter [players]` | Sends players into the Dreadlands, by the nearest spire, remembering where they came from. |
+| `/dreadpatch dreadlands enter [players]` | Sends players into the Dreadlands, where a gate would set them down, remembering where they came from. |
 | `/dreadpatch dreadlands home [players]` | Sends players in the Dreadlands home again. |
+| `/dreadpatch dreadlands arrival [x z]` | Where a gate there (or where you stand) would set someone down in the Dreadlands, and how far that is from the nearest spire. Arrivals are random, so each try may differ. |
+| `/dreadpatch escalation [storm [seconds] \| reset]` | Whether a Dread Queen has been defeated in this world (so the Dread stir round the Mausoleums) and the defeat storm: on, waiting, or due; `storm` brings one now (30-60 s, or the seconds given), whatever the wait; `reset` forgets every defeat and the storm. |
 | `/dreadpatch config [setting [value]]` | Lists every Dread Patch setting, shows one, or sets one (saved to `config/dreadpatch-server.toml`, applied at once). |
 | `/dreadpatch patrol [pos]` | Raises a Dread patrol there (a dread knight leading 2 to 4 more). |
 | `/dreadpatch rise [count] [pos]` | Raises 1 to 8 of the Dread there (3 by default). |
@@ -235,4 +257,4 @@ Dread Patch's server settings (how a summoned court behaves, how long until a sp
 
 ## Credits
 
-Her model is the geometry of Ice and Fire's unused `ModelDreadQueen` (Alexthe666 and contributors, LGPL-3.0). Her textures, name, sword, staff and behavior come from Ice and Fire CE at runtime.
+Her model is the geometry of Ice and Fire's unused `ModelDreadQueen` (Alexthe666 and contributors, LGPL-3.0). Her textures, name, sword, staff and behavior come from Ice and Fire CE at runtime. The Dreadlands' music, "Entombed In Rimefrost", is hammerknife404's own.

@@ -34,6 +34,11 @@
     },
     {
       "rolls": 1,
+      "conditions": [{"condition": "minecraft:random_chance", "chance": 0.1}],
+      "entries": [{"type": "minecraft:item", "name": "dreadpatch:music_disc_entombed_in_rimefrost"}]
+    },
+    {
+      "rolls": 1,
       "conditions": [{"condition": "minecraft:random_chance", "chance": 0.2}],
       "entries": [
         {

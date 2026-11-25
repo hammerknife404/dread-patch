@@ -30,10 +30,13 @@ public class SpireStructure extends Structure {
         long seed = context.random().nextLong();
         SpireShape shape = SpireShape.roll(seed);
         int ground = this.ground(context, x, z);
-        for (int i = 0; i < 8; i++) {
-            double angle = i * Math.PI / 4.0;
-            ground = Math.min(ground, this.ground(context, x + (int) Math.round(Math.cos(angle) * shape.baseRadius),
-                    z + (int) Math.round(Math.sin(angle) * shape.baseRadius)));
+        // Its whole foot (0.66.0: the Sastrugi Wastes' dunes and the basins' bluffs): 8 round its edge, 8 half way in.
+        for (double reach : new double[]{shape.baseRadius, shape.baseRadius / 2.0}) {
+            for (int i = 0; i < 8; i++) {
+                double angle = i * Math.PI / 4.0 + (reach < shape.baseRadius ? Math.PI / 8.0 : 0.0);
+                ground = Math.min(ground, this.ground(context, x + (int) Math.round(Math.cos(angle) * reach),
+                        z + (int) Math.round(Math.sin(angle) * reach)));
+            }
         }
         BlockPos base = new BlockPos(x, ground, z);
         if (base.getY() + shape.height + SpireShape.MAX_HEIGHT / 10 >= context.heightAccessor().getMaxBuildHeight()) {

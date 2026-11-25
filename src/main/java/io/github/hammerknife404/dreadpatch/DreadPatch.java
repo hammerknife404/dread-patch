@@ -61,6 +61,8 @@ public final class DreadPatch {
         ModRegistries.register(modBus);
         DreadGear.register(modBus);
         DreadForge.register(modBus);
+        io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
+        io.github.hammerknife404.dreadpatch.world.DreadTerrain.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
         modBus.addListener(DreadPatch::onEntityAttributes);
         modBus.addListener(DreadPatch::onEntityAttributeModification);
@@ -88,6 +90,14 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.command.DreadCommands.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadFlames.register(NeoForge.EVENT_BUS);
         DreadPatrols.register(NeoForge.EVENT_BUS);
+        DevKit.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadlandsMusic.register(modBus, NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadlandsUndead.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadwoodSaplings.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.Escalation.register(modBus, NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.RisenDread.register(modBus, NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.RisenSpawns.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadCold.register(NeoForge.EVENT_BUS);
     }
 
     public static ResourceLocation id(String path) {
@@ -106,6 +116,7 @@ public final class DreadPatch {
         event.put(ModRegistries.SYNDRIGOSSA.get(), DragonBaseEntity.bakeAttributes().add(IafAttributes.DRAGON_FORGE_SPEED).build());
         event.put(ModRegistries.RIMEFROST_DRAGON.get(), DragonBaseEntity.bakeAttributes().add(IafAttributes.DRAGON_FORGE_SPEED).build());
         event.put(ModRegistries.DREAD_PHANTOM.get(), DreadPhantom.createAttributes().build());
+        event.put(ModRegistries.MINIATURE_DREAD_PHANTOM.get(), io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom.createAttributes().build());
     }
 
     /** Rimefrost's spell power and resistance on everything living (0.51.0), as Iron's gives its schools'. */
@@ -127,11 +138,13 @@ public final class DreadPatch {
             event.accept(ancientSyndrigossaEgg());
             event.accept(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get());
             event.accept(ModRegistries.DREAD_PHANTOM_SPAWN_EGG.get());
+            event.accept(ModRegistries.MINIATURE_DREAD_PHANTOM_SPAWN_EGG.get());
         } else if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(ModRegistries.DREAD_LANTERN_ITEM.get());
             DreadForge.forgeItems().forEach(item -> event.accept(item.get()));
         } else if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(DreadForge.SCALE_BLOCK_ITEM.get());
+            io.github.hammerknife404.dreadpatch.registry.Dreadwood.items().forEach(item -> event.accept(item.get()));
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
             event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());
@@ -147,6 +160,7 @@ public final class DreadPatch {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SHOVEL.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_HOE.get());
+            event.accept(ModRegistries.MUSIC_DISC_ENTOMBED_IN_RIMEFROST.get());
         }
     }
 

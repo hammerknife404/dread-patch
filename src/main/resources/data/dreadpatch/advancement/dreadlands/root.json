@@ -1,0 +1,24 @@
+{
+  "display": {
+    "icon": {
+      "id": "iceandfire:dread_key"
+    },
+    "title": {
+      "translate": "advancements.dreadpatch.dreadlands.root.title"
+    },
+    "description": {
+      "translate": "advancements.dreadpatch.dreadlands.root.description"
+    },
+    "background": "minecraft:textures/block/snow.png",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "entered": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "dreadpatch:dreadlands"
+      }
+    }
+  }
+}

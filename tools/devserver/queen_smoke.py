@@ -400,10 +400,20 @@ def main():
     record("its health isn't Syndrigossa's by difficulty", max_health(rime) == rime_max, f"max health {rime_max} on Easy, {max_health(rime)} on Hard")
     rcon.run("difficulty easy")
     # Undead, it never sleeps (0.40.0): loaded asleep it wakes, where Ice and Fire's own ice dragon sleeps on.
+    # At midnight: by day Ice and Fire wakes its own on their first tick, so a read a tick late failed (0.60.0's
+    # run on NeoForge 21.1.230; eight tries there slept on at midnight, and woke within a second at noon).
+    # No mob spawning meanwhile: monsters spawn on the dark platform, and one stayed to push the rising queen
+    # off her spot in the next check (0.60.0's first run with it).
+    spawning = re.search(r"set to: (\w+)", rcon.run("gamerule doMobSpawning"))
+    rcon.run("gamerule doMobSpawning false")
+    rcon.run("time set midnight")
     rcon.run(surface + 'summon iceandfire:ice_dragon ~16 ~ ~ {NoAI:1b,AgeTicks:2500000,Sleeping:1b,Tags:["smoke_sleeper"]}')
     rcon.run(surface + 'summon dreadpatch:rimefrost_dragon ~16 ~ ~8 {NoAI:1b,AgeTicks:2500000,Sleeping:1b,Tags:["smoke_waker"]}')
+    time.sleep(1.0)
     check("an ice dragon loaded asleep sleeps", "data get entity @e[tag=smoke_sleeper,limit=1] Sleeping", "1b")
-    check("a Rimefrost dragon loaded asleep is awake", "data get entity @e[tag=smoke_waker,limit=1] Sleeping", "0b")
+    check("a Rimefrost dragon loaded asleep is awake, even at night", "data get entity @e[tag=smoke_waker,limit=1] Sleeping", "0b")
+    rcon.run("time set noon")
+    rcon.run("gamerule doMobSpawning " + (spawning.group(1) if spawning else "true"))
     rcon.run("kill @e[tag=smoke_sleeper]")
     rcon.run("kill @e[tag=smoke_waker]")
     rcon.run("kill @e[type=item]")
@@ -855,7 +865,7 @@ def main():
     rcon.run('summon dreadpatch:dread_phantom 6.5 212 12.5 {NoAI:1b,Tags:["smoke_phantom"]}')
     phantom = "@e[tag=smoke_phantom,limit=1]"
     check("a dread phantom summons", "execute if entity " + phantom, "Test passed")
-    time.sleep(2.0)
+    time.sleep(6.0)  # a phantom in full sun catches fire about 4% of ticks: 2 s once left the control unlit (0.62.0)
     fire = lambda sel: int((re.search(r"entity data: (-?\d+)s", rcon.run("data get entity " + sel + " Fire")) or [0, "0"])[1])
     record("a phantom burns at noon (the control)", fire("@e[tag=smoke_vanilla_phantom,limit=1]") > 0, "the vanilla phantom isn't burning")
     record("a dread phantom doesn't burn by day", fire(phantom) <= 0 and health(phantom) >= 20.0,
@@ -1073,18 +1083,59 @@ def main():
 
     # Hers (summoned as a NoAI queen's): whatever dies in it rises in her court where it fell, answering
     # to her: a dread beast from a cow (Ice and Fire's own mapping); a thrall from a villager or a creeper
-    # and a dread beast from a bat (by their shape). A golem stays dead. When she falls her storm clears.
+    # (by their shape). A golem stays dead. When she falls her storm clears.
     rcon.run('summon dreadpatch:dread_queen 2.5 200 2.5 {NoAI:1b,UUID:[I;9,9,9,9]}')
     check("her Whiteout Dominion stands", 'summon dreadpatch:whiteout_dominion 8.5 200 7.5 {Owner:[I;9,9,9,9],RaisesDead:1b,Radius:16f,Lifetime:600}',
           "Summoned new Whiteout Dominion")
     for kind, at, risen in (("cow", "10.5 200 4.5", "iceandfire:dread_beast"), ("villager", "12.5 200 10.5", "iceandfire:dread_thrall"),
-                            ("creeper", "4.5 200 10.5", "iceandfire:dread_thrall"), ("bat", "5.5 200 4.5", "iceandfire:dread_beast")):
+                            ("creeper", "4.5 200 10.5", "iceandfire:dread_thrall")):
         rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
         rcon.run("kill @e[tag=smoke_dead]")
         time.sleep(0.5)
         check(f"a {kind} killed in her storm rises", f"execute positioned {at} if entity @e[type={risen},distance=..2]", "Test passed")
         check(f"the risen {kind} answers to her", f"execute positioned {at} if entity @e[type={risen},distance=..2,nbt={{CommanderUUID:[I;9,9,9,9]}}]",
               "Test passed")
+    # Guard Villagers (the owner's pack's, a dev-run mod): a guard keeps its gear in an inventory of its own,
+    # which its getItemBySlot reads, so it rises a thrall of hers wearing it; the copy never drops (the guard
+    # drops its own: in the pack, always).
+    at = "14.5 200 2.5"
+    rcon.run(f'summon guardvillagers:guard {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
+    for slot, item in (("armor.head", "iron_helmet"), ("armor.chest", "iron_chestplate"), ("weapon.mainhand", "iron_sword"),
+                       ("weapon.offhand", "shield")):
+        rcon.run(f"item replace entity @e[tag=smoke_dead,limit=1] {slot} with minecraft:{item}")
+    check("a guard wears what it's given", "data get entity @e[tag=smoke_dead,limit=1] Inventory", "iron_chestplate")
+    rcon.run("kill @e[tag=smoke_dead]")
+    time.sleep(0.5)
+    guard_thrall = f"@e[type=iceandfire:dread_thrall,limit=1,sort=nearest,x=14.5,y=200,z=2.5,distance=..2]"
+    check("a guard killed in her storm rises", f"execute positioned {at} if entity {guard_thrall}", "Test passed")
+    check("the risen guard answers to her", f"execute if entity {guard_thrall[:-1]},nbt={{CommanderUUID:[I;9,9,9,9]}}]", "Test passed")
+    for path, item in (("ArmorItems[3].id", "iron_helmet"), ("ArmorItems[2].id", "iron_chestplate"), ("HandItems[0].id", "iron_sword"),
+                       ("HandItems[1].id", "shield")):
+        check(f"the risen guard wears its {item.replace('_', ' ')}", f"data get entity {guard_thrall} {path}", f'"minecraft:{item}"')
+    check("and won't drop it", f"data get entity {guard_thrall} ArmorDropChances[2]", "0.0f")
+    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water as itself,
+    # Dread: marked, twice its health, refusing Withering Rime.
+    for kind, at in (("bat", "5.5 200 4.5"), ("parrot", "7.5 200 4.5")):
+        rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
+        rcon.run("kill @e[tag=smoke_dead]")
+        time.sleep(0.5)
+        check(f"a {kind} killed in her storm rises a miniature dread phantom of hers",
+              f"execute positioned {at} if entity @e[type=dreadpatch:miniature_dread_phantom,distance=..3,nbt={{Summoner:[I;9,9,9,9]}}]", "Test passed")
+    rcon.run("kill @e[type=dreadpatch:miniature_dread_phantom]")
+    rcon.run("setblock 6 201 12 minecraft:stone")  # covered, so her storm doesn't freeze it over
+    rcon.run("setblock 6 200 12 minecraft:water")
+    rcon.run('summon minecraft:cod 6.5 200 12.5 {NoAI:1b,Tags:["smoke_dead"]}')
+    rcon.run("kill @e[tag=smoke_dead]")
+    time.sleep(0.5)
+    fish = '@e[type=minecraft:cod,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
+    check("a cod killed in her storm rises Dread", "execute if entity " + fish[:-1] + ',nbt={NeoForgeData:{"dreadpatch:risen":1b}}]', "Test passed")
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {fish} minecraft:generic.max_health get"))
+    record("with twice a cod's health", m is not None and abs(float(m.group(1)) - 6.0) < 0.01, m.group(0) if m else "no cod")
+    rcon.run(f"effect give {fish} dreadpatch:withering_rime 10")
+    time.sleep(0.1)
+    record("and refuses Withering Rime, as the Dread do", not has_effect(fish, "dreadpatch:withering_rime"), "it took it")
+    rcon.run("kill @e[type=minecraft:cod]")
+    rcon.run("fill 6 200 12 6 201 12 minecraft:air")
     rcon.run('summon minecraft:iron_golem 13.5 200 6.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
     time.sleep(0.5)
@@ -1323,77 +1374,141 @@ def main():
            f"storm gone {gone}, {left} frosted ice left")
     # A Dread Gate. A Gravemaster's Key used on its frame needs a player; a gate summoned by hand finds
     # its frame round where it stands, the same way. A dreadstone frame round a 3x4 opening at the
-    # platform's north edge, open sky in front of it: after the 10 s ritual (0.46.0; 5 s before) the
-    # queen comes through riding an ancient Syndrigossa, and the gate shatters, its frame left. (Stepping
-    # into it, to the Dreadlands, needs a player.)
+    # platform's north edge. Since 0.70.0 (the owner: "Leaving a dread portal open no longer summons the
+    # Dread Queen or Syndragossa. It remains just a portal ... It should slowly build a few layers of snow
+    # layers around it up to 3-4 blocks out") it stays open, nothing comes, and it lays snow round its foot
+    # (the storm above laid a cover here, so it's cleared first). (Stepping into it needs a player.)
     queen_sel = "@e[type=dreadpatch:dread_queen,limit=1]"
     rcon.run("fill 3 199 2 7 204 2 iceandfire:dread_stone_bricks")
     rcon.run("fill 4 200 2 6 203 2 minecraft:air")
+    rcon.run("fill -1 199 -3 11 203 7 minecraft:air replace minecraft:snow")
     check("a gate summoned in its frame", "summon dreadpatch:dread_gate 5.5 200 2.5", "Summoned new")
     time.sleep(0.5)
     record("it fills its frame", all(block_is(x, y, 2, "dreadpatch:dread_gate") for x in (4, 5, 6) for y in (200, 203)),
            "no gate across the opening")
-    time.sleep(8.0)
-    record("the ritual runs 10 s: no queen 8 s in", "Test failed" in rcon.run("execute if entity " + queen_sel), "she came before 8.5 s")
-    came = False
-    for _ in range(24):
-        time.sleep(0.25)
-        came = "Test passed" in rcon.run("execute if entity " + queen_sel)
-        if came:
+    time.sleep(13.5)
+    record("it stays open and nothing comes through (14 s on)", "Test failed" in rcon.run("execute if entity " + queen_sel)
+           and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:syndrigossa]")
+           and block_is(5, 201, 2, "dreadpatch:dread_gate") and "Test passed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"),
+           "a queen or dragon came, or the gate closed")
+
+    def gate_snow():
+        filled = re.search(r"filled (\d+)", rcon.run("fill -1 199 -3 11 203 7 minecraft:sponge replace minecraft:snow"))
+        if filled and int(filled.group(1)):
+            rcon.run("fill -1 199 -3 11 203 7 minecraft:snow replace minecraft:sponge")
+            return int(filled.group(1))
+        return 0
+    snow = 0
+    for _ in range(15):
+        snow = gate_snow()
+        if snow:
             break
-    record("the Dread Queen comes through", came, "no queen within 14.5 s")
-    time.sleep(0.6)
-    record("riding an ancient Syndrigossa, with room for one",
-           "Test passed" in rcon.run("execute as " + queen_sel + " on vehicle if entity @s[type=dreadpatch:syndrigossa,nbt={Ancient:1b}]"),
-           "she isn't on an ancient Syndrigossa")
-    record("and the gate is gone, its frame left", block_is(5, 201, 2, "minecraft:air") and block_is(3, 201, 2, "iceandfire:dread_stone_bricks")
-           and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "the gate's still there, or its frame went")
-    rcon.run("kill @e[type=dreadpatch:dread_queen]")
-    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
-    clear_court()
-    rcon.run("kill @e[type=item]")
-    # Broken mid-ritual, it collapses and nothing comes; a frame with a gap opens nothing.
-    rcon.run("summon dreadpatch:dread_gate 5.5 200 2.5")
-    time.sleep(0.5)
+        time.sleep(2.0)
+    record("it lays snow round its foot", snow > 0, "no snow within 4 of it in 44 s")
+    # Broken, it collapses; a frame with a gap opens nothing.
     rcon.run("setblock 3 201 2 minecraft:air")
     time.sleep(0.5)
     record("breaking its frame collapses it", block_is(5, 201, 2, "minecraft:air") and block_is(4, 200, 2, "minecraft:air")
            and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "the gate outlived its frame")
-    time.sleep(10.0)
-    record("and nothing comes through", "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]"), "a queen came anyway")
     rcon.run("summon dreadpatch:dread_gate 5.5 200 2.5")
     time.sleep(0.5)
     record("a frame with a gap opens nothing", block_is(5, 201, 2, "minecraft:air")
            and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "a gate opened in a broken frame")
-    # In a room too low for her dragon (as a Mausoleum's hall is), she comes on foot, out of the gate itself.
-    rcon.run("fill 9 199 1 17 206 13 minecraft:stone hollow")
-    rcon.run("fill 11 200 7 15 204 7 iceandfire:dread_stone_bricks")
-    rcon.run("fill 12 201 7 14 203 7 minecraft:air")
-    rcon.run("summon dreadpatch:dread_gate 13.5 201 7.5")
-    came = False
-    for _ in range(64):
-        time.sleep(0.25)
-        came = "Test passed" in rcon.run("execute positioned 13.5 201 7.5 if entity @e[type=dreadpatch:dread_queen,distance=..2]")
-        if came:
-            break
-    time.sleep(0.6)
-    record("in a low room she comes on foot, in the gate", came and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:syndrigossa]"),
-           f"queen in the gate: {came}; a Syndrigossa came too, or she didn't come")
-    rcon.run("kill @e[type=dreadpatch:dread_queen]")
-    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
-    clear_court()
-    rcon.run("kill @e[type=item]")
+    rcon.run("fill -1 199 -3 11 203 7 minecraft:air replace minecraft:snow")
     # The Dreadlands (0.46.0): the dimension, its frozen ground (snow over snow blocks and ice), a spire
     # standing far over the land round it; a Dread Gate keyed there leads home: it opens at once, no queen
-    # comes, it stays open past the ritual's 10 s, fades in and out, and closes within 30 s. (Going
-    # through, the arrival by a spire, and its phantoms need a player.)
+    # comes, and (0.70.0) it stays open till its frame breaks. (Going through, the arrival by a spire, and
+    # its phantoms need a player.)
     dl = "execute in dreadpatch:dreadlands "
-    check("the Dreadlands exist, one biome", dl + "run locate biome dreadpatch:dreadlands", "is at")
+    check("the Dreadlands' plains exist", dl + "run locate biome dreadpatch:dreadlands", "is at")
+    # Its three biomes (0.66.0): the plains, the sunken Sastrugi Wastes, the Rime Chasma's trenches.
+    check("the Sastrugi Wastes exist", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:sastrugi_wastes", "is at")
+    check("the Rime Chasma exists", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:rime_chasma", "is at")
+    # The Rime Chasma's floor (0.68.0, the owner's pictures): far out on new ground, its middle found on a coarse grid
+    # (32 apart round where locate puts its edge), then every 2 blocks over 64 x 64 there. Most of it is the flat
+    # floor (top block 30), its plates' ridges a block or two over it in snow, its cracks at least 6 deep (fall
+    # damage); its top clear blue ice and snow; water sealed in its ice; slabs heaved up at its cracks.
+    def top_block(x, z):
+        rcon.run(dl + f'positioned {x} 0 {z} positioned over world_surface run summon minecraft:marker ~ ~ ~ {{Tags:["smoke_probe"]}}')
+        pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+        rcon.run("kill @e[tag=smoke_probe]")
+        return int(float(pos.group(1))) - 1 if pos else None
+
+    cfx, cfz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
+    m = re.search(r"at \[(-?\d+), \S+, (-?\d+)\]", rcon.run(dl + f"positioned {cfx} 0 {cfz} run locate biome dreadpatch:rime_chasma"))
+    if m:
+        lx, lz = int(m.group(1)), int(m.group(2))
+        grid = [(lx + i * 32, lz + j * 32) for j in range(-5, 6) for i in range(-5, 6)]
+        for gx, gz in grid:
+            rcon.run(dl + f"run forceload add {gx} {gz}")
+        time.sleep(8.0)
+        coarse = {p: top_block(*p) for p in grid}
+        rcon.run(dl + "run forceload remove all")
+        floor_points = [p for p in grid if coarse[p] is not None and 29 <= coarse[p] <= 32]
+        mid = max(floor_points, key=lambda p: sum(1 for q in grid if abs(q[0] - p[0]) <= 64 and abs(q[1] - p[1]) <= 64
+                                                  and coarse[q] is not None and coarse[q] <= 32), default=None)
+        record("the Rime Chasma has a floor near where it's found", mid is not None, f"none of 121 points at 29-32 round {lx} {lz}")
+        if mid:
+            mx, mz = mid
+            rcon.run(dl + f"run forceload add {mx - 32} {mz - 32} {mx + 32} {mz + 32}")
+            time.sleep(8.0)
+            tops = [top_block(x, z) for x in range(mx - 32, mx + 32, 2) for z in range(mz - 32, mz + 32, 2)]
+            tops = [t for t in tops if t is not None]
+            chasma_share = lambda test: sum(1 for t in tops if test(t)) / max(1, len(tops))
+            record("most of the Rime Chasma is its flat floor at 30", chasma_share(lambda t: t == 30) >= 0.4,
+                   f"{chasma_share(lambda t: t == 30):.0%} at 30; at {mx} {mz}")
+            record("its plates have ridges over the floor", chasma_share(lambda t: t in (31, 32)) >= 0.03, f"{chasma_share(lambda t: t in (31, 32)):.0%} at 31-32")
+            cracks = [t for t in tops if t < 30]
+            record("its cracks are deep enough to hurt a fall", bool(cracks) and max(cracks) <= 30 - 6,
+                   f"{len(cracks)} crack columns, the shallowest's top at {max(cracks) if cracks else None}")
+            # Counted by swapping to sponge and back (as count_blocks below; it isn't defined yet here).
+            def chasma_count(block, y0, y1):
+                total = 0
+                for x in range(mx - 32, mx + 32, 32):
+                    for z in range(mz - 32, mz + 32, 32):
+                        box = f"{x} {y0} {z} {x + 31} {y1} {z + 31}"
+                        filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {box} minecraft:sponge replace {block}"))
+                        if filled and int(filled.group(1)):
+                            rcon.run(dl + f"run fill {box} {block} replace minecraft:sponge")
+                            total += int(filled.group(1))
+                return total
+            record("its top is clear blue ice and snow", chasma_count("minecraft:blue_ice", 30, 30) > 0 and chasma_count("minecraft:snow_block", 30, 30) > 0, "one's missing")
+            record("its ridges are snow", chasma_count("minecraft:snow_block", 31, 32) > 0, "no snow at 31-32")
+            water = chasma_count("minecraft:water", 14, 28)
+            record("water's sealed in its ice", water > 0, f"{water} water blocks at 14-28")
+            heaved = chasma_share(lambda t: 33 <= t <= 40)
+            record("slabs are heaved up at its cracks", heaved > 0, f"{heaved:.1%} of columns at 33-40")
+            # The world's floor (0.69.0, the owner: bedrock "at least 1 layer thick throughout the entire dimension"):
+            # no cave, crack or trench opens it, here where they're thickest.
+            bedrock = chasma_count("minecraft:bedrock", -64, -64)
+            record("the Dreadlands' floor is bedrock throughout", bedrock == 64 * 64, f"{bedrock} of {64 * 64} at -64")
+            rcon.run(dl + "run forceload remove all")
+    else:
+        record("the Rime Chasma is found far out", False, "locate found none")
     out = rcon.run(dl + "run locate structure dreadpatch:spire")
     m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
     record("a spire stands in them", m is not None, out.strip())
     if m:
         sx, sz = (int(m.group(1)) & ~15) + 8, (int(m.group(2)) & ~15) + 8
+        # The arrival (0.60.0, the owner: "somewhere random, but never on a tower or within 48 blocks from one"):
+        # through a gate standing right at a spire's middle, and at the world's origin, someone arrives within 256
+        # blocks, on dry ground with room to stand, and 69+ blocks from any spire's middle (48 past the most a
+        # spire reaches).
+        for gx, gz in ((sx, sz), (sx, sz), (0, 0)):
+            out = rcon.run(f"dreadpatch dreadlands arrival {gx} {gz}")
+            a = re.search(r"arrive at (-?\d+) (-?\d+) (-?\d+), (\S+) blocks", out)
+            if not a:
+                record("an arrival is found", False, out.strip())
+                continue
+            ax, ay, az, far = int(a.group(1)), int(a.group(2)), int(a.group(3)), a.group(4)
+            rcon.run(dl + f"run forceload add {ax} {az}")
+            time.sleep(1.0)
+            dry = "Test passed" in rcon.run(dl + f"if block {ax} {ay} {az} #minecraft:replaceable") \
+                and "Test failed" in rcon.run(dl + f"if block {ax} {ay - 1} {az} #minecraft:replaceable") \
+                and "Test failed" in rcon.run(dl + f"if block {ax} {ay - 1} {az} minecraft:water")
+            rcon.run(dl + f"run forceload remove {ax} {az}")
+            record(f"through a gate at {gx} {gz}, an arrival on dry ground, within 256, clear of the spires",
+                   dry and abs(ax - gx) <= 257 and abs(az - gz) <= 257 and (far == "-" or int(far) >= 69), out.strip())
         rcon.run(dl + f"run forceload add {sx - 32} {sz - 32} {sx + 32} {sz + 32}")
         time.sleep(6.0)
 
@@ -1435,20 +1550,15 @@ def main():
     record("it leads home: no queen, and still open past the ritual",
            "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]")
            and "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "a queen came, or the gate closed at 11 s")
-    faded = False
-    closed = False
-    for _ in range(100):
-        time.sleep(0.2)
-        alive = "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
-        pane = "Test passed" in rcon.run(dl + f"if block 46 {pad + 3} 44 dreadpatch:dread_gate")
-        faded |= alive and not pane
-        if not alive:
-            closed = True
-            break
-    record("it fades in and out, then closes within 30 s", faded and closed, f"faded {faded}, closed {closed}")
-    record("its frame stays", "Test passed" in rcon.run(dl + f"if block 44 {pad + 2} 44 iceandfire:dread_stone_bricks"), "the frame went")
-    # A spire's queen falls (0.47.0): where she fell, a Dread Gate frame rises, open home, and for longer
-    # than a keyed gate (5 minutes; a keyed one's most is 30 s). (Her coming to a summit needs a player.)
+    time.sleep(20.0)
+    record("it stays open (31 s on)", "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
+           and "Test passed" in rcon.run(dl + f"if block 46 {pad + 3} 44 dreadpatch:dread_gate"), "it closed")
+    rcon.run(dl + f"run setblock 44 {pad + 3} 44 minecraft:air")
+    time.sleep(0.5)
+    record("until its frame breaks", "Test failed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
+           and "Test passed" in rcon.run(dl + f"if block 44 {pad + 2} 44 iceandfire:dread_stone_bricks"), "still open, or the rest of its frame went")
+    # A spire's queen falls (0.47.0): where she fell, a Dread Gate frame rises, open home for 5 minutes
+    # (the only gate that still closes on its own, 0.70.0). (Her coming to a summit needs a player.)
     rcon.run(dl + f'run summon dreadpatch:dread_queen 54.5 {pad + 1} 52.5 {{NoAI:1b,NeoForgeData:{{"dreadpatch:spire":12345L}}}}')
     time.sleep(0.5)
     rcon.run(dl + "run kill @e[type=dreadpatch:dread_queen]")
@@ -1457,7 +1567,7 @@ def main():
         and "Test passed" in rcon.run(dl + f"if block 54 {pad + 2} 52 dreadpatch:dread_gate")
     record("where a spire's queen falls, a way home opens", opened, "no gate where she fell")
     time.sleep(30.0)
-    record("and stays open past a keyed gate's 30 s", "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "it closed")
+    record("and stays open past 30 s", "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "it closed")
     rcon.run(dl + "run kill @e[type=dreadpatch:dread_gate]")
     rcon.run(dl + "run kill @e[type=item]")
     rcon.run(dl + "run kill @e[type=minecraft:experience_orb]")
@@ -1610,6 +1720,55 @@ def main():
     leads = "Test passed" in rcon.run(dl + 'if data entity @e[tag=smoke_patrol_follow,limit=1] NeoForgeData."dreadpatch:patrol_waypoint"')
     record("its leader killed, the next leads", leads, "the ghoul has no waypoint of its own")
     rcon.run(dl + "run kill @e[tag=smoke_patrol_follow]")
+    # The Dreadlands' sun burns no undead (0.60.0): at noon, clear, a zombie on the pad stays unlit and
+    # whole, where one in the overworld's sun (the control) burns. Summoned with NBT, so no helmet.
+    rcon.run("time set noon")
+    rcon.run("weather clear")
+    rcon.run(dl + f'run summon minecraft:zombie 58.5 {pad + 1} 56.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_sunless"]}}')
+    rcon.run('summon minecraft:zombie 3.5 212 12.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_sunlit"]}')
+    # 8 s: at full sun a zombie catches fire with a chance of about 4% a tick, so 4 s once left the control unlit.
+    time.sleep(8.0)
+    fire_read = lambda command: int((re.search(r"entity data: (-?\d+)s", rcon.run(command)) or [0, "0"])[1])
+    lit = fire_read("data get entity @e[tag=smoke_sunlit,limit=1] Fire")
+    unlit = fire_read(dl + "run data get entity @e[tag=smoke_sunless,limit=1] Fire")
+    whole = (re.search(r"entity data: ([0-9.]+)f", rcon.run(dl + "run data get entity @e[tag=smoke_sunless,limit=1] Health")) or [0, "-1"])[1]
+    record("a zombie burns in the overworld's sun (the control)", lit > 0, "it isn't burning")
+    record("one doesn't in the Dreadlands'", unlit <= 0 and float(whole) >= 20.0, f"Fire {unlit}, health {whole}")
+    rcon.run("kill @e[tag=smoke_sunlit]")
+    rcon.run(dl + "run kill @e[tag=smoke_sunless]")
+    # Dreadwood saplings in the Dreadlands take only graveyard soil (0.61.0): bone-mealed by a dispenser beside
+    # it, one on graveyard soil there grows, one on dirt there doesn't; one on dirt in the overworld (the control)
+    # grows. (Random ticks come only near a player, so a sped-up randomTickSpeed grew nothing. A player's
+    # placing one on dirt there being refused needs a player.)
+    def bone_meal(prefix, x, y, z):
+        rcon.run(prefix + f"run setblock {x} {y - 1} {z} " + ("iceandfire:graveyard_soil" if prefix == dl and x == 40 else "minecraft:dirt"))
+        rcon.run(prefix + f"run setblock {x} {y} {z} iceandfire:dreadwood_sapling")
+        rcon.run(prefix + f'run setblock {x + 1} {y} {z} minecraft:dispenser[facing=west]{{Items:[{{Slot:0b,id:"minecraft:bone_meal",count:64}}]}}')
+    for prefix, x, y, z in ((dl, 40, pad + 1, 56), (dl, 46, pad + 1, 56), ("execute ", 28, 220, 3)):
+        bone_meal(prefix, x, y, z)
+    for _ in range(24):
+        for prefix, x, y, z in ((dl, 40, pad + 1, 56), (dl, 46, pad + 1, 56), ("execute ", 28, 220, 3)):
+            rcon.run(prefix + f"run setblock {x + 2} {y} {z} minecraft:redstone_block")
+        time.sleep(0.25)
+        for prefix, x, y, z in ((dl, 40, pad + 1, 56), (dl, 46, pad + 1, 56), ("execute ", 28, 220, 3)):
+            rcon.run(prefix + f"run setblock {x + 2} {y} {z} minecraft:air")
+        time.sleep(0.25)
+    grown = lambda prefix, x, y, z: "Test passed" in rcon.run(prefix + f"if block {x} {y} {z} iceandfire:dreadwood_log")
+    record("a dreadwood sapling on dirt grows in the overworld (the control)", grown("execute ", 28, 220, 3), "it didn't grow")
+    record("in the Dreadlands, one on graveyard soil grows", grown(dl, 40, pad + 1, 56), "it didn't grow")
+    record("and one on dirt doesn't", "Test passed" in rcon.run(dl + f"if block 46 {pad + 1} 56 iceandfire:dreadwood_sapling"),
+           "it grew, or it's gone")
+    rcon.run(dl + f"run fill 36 {pad} 52 50 {pad + 12} 60 minecraft:air")
+    rcon.run("fill 24 219 0 32 232 7 minecraft:air")
+    rcon.run("kill @e[type=item]")
+    # Dreadwood leaves drop saplings (and sticks) now; Ice and Fire ships no loot table for them, so they dropped nothing.
+    rcon.run(dl + f"run setblock 50 {pad + 1} 56 iceandfire:dreadwood_leaves[persistent=true]")
+    for _ in range(400):
+        rcon.run(dl + f"run loot spawn 50.5 {pad + 2} 56.5 mine 50 {pad + 1} 56")
+    saplings, leaves = count("iceandfire:dreadwood_sapling"), count("iceandfire:dreadwood_leaves")
+    record("dreadwood leaves drop saplings, broken by hand", saplings >= 1 and leaves == 0, f"{saplings} saplings, {leaves} leaves in 400")
+    rcon.run(dl + f"run setblock 50 {pad + 1} 56 minecraft:air")
+    rcon.run(dl + "run kill @e[type=item]")
     rcon.run(dl + f"run fill 38 {pad} 38 60 {pad + 9} 58 minecraft:air")
     rcon.run(dl + "run forceload remove all")
 
@@ -1645,8 +1804,13 @@ def main():
         return total
 
     # Somewhere new each run (the world is kept between runs, and old chunks keep what they were made with).
-    far = random.randrange(8, 40) * 1000
-    out = rcon.run(dl + f"positioned {far} 0 {far} run locate structure dreadpatch:dread_village")
+    # Anywhere in a wide ring, either way on each axis: 32 spots on one diagonal (until 0.61.0) came round
+    # again, and once found a village made before 0.57.0 turned its lights (all 4 still vanilla's).
+    far_x = random.choice((-1, 1)) * random.randrange(8_000, 200_000)
+    far_z = random.choice((-1, 1)) * random.randrange(8_000, 200_000)
+    # Every village made from here on has its lich (0.70.0), till it's put back after the check.
+    rcon.run("dreadpatch config village_liches 1")
+    out = rcon.run(dl + f"positioned {far_x} 0 {far_z} run locate structure dreadpatch:dread_village")
     v = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
     record("abandoned villages stand in the Dreadlands", v is not None, out.strip())
     if v:
@@ -1657,14 +1821,22 @@ def main():
         dread_wood = count_blocks("iceandfire:dreadwood_planks", *area) + count_blocks("iceandfire:dreadwood_log", *area)
         left = count_blocks("minecraft:spruce_planks", *area) + count_blocks("minecraft:cobblestone", *area) + count_blocks("minecraft:spruce_log", *area)
         record("its wood and stone are the Dread's", dread_wood > 50 and left == 0, f"{dread_wood} dreadwood, {left} spruce planks, logs and cobblestone left")
+        # Wood's other shapes too (0.65.0): dreadwood's stairs, slabs, fences and doors where spruce's stood.
+        spruce = sum(count_blocks(f"minecraft:spruce_{shape}", *area) for shape in ("stairs", "slab", "fence", "door", "trapdoor"))
+        shapes = sum(count_blocks(f"dreadpatch:dreadwood_{shape}", *area) for shape in ("stairs", "slab", "fence", "door", "trapdoor"))
+        record("its stairs, slabs, fences and doors are dreadwood", spruce == 0 and shapes > 0, f"{shapes} dreadwood, {spruce} spruce left")
         flames = sum(count_blocks(b, *area) for b in ("minecraft:lantern", "minecraft:soul_lantern", "minecraft:torch", "minecraft:wall_torch"))
         dread_flames = sum(count_blocks(b, *area) for b in ("dreadpatch:dread_lantern", "iceandfire:dread_torch", "iceandfire:dread_torch_wall"))
         record("its lanterns and torches are the Dread's", flames == 0, f"{flames} vanilla lanterns and torches left, {dread_flames} of the Dread's")
         loot_chests, plain_chests = count_blocks("lootr:lootr_chest", *area), count_blocks("minecraft:chest", *area)
         record("its chests are Lootr's", plain_chests == 0, f"{loot_chests} Lootr chests, {plain_chests} plain chests")
+        # A Dread Lich at its heart (0.70.0, the owner: "Ice and Fire's Liches Should sometimes spawn in dread villages").
+        out = rcon.run(dl + f"if entity @e[type=iceandfire:dread_lich,x={vx - 64},y=-64,z={vz - 64},dx=128,dy=400,dz=128]")
+        record("a Dread Lich keeps an abandoned village", "Test passed" in out, out.strip())
         rcon.run(dl + "run forceload remove all")
+    rcon.run("dreadpatch config village_liches 3")
     summit_chests, plain_summit, torches = 0, 0, 0
-    for sx_far, sz_far in ((-far, far), (far, -far)):
+    for sx_far, sz_far in ((-far_x, far_z), (far_x, -far_z)):
         out = rcon.run(dl + f"positioned {sx_far} 0 {sz_far} run locate structure dreadpatch:spire")
         m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
         if not m:
@@ -1986,6 +2158,126 @@ def main():
     rcon.run("fill 1 240 1 30 250 14 minecraft:air")
     rcon.run("kill @e[type=item]")
     rcon.run("fill 1 239 1 30 239 14 minecraft:air")
+
+    # Dread lights at most 6 (0.64.0): a dread lantern and a Dread Gate's face, each alone in a stone box, light it to 6;
+    # Ice and Fire's dread torch is 5 of its own.
+    for block, level in (("iceandfire:dread_torch", 5), ("dreadpatch:dread_lantern", 6), ("dreadpatch:dread_gate", 6)):
+        rcon.run("fill 25 229 11 27 231 13 minecraft:stone")
+        rcon.run(f"setblock 26 230 12 {block}")
+        time.sleep(0.5)
+        lit = lambda lo, hi: "Test passed" in rcon.run("execute positioned 26 230 12 if predicate "
+                                                     f'{{condition:"minecraft:location_check",predicate:{{light:{{light:{{min:{lo},max:{hi}}}}}}}}}')
+        record(f"{block.split(':')[1]} lights to {level}, no more than 6", lit(level, level), f"not {level} (more than 6: {lit(7, 15)})")
+    rcon.run("fill 25 229 11 27 231 13 minecraft:air")
+    # Her storm puts out her fire, as everyone's (0.64.0, the owner: she burned on in her own).
+    rcon.run('summon dreadpatch:dread_queen 20.5 230 3.5 {NoAI:1b,UUID:[I;24,24,24,24],Tags:["smoke_burning"]}')
+    rcon.run("summon dreadpatch:whiteout_dominion 20.5 230 3.5 {Owner:[I;24,24,24,24],Lifetime:200,Radius:6f}")
+    rcon.run("data merge entity @e[tag=smoke_burning,limit=1] {Fire:300s}")
+    time.sleep(1.5)
+    burn = int((re.search(r"entity data: (-?\d+)s", rcon.run("data get entity @e[tag=smoke_burning,limit=1] Fire")) or [0, "999"])[1])
+    record("in her own storm her fire goes out", burn <= 0, f"Fire {burn}")
+    rcon.run("kill @e[tag=smoke_burning]")
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    clear_court()
+    # Dreadwood's block set (0.65.0): each of its blocks sets.
+    for shape in ("stairs", "slab", "fence", "fence_gate", "door", "trapdoor", "button", "pressure_plate"):
+        check(f"dreadwood {shape.replace('_', ' ')} is a block", f"setblock 26 230 12 dreadpatch:dreadwood_{shape}", "Changed the block")
+        rcon.run("setblock 26 230 12 minecraft:air")
+    # Dread lights as sources of cold (0.65.0): with the freezing time cut to 3 s (a second a stage), water beside a
+    # dread torch and under a dread lantern turns to blue ice, stage by stage as it's counted (every 5 s); water out of
+    # reach stays water.
+    freeze_was = set_config("dread_light_freeze_minutes", 0.05) or "20.0"
+    atexit.register(set_config, "dread_light_freeze_minutes", freeze_was)
+    time.sleep(2.0)
+    # Each water a sealed cell in stone (water flowing into a torch's block washes it away: the first run's did), the
+    # torch and lantern on the stone over them, 2 up and 1 across.
+    rcon.run("fill 15 224 2 23 226 6 minecraft:stone")
+    rcon.run("setblock 16 225 4 minecraft:water")
+    rcon.run("setblock 22 225 4 minecraft:water")
+    rcon.run("setblock 17 227 4 iceandfire:dread_torch")
+    rcon.run("setblock 21 227 4 dreadpatch:dread_lantern")
+    rcon.run("fill 18 228 3 20 229 5 minecraft:stone")  # out of reach: 2 over the torch and the lantern
+    rcon.run("setblock 19 229 4 minecraft:water")
+    frozen = False
+    for _ in range(40):
+        time.sleep(1.0)
+        frozen = all("Test passed" in rcon.run(f"execute if block {x} 225 4 minecraft:blue_ice") for x in (16, 22))
+        if frozen:
+            break
+    record("water by a dread torch and under a dread lantern freezes to blue ice", frozen,
+           "; ".join(f"{x}: " + ",".join(b for b in ("water", "ice", "packed_ice", "blue_ice") if "Test passed" in rcon.run(f"execute if block {x} 225 4 minecraft:{b}")) for x in (16, 22)))
+    record("water out of their reach stays water", "Test passed" in rcon.run("execute if block 19 229 4 minecraft:water"), "it froze")
+    set_config("dread_light_freeze_minutes", freeze_was)
+    rcon.run("fill 15 224 2 23 229 6 minecraft:air")
+    # A crusted lava pocket (0.66.0), placed in a block of stone: lava at its heart, sealed in its crust.
+    rcon.run("fill 4 224 10 12 232 14 minecraft:stone")
+    out = rcon.run("place feature dreadpatch:crusted_lava_pocket 8 228 12")
+    record("a crusted lava pocket: lava sealed in its crust", "Placed" in out and "Test passed" in rcon.run("execute if block 8 228 12 minecraft:lava")
+           and "Test failed" in rcon.run("execute if block 8 233 12 minecraft:lava"), out.strip())
+    rcon.run("fill 3 223 9 13 233 15 minecraft:air")
+    # A grave patch (0.67.0), placed on a stone pad: graveyard soil round its foot, and a wither rose or more on it.
+    rcon.run("fill 2 225 2 12 225 12 minecraft:stone")
+    out = rcon.run("place feature dreadpatch:grave_patch 7 226 7")
+    soil = sum("Test passed" in rcon.run(f"execute if block {x} 225 {z} iceandfire:graveyard_soil") for x in range(4, 11) for z in range(4, 11))
+    roses = sum("Test passed" in rcon.run(f"execute if block {x} 226 {z} minecraft:wither_rose") for x in range(4, 11) for z in range(4, 11))
+    record("a grave patch: graveyard soil, and wither roses on it", "Placed" in out and soil >= 3 and roses >= 1, f"{out.strip()}; {soil} soil, {roses} roses")
+    rcon.run("fill 1 224 1 13 236 13 minecraft:air")
+    # What her defeat stirs (0.62.0): a queen killed by damage is a defeat (the world's first: the Mausoleums stir for
+    # good) and brings a defeat storm of 30-60 s; another within the cooldown brings no new one; /kill is no defeat.
+    # (The storm's fog, rime, sound and Rimefrost, and the Dread rising round Mausoleums, are a player's.)
+    status = lambda: rcon.run("dreadpatch escalation")
+    left = lambda: int((re.search(r"on, (\d+) s left", status()) or [0, "0"])[1])
+    rcon.run("dreadpatch escalation reset")
+    rcon.run('summon dreadpatch:dread_queen 10.5 230 10.5 {NoAI:1b,Tags:["smoke_defeat"]}')
+    rcon.run("kill @e[tag=smoke_defeat]")
+    time.sleep(0.5)
+    record("/kill is no defeat", "defeated in this world: No" in status() and left() == 0, status().strip())
+    rcon.run('summon dreadpatch:dread_queen 10.5 230 10.5 {NoAI:1b,Tags:["smoke_defeat"]}')
+    rcon.run("damage @e[tag=smoke_defeat,limit=1] 1000 minecraft:generic")
+    time.sleep(1.0)
+    first = left()
+    record("her defeat stirs the Mausoleums and brings a 30-60 s storm", "defeated in this world: Yes" in status() and 25 <= first <= 60, status().strip())
+    rcon.run('summon dreadpatch:dread_queen 10.5 230 10.5 {NoAI:1b,Tags:["smoke_defeat"]}')
+    time.sleep(1.5)
+    rcon.run("damage @e[tag=smoke_defeat,limit=1] 1000 minecraft:generic")
+    time.sleep(0.5)
+    record("another within the cooldown brings none", 0 < left() < first, f"{first} s left, then {left()} s")
+    rcon.run("dreadpatch escalation reset")
+    record("/dreadpatch escalation reset forgets it", "defeated in this world: No" in status() and left() == 0, status().strip())
+    rcon.run("kill @e[type=item]")
+    clear_court()
+    # Whiteout and bosses (0.60.0): a storm halves a zombie's follow range, but a boss (#c:bosses: Iron's Dead
+    # King; vanilla's Wither and dragon take no effects at all) keeps its own, and only slows. In the air over the
+    # platform, everything NoAI.
+    rcon.run("summon dreadpatch:whiteout_dominion 24.5 220 7.5 {Lifetime:200,Radius:6f}")
+    rcon.run('summon irons_spellbooks:dead_king 22.5 221 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_boss"]}')
+    rcon.run('summon minecraft:zombie 26.5 221 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_blinded"]}')
+    time.sleep(1.5)
+    reach = lambda sel, how: float((re.search(r"is ([0-9.]+)", rcon.run(f"attribute {sel} minecraft:generic.follow_range {how}")) or [0, "-1"])[1])
+    boss, zombie = "@e[tag=smoke_boss,limit=1]", "@e[tag=smoke_blinded,limit=1]"
+    record("a storm's Whiteout halves a zombie's sight", has_effect(zombie, "dreadpatch:whiteout") and reach(zombie, "get") <= reach(zombie, "base get") / 2 + 0.01,
+           f"follow range {reach(zombie, 'get')} of {reach(zombie, 'base get')}")
+    record("but a boss in it keeps its own, and is slowed", has_effect(boss, "dreadpatch:whiteout") and reach(boss, "get") >= reach(boss, "base get") - 0.01,
+           f"Whiteout {has_effect(boss, 'dreadpatch:whiteout')}, follow range {reach(boss, 'get')} of {reach(boss, 'base get')}")
+    rcon.run("kill @e[tag=smoke_boss]")
+    rcon.run("kill @e[tag=smoke_blinded]")
+    rcon.run("kill @e[type=dreadpatch:whiteout_dominion]")
+    rcon.run("kill @e[type=item]")
+    # The Dreadlands' music on a disc (0.60.0): in a jukebox, its song plays (a jukebox only starts a song its
+    # registry knows); a spire's summit chest holds one now and then (one in ten: none in 60 is 0.2%).
+    rcon.run("setblock 20 220 12 minecraft:jukebox")
+    rcon.run("item replace block 20 220 12 container.0 with dreadpatch:music_disc_entombed_in_rimefrost")
+    time.sleep(0.5)
+    playing = "Test passed" in rcon.run("execute if block 20 220 12 minecraft:jukebox[has_record=true]") \
+        and "ticks_since_song_started" in rcon.run("data get block 20 220 12")
+    record("the disc plays in a jukebox", playing, rcon.run("data get block 20 220 12").strip())
+    rcon.run("setblock 20 220 12 minecraft:air")
+    rcon.run("kill @e[type=item]")
+    for _ in range(60):
+        rcon.run("loot spawn 20.5 221 12.5 loot dreadpatch:chests/spire_summit")
+    discs = count("dreadpatch:music_disc_entombed_in_rimefrost")
+    record("spire summit chests hold the disc now and then", 1 <= discs <= 20, f"{discs} in 60 chests")
+    rcon.run("kill @e[type=item]")
 
     rcon.run("fill 3 199 2 7 204 2 minecraft:air")
     rcon.run("fill 9 199 1 17 206 13 minecraft:air")

@@ -9,7 +9,8 @@ This file holds the rules and the shape of the code. How each part works, what I
 - **Version:** `mod_version` in `gradle.properties`.
 - **Done:** the big drop (finished with 0.48.0) and the second (finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word; 0.55.0–0.59.0 came after, at the owner's requests. The Rimefrost dragonforge shipped in 0.59.0.
 - **Left for later, the owner's call:** ready-built forges on some spires.
-- **Owed:** the owner's own look at 0.52.0–0.54.1 and 0.59.0 in a client ([testing.md](docs/dev/testing.md), Client).
+- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0), being built on `beta` (below, PRs) in the owner's order: 0.60.0 the music and quick fixes; 0.61.0 the Dreadlands basics (random arrival, dreadwood saplings, stray undead); 0.62.0 the post-defeat escalation; 0.63.0 risen Dread (miniature phantoms, water creatures; also stirring in caves); 0.64.0 the owner's notes from the dev client (sound filters, dread lights at 6, her fire, the crown); 0.65.0 dreadwood's block set and dread lights' cold; 0.66.0 the terrain's land (three biomes, caves, trenches); 0.66.1 her storm putting fire out every tick; 0.67.0 the sky (sunlight at most 6, a dim cyan sun) and the plains' grave patches; 0.68.0 the Rime Chasma's flat floor from the owner's two pictures (ridged ice plates, deep cracks, heaved slabs, water pockets with Dread water). 0.69.0 the owner's notes from the dev client on the land (hexagonal plates, bedrock never holed, the chasma's haze, the wastes' gale, music and jukeboxes muffled). 0.70.0 the rest of those notes (a thrall's armour drawn as itself, liches in abandoned villages, keyed gates staying open with no queen and drifting snow). Guard Villagers rising in her storm with their gear (the owner: "we also need to test against guard villagers") has a smoke check since 2026-11-24, the pack's Guard Villagers a test-only `localRuntime`. Still to do: the owner's `Feature_Dump_11-24.md` (local, unread when this was written); and all of 0.60.0-0.68.0 in a client (`testing.md`). The owner's answers and notes for each are in `decisions.md`. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
+- **Owed:** the owner's own look at 0.52.0–0.54.1, 0.59.0 and 0.60.0's music in a client ([testing.md](docs/dev/testing.md), Client).
 - The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
 ## Keep in step
@@ -48,11 +49,18 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - Don't add a `DragonColor`: its constructor adds it to every dragon of its type, and armour gets made for it.
 - An attribute it adds only to its own dragon types (`dragon_forge_speed`) must be added to ours in `DreadPatch`: reading one an entity lacks throws, and once crashed the dev server's tick.
 
+**Dread lights:** none brighter than 6 (`registry/DreadLights.LIGHT`, the owner's); give a new one that.
+
+**Dev only:** `DevKit` gives a player joining a dev run enchanted dread dragonsteel, an enchanted diamond sword and a hydra heart, once; it registers only when `FMLEnvironment.production` is false, so never in a built jar.
+
 **Spawning:** mobs we raise go through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn.
+
+**Network:** one payload so far (`world/DreadlandsMusic.FirstArrival`, 0.60.0), registered in common code on `RegisterPayloadHandlersEvent`, its handler a lambda that calls into a client class (only a client ever runs it, so a dedicated server never loads that class). Do the same for another.
 
 **Assets:** nothing of Ice and Fire's, Iron's or vanilla's ships.
 - Item and block sprites are recoloured as they load by our sprite source `dreadpatch:dread_recolor` (listed in `assets/minecraft/atlases/blocks.json`; the colours in the game-free `magic/DreadRecolor`). Entity, armour and screen textures are `DynamicTexture`s made the first time they're drawn and remade on a resource reload.
-- Every sound event points at vanilla's or Ice and Fire's files.
+- Every sound event points at vanilla's or Ice and Fire's files, but the Dreadlands' music: the owner's own track, made by `tools/music/make_music.py` (edit and re-run it as the icons' script).
+- Block JSON copied from vanilla's (dreadwood's set) comes from `tools/datagen/make_dreadwood.py`: edit and re-run it.
 - Spell icons, effect icons, Syndrigossa's egg, the dread fire and the gate's texture come from `tools/sprites/make_icons.py` (deterministic; needs Pillow). Edit and re-run it rather than editing the PNGs.
 
 **Config** (`DreadPatchConfig`, a NeoForge server config, `config/dreadpatch-server.toml`):
@@ -95,8 +103,9 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
   - Use version ids, not version numbers: Uranus 2.4.1 names both a NeoForge and a Fabric file.
 - **As mods:** they're `implementation`, so the dev runs load them as mods, along with the jars bundled inside them (Architectury from Uranus, Integration from Ice and Fire).
 - **Iron's Spells:** it and its required libraries (Iron's Lib, playerAnimator, Curios) come the same way.
+- **NeoForge:** `neo_version` is the pack's, which the dev runs use; `neo_version_range` is the floor the jar declares (0.60.0: `[21.1.230,)`, Ice and Fire CE's own; 0.59.0 and before declared the pack's build).
 - **JEI** (0.59.0): the pack's file (19.70.0.469, `jei_version`, Modrinth version id `1vC6z8wV`), `compileOnly` for our plugin and `localRuntime` for the dev runs. Never required: JEI finds the plugin itself, and nothing else of ours touches JEI's classes.
-- **Test-only mods** go in `localRuntime`: Better Combat 2.4.0, Better Mob Combat Reimagined 1.1.22, Cloth Config 15.0.140, and (0.53.0) Lootr 1.11.38.127, the pack's file (`lootr_version`, its Modrinth version id from the pack export).
+- **Test-only mods** go in `localRuntime`: Better Combat 2.4.0, Better Mob Combat Reimagined 1.1.22, Cloth Config 15.0.140, (0.53.0) Lootr 1.11.38.127, the pack's file (`lootr_version`, its Modrinth version id from the pack export), (2026-11-24) Guard Villagers 2.4.12, the pack's file (`guardvillagers_version`), and Dummmmmmy 1.21-2.1.2 with the Moonlight 1.21.1-3.8.3 it needs (`dummy_version`, `moonlight_version`; its target dummy and damage numbers show the owner real damage and healing in a client; Modrinth's maven knows it only by its project id, `Adega8YN`, its slug being `mmmmmmmmmmmm`). The owner's copies are in the untracked `custom_mods/`.
   - They're the owner's files, from the untracked `compat_mods_testing_better_combat/`, pinned by the Modrinth version ids their SHA-1s resolve to.
   - The owner's pack export lists Reimagined 1.1.21.
   - The compat jars there for Cataclysm, Cataclysm: Spellbooks and Entity Model Features need mods the dev runs don't have, so they're left out.
@@ -104,7 +113,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 ### Dev runs and network
 
 **Dev runs**
-- **Server:** `./gradlew runServer` boots to `Done`, its mod list 20 long (Minecraft and NeoForge among them; Lootr made it 18 in 0.53.0, JEI and its bundled MezzConfig 20 in 0.59.0); the dev environment skips the EULA check.
+- **Server:** `./gradlew runServer` boots to `Done`, its mod list 23 long (Minecraft and NeoForge among them; Lootr made it 18 in 0.53.0, JEI and its bundled MezzConfig 20 in 0.59.0, Guard Villagers 21, Dummmmmmy and Moonlight 23); the dev environment skips the EULA check.
 - **Stopping:** `stop` over RCON, or SIGTERM to the java process. Both save the world.
 - **Expected noise:**
   - after a `mod_version` change, a warning that the world's `dreadpatch` version changed;
@@ -112,7 +121,8 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
   - missing Jupiter config files on a fresh `run/`;
   - refmap warnings from GeckoLib, Iron's Spells, Iron's Lib and Curios;
   - Lootr's mixin looking for Create's `SchematicPrinter`;
-  - `Not a list: null` whenever an ice dragon is summoned.
+  - `Not a list: null` whenever an ice dragon is summoned;
+  - Moonlight's `Detected config change` lines.
 - **After changes:** grep the log for `FAILED during APPLY|was not applied`.
 
 **Network:** a build needs:
@@ -128,13 +138,14 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - Bump `mod_version` with user-visible changes; merging the bump releases it. Keep the README in step.
 - **Before committing (the owner's checklist, pasted 2026-11-22 for the second drop, followed since):**
   - one branch for each group of work;
-  - stage files by name (never `git add .` or `-A`; `compat_mods_testing_better_combat/` and the `.mrpack`s stay untracked), after checking the diff for debug leftovers;
+  - stage files by name (never `git add .` or `-A`; `compat_mods_testing_better_combat/`, `custom_mods/` and the `.mrpack`s stay untracked), after checking the diff for debug leftovers;
   - `./gradlew build` (unit tests included) and the smoke test pass before the merge, or a failure is understood and flagged;
   - the PR says what changed, what was assumed, and what still needs testing by hand;
   - no commit or PR until all that's done, or a blocker is resolved or clearly flagged.
 - **Merging (since 2026-11-14):**
   - the owner wants each PR merged as soon as its CI passes, without waiting for their review;
   - with merge commits, as they merged #1 and #2.
+- **The beta (since 2026-11-23,** the owner: "hold for the beta", then "Create a beta branch and follow your recommendations"**):** `main` stays at the last release. Beta work branches from `beta` and its PRs go into `beta`, merged there (merge commits) once CI passes; each still bumps `mod_version`. `beta` merges into `main` once, when the owner says the beta's ready, which releases the version it's at. Pushes to `beta` release nothing and don't sync the wiki (`release.yml` and `wiki.yml` run on `main` only); PR builds still run.
 - **One release at a time:** merge PRs that each bump the version one at a time, letting each Release run finish first. `release.yml`'s concurrency group cancels a pending run when another queues behind it, which would skip that version's release.
 
 **Release**

@@ -1,6 +1,7 @@
 package io.github.hammerknife404.dreadpatch.world;
 
 import com.iafenvoy.iceandfire.entity.DreadMobEntity;
+import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
 import io.github.hammerknife404.dreadpatch.entity.DreadPatrols;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
@@ -9,21 +10,27 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
+import java.util.function.Predicate;
 
 /**
  * What rises on its own in the Dreadlands (0.52.0, the owner's second drop; {@link DreadlandsSpawning}):
  * the Dread in small groups, day and night, more in snow and a little more in a heavy snowstorm; and
- * small patrols. Round each player (not spectating), not on Peaceful, with {@code doMobSpawning}; the
+ * small patrols; and now and then vanilla's undead, strayed in (0.60.0). Round each player (not spectating), not on Peaceful, with {@code doMobSpawning}; the
  * rates are the server config's. (Its dread phantoms are {@link Dreadlands}'.) Out of sight of nothing
  * in particular: 24-48 blocks off, on the open ground.
  */
@@ -65,6 +72,9 @@ public final class DreadlandsSpawns {
                     DreadPatrols.raiseLoose(level, at, count, random);
                 }
             }
+            if (dread && DreadlandsSpawning.comesUp(DreadPatchConfig.undeadOneIn(), roll)) {
+                raiseUndead(level, player, roll, random);
+            }
             if (patrols && DreadlandsSpawning.comesUp(DreadPatchConfig.patrolOneIn(), roll)
                     && !DreadPatrols.patrolNear(level, player.position(), PATROL_SPACING)) {
                 Vec3 at = ground(level, player, DreadlandsSpawning.PATROL_MIN_DISTANCE, DreadlandsSpawning.PATROL_MAX_DISTANCE, random);
@@ -78,9 +88,47 @@ public final class DreadlandsSpawns {
         }
     }
 
+    /**
+     * 1-2 of vanilla's undead, strayed in (0.60.0), on the ground near the player, rising as vanilla's
+     * own natural spawns do (their own gear, despawning as monsters do); never past the cap of them.
+     */
+    private static void raiseUndead(ServerLevel level, ServerPlayer player, Random roll, RandomSource random) {
+        int standing = level.getEntitiesOfClass(Monster.class, player.getBoundingBox().inflate(DreadlandsSpawning.CAP_RANGE),
+                mob -> mob.getType().is(EntityTypeTags.UNDEAD) && !(mob instanceof IDreadMob)).size();
+        int count = Math.min(DreadPatchConfig.undeadCap() - standing, 1 + roll.nextInt(2));
+        Vec3 at = count > 0 ? ground(level, player, DreadlandsSpawning.MIN_DISTANCE, DreadlandsSpawning.MAX_DISTANCE, random) : null;
+        if (at == null) {
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            EntityType<? extends Monster> type = switch (DreadlandsSpawning.undead(roll.nextInt(DreadlandsSpawning.UNDEAD_WEIGHT))) {
+                case STRAY -> EntityType.STRAY;
+                case ZOMBIE -> EntityType.ZOMBIE;
+                case SKELETON -> EntityType.SKELETON;
+                case ZOMBIE_VILLAGER -> EntityType.ZOMBIE_VILLAGER;
+            };
+            Monster mob = type.create(level);
+            if (mob == null) {
+                continue;
+            }
+            mob.moveTo(at.x + random.nextInt(5) - 2, at.y, at.z + random.nextInt(5) - 2, random.nextFloat() * 360.0F, 0.0F);
+            if (!level.noCollision(mob)) {
+                mob.moveTo(at.x, at.y, at.z, mob.getYRot(), 0.0F);
+            }
+            EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.NATURAL, null);
+            level.addFreshEntityWithPassengers(mob);
+        }
+    }
+
     /** Open ground {@code min}-{@code max} blocks from the player, in a loaded chunk, not under water; null if the tries find none. */
     @Nullable
     static Vec3 ground(ServerLevel level, ServerPlayer player, double min, double max, RandomSource random) {
+        return ground(level, player, min, max, random, pos -> true);
+    }
+
+    /** The same, where {@code ok} takes the spot (the feet's block). */
+    @Nullable
+    static Vec3 ground(ServerLevel level, ServerPlayer player, double min, double max, RandomSource random, Predicate<BlockPos> ok) {
         for (int attempt = 0; attempt < 8; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             double distance = min + random.nextDouble() * (max - min);
@@ -90,7 +138,8 @@ public final class DreadlandsSpawns {
                 continue;
             }
             int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-            if (!level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty() || !level.noCollision(new AABB(x, y, z, x + 1, y + 2, z + 1))) {
+            if (!level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty() || !level.noCollision(new AABB(x, y, z, x + 1, y + 2, z + 1))
+                    || !ok.test(new BlockPos(x, y, z))) {
                 continue;
             }
             return new Vec3(x + 0.5, y, z + 0.5);

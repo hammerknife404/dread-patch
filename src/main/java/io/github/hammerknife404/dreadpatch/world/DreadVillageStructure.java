@@ -37,6 +37,18 @@ import java.util.Optional;
  * vanilla's villages in the overworld are untouched.
  */
 public class DreadVillageStructure extends Structure {
+    /** A village's wooden stairs, slabs, fences, gates, doors, trapdoors, buttons and plates, and the dreadwood ones they become. */
+    private static final java.util.List<java.util.Map.Entry<net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block>,
+            java.util.function.Supplier<? extends net.minecraft.world.level.block.Block>>> WOOD_SHAPES = java.util.List.of(
+            java.util.Map.entry(BlockTags.WOODEN_STAIRS, io.github.hammerknife404.dreadpatch.registry.Dreadwood.STAIRS),
+            java.util.Map.entry(BlockTags.WOODEN_SLABS, io.github.hammerknife404.dreadpatch.registry.Dreadwood.SLAB),
+            java.util.Map.entry(BlockTags.WOODEN_FENCES, io.github.hammerknife404.dreadpatch.registry.Dreadwood.FENCE),
+            java.util.Map.entry(BlockTags.FENCE_GATES, io.github.hammerknife404.dreadpatch.registry.Dreadwood.FENCE_GATE),
+            java.util.Map.entry(BlockTags.WOODEN_DOORS, io.github.hammerknife404.dreadpatch.registry.Dreadwood.DOOR),
+            java.util.Map.entry(BlockTags.WOODEN_TRAPDOORS, io.github.hammerknife404.dreadpatch.registry.Dreadwood.TRAPDOOR),
+            java.util.Map.entry(BlockTags.WOODEN_BUTTONS, io.github.hammerknife404.dreadpatch.registry.Dreadwood.BUTTON),
+            java.util.Map.entry(BlockTags.WOODEN_PRESSURE_PLATES, io.github.hammerknife404.dreadpatch.registry.Dreadwood.PRESSURE_PLATE));
+
     public static final MapCodec<DreadVillageStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             settingsCodec(i),
             JigsawStructure.CODEC.codec().fieldOf("village").forGetter(s -> s.village)
@@ -77,6 +89,48 @@ public class DreadVillageStructure extends Structure {
                 }
             }
         }
+        this.lich(level, random, chunkBox, pieces, box);
+    }
+
+    /**
+     * One village in {@code village_liches} (0.70.0) has a Dread Lich at its heart, the middle of its first piece (its
+     * meeting place), on the highest floor there with room for it, made as the chunk holding that spot is: once a village.
+     * Kept for good, as a structure's guardian (it raises its own minions as any lich does).
+     */
+    private void lich(WorldGenLevel level, RandomSource random, BoundingBox chunkBox, PiecesContainer pieces, BoundingBox box) {
+        if (pieces.pieces().isEmpty()) {
+            return;
+        }
+        BlockPos heart = pieces.pieces().get(0).getBoundingBox().getCenter();
+        int oneIn = io.github.hammerknife404.dreadpatch.DreadPatchConfig.villageLichOneIn();
+        if (heart.getX() < chunkBox.minX() || heart.getX() > chunkBox.maxX() || heart.getZ() < chunkBox.minZ() || heart.getZ() > chunkBox.maxZ()
+                || oneIn <= 0 || random.nextInt(oneIn) != 0) {
+            return;
+        }
+        BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos(heart.getX(), box.maxY() + TREE_HEADROOM, heart.getZ());
+        for (; at.getY() > box.minY() - 8; at.move(0, -1, 0)) {
+            // Room: nothing to bump into, so the snow layer the biome lays on everything counts as room.
+            if (!passable(level, at) && passable(level, at.above()) && passable(level, at.above(2))) {
+                break;
+            }
+        }
+        if (at.getY() <= box.minY() - 8) {
+            return;
+        }
+        com.iafenvoy.iceandfire.entity.DreadLichEntity lich = com.iafenvoy.iceandfire.registry.IafEntities.DREAD_LICH.get().create(level.getLevel());
+        if (lich == null) {
+            return;
+        }
+        lich.moveTo(at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+        net.neoforged.neoforge.event.EventHooks.finalizeMobSpawn(lich, level, level.getCurrentDifficultyAt(at.above()),
+                net.minecraft.world.entity.MobSpawnType.STRUCTURE, null);
+        lich.setPersistenceRequired();
+        level.addFreshEntityWithPassengers(lich);
+    }
+
+    private static boolean passable(WorldGenLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return state.getCollisionShape(level, pos).isEmpty() && state.getFluidState().isEmpty();
     }
 
     /** The Dread's block for a village's own, its shape kept; null to leave it. */
@@ -86,6 +140,14 @@ public class DreadVillageStructure extends Structure {
         if (flame != null) {
             // Its lanterns and torches the Dread's (0.57.0).
             return flame;
+        }
+        // Wood's other shapes (0.65.0): dreadwood's, shape and state kept (spruce's stayed until there were any).
+        if (!state.getBlock().builtInRegistryHolder().key().location().getNamespace().equals(io.github.hammerknife404.dreadpatch.DreadPatch.MODID)) {
+            for (var shape : WOOD_SHAPES) {
+                if (state.is(shape.getKey())) {
+                    return shaped(state, shape.getValue().get().defaultBlockState());
+                }
+            }
         }
         if (state.is(BlockTags.PLANKS)) {
             return IafBlocks.DREADWOOD_PLANKS.get().defaultBlockState();

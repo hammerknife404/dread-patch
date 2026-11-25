@@ -40,6 +40,41 @@ public final class DreadlandsSpawning {
     public static final int PHANTOM_NEAR_SPIRE_ONE_IN = 3;
     /** How near a spire's middle counts as near it. */
     public static final double SPIRE_REACH = 96.0;
+    /**
+     * Vanilla's undead strayed in (0.60.0, the owner's dump: "Add vanilla undead and cold variants ... at low weights";
+     * ours): a one-in-this chance per player every {@link #SPAWN_INTERVAL} of 1-2, never past {@link #UNDEAD_CAP}
+     * of them within {@link #CAP_RANGE}.
+     */
+    public static final int UNDEAD_ONE_IN = 16;
+    public static final int UNDEAD_CAP = 4;
+    /**
+     * An abandoned village's Dread Lich (0.70.0, the owner: "Ice and Fire's Liches Should sometimes spawn in dread
+     * villages"; ours: one village in this many, at its heart as it's made).
+     */
+    public static final int VILLAGE_LICH_ONE_IN = 3;
+    /** Which, by weight: stray 3, zombie 2, skeleton 2, zombie villager 1 (cold kinds first; no husks, a desert's). */
+    public enum Undead {
+        STRAY(3), ZOMBIE(2), SKELETON(2), ZOMBIE_VILLAGER(1);
+
+        public final int weight;
+
+        Undead(int weight) {
+            this.weight = weight;
+        }
+    }
+
+    public static final int UNDEAD_WEIGHT = 8;
+
+    /** The undead kind for a roll in 0 to {@link #UNDEAD_WEIGHT} - 1. */
+    public static Undead undead(int roll) {
+        for (Undead kind : Undead.values()) {
+            if (roll < kind.weight) {
+                return kind;
+            }
+            roll -= kind.weight;
+        }
+        return Undead.STRAY;
+    }
 
     private DreadlandsSpawning() {
     }

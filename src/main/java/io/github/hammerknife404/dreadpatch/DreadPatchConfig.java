@@ -1,7 +1,10 @@
 package io.github.hammerknife404.dreadpatch;
 
+import io.github.hammerknife404.dreadpatch.magic.ColdRules;
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
+import io.github.hammerknife404.dreadpatch.magic.EscalationRules;
+import io.github.hammerknife404.dreadpatch.magic.RisenRules;
 import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -22,11 +25,21 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue DREAD_STORM;
     private static final ModConfigSpec.IntValue DREAD_CAP;
     private static final ModConfigSpec.IntValue PATROLS;
+    private static final ModConfigSpec.IntValue UNDEAD;
+    private static final ModConfigSpec.IntValue UNDEAD_CAP;
+    private static final ModConfigSpec.IntValue VILLAGE_LICHES;
+    private static final ModConfigSpec.IntValue MAUSOLEUM_DREAD;
+    private static final ModConfigSpec.IntValue CAVE_PHANTOMS;
+    private static final ModConfigSpec.IntValue CAVE_WATER;
+    private static final ModConfigSpec.IntValue CHASMA_WATER;
+    private static final ModConfigSpec.DoubleValue DEFEAT_STORM_HOURS;
+    private static final ModConfigSpec.BooleanValue DEFEAT_STORM_COLD_ONLY;
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
     private static final ModConfigSpec.IntValue WHITEOUT_STORMS;
     private static final ModConfigSpec.IntValue FLAME_FADE_MIN;
     private static final ModConfigSpec.IntValue FLAME_FADE_MAX;
+    private static final ModConfigSpec.DoubleValue DREAD_LIGHT_FREEZE;
     private static final ModConfigSpec.BooleanValue CROWN_STORM_SIGHT;
     private static final ModConfigSpec.DoubleValue CROWN_WHITEOUT_SIGHT;
     private static final ModConfigSpec.BooleanValue REGALIA_EASES_WEATHER;
@@ -54,6 +67,13 @@ public final class DreadPatchConfig {
                 .defineInRange("dread_cap", DreadlandsSpawning.CAP, 0, 100);
         PATROLS = builder.comment("Dread patrols (a dread knight leading 2-4 more): each player has a one-in-this chance every 2 minutes. 0: never.")
                 .defineInRange("patrols", DreadlandsSpawning.PATROL_ONE_IN, 0, 10000);
+        UNDEAD = builder.comment("Vanilla's undead (strays, zombies, skeletons, zombie villagers) strayed into the Dreadlands: each player has a",
+                "one-in-this chance every 10 s of 1-2 rising 24-48 blocks off, day or night (the sun there doesn't burn them). 0: never.")
+                .defineInRange("undead_spawns", DreadlandsSpawning.UNDEAD_ONE_IN, 0, 10000);
+        UNDEAD_CAP = builder.comment("No more of them rise while this many of vanilla's undead are within 64 blocks of the player.")
+                .defineInRange("undead_cap", DreadlandsSpawning.UNDEAD_CAP, 0, 100);
+        VILLAGE_LICHES = builder.comment("One abandoned village in this many has a Dread Lich at its heart, from when it's made (villages already made",
+                "keep what they had). 0: none.").defineInRange("village_liches", DreadlandsSpawning.VILLAGE_LICH_ONE_IN, 0, 10000);
         PHANTOMS = builder.comment("Dread phantoms coming down on a player under the open sky: a one-in-this chance every 30 s. 0: never.")
                 .defineInRange("phantoms", DreadlandsSpawning.PHANTOM_ONE_IN, 0, 10000);
         PHANTOMS_NEAR_SPIRES = builder.comment("The same within 96 blocks of a spire.")
@@ -65,6 +85,30 @@ public final class DreadPatchConfig {
         FLAME_FADE_MIN = builder.comment("A lantern or torch placed in the Dreadlands steps toward the Dread's (soul, then dread) after this many seconds at least...")
                 .defineInRange("flame_fade_min_seconds", 30, 1, 3600);
         FLAME_FADE_MAX = builder.comment("...and at most (if less than the least, the least).").defineInRange("flame_fade_max_seconds", 45, 1, 3600);
+        DREAD_LIGHT_FREEZE = builder.comment("Dread torches and lanterns are sources of cold, anywhere: water within 2 blocks across (2 below, 1 above) turns",
+                "to ice, packed ice, then blue ice, a third of this many minutes of game time each (sleeping doesn't skip it). 20: a day. 0: never.")
+                .defineInRange("dread_light_freeze_minutes", ColdRules.DEFAULT_MINUTES, 0.0, 100000.0);
+        builder.pop();
+        builder.comment("What her defeat stirs in the overworld.").push("overworld");
+        MAUSOLEUM_DREAD = builder.comment("Once a Dread Queen has been defeated in this world, the Dread rise round its Mausoleums for good: each",
+                "player within 128 blocks of one, in a cold biome, has a one-in-this chance every 10 s of 1-3 rising 24-48 blocks off on",
+                "snow, ice or dreadstone (never in a village), and patrols cross there as in the Dreadlands. 0: never, nor the patrols.")
+                .defineInRange("mausoleum_dread", EscalationRules.MAUSOLEUM_ONE_IN, 0, 10000);
+        DEFEAT_STORM_HOURS = builder.comment("Her defeat brings a dry storm over the cold lands for 30-60 s, then none for this many real hours,",
+                "whoever defeats her again. 0: one every defeat.")
+                .defineInRange("defeat_storm_hours", EscalationRules.DEFAULT_STORM_HOURS, 0.0, 8760.0);
+        DEFEAT_STORM_COLD_ONLY = builder.comment("Whether it reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky).")
+                .define("defeat_storm_cold_only", true);
+        builder.pop();
+        builder.comment("Risen Dread: bats, parrots and water creatures the Dread raise, and those stirring on their own.").push("risen");
+        CAVE_PHANTOMS = builder.comment("Risen Dread stirring on their own, in the overworld and the Dreadlands: each player has a one-in-this chance",
+                "every 10 s of a miniature dread phantom in dark cave air near them. 0: never.")
+                .defineInRange("cave_dread_phantoms", RisenRules.CAVE_PHANTOM_ONE_IN, 0, 10000);
+        CAVE_WATER = builder.comment("The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them. 0: never.")
+                .defineInRange("cave_dread_water", RisenRules.CAVE_WATER_ONE_IN, 0, 10000);
+        CHASMA_WATER = builder.comment("In the Dreadlands' Rime Chasma, each player's one-in-this chance every 10 s of a Dread water creature in one of",
+                "the pockets of water sealed in its ice near them (on top of the above). 0: never.")
+                .defineInRange("chasma_dread_water", RisenRules.CHASMA_WATER_ONE_IN, 0, 10000);
         builder.pop();
         builder.comment("The Dread Queen's regalia.").push("regalia");
         CROWN_STORM_SIGHT = builder.comment("Whether her crown keeps the Dreadlands' storm fog (snow and heavy snowstorms) off its wearer: near clear sight.")
@@ -100,6 +144,42 @@ public final class DreadPatchConfig {
         return SPEC.isLoaded() ? DREAD_CAP.get() : DreadlandsSpawning.CAP;
     }
 
+    public static int undeadOneIn() {
+        return SPEC.isLoaded() ? UNDEAD.get() : DreadlandsSpawning.UNDEAD_ONE_IN;
+    }
+
+    public static int undeadCap() {
+        return SPEC.isLoaded() ? UNDEAD_CAP.get() : DreadlandsSpawning.UNDEAD_CAP;
+    }
+
+    public static int villageLichOneIn() {
+        return SPEC.isLoaded() ? VILLAGE_LICHES.get() : DreadlandsSpawning.VILLAGE_LICH_ONE_IN;
+    }
+
+    public static int mausoleumDreadOneIn() {
+        return SPEC.isLoaded() ? MAUSOLEUM_DREAD.get() : EscalationRules.MAUSOLEUM_ONE_IN;
+    }
+
+    public static long defeatStormCooldownMillis() {
+        return (long) ((SPEC.isLoaded() ? DEFEAT_STORM_HOURS.get() : EscalationRules.DEFAULT_STORM_HOURS) * 3_600_000.0);
+    }
+
+    public static boolean defeatStormColdOnly() {
+        return !SPEC.isLoaded() || DEFEAT_STORM_COLD_ONLY.get();
+    }
+
+    public static int cavePhantomOneIn() {
+        return SPEC.isLoaded() ? CAVE_PHANTOMS.get() : RisenRules.CAVE_PHANTOM_ONE_IN;
+    }
+
+    public static int caveWaterOneIn() {
+        return SPEC.isLoaded() ? CAVE_WATER.get() : RisenRules.CAVE_WATER_ONE_IN;
+    }
+
+    public static int chasmaWaterOneIn() {
+        return SPEC.isLoaded() ? CHASMA_WATER.get() : RisenRules.CHASMA_WATER_ONE_IN;
+    }
+
     public static int patrolOneIn() {
         return SPEC.isLoaded() ? PATROLS.get() : DreadlandsSpawning.PATROL_ONE_IN;
     }
@@ -117,6 +197,10 @@ public final class DreadPatchConfig {
     }
 
     /** Ticks a fading lantern or torch waits at least, and at most, for its next step (0.58.0). */
+    public static double dreadLightFreezeMinutes() {
+        return SPEC.isLoaded() ? DREAD_LIGHT_FREEZE.get() : ColdRules.DEFAULT_MINUTES;
+    }
+
     public static int flameFadeMinTicks() {
         return (SPEC.isLoaded() ? FLAME_FADE_MIN.get() : 30) * 20;
     }

@@ -23,14 +23,15 @@ import org.jetbrains.annotations.Nullable;
  * and deeper underground rumbles, each sound's volume varying a little"), in place of the biome's own loop
  * and additions (its cave mood is still the biome's):
  * <ul>
- * <li>its loop, the soul sand valley's at full volume (vanilla plays it at 0.85), drifting slowly between
- * 0.88 and 1 like the wind rising and falling, fading in and out as you come and go;</li>
- * <li>its whispers and shifting sand, vanilla's, a fifth louder, as often as vanilla's (0.0111 a tick);</li>
+ * <li>its loop, the soul sand valley's (vanilla plays it at 0.85), drifting slowly between 0.80 and 0.92
+ * like the wind rising and falling, fading in and out as you come and go;</li>
+ * <li>its whispers and shifting sand, vanilla's, at 0.8 of their volume and half as often (0.0055 a tick);</li>
  * <li>ice cracking on the surface round you, 6-20 blocks off, every 30-120 s while you're near the top, half
  * the time a burst of two or three back to back ({@link AmbienceRules}; 0.54.1);</li>
  * <li>a deep rumble from below about every 30 s, louder when you're underground.</li>
  * </ul>
- * Every one plays at its own volume, ±15%.
+ * Every one plays at its own volume, ±15%. Out in the defeat storm (0.62.0, {@link DefeatStormClient}), its loop
+ * and its ice cracking play too, and nothing else of it.
  */
 public final class DreadlandsAmbience {
     /** Half vanilla's (0.58.0, the owner: "Reduce the ambient soul sounds some and their frequency"). */
@@ -64,8 +65,18 @@ public final class DreadlandsAmbience {
         gameBus.addListener(DreadlandsAmbience::onClientTick);
     }
 
-    private static boolean here(Minecraft minecraft) {
-        return minecraft.level != null && minecraft.player != null && minecraft.level.dimension() == Dreadlands.LEVEL;
+    /** Where its sounds play: the Dreadlands (all of them), or out in the defeat storm (0.62.0: its wind and ice only). */
+    private enum Mode { NONE, DREADLANDS, DEFEAT_STORM }
+
+    private static Mode mode(Minecraft minecraft) {
+        if (minecraft.level == null || minecraft.player == null) {
+            return Mode.NONE;
+        }
+        if (minecraft.level.dimension() == Dreadlands.LEVEL) {
+            return Mode.DREADLANDS;
+        }
+        // Not over a Whiteout Dominion's own wind.
+        return DefeatStormClient.exposed() && WhiteoutClient.windStrength() <= 0.0F ? Mode.DEFEAT_STORM : Mode.NONE;
     }
 
     /** {@code base}, ±15%. */
@@ -78,12 +89,14 @@ public final class DreadlandsAmbience {
         if (minecraft.isPaused()) {
             return;
         }
-        if (!here(minecraft)) {
+        Mode mode = mode(minecraft);
+        if (mode == Mode.NONE) {
             crackIn = -1;
             burstLeft = 0;
             roarIn = -1;
             return;
         }
+        boolean dreadlands = mode == Mode.DREADLANDS;
         ClientLevel level = minecraft.level;
         LocalPlayer player = minecraft.player;
         if (loop == null || loop.isStopped() || !minecraft.getSoundManager().isActive(loop)) {
@@ -91,7 +104,7 @@ public final class DreadlandsAmbience {
             minecraft.getSoundManager().play(loop);
         }
         RandomSource random = level.random;
-        if (random.nextFloat() < ADDITIONS_CHANCE) {
+        if (dreadlands && random.nextFloat() < ADDITIONS_CHANCE) {
             everywhere(minecraft, ModRegistries.DREADLANDS_ADDITIONS.get(), vary(random, 1.0F), 0.95F + random.nextFloat() * 0.1F);
         }
         int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, player.getBlockX(), player.getBlockZ());
@@ -116,6 +129,9 @@ public final class DreadlandsAmbience {
                 burstLeft = AmbienceRules.burstSize(random::nextInt) - 1;
                 burstGap = AmbienceRules.burstGap(random::nextInt);
             }
+        }
+        if (!dreadlands) {
+            return;
         }
         if (roarIn < 0) {
             roarIn = ROAR_MIN + random.nextInt(ROAR_MAX - ROAR_MIN + 1);
@@ -176,7 +192,7 @@ public final class DreadlandsAmbience {
 
         @Override
         public void tick() {
-            boolean here = here(Minecraft.getInstance());
+            boolean here = mode(Minecraft.getInstance()) != Mode.NONE;
             this.fade = Mth.clamp(this.fade + (here ? FADE : -FADE), 0.0F, 1.0F);
             if (!here && this.fade <= 0.0F) {
                 this.stop();

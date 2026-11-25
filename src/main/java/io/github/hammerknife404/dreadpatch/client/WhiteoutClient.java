@@ -37,6 +37,8 @@ public final class WhiteoutClient {
     private static final float FADE = 1.0F / 30.0F;
     /** Flakes a tick round the camera inside a storm. */
     private static final int FLAKES = 10;
+    /** The Sastrugi Wastes' gale's wind (0.69.0): this loud in clear weather, twice it in their snow. */
+    private static final float GALE_WIND = 0.3F;
 
     private static float fog;
     private static float lastFog;
@@ -66,6 +68,17 @@ public final class WhiteoutClient {
         return inside;
     }
 
+    /**
+     * How loud the wind is: a storm's inside it, or the Sastrugi Wastes' gale (0.69.0), louder in its snow. The gale
+     * isn't a storm round you, so it doesn't muffle sounds as {@link #windStrength} does.
+     */
+    static float windVolume() {
+        float gale = DreadlandsClient.gale();
+        ClientLevel level = Minecraft.getInstance().level;
+        float snow = level == null ? 0.0F : level.getRainLevel(1.0F);
+        return Math.max(inside, gale * (GALE_WIND + GALE_WIND * snow));
+    }
+
     private static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
@@ -90,7 +103,7 @@ public final class WhiteoutClient {
         if (storm != null) {
             blowFlakes(level, storm, camera.getEyePosition());
         }
-        if (inside > 0.0F && (wind == null || wind.isStopped())) {
+        if (windVolume() > 0.0F && (wind == null || wind.isStopped())) {
             wind = new WhiteoutWindSound();
             minecraft.getSoundManager().play(wind);
         }

@@ -2,10 +2,12 @@ package io.github.hammerknife404.dreadpatch.world;
 
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
+import io.github.hammerknife404.dreadpatch.magic.ArrivalRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
 import io.github.hammerknife404.dreadpatch.entity.DreadPhantom;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -24,27 +26,29 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The Dreadlands (0.46.0): a dimension of bleak frozen waste ({@code data/dreadpatch/dimension}), with
  * rare tall spires ({@link SpireStructure}). Its time and weather are the overworld's (every other
- * level's data is the overworld's, read through). Reached through a Dread Gate, arriving near a
- * spire's foot; left through a Dread Gate keyed there, back to where you came in. Dread phantoms
+ * level's data is the overworld's, read through). Reached through a Dread Gate, arriving somewhere
+ * random clear of the spires; left through a Dread Gate keyed there, back to where you came in. Dread phantoms
  * come down out of its sky now and then, never for want of sleep.
  */
 public final class Dreadlands {
     public static final ResourceKey<Level> LEVEL = ResourceKey.create(Registries.DIMENSION, DreadPatch.id("dreadlands"));
     public static final TagKey<Structure> SPIRES = TagKey.create(Registries.STRUCTURE, DreadPatch.id("spires"));
-    /** How far (in chunks) to look for a spire to arrive by. */
-    static final int SPIRE_SEARCH = 100;
-    /** Arrival: this far from a spire's middle and a little more, near its foot, never on it. */
-    static final double ARRIVAL_DISTANCE = 28.0;
-    static final double ARRIVAL_SPREAD = 8.0;
+    /** Its biomes but the plains (0.66.0). */
+    public static final ResourceKey<net.minecraft.world.level.biome.Biome> RIME_CHASMA = ResourceKey.create(Registries.BIOME, DreadPatch.id("rime_chasma"));
+    public static final ResourceKey<net.minecraft.world.level.biome.Biome> SASTRUGI_WASTES = ResourceKey.create(Registries.BIOME, DreadPatch.id("sastrugi_wastes"));
     /**
      * Its dread phantoms (the owner: 1-2 at a time, at a low rate, not tied to sleep): every 30 s, a
      * player under open sky has a one-in-8 chance of 1-2 (about one flight every 4 minutes), one in 3
@@ -72,9 +76,12 @@ public final class Dreadlands {
     }
 
     /**
-     * Where someone coming in near {@code near} arrives: by the nearest spire's foot (generating the
-     * ground there), on dry ground or ice, facing it; with no spire about, at {@code near} itself.
-     * Null if there's no Dreadlands.
+     * Where someone coming in near {@code near} arrives (0.60.0, the owner: "somewhere random, but never on
+     * a tower or within 48 blocks from one. And prefer the surface, but caves or similar are ok";
+     * {@link ArrivalRules}): a random spot within 256 blocks of {@code near}'s x and z, clear of every
+     * spire, on dry ground at the surface (generating it); failing every try there, the first dry floor
+     * lower down at a spot clear of spires (a cave); failing that, the first clear spot's surface, wet or
+     * not. Facing anywhere. Null if there's no Dreadlands.
      */
     @Nullable
     public static Arrival arrival(MinecraftServer server, BlockPos near, RandomSource random) {
@@ -82,28 +89,56 @@ public final class Dreadlands {
         if (lands == null) {
             return null;
         }
-        BlockPos spire = lands.findNearestMapStructure(SPIRES, near, SPIRE_SEARCH, false);
-        double cx = spire != null ? (spire.getX() & ~15) + 8.5 : near.getX() + 0.5;
-        double cz = spire != null ? (spire.getZ() & ~15) + 8.5 : near.getZ() + 0.5;
-        double distance = spire != null ? ARRIVAL_DISTANCE + random.nextDouble() * ARRIVAL_SPREAD : 0.0;
-        double start = random.nextDouble() * Math.PI * 2.0;
-        Arrival wet = null;
-        for (int i = 0; i < 8; i++) {
-            double angle = start + i * Math.PI / 4.0;
-            int x = Mth.floor(cx + Math.cos(angle) * distance);
-            int z = Mth.floor(cz + Math.sin(angle) * distance);
-            lands.getChunk(x >> 4, z >> 4);
-            int y = lands.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-            float yaw = distance > 0.0 ? (float) (Mth.atan2(-(cx - (x + 0.5)), cz - (z + 0.5)) * Mth.RAD_TO_DEG) : random.nextFloat() * 360.0F;
-            Arrival arrival = new Arrival(new Vec3(x + 0.5, y, z + 0.5), yaw);
-            if (lands.getFluidState(new BlockPos(x, y - 1, z)).isEmpty()) {
-                return arrival;
+        float yaw = random.nextFloat() * 360.0F;
+        List<BlockPos> clear = new ArrayList<>();
+        for (int i = 0; i < ArrivalRules.TRIES; i++) {
+            double[] offset = ArrivalRules.offset(random.nextDouble(), random.nextDouble());
+            int x = Mth.floor(near.getX() + 0.5 + offset[0]);
+            int z = Mth.floor(near.getZ() + 0.5 + offset[1]);
+            if (!clearOfSpires(lands, x, z)) {
+                continue;
             }
-            if (wet == null) {
-                wet = arrival;
+            lands.getChunk(x >> 4, z >> 4);
+            BlockPos surface = feet(lands, x, z);
+            if (standable(lands, surface)) {
+                return new Arrival(Vec3.atBottomCenterOf(surface), yaw);
+            }
+            clear.add(surface);
+        }
+        for (BlockPos surface : clear) {
+            for (BlockPos below = surface.below(2); below.getY() > lands.getMinBuildHeight() + 1; below = below.below()) {
+                if (standable(lands, below)) {
+                    return new Arrival(Vec3.atBottomCenterOf(below), yaw);
+                }
             }
         }
-        return wet;
+        BlockPos fallback = !clear.isEmpty() ? clear.get(0) : lands.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, near);
+        return new Arrival(Vec3.atBottomCenterOf(fallback), yaw);
+    }
+
+    /** Whether no spire stands within {@link ArrivalRules#CLEARANCE} of x, z (its structure placement; no chunk generated). */
+    static boolean clearOfSpires(ServerLevel lands, int x, int z) {
+        int chunks = (int) Math.ceil(ArrivalRules.FROM_MIDDLE / 16.0) + 1;
+        BlockPos spire = lands.findNearestMapStructure(SPIRES, new BlockPos(x, 64, z), chunks, false);
+        return spire == null || ArrivalRules.clearOfSpire((spire.getX() & ~15) + 8.5 - (x + 0.5), (spire.getZ() & ~15) + 8.5 - (z + 0.5));
+    }
+
+    /** The open spot on top of x, z: on the ground, in any snow layer (the biome lays one on everything) or plant on it. */
+    static BlockPos feet(ServerLevel lands, int x, int z) {
+        BlockPos pos = new BlockPos(x, lands.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+        while (pos.getY() > lands.getMinBuildHeight() + 1 && lands.getBlockState(pos.below()).canBeReplaced()
+                && lands.getFluidState(pos.below()).isEmpty()) {
+            pos = pos.below();
+        }
+        return pos;
+    }
+
+    /** Room to stand at {@code feet}: two clear blocks, no fluid there or below, and a sturdy floor. */
+    static boolean standable(ServerLevel lands, BlockPos feet) {
+        BlockPos floor = feet.below();
+        return lands.getFluidState(floor).isEmpty() && lands.getFluidState(feet).isEmpty()
+                && lands.getBlockState(floor).isFaceSturdy(lands, floor, Direction.UP)
+                && lands.noCollision(new AABB(feet.getX() + 0.2, feet.getY(), feet.getZ() + 0.2, feet.getX() + 0.8, feet.getY() + 1.8, feet.getZ() + 0.8));
     }
 
     /** Takes {@code player} into the Dreadlands, remembering where they came from. */

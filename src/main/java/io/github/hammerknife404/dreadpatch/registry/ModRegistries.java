@@ -65,6 +65,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -153,6 +154,15 @@ public final class ModRegistries {
                     .ridingOffset(-0.125F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("dread_phantom").toString()));
+    /** The miniature dread phantom (0.63.0): the dread phantom's box, which its scale of 0.5 halves. */
+    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>> MINIATURE_DREAD_PHANTOM =
+            ENTITY_TYPES.register("miniature_dread_phantom",
+                    () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>of(
+                                    io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom::new, MobCategory.MONSTER)
+                            .sized(0.9F, 0.5F)
+                            .eyeHeight(0.175F)
+                            .clientTrackingRange(8)
+                            .build(DreadPatch.id("miniature_dread_phantom").toString()));
 
     /** Rimefire Blast's cone (0.51.0): Iron's Cone of Cold's size and tracking; it draws itself in particles. */
     public static final DeferredHolder<EntityType<?>, EntityType<RimefireBlastProjectile>> RIMEFIRE_BLAST_PROJECTILE = ENTITY_TYPES.register("rimefire_blast",
@@ -199,13 +209,13 @@ public final class ModRegistries {
                     .updateInterval(20)
                     .build(DreadPatch.id("dread_gate").toString()));
 
-    /** A Dread Gate's open face: no item, no drops, unbreakable but in creative, lit like a Nether portal. */
+    /** A Dread Gate's open face: no item, no drops, unbreakable but in creative, lit as every dread light ({@link DreadLights}). */
     public static final DeferredBlock<DreadGateBlock> DREAD_GATE_BLOCK = BLOCKS.register("dread_gate",
             () -> new DreadGateBlock(BlockBehaviour.Properties.of()
                     .noCollission()
                     .strength(-1.0F, 3600000.0F)
                     .sound(SoundType.GLASS)
-                    .lightLevel(state -> 11)
+                    .lightLevel(state -> DreadLights.LIGHT)
                     .pushReaction(PushReaction.BLOCK)
                     .noLootTable()));
 
@@ -223,7 +233,8 @@ public final class ModRegistries {
 
     /** The Dread's lantern (0.57.0): a soul lantern's shape and light, its flame her cyan. Fading lanterns and the villages' end as it. */
     public static final DeferredBlock<net.minecraft.world.level.block.LanternBlock> DREAD_LANTERN = BLOCKS.register("dread_lantern",
-            () -> new net.minecraft.world.level.block.LanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)));
+            () -> new net.minecraft.world.level.block.LanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)
+                    .lightLevel(state -> DreadLights.LIGHT)));
     public static final DeferredItem<net.minecraft.world.item.BlockItem> DREAD_LANTERN_ITEM = ITEMS.registerSimpleBlockItem("dread_lantern", DREAD_LANTERN);
 
     /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */
@@ -274,6 +285,8 @@ public final class ModRegistries {
     /** A phantom's slate-blue spotted with her cyan. */
     public static final DeferredItem<DeferredSpawnEggItem> DREAD_PHANTOM_SPAWN_EGG = ITEMS.register("dread_phantom_spawn_egg",
             () -> new DeferredSpawnEggItem(DREAD_PHANTOM, 0x2B3247, 0x00CBFF, new Item.Properties()));
+    public static final DeferredItem<DeferredSpawnEggItem> MINIATURE_DREAD_PHANTOM_SPAWN_EGG = ITEMS.register("miniature_dread_phantom_spawn_egg",
+            () -> new DeferredSpawnEggItem(MINIATURE_DREAD_PHANTOM, 0x3E465C, 0x9CF0FF, new Item.Properties()));
 
     /**
      * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's
@@ -308,6 +321,16 @@ public final class ModRegistries {
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_RUMBLE = sound("ambient.dreadlands.rumble");
     /** Syndrigossa, far off (0.58.0): Ice and Fire's ice dragon's roars and calls. */
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_DISTANT_ROAR = sound("ambient.dreadlands.distant_roar");
+    /**
+     * The Dreadlands' music (0.60.0): the owner's "Entombed In Rimefrost" (tools/music/make_music.py), the only
+     * music played there (the biome's music, kept so by {@code client/DreadlandsMusic}). Its disc plays a mono
+     * copy, so a jukebox's fades with distance.
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_MUSIC = sound("music.dreadlands");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTOMBED_IN_RIMEFROST_RECORD = sound("music_disc.entombed_in_rimefrost");
+    public static final ResourceKey<JukeboxSong> ENTOMBED_IN_RIMEFROST = ResourceKey.create(Registries.JUKEBOX_SONG, DreadPatch.id("entombed_in_rimefrost"));
+    public static final DeferredItem<Item> MUSIC_DISC_ENTOMBED_IN_RIMEFROST = ITEMS.registerSimpleItem("music_disc_entombed_in_rimefrost",
+            new Item.Properties().stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(ENTOMBED_IN_RIMEFROST));
 
     /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",

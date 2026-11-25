@@ -91,6 +91,8 @@ Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have
 - **The entity:** never saved; a 1×1 point whose culling box is its whole cylinder.
 - **Its space:** a cylinder of `Radius` round where it was raised, from 16 below to 48 above.
 - **Every 10 ticks:** everyone inside it may harm gets 40 ticks of Whiteout: speed −20%, follow range −50%. The Dread refuse it.
+- **Bosses keep their sight (0.60.0;** the owner's dump: verify it "does not cause large external melee bosses (#c:bosses, such as Cataclysm bruisers) to drop aggro prematurely inside the 32-block dome"**):** it did (a `TargetGoal` drops a target past follow range), so `WhiteoutEffect.onEffectStarted` takes the follow-range modifier off anything in `#c:bosses`. Vanilla's `addEffect` calls it after every application, renewals too, just after putting the modifiers back; the slow stays. The whiteout weather's Whiteout is the same effect.
+- **Its cold puts out fire (0.64.0;** the owner: the queen burned on in her own storm**):** every tick (every 10 until 0.66.1: the owner had lit her with a Fire Aspect sword, and each hit relit her between), anything on fire inside it (hers, the queen's, anyone) is put out (`clearFire`).
 - **Every 60 ticks:** everyone not freeze-immune takes 1 `dreadpatch:whiteout` damage.
   - That type is tagged as vanilla's `freeze` is.
   - With no caster, the damage is vanilla's `freeze` itself, so a death message never lacks its `%2$s`.
@@ -115,6 +117,7 @@ Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have
   - She commands them, so they count in her court's 6.
   - They take her target.
   - Every equipment slot is copied with drop chance 0, since the dead drop their own.
+  - **How a thrall's armour looks** (0.70.0, `client/ThrallArmorLayer`): Ice and Fire's thrall renderer draws any `ArmorItem` a thrall wears in its own thrall textures (`BipedArmorFeatureRendererMultiple` → `IHasArmorVariantResource`), so a guard's iron looked like rags. Ours takes that layer's place in the renderer's `layers` (`EntityRenderersEvent.AddLayers`, by reflection): chainmail (what Ice and Fire gives its thralls) still goes to theirs; any other armour to vanilla's `HumanoidArmorLayer` on a zombie-shaped `HumanoidModel` posed from the thrall model's root parts (`head`, `body`, `armRight`…: rotation points and angles), so it looks as on a player, our client extensions included. Each layer draws with the other's pieces taken out of the thrall's `armorItems` list (`getArmorSlots`) and put back straight after.
 
 **Its water**
 - **Freezing:** every 10 ticks (`frost`), it looks at the top block of every column, in loaded chunks only (`hasChunk`; `getHeight` would load one).

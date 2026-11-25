@@ -63,7 +63,8 @@ import java.util.UUID;
  * standing where it was cast ({@link WhiteoutStorm} has its shape and numbers). Everyone inside it
  * may harm is kept in a {@code Whiteout} (slowed, and blind past a few blocks) and, every few
  * seconds, takes a point of freezing damage. In hers, the Dread Queen's, whatever dies rises again
- * as a dread mob of her court ({@link #raise}), golems aside. Its water freezes over as under Frost
+ * as a dread mob of her court ({@link #raise}), golems aside; a bat or parrot as a miniature dread
+ * phantom, a water creature as itself, Dread ({@link RisenDread}, 0.63.0). Its water freezes over as under Frost
  * Walker ({@link #frost}), in patches as its snow drifts in, and thaws as it clears. Drawn by
  * {@code WhiteoutRenderer} and {@code WhiteoutClient}: driven snow, snow lying on the ground for as
  * long as it stands, a wall of it at the edge, and the fog. Never saved: it blows over in under a minute.
@@ -174,6 +175,11 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         }
         if (this.tickCount % FROST_EVERY == 0) {
             this.frost();
+        }
+        // Its cold puts out every fire inside, hers too, every tick (the owner: she burned on in her own storm from a
+        // Fire Aspect sword; 0.64.0 put fire out every 10 ticks, which a sword's every hit relit, 0.66.1 every tick).
+        for (Entity burning : this.level().getEntitiesOfClass(Entity.class, this.area(), e -> e.isOnFire() && this.holds(e))) {
+            burning.clearFire();
         }
         boolean renew = this.tickCount % RENEW_EVERY == 0;
         boolean freeze = WhiteoutStorm.freezesAt(this.tickCount);
@@ -302,7 +308,7 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
      * (as Ice and Fire's own necromancy spares them), bosses, or golems (the owner's call).
      */
     static boolean canRise(LivingEntity victim) {
-        return (victim instanceof Mob || victim instanceof Player) && !(victim instanceof IDreadMob) && !(victim instanceof DragonBaseEntity)
+        return (victim instanceof Mob || victim instanceof Player) && !RisenDread.dread(victim) && !(victim instanceof DragonBaseEntity)
                 && !victim.getType().is(Tags.EntityTypes.BOSSES) && !isGolem(victim);
     }
 
@@ -322,8 +328,10 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
      * never drop theirs.
      */
     private boolean raise(ServerLevel level, LivingEntity victim, DreadQueen queen) {
-        Entity risen = DreadMobEntity.necromancyEntity(victim);
-        if (risen == null) {
+        // A bat or parrot rises a miniature dread phantom, a water creature as itself, Dread (0.63.0).
+        boolean ours = RisenDread.risesAs(victim);
+        Entity risen = ours ? RisenDread.rise(level, victim, queen) : DreadMobEntity.necromancyEntity(victim);
+        if (risen == null && !ours) {
             risen = WhiteoutStorm.risesAsThrall(victim.getBbWidth(), victim.getBbHeight()) ? this.thrall(level, victim) : this.beast(level, victim);
         }
         if (risen == null) {
@@ -339,9 +347,9 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         }
         if (risen instanceof DreadMobEntity dread) {
             dread.setCommanderId(queen.getUUID());
-            if (queen.getTarget() != null && queen.getTarget().isAlive()) {
-                dread.setTarget(queen.getTarget());
-            }
+        }
+        if (risen instanceof Mob mob && queen.getTarget() != null && queen.getTarget().isAlive()) {
+            mob.setTarget(queen.getTarget());
         }
         if (!level.addFreshEntity(risen)) {
             return false;

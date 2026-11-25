@@ -1,0 +1,55 @@
+{
+  "has_precipitation": true,
+  "temperature": -0.7,
+  "downfall": 0.4,
+  "effects": {
+    "sky_color": 6187128,
+    "fog_color": 10266294,
+    "water_color": 2833234,
+    "water_fog_color": 791584,
+    "grass_color": 7042176,
+    "foliage_color": 5923952,
+    "particle": {
+      "options": {
+        "type": "minecraft:snowflake"
+      },
+      "probability": 0.004
+    },
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "music": {
+      "sound": "dreadpatch:music.dreadlands",
+      "min_delay": 12000,
+      "max_delay": 24000,
+      "replace_current_music": true
+    }
+  },
+  "spawners": {},
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [
+      "dreadpatch:chasma_pocket"
+    ],
+    [],
+    [],
+    [],
+    [
+      "dreadpatch:dreadstone_blobs",
+      "dreadpatch:packed_ice_blobs",
+      "dreadpatch:crusted_lava_pocket"
+    ],
+    [],
+    [],
+    [
+      "dreadpatch:heaved_slabs"
+    ],
+    []
+  ]
+}

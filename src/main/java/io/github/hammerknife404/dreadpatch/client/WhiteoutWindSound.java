@@ -6,7 +6,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
-/** The wind inside Whiteout Dominion: vanilla's soul sand valley loop, low, as loud as the storm is round the camera. */
+/**
+ * The wind inside Whiteout Dominion: vanilla's soul sand valley loop, low, as loud as the storm is round the camera;
+ * and over the Sastrugi Wastes, softer (0.69.0).
+ */
 final class WhiteoutWindSound extends AbstractTickableSoundInstance {
     WhiteoutWindSound() {
         super(SoundEvents.AMBIENT_SOUL_SAND_VALLEY_LOOP.value(), SoundSource.WEATHER, RandomSource.create());
@@ -20,7 +23,7 @@ final class WhiteoutWindSound extends AbstractTickableSoundInstance {
 
     @Override
     public void tick() {
-        float strength = WhiteoutClient.windStrength();
+        float strength = WhiteoutClient.windVolume();
         if (strength <= 0.0F) {
             this.stop();
             return;

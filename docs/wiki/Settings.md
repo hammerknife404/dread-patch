@@ -24,11 +24,35 @@ The "one in" values are chances: 0 turns that thing off.
 | `dread_spawns_storm` | `5` | The same in a heavy snowstorm (thunder). |
 | `dread_cap` | `8` | No more rise while this many of the Dread are within 64 blocks of the player. |
 | `patrols` | `3` | One in this chance, per player every 2 minutes, of a Dread patrol (a dread knight leading 2-4 more). |
+| `undead_spawns` | `16` | One in this chance, per player every 10 seconds, of 1-2 of vanilla's undead (strays, zombies, skeletons, zombie villagers) rising 24-48 blocks off in the Dreadlands, day or night. 0 for never. |
+| `undead_cap` | `4` | No more of them rise while this many of vanilla's undead are within 64 blocks of the player. |
+| `village_liches` | `3` | One abandoned village in this many has a Dread Lich at its heart, from when the village is made (villages already made keep what they had). 0 for none. |
 | `phantoms` | `8` | One in this chance, every 30 s, of dread phantoms coming down on a player under the open sky. |
 | `phantoms_near_spires` | `3` | The same within 96 blocks of a spire. |
 | `flame_fade_min_seconds` / `flame_fade_max_seconds` | `30` / `45` | How long a placed lantern or torch waits for each step toward the Dread's. |
+| `dread_light_freeze_minutes` | `20.0` | Dread torches and lanterns are sources of cold: water within 2 blocks across (2 below, 1 above) turns to ice, packed ice, then blue ice, a third of this many minutes of game time each (sleeping doesn't skip it; 20 is a Minecraft day). 0 for never. |
 | `whiteout_storms` | `6` | About one storm in this many is a Whiteout Dominion. Never two in a row (so 2 or less is every other storm), never starting while a Dread Queen is about, breaking into a thunderstorm when her fight starts. |
 
+
+## `[overworld]`
+
+What the Dread Queen's defeat stirs.
+
+| Option | Default | What it does |
+|---|---|---|
+| `mausoleum_dread` | `12` | Once a Dread Queen has been defeated in the world, one in this chance per player every 10 seconds of 1-3 Dread rising round a Mausoleum within 128 blocks (cold biomes, on snow, ice or dreadstone, never in a village); patrols cross there too. 0 for never, patrols included. |
+| `defeat_storm_hours` | `6.0` | Real hours after a defeat storm before her defeat brings another. 0 for one every defeat. |
+| `defeat_storm_cold_only` | `true` | Whether the defeat storm reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky). |
+
+## `[risen]`
+
+Bats, parrots and water creatures risen Dread, stirring on their own.
+
+| Option | Default | What it does |
+|---|---|---|
+| `cave_dread_phantoms` | `40` | In the overworld and the Dreadlands, one in this chance per player every 10 seconds of a miniature dread phantom stirring in dark cave air near them. 0 for never. |
+| `cave_dread_water` | `40` | The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them. 0 for never. |
+| `chasma_dread_water` | `8` | In the Dreadlands' Rime Chasma, the same for a Dread water creature in one of the pockets of water sealed in its ice near them (on top of the above). 0 for never. |
 
 ## `[regalia]`
 
