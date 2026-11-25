@@ -28,6 +28,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * Chasma's polygonal trenches and fissures are where it's under their width.</li>
  * <li>{@link LavaPocket} ({@code dreadpatch:crusted_lava_pocket}): a small blob of lava sealed in a crust of packed
  * ice, blue ice, basalt, dreadstone, obsidian and now and then crying obsidian.</li>
+ * <li>{@link ChasmaPocket} ({@code dreadpatch:chasma_pocket}) and {@link HeavedSlabs} ({@code dreadpatch:heaved_slabs}):
+ * the Rime Chasma's water sealed in its ice, and slabs heaved up at its cracks' lips (0.68.0).</li>
  * </ul>
  */
 public final class DreadTerrain {
@@ -39,6 +41,8 @@ public final class DreadTerrain {
             DENSITY_FUNCTIONS.register("cell_edges", () -> CellEdges.CODEC.codec());
     public static final DeferredHolder<Feature<?>, LavaPocket> CRUSTED_LAVA_POCKET = FEATURES.register("crusted_lava_pocket", LavaPocket::new);
     public static final DeferredHolder<Feature<?>, GravePatch> GRAVE_PATCH = FEATURES.register("grave_patch", GravePatch::new);
+    public static final DeferredHolder<Feature<?>, ChasmaPocket> CHASMA_POCKET = FEATURES.register("chasma_pocket", ChasmaPocket::new);
+    public static final DeferredHolder<Feature<?>, HeavedSlabs> HEAVED_SLABS = FEATURES.register("heaved_slabs", HeavedSlabs::new);
 
     private DreadTerrain() {
     }
@@ -198,6 +202,127 @@ public final class DreadTerrain {
             }
             return true;
         }
+    }
+
+    /**
+     * A pocket of still water sealed in the Rime Chasma's ice (0.68.0, the owner: "Include pockets of water within the
+     * ice here at the basin to naturaly spawn some of the aquatic dread beast"): under the floor's top by
+     * {@link TerrainRules#POCKET_DEPTH} or a few more, 5-11 across and 3-5 high, only where everything round it is
+     * solid, so it never spills into a crack or a cave. {@link RisenSpawns} finds it.
+     */
+    public static final class ChasmaPocket extends Feature<NoneFeatureConfiguration> {
+        ChasmaPocket() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            RandomSource random = context.random();
+            int top = context.origin().getY() - 1;
+            if (Math.abs(top - TerrainRules.CHASMA_TOP) > 2) {
+                return false;  // only under the floor itself, not its slopes or ridges
+            }
+            BlockPos heart = context.origin().below(1 + TerrainRules.POCKET_DEPTH + random.nextInt(TerrainRules.POCKET_DEPTH_SPREAD + 1));
+            double across = 2.5 + random.nextDouble() * 3.0;
+            double up = 1.2 + random.nextDouble();
+            int r = (int) Math.ceil(across) + 1;
+            int h = (int) Math.ceil(up) + 1;
+            java.util.List<BlockPos> water = new java.util.ArrayList<>();
+            for (BlockPos pos : BlockPos.betweenClosed(heart.offset(-r, -h, -r), heart.offset(r, h, r))) {
+                int dx = pos.getX() - heart.getX(), dy = pos.getY() - heart.getY(), dz = pos.getZ() - heart.getZ();
+                if (TerrainRules.inPocket(dx, dy, dz, across, up)) {
+                    water.add(pos.immutable());
+                } else if (TerrainRules.inPocket(dx, dy, dz, across + 1.0, up + 1.0) && !solid(level, pos)) {
+                    return false;  // its shell isn't whole
+                }
+            }
+            for (BlockPos pos : water) {
+                if (!solid(level, pos)) {
+                    return false;
+                }
+            }
+            for (BlockPos pos : water) {
+                level.setBlock(pos, Blocks.WATER.defaultBlockState(), Block.UPDATE_CLIENTS);
+            }
+            return true;
+        }
+    }
+
+    /**
+     * A slab of the Rime Chasma's ice heaved up at a crack's lip (0.68.0, the owner's pictures; "Tilted ice slabs"):
+     * where a column beside the origin drops {@link TerrainRules#LIP_DROP} or more, a slab 3-6 long and 2-4 wide lies
+     * back from the lip, two thick (snow over packed ice), its far end on the floor and its lip end raised
+     * ({@link TerrainRules#heave}), now and then jutting a block over the crack.
+     */
+    public static final class HeavedSlabs extends Feature<NoneFeatureConfiguration> {
+        HeavedSlabs() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            RandomSource random = context.random();
+            // Looks round the origin for a lip on the floor itself (not a crack's bottom).
+            BlockPos ground = null;
+            net.minecraft.core.Direction toCrack = null;
+            for (int attempt = 0; attempt < 24 && toCrack == null; attempt++) {
+                int x = context.origin().getX() + random.nextInt(15) - 7;
+                int z = context.origin().getZ() + random.nextInt(15) - 7;
+                ground = new BlockPos(x, level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1, z);
+                if (Math.abs(ground.getY() - TerrainRules.CHASMA_TOP) > 2 || !solid(level, ground)) {
+                    continue;
+                }
+                for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL.shuffledCopy(random)) {
+                    if (drops(level, ground.relative(side))) {
+                        toCrack = side;
+                        break;
+                    }
+                }
+            }
+            if (toCrack == null) {
+                return false;
+            }
+            net.minecraft.core.Direction back = toCrack.getOpposite();
+            net.minecraft.core.Direction across = toCrack.getClockWise();
+            int length = 3 + random.nextInt(4);
+            int width = 2 + random.nextInt(3);
+            double slope = 0.4 + random.nextDouble() * 0.5;
+            int from = random.nextFloat() < 0.4F ? -1 : 0;  // now and then jutting over the crack
+            BlockState top = Blocks.SNOW_BLOCK.defaultBlockState();
+            BlockState under = Blocks.PACKED_ICE.defaultBlockState();
+            boolean placed = false;
+            for (int t = from; t < length; t++) {
+                int rise = TerrainRules.heave(Math.max(t, 0), length, slope) + (t < 0 ? 1 : 0);
+                for (int w = -width / 2; w < width - width / 2; w++) {
+                    BlockPos at = ground.relative(back, t).relative(across, w).above(1 + rise);
+                    for (BlockPos pos : new BlockPos[] {at, at.below()}) {
+                        if (pos.getY() > ground.getY() && level.getBlockState(pos).isAir()) {
+                            level.setBlock(pos, pos == at ? top : under, Block.UPDATE_CLIENTS);
+                            placed = true;
+                        }
+                    }
+                }
+            }
+            return placed;
+        }
+
+        /** Whether the column at the floor's height there is air for {@link TerrainRules#LIP_DROP} blocks down. */
+        private static boolean drops(WorldGenLevel level, BlockPos pos) {
+            for (int i = 0; i < TerrainRules.LIP_DROP; i++) {
+                if (!level.getBlockState(pos.below(i)).isAir()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /** A whole, dry, solid block (ice and snow included; isSolidRender isn't sure of blue ice). */
+    private static boolean solid(WorldGenLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return !state.isAir() && state.getFluidState().isEmpty() && state.isCollisionShapeFullBlock(level, pos);
     }
 
     private static final class Block {

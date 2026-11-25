@@ -34,7 +34,9 @@
   "features": [
     [],
     [],
-    [],
+    [
+      "dreadpatch:chasma_pocket"
+    ],
     [],
     [],
     [],
@@ -45,9 +47,9 @@
     ],
     [],
     [],
-    [],
     [
-      "minecraft:freeze_top_layer"
-    ]
+      "dreadpatch:heaved_slabs"
+    ],
+    []
   ]
 }

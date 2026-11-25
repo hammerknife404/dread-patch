@@ -30,6 +30,7 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue MAUSOLEUM_DREAD;
     private static final ModConfigSpec.IntValue CAVE_PHANTOMS;
     private static final ModConfigSpec.IntValue CAVE_WATER;
+    private static final ModConfigSpec.IntValue CHASMA_WATER;
     private static final ModConfigSpec.DoubleValue DEFEAT_STORM_HOURS;
     private static final ModConfigSpec.BooleanValue DEFEAT_STORM_COLD_ONLY;
     private static final ModConfigSpec.IntValue PHANTOMS;
@@ -102,6 +103,9 @@ public final class DreadPatchConfig {
                 .defineInRange("cave_dread_phantoms", RisenRules.CAVE_PHANTOM_ONE_IN, 0, 10000);
         CAVE_WATER = builder.comment("The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them. 0: never.")
                 .defineInRange("cave_dread_water", RisenRules.CAVE_WATER_ONE_IN, 0, 10000);
+        CHASMA_WATER = builder.comment("In the Dreadlands' Rime Chasma, each player's one-in-this chance every 10 s of a Dread water creature in one of",
+                "the pockets of water sealed in its ice near them (on top of the above). 0: never.")
+                .defineInRange("chasma_dread_water", RisenRules.CHASMA_WATER_ONE_IN, 0, 10000);
         builder.pop();
         builder.comment("The Dread Queen's regalia.").push("regalia");
         CROWN_STORM_SIGHT = builder.comment("Whether her crown keeps the Dreadlands' storm fog (snow and heavy snowstorms) off its wearer: near clear sight.")
@@ -163,6 +167,10 @@ public final class DreadPatchConfig {
 
     public static int caveWaterOneIn() {
         return SPEC.isLoaded() ? CAVE_WATER.get() : RisenRules.CAVE_WATER_ONE_IN;
+    }
+
+    public static int chasmaWaterOneIn() {
+        return SPEC.isLoaded() ? CHASMA_WATER.get() : RisenRules.CHASMA_WATER_ONE_IN;
     }
 
     public static int patrolOneIn() {

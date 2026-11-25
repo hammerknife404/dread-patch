@@ -43,4 +43,31 @@ class TerrainRulesTest {
         assertEquals(TerrainRules.CRUST_WEIGHT, total);
         assertEquals(TerrainRules.Crust.CRYING_OBSIDIAN, TerrainRules.crust(TerrainRules.CRUST_WEIGHT - 1), "crying obsidian rarest");
     }
+
+    @Test
+    void heavedSlabRisesToItsLip() {
+        assertEquals(0, TerrainRules.heave(5, 6, 0.5), "its far end on the floor");
+        assertEquals(3, TerrainRules.heave(0, 6, 0.5), "its lip end raised");
+        int last = Integer.MAX_VALUE;
+        for (int t = 0; t < 6; t++) {
+            int rise = TerrainRules.heave(t, 6, 0.9);
+            assertTrue(rise <= last && last - rise <= 1 || last == Integer.MAX_VALUE, "a step at most a block, so it holds together");
+            last = rise;
+        }
+    }
+
+    @Test
+    void pocketIsAnEllipsoid() {
+        assertTrue(TerrainRules.inPocket(0, 0, 0, 3.0, 1.5));
+        assertTrue(TerrainRules.inPocket(3, 0, 0, 3.0, 1.5));
+        assertTrue(!TerrainRules.inPocket(0, 2, 0, 3.0, 1.5), "flat: not as tall as it's wide");
+        assertTrue(!TerrainRules.inPocket(3, 1, 0, 3.0, 1.5));
+    }
+
+    @Test
+    void pocketSitsInTheIceSheet() {
+        // The sheet is 16 deep; the deepest pocket's bottom (its heart, plus at most 3 below) stays inside it.
+        assertTrue(TerrainRules.POCKET_DEPTH + TerrainRules.POCKET_DEPTH_SPREAD + 1 + 3 < 16);
+        assertTrue(TerrainRules.POCKET_DEPTH >= 4, "under the 4 blocks that risen spawning counts as the top");
+    }
 }

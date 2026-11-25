@@ -196,6 +196,7 @@
   "dreadpatch.configuration.risen": "Risen Dread",
   "dreadpatch.configuration.cave_dread_phantoms": "Miniature dread phantoms in caves (one in)",
   "dreadpatch.configuration.cave_dread_water": "Dread water creatures underground (one in)",
+  "dreadpatch.configuration.chasma_dread_water": "Dread water creatures in the Rime Chasma's ice (one in)",
   "message.dreadpatch.dreadwood_sapling": "In the Dreadlands a dreadwood sapling takes root only in graveyard soil",
   "commands.dreadpatch.dreadlands.arrival": "Through a gate near %s %s, someone would arrive at %s %s %s, %s blocks from the nearest spire's middle",
   "commands.dreadpatch.rise.done": "%s of the Dread rose",

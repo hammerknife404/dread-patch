@@ -19,6 +19,8 @@ public final class RisenRules {
     /** Stirring on their own: each player a one-in-this chance every 10 s of one, in a cave or underground water near them. */
     public static final int CAVE_PHANTOM_ONE_IN = 40;
     public static final int CAVE_WATER_ONE_IN = 40;
+    /** In the Rime Chasma, the same for its water pockets (0.68.0): searched for there, so found far more often. */
+    public static final int CHASMA_WATER_ONE_IN = 8;
     /** Never past this many risen (of either) within 64 of the player. */
     public static final int CAVE_CAP = 3;
     /** Where: 12-32 blocks off, within 12 up or down. */

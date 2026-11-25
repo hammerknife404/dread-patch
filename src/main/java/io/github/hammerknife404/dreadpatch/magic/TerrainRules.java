@@ -27,6 +27,14 @@ public final class TerrainRules {
     public static final int GRAVE_PATCH_ONE_IN = 6;
     public static final float TREE_CHANCE = 0.4F;
 
+    /** The Rime Chasma's floor (0.68.0): its top block's height, as the terrain script's FLOOR_Y - 1. */
+    public static final int CHASMA_TOP = 30;
+    /** A water pocket sits this far under the floor's top at least, and this much more at most. */
+    public static final int POCKET_DEPTH = 5;
+    public static final int POCKET_DEPTH_SPREAD = 4;
+    /** A crack is a drop of at least this many blocks beside a column. */
+    public static final int LIP_DROP = 5;
+
     private TerrainRules() {
     }
 
@@ -58,6 +66,19 @@ public final class TerrainRules {
 
     private static double clamp(double v) {
         return Math.max(-1.0, Math.min(1.0, v));
+    }
+
+    /**
+     * A heaved slab's rise over the floor at {@code t} blocks back from the crack's lip (0 at the lip) of a slab
+     * {@code length} long: its far end rests on the floor, its lip end raised {@code slope} a block back, rounded.
+     */
+    public static int heave(int t, int length, double slope) {
+        return (int) Math.round(Math.max(0, length - 1 - t) * slope);
+    }
+
+    /** Whether an offset is inside a water pocket of these radii (an ellipsoid). */
+    public static boolean inPocket(int dx, int dy, int dz, double across, double up) {
+        return (dx * dx + dz * dz) / (across * across) + dy * dy / (up * up) <= 1.0;
     }
 
     public static Crust crust(int roll) {
