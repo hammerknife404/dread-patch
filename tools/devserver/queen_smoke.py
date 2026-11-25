@@ -1095,6 +1095,24 @@ def main():
         check(f"a {kind} killed in her storm rises", f"execute positioned {at} if entity @e[type={risen},distance=..2]", "Test passed")
         check(f"the risen {kind} answers to her", f"execute positioned {at} if entity @e[type={risen},distance=..2,nbt={{CommanderUUID:[I;9,9,9,9]}}]",
               "Test passed")
+    # Guard Villagers (the owner's pack's, a dev-run mod): a guard keeps its gear in an inventory of its own,
+    # which its getItemBySlot reads, so it rises a thrall of hers wearing it; the copy never drops (the guard
+    # drops its own: in the pack, always).
+    at = "14.5 200 2.5"
+    rcon.run(f'summon guardvillagers:guard {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
+    for slot, item in (("armor.head", "iron_helmet"), ("armor.chest", "iron_chestplate"), ("weapon.mainhand", "iron_sword"),
+                       ("weapon.offhand", "shield")):
+        rcon.run(f"item replace entity @e[tag=smoke_dead,limit=1] {slot} with minecraft:{item}")
+    check("a guard wears what it's given", "data get entity @e[tag=smoke_dead,limit=1] Inventory", "iron_chestplate")
+    rcon.run("kill @e[tag=smoke_dead]")
+    time.sleep(0.5)
+    guard_thrall = f"@e[type=iceandfire:dread_thrall,limit=1,sort=nearest,x=14.5,y=200,z=2.5,distance=..2]"
+    check("a guard killed in her storm rises", f"execute positioned {at} if entity {guard_thrall}", "Test passed")
+    check("the risen guard answers to her", f"execute if entity {guard_thrall[:-1]},nbt={{CommanderUUID:[I;9,9,9,9]}}]", "Test passed")
+    for path, item in (("ArmorItems[3].id", "iron_helmet"), ("ArmorItems[2].id", "iron_chestplate"), ("HandItems[0].id", "iron_sword"),
+                       ("HandItems[1].id", "shield")):
+        check(f"the risen guard wears its {item.replace('_', ' ')}", f"data get entity {guard_thrall} {path}", f'"minecraft:{item}"')
+    check("and won't drop it", f"data get entity {guard_thrall} ArmorDropChances[2]", "0.0f")
     # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water as itself,
     # Dread: marked, twice its health, refusing Withering Rime.
     for kind, at in (("bat", "5.5 200 4.5"), ("parrot", "7.5 200 4.5")):
