@@ -47,6 +47,11 @@ public final class DreadlandsSpawning {
      */
     public static final int UNDEAD_ONE_IN = 16;
     public static final int UNDEAD_CAP = 4;
+    /**
+     * An abandoned village's Dread Lich (0.70.0, the owner: "Ice and Fire's Liches Should sometimes spawn in dread
+     * villages"; ours: one village in this many, at its heart as it's made).
+     */
+    public static final int VILLAGE_LICH_ONE_IN = 3;
     /** Which, by weight: stray 3, zombie 2, skeleton 2, zombie villager 1 (cold kinds first; no husks, a desert's). */
     public enum Undead {
         STRAY(3), ZOMBIE(2), SKELETON(2), ZOMBIE_VILLAGER(1);

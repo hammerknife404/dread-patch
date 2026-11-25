@@ -1374,70 +1374,51 @@ def main():
            f"storm gone {gone}, {left} frosted ice left")
     # A Dread Gate. A Gravemaster's Key used on its frame needs a player; a gate summoned by hand finds
     # its frame round where it stands, the same way. A dreadstone frame round a 3x4 opening at the
-    # platform's north edge, open sky in front of it: after the 10 s ritual (0.46.0; 5 s before) the
-    # queen comes through riding an ancient Syndrigossa, and the gate shatters, its frame left. (Stepping
-    # into it, to the Dreadlands, needs a player.)
+    # platform's north edge. Since 0.70.0 (the owner: "Leaving a dread portal open no longer summons the
+    # Dread Queen or Syndragossa. It remains just a portal ... It should slowly build a few layers of snow
+    # layers around it up to 3-4 blocks out") it stays open, nothing comes, and it lays snow round its foot
+    # (the storm above laid a cover here, so it's cleared first). (Stepping into it needs a player.)
     queen_sel = "@e[type=dreadpatch:dread_queen,limit=1]"
     rcon.run("fill 3 199 2 7 204 2 iceandfire:dread_stone_bricks")
     rcon.run("fill 4 200 2 6 203 2 minecraft:air")
+    rcon.run("fill -1 199 -3 11 203 7 minecraft:air replace minecraft:snow")
     check("a gate summoned in its frame", "summon dreadpatch:dread_gate 5.5 200 2.5", "Summoned new")
     time.sleep(0.5)
     record("it fills its frame", all(block_is(x, y, 2, "dreadpatch:dread_gate") for x in (4, 5, 6) for y in (200, 203)),
            "no gate across the opening")
-    time.sleep(8.0)
-    record("the ritual runs 10 s: no queen 8 s in", "Test failed" in rcon.run("execute if entity " + queen_sel), "she came before 8.5 s")
-    came = False
-    for _ in range(24):
-        time.sleep(0.25)
-        came = "Test passed" in rcon.run("execute if entity " + queen_sel)
-        if came:
+    time.sleep(13.5)
+    record("it stays open and nothing comes through (14 s on)", "Test failed" in rcon.run("execute if entity " + queen_sel)
+           and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:syndrigossa]")
+           and block_is(5, 201, 2, "dreadpatch:dread_gate") and "Test passed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"),
+           "a queen or dragon came, or the gate closed")
+
+    def gate_snow():
+        filled = re.search(r"filled (\d+)", rcon.run("fill -1 199 -3 11 203 7 minecraft:sponge replace minecraft:snow"))
+        if filled and int(filled.group(1)):
+            rcon.run("fill -1 199 -3 11 203 7 minecraft:snow replace minecraft:sponge")
+            return int(filled.group(1))
+        return 0
+    snow = 0
+    for _ in range(15):
+        snow = gate_snow()
+        if snow:
             break
-    record("the Dread Queen comes through", came, "no queen within 14.5 s")
-    time.sleep(0.6)
-    record("riding an ancient Syndrigossa, with room for one",
-           "Test passed" in rcon.run("execute as " + queen_sel + " on vehicle if entity @s[type=dreadpatch:syndrigossa,nbt={Ancient:1b}]"),
-           "she isn't on an ancient Syndrigossa")
-    record("and the gate is gone, its frame left", block_is(5, 201, 2, "minecraft:air") and block_is(3, 201, 2, "iceandfire:dread_stone_bricks")
-           and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "the gate's still there, or its frame went")
-    rcon.run("kill @e[type=dreadpatch:dread_queen]")
-    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
-    clear_court()
-    rcon.run("kill @e[type=item]")
-    # Broken mid-ritual, it collapses and nothing comes; a frame with a gap opens nothing.
-    rcon.run("summon dreadpatch:dread_gate 5.5 200 2.5")
-    time.sleep(0.5)
+        time.sleep(2.0)
+    record("it lays snow round its foot", snow > 0, "no snow within 4 of it in 44 s")
+    # Broken, it collapses; a frame with a gap opens nothing.
     rcon.run("setblock 3 201 2 minecraft:air")
     time.sleep(0.5)
     record("breaking its frame collapses it", block_is(5, 201, 2, "minecraft:air") and block_is(4, 200, 2, "minecraft:air")
            and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "the gate outlived its frame")
-    time.sleep(10.0)
-    record("and nothing comes through", "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]"), "a queen came anyway")
     rcon.run("summon dreadpatch:dread_gate 5.5 200 2.5")
     time.sleep(0.5)
     record("a frame with a gap opens nothing", block_is(5, 201, 2, "minecraft:air")
            and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_gate]"), "a gate opened in a broken frame")
-    # In a room too low for her dragon (as a Mausoleum's hall is), she comes on foot, out of the gate itself.
-    rcon.run("fill 9 199 1 17 206 13 minecraft:stone hollow")
-    rcon.run("fill 11 200 7 15 204 7 iceandfire:dread_stone_bricks")
-    rcon.run("fill 12 201 7 14 203 7 minecraft:air")
-    rcon.run("summon dreadpatch:dread_gate 13.5 201 7.5")
-    came = False
-    for _ in range(64):
-        time.sleep(0.25)
-        came = "Test passed" in rcon.run("execute positioned 13.5 201 7.5 if entity @e[type=dreadpatch:dread_queen,distance=..2]")
-        if came:
-            break
-    time.sleep(0.6)
-    record("in a low room she comes on foot, in the gate", came and "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:syndrigossa]"),
-           f"queen in the gate: {came}; a Syndrigossa came too, or she didn't come")
-    rcon.run("kill @e[type=dreadpatch:dread_queen]")
-    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
-    clear_court()
-    rcon.run("kill @e[type=item]")
+    rcon.run("fill -1 199 -3 11 203 7 minecraft:air replace minecraft:snow")
     # The Dreadlands (0.46.0): the dimension, its frozen ground (snow over snow blocks and ice), a spire
     # standing far over the land round it; a Dread Gate keyed there leads home: it opens at once, no queen
-    # comes, it stays open past the ritual's 10 s, fades in and out, and closes within 30 s. (Going
-    # through, the arrival by a spire, and its phantoms need a player.)
+    # comes, and (0.70.0) it stays open till its frame breaks. (Going through, the arrival by a spire, and
+    # its phantoms need a player.)
     dl = "execute in dreadpatch:dreadlands "
     check("the Dreadlands' plains exist", dl + "run locate biome dreadpatch:dreadlands", "is at")
     # Its three biomes (0.66.0): the plains, the sunken Sastrugi Wastes, the Rime Chasma's trenches.
@@ -1569,20 +1550,15 @@ def main():
     record("it leads home: no queen, and still open past the ritual",
            "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:dread_queen]")
            and "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "a queen came, or the gate closed at 11 s")
-    faded = False
-    closed = False
-    for _ in range(100):
-        time.sleep(0.2)
-        alive = "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
-        pane = "Test passed" in rcon.run(dl + f"if block 46 {pad + 3} 44 dreadpatch:dread_gate")
-        faded |= alive and not pane
-        if not alive:
-            closed = True
-            break
-    record("it fades in and out, then closes within 30 s", faded and closed, f"faded {faded}, closed {closed}")
-    record("its frame stays", "Test passed" in rcon.run(dl + f"if block 44 {pad + 2} 44 iceandfire:dread_stone_bricks"), "the frame went")
-    # A spire's queen falls (0.47.0): where she fell, a Dread Gate frame rises, open home, and for longer
-    # than a keyed gate (5 minutes; a keyed one's most is 30 s). (Her coming to a summit needs a player.)
+    time.sleep(20.0)
+    record("it stays open (31 s on)", "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
+           and "Test passed" in rcon.run(dl + f"if block 46 {pad + 3} 44 dreadpatch:dread_gate"), "it closed")
+    rcon.run(dl + f"run setblock 44 {pad + 3} 44 minecraft:air")
+    time.sleep(0.5)
+    record("until its frame breaks", "Test failed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]")
+           and "Test passed" in rcon.run(dl + f"if block 44 {pad + 2} 44 iceandfire:dread_stone_bricks"), "still open, or the rest of its frame went")
+    # A spire's queen falls (0.47.0): where she fell, a Dread Gate frame rises, open home for 5 minutes
+    # (the only gate that still closes on its own, 0.70.0). (Her coming to a summit needs a player.)
     rcon.run(dl + f'run summon dreadpatch:dread_queen 54.5 {pad + 1} 52.5 {{NoAI:1b,NeoForgeData:{{"dreadpatch:spire":12345L}}}}')
     time.sleep(0.5)
     rcon.run(dl + "run kill @e[type=dreadpatch:dread_queen]")
@@ -1591,7 +1567,7 @@ def main():
         and "Test passed" in rcon.run(dl + f"if block 54 {pad + 2} 52 dreadpatch:dread_gate")
     record("where a spire's queen falls, a way home opens", opened, "no gate where she fell")
     time.sleep(30.0)
-    record("and stays open past a keyed gate's 30 s", "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "it closed")
+    record("and stays open past 30 s", "Test passed" in rcon.run(dl + "if entity @e[type=dreadpatch:dread_gate]"), "it closed")
     rcon.run(dl + "run kill @e[type=dreadpatch:dread_gate]")
     rcon.run(dl + "run kill @e[type=item]")
     rcon.run(dl + "run kill @e[type=minecraft:experience_orb]")
@@ -1832,6 +1808,8 @@ def main():
     # again, and once found a village made before 0.57.0 turned its lights (all 4 still vanilla's).
     far_x = random.choice((-1, 1)) * random.randrange(8_000, 200_000)
     far_z = random.choice((-1, 1)) * random.randrange(8_000, 200_000)
+    # Every village made from here on has its lich (0.70.0), till it's put back after the check.
+    rcon.run("dreadpatch config village_liches 1")
     out = rcon.run(dl + f"positioned {far_x} 0 {far_z} run locate structure dreadpatch:dread_village")
     v = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
     record("abandoned villages stand in the Dreadlands", v is not None, out.strip())
@@ -1852,7 +1830,11 @@ def main():
         record("its lanterns and torches are the Dread's", flames == 0, f"{flames} vanilla lanterns and torches left, {dread_flames} of the Dread's")
         loot_chests, plain_chests = count_blocks("lootr:lootr_chest", *area), count_blocks("minecraft:chest", *area)
         record("its chests are Lootr's", plain_chests == 0, f"{loot_chests} Lootr chests, {plain_chests} plain chests")
+        # A Dread Lich at its heart (0.70.0, the owner: "Ice and Fire's Liches Should sometimes spawn in dread villages").
+        out = rcon.run(dl + f"if entity @e[type=iceandfire:dread_lich,x={vx - 64},y=-64,z={vz - 64},dx=128,dy=400,dz=128]")
+        record("a Dread Lich keeps an abandoned village", "Test passed" in out, out.strip())
         rcon.run(dl + "run forceload remove all")
+    rcon.run("dreadpatch config village_liches 3")
     summit_chests, plain_summit, torches = 0, 0, 0
     for sx_far, sz_far in ((-far_x, far_z), (far_x, -far_z)):
         out = rcon.run(dl + f"positioned {sx_far} 0 {sz_far} run locate structure dreadpatch:spire")

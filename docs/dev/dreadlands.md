@@ -19,29 +19,24 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **The plane:** a side face gives its axis; a top or bottom face tries X, then Z.
 - **No gate there:** an action-bar hint.
 - **A gate:** the event is cancelled with success.
-- **On Peaceful (0.46.0):** it opens all the same (a way to the Dreadlands), but at the ritual's end the queen doesn't come (a `Monster`, she wouldn't stay); the opener gets the hint. Until 0.46.0 the gate refused and kept the key.
+- **On Peaceful:** it opens as anywhere (it brings no one since 0.70.0; until 0.46.0 the gate refused there and kept the key).
 - **On the server:**
-  - a `DreadGate` entity is made, holding the axis and the opener's side and UUID;
+  - a `DreadGate` entity is made, holding the axis;
   - it fills the opening;
   - the key is used up (`ItemStack.consume`; kept in creative).
 
-**The ritual** (`DreadGate`)
-- **Saving:** the entity is saved. Summoned bare, it finds its gate round itself on either axis, or discards itself.
+**Open** (`DreadGate`; 0.70.0, the owner: "Leaving a dread portal open no longer summons the Dread Queen or Syndragossa. It remains just a portal and does not despawn if players go in. It should slowly build a few layers of snow layers around it up to 3-4 blocks out")
+- **Saving:** the entity is saved. Summoned bare, it finds its gate round itself on either axis, or discards itself. Saves from before 0.70.0 kept `Side` and `Activator`, now ignored; a keyed gate saved mid-countdown (`OpenFor` ≥ 0) still runs it out.
 - **Panes:**
   - set with `UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE`, as vanilla's `PortalShape` fills (otherwise the first pane sees open air and falls);
-  - every tick it checks every pane is still there (faded out, that its frame still stands whole round the opening), or it shatters with nothing summoned.
-- **At `GateTiming.RITUAL_TICKS` (200; 100 until 0.46.0) it summons a `DreadQueen`,** unless someone stepped in (below):
-  - through `EventHooks.finalizeMobSpawn` as `MobSpawnType.EVENT`, so she's the boss, with her dragon;
-  - where an ancient Syndrigossa fits; else at the gate's foot, on foot (`DreadQueen.setWithDragon(false)`);
-  - her target is the opener.
-- **Checking room** (`dragonRoom`):
-  - a probe Syndrigossa, never added, made ancient (`makeAncient`);
-  - set on the ground its half-width + 1.5 out from the plane, the opener's side first;
-  - tested with `level.noCollision`.
-- **Afterwards:** it shatters (panes to air with `UPDATE_ALL`), leaving the frame.
-- **Stepping in (0.46.0):** every tick its panes are up, a player (alive, not a spectator) in the slab of its opening ±0.3 round its plane goes through (`passThrough`). The first holds the way open `GateTiming.openTicks` (300–600) more, and the queen doesn't come. Over its last `FADE_TICKS` (100) its panes go and come back (`GateTiming.shown`: blinks from 16 ticks, each 0.86 of the last, down to 2), set with `UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE` like its filling; then it shatters. Saved: `Homeward`, `OpenFor` (-1: not yet), `Shown`, `Arrival*`.
+  - every tick it checks every pane is still there (faded out, that its frame still stands whole round the opening), or it shatters.
+- **Open till its frame breaks:** a keyed gate's `OpenFor` stays −1. Its cold fire and snow pour from its faces, 2 to 4 particles every 2 ticks, reaching their fullest over `RITUAL_TICKS` (200); the portal's ambient sound every 2 s.
+- **Snow** (`laySnow`): every `GateTiming.SNOW_TICKS` (40) one try at a random column within `SNOW_REACH` (4) of its opening's foot (a box the opening's width + 4 each way along it, 4 each way across; not the gate's own plane and frame), its distance from the foot's nearest block giving the most layers there (`GateTiming.snowLayers`: 3 to 1.5, 2 to 2.5, 1 to 4). Down from 2 over the foot, 6 blocks: snow already lying gets a layer if under its most; air over a block snow survives on gets one; anything else, nothing. So it never replaces a block, and it's slow: a ring round a 3-wide gate is about a hundred columns, some minutes to fill.
+- **Until 0.70.0, the ritual:** at `RITUAL_TICKS` (200; 100 until 0.46.0) it summoned a `DreadQueen` as the boss (`MobSpawnType.EVENT`), on an ancient Syndrigossa where a probe one fitted in front of it, else on foot at its foot, her target the opener, and shattered; unless someone stepped in, which held it open `openTicks` (300–600) more, fading at the end.
+- **Stepping in (0.46.0):** every tick its panes are up, a player (alive, not a spectator) in the slab of its opening ±0.3 round its plane goes through (`passThrough`), with the portal's trigger sound. Saved: `Homeward`, `OpenFor`, `Shown`, `Arrival*`.
   - Into the Dreadlands: the arrival is found for the first through (`Dreadlands.arrival`) and kept for the rest, so a party lands together. Where each came from is the gate's front on the side they stepped in from (their previous tick's position), facing away (`cameFrom`), saved in `DreadlandsData`.
-  - A gate in the Dreadlands is **homeward**: it opens at once (`openFor` set on opening), no ritual, no queen, and each through goes to where they came in (`Dreadlands.goHome`).
+  - A gate in the Dreadlands is **homeward**: each through goes to where they came in (`Dreadlands.goHome`).
+- **The gate home at her fall** (`openReturn`, below) is the only one that still closes on its own: `OpenFor` its `RETURN_TICKS`; over its last `FADE_TICKS` (100) its panes go and come back (`GateTiming.shown`: blinks from 16 ticks, each 0.86 of the last, down to 2), set as its filling; then it shatters, its frame left.
 
 **The pane** (`block/DreadGateBlock`)
 - **Properties:** no item, no loot, no collision, light 11, unbreakable except in creative.

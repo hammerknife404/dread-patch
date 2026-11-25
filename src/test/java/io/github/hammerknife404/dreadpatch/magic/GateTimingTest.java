@@ -11,12 +11,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GateTimingTest {
     @Test
-    void openFifteenToThirtySeconds() {
-        assertEquals(300, GateTiming.openTicks(0.0));
-        assertEquals(600, GateTiming.openTicks(0.9999999));
-        for (double roll = 0.0; roll < 1.0; roll += 0.01) {
-            int ticks = GateTiming.openTicks(roll);
-            assertTrue(ticks >= 300 && ticks <= 600, "open " + ticks);
+    void snowDeepestBesideItAndNonePastFourBlocks() {
+        assertEquals(3, GateTiming.snowLayers(0.0));
+        assertEquals(3, GateTiming.snowLayers(1.0));
+        assertEquals(2, GateTiming.snowLayers(2.0));
+        assertEquals(1, GateTiming.snowLayers(3.5));
+        assertEquals(1, GateTiming.snowLayers(4.0));
+        assertEquals(0, GateTiming.snowLayers(4.1));
+        for (double d = 0.0; d < 6.0; d += 0.1) {
+            assertTrue(GateTiming.snowLayers(d) >= GateTiming.snowLayers(d + 0.1), "never deeper further out, at " + d);
         }
     }
 

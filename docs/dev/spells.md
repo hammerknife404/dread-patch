@@ -117,6 +117,7 @@ Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have
   - She commands them, so they count in her court's 6.
   - They take her target.
   - Every equipment slot is copied with drop chance 0, since the dead drop their own.
+  - **How a thrall's armour looks** (0.70.0, `client/ThrallArmorLayer`): Ice and Fire's thrall renderer draws any `ArmorItem` a thrall wears in its own thrall textures (`BipedArmorFeatureRendererMultiple` → `IHasArmorVariantResource`), so a guard's iron looked like rags. Ours takes that layer's place in the renderer's `layers` (`EntityRenderersEvent.AddLayers`, by reflection): chainmail (what Ice and Fire gives its thralls) still goes to theirs; any other armour to vanilla's `HumanoidArmorLayer` on a zombie-shaped `HumanoidModel` posed from the thrall model's root parts (`head`, `body`, `armRight`…: rotation points and angles), so it looks as on a player, our client extensions included. Each layer draws with the other's pieces taken out of the thrall's `armorItems` list (`getArmorSlots`) and put back straight after.
 
 **Its water**
 - **Freezing:** every 10 ticks (`frost`), it looks at the top block of every column, in loaded chunks only (`hasChunk`; `getHeight` would load one).

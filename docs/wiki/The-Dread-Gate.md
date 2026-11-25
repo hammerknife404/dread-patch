@@ -2,14 +2,11 @@
 
 1. Build a frame of Ice and Fire's dreadstone (any of its stone, bricks, tiles or chiseled skulls) round an opening 2 to 21 blocks wide and 3 to 21 tall, as a Nether portal's can be. The corners can be left out.
 2. Right-click the frame with a **Gravemaster's Key**, Ice and Fire's Mausoleum key, which the gate uses up.
-3. The opening fills with a dark, cold-fire gate, and 10 seconds later the Dread Queen comes through. The gate shatters, leaving its frame for another key.
-4. **Or step into it** before she comes, and it takes you to **[the Dreadlands](The-Dreadlands)** instead. She doesn't come, and the gate stays open 15 to 30 seconds more for anyone to follow you, flickering faster and faster over its last 5 seconds before it closes.
+3. The opening fills with a dark, cold-fire gate: a way to **[the Dreadlands](The-Dreadlands)**. Step into it and it takes you there. Anyone who follows through the same gate arrives where you did.
+4. It stays open until its frame is broken. Nothing comes through it, and over the minutes it's open, snow drifts up round its foot, up to three layers deep beside it and thinning out to a single layer 3 to 4 blocks out.
 
-Where there's room for her dragon in front of the gate, she comes as the full boss, riding an ancient Syndrigossa. Where there isn't, she rises out of the gate on foot.
-
-- **In a Mausoleum:** every Mausoleum already has four gates. The arches of the shrine round the ice dragon forge in its far hall are dreadstone frames 3 wide and 6 tall. Its hall is too low for her dragon, so there she comes on foot.
-- **Breaking the frame** while it's open collapses the gate, and the key is lost.
-- **On Peaceful** the gate still opens, as a way to the Dreadlands, but the queen doesn't come through.
+- **In a Mausoleum:** every Mausoleum already has four gates. The arches of the shrine round the ice dragon forge in its far hall are dreadstone frames 3 wide and 6 tall.
+- **Breaking the frame** closes the gate, and the key is lost.
 
 The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now be crafted: three Dread Shards, a Bone and two Gold Ingots in the shape of a key (shards and bone across the top, a shard below, the gold at the bottom right). The recipe unlocks when you pick up a dread shard.
 

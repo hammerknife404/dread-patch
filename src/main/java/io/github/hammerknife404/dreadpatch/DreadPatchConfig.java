@@ -27,6 +27,7 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue PATROLS;
     private static final ModConfigSpec.IntValue UNDEAD;
     private static final ModConfigSpec.IntValue UNDEAD_CAP;
+    private static final ModConfigSpec.IntValue VILLAGE_LICHES;
     private static final ModConfigSpec.IntValue MAUSOLEUM_DREAD;
     private static final ModConfigSpec.IntValue CAVE_PHANTOMS;
     private static final ModConfigSpec.IntValue CAVE_WATER;
@@ -71,6 +72,8 @@ public final class DreadPatchConfig {
                 .defineInRange("undead_spawns", DreadlandsSpawning.UNDEAD_ONE_IN, 0, 10000);
         UNDEAD_CAP = builder.comment("No more of them rise while this many of vanilla's undead are within 64 blocks of the player.")
                 .defineInRange("undead_cap", DreadlandsSpawning.UNDEAD_CAP, 0, 100);
+        VILLAGE_LICHES = builder.comment("One abandoned village in this many has a Dread Lich at its heart, from when it's made (villages already made",
+                "keep what they had). 0: none.").defineInRange("village_liches", DreadlandsSpawning.VILLAGE_LICH_ONE_IN, 0, 10000);
         PHANTOMS = builder.comment("Dread phantoms coming down on a player under the open sky: a one-in-this chance every 30 s. 0: never.")
                 .defineInRange("phantoms", DreadlandsSpawning.PHANTOM_ONE_IN, 0, 10000);
         PHANTOMS_NEAR_SPIRES = builder.comment("The same within 96 blocks of a spire.")
@@ -147,6 +150,10 @@ public final class DreadPatchConfig {
 
     public static int undeadCap() {
         return SPEC.isLoaded() ? UNDEAD_CAP.get() : DreadlandsSpawning.UNDEAD_CAP;
+    }
+
+    public static int villageLichOneIn() {
+        return SPEC.isLoaded() ? VILLAGE_LICHES.get() : DreadlandsSpawning.VILLAGE_LICH_ONE_IN;
     }
 
     public static int mausoleumDreadOneIn() {
