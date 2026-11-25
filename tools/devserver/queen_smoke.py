@@ -902,6 +902,76 @@ def main():
     time.sleep(0.3)
     rcon.run("kill @e[type=item]")
 
+    # The Rime Eel (0.71.0), in a pool of its own off the platforms: sized as it spawns (0.6-1.4 long, 10-18
+    # health with it), 4 armour, undead and aquatic, of the Dread; it eats dropped food; in a fight its lure's
+    # pulse lays Rimefrost or Whiteout on what's near and sends it into a Frenzy; its loot.
+    rcon.run("forceload add 40 40 48 48")
+    rcon.run("fill 40 196 40 48 199 48 minecraft:stone")
+    rcon.run("fill 40 200 40 48 204 48 minecraft:air")
+    rcon.run("fill 42 197 42 45 199 45 minecraft:water")
+    rcon.run("summon dreadpatch:rime_eel 43.5 197.5 43.5")
+    rcon.run("tag @e[type=dreadpatch:rime_eel,x=43.5,y=198,z=43.5,distance=..3] add smoke_eel")
+    eel = "@e[tag=smoke_eel,limit=1]"
+    check("a Rime Eel summons", "execute if entity " + eel, "Test passed, count: 1")
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.scale base get"))
+    scale = float(m.group(1)) if m else -1.0
+    record("sized 0.6-1.4 blocks long", 0.6 - 1e-6 <= scale * 1.5 <= 1.4 + 1e-6, f"scale {scale}")
+    expected = round(2 * (10 + 8 * max(0.0, min(1.0, (scale * 1.5 - 0.6) / 0.8)))) / 2
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.max_health get"))
+    record("its health with its size, 10-18", m is not None and abs(float(m.group(1)) - expected) < 0.01,
+           f"{m.group(0) if m else 'none'}, expected {expected}")
+    check("4 armour", f"attribute {eel} minecraft:generic.armor get", "is 4.0")
+    for tag in ("#minecraft:undead", "#minecraft:aquatic"):
+        check("the eel in " + tag, f"execute if entity @e[tag=smoke_eel,type={tag}]", "Test passed")
+    rcon.run(f"data merge entity {eel} {{Health:4.0f}}")
+    hurt = health(eel)
+    rcon.run('summon item 43.5 199.2 43.5 {Item:{id:"minecraft:rotten_flesh",count:3},PickupDelay:0s,Tags:["smoke_food"]}')
+    rcon.run('summon item 40.5 201 40.5 {Item:{id:"minecraft:golden_apple",count:1},PickupDelay:0s,Tags:["smoke_food_refused"]}')
+    ate = False
+    for _ in range(30):
+        time.sleep(0.5)
+        if "Test failed" in rcon.run("execute if entity @e[tag=smoke_food]"):
+            ate = True
+            break
+    record("it eats dropped rotten flesh", ate, rcon.run("data get entity @e[tag=smoke_food,limit=1] Item.count").strip())
+    record("healing by it", health(eel) > hurt, f"health {hurt} -> {health(eel)}")
+    check("but leaves a golden apple", "execute if entity @e[tag=smoke_food_refused]", "Test passed")
+    rcon.run('summon dreadpatch:rime_eel 47.5 200 47.5 {Tags:["smoke_eel_ashore"]}')
+    back = False
+    for _ in range(30):
+        time.sleep(0.5)
+        if "Test passed" in rcon.run("execute as @e[tag=smoke_eel_ashore] at @s if block ~ ~ ~ minecraft:water"):
+            back = True
+            break
+    record("ashore, it makes for water", back, rcon.run("data get entity @e[tag=smoke_eel_ashore,limit=1] Pos").strip())
+    rcon.run("kill @e[tag=smoke_eel_ashore]")
+    rcon.run("kill @e[type=item]")
+    rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
+    rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:resistance 120 4 true")
+    rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:fire_resistance 120 0 true")
+    prey = "@e[tag=smoke_eel_prey,limit=1]"
+    pulsed = frenzied = False
+    for _ in range(40):
+        time.sleep(0.25)
+        if has_effect(prey, "dreadpatch:rimefrost") or has_effect(prey, "dreadpatch:whiteout"):
+            pulsed = True
+            m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {eel} Frenzy"))
+            frenzied = m is not None and int(m.group(1)) > 0
+            break
+    record("in a fight its lure's pulse lays Rimefrost or Whiteout", pulsed, "the zombie had neither 10 s on")
+    record("and sends it into a Frenzy", frenzied, rcon.run(f"data get entity {eel} Frenzy").strip())
+    rcon.run("kill @e[tag=smoke_eel_prey]")
+    rcon.run("kill @e[type=item]")
+    for _ in range(10):
+        rcon.run("loot spawn 44.5 201 44.5 loot dreadpatch:entities/rime_eel")
+    time.sleep(0.2)
+    record("its loot: bones and dread shards", count("minecraft:bone") > 0 and count("iceandfire:dread_shard") > 0,
+           f"{count('minecraft:bone')} bones, {count('iceandfire:dread_shard')} dread shards over 10 rolls")
+    rcon.run("kill @e[type=dreadpatch:rime_eel]")
+    rcon.run("kill @e[type=item]")
+    rcon.run("fill 40 196 40 48 204 48 minecraft:air")
+    rcon.run("forceload remove 40 40 48 48")
+
     # Summon Dread Phantoms, cast by a villager (as Summon Court is): 2, answering to it, kept until their
     # time's up; they circle over it; its caster can't hurt one; a husk that hurts the caster they dive on
     # (revenge, diving and the bite); killed, they leave nothing; a recast replaces them; their time up, they go.
@@ -1113,8 +1183,8 @@ def main():
                        ("HandItems[1].id", "shield")):
         check(f"the risen guard wears its {item.replace('_', ' ')}", f"data get entity {guard_thrall} {path}", f'"minecraft:{item}"')
     check("and won't drop it", f"data get entity {guard_thrall} ArmorDropChances[2]", "0.0f")
-    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water as itself,
-    # Dread: marked, twice its health, refusing Withering Rime.
+    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water a Rime Eel
+    # of hers (0.71.0), refusing Withering Rime.
     for kind, at in (("bat", "5.5 200 4.5"), ("parrot", "7.5 200 4.5")):
         rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
         rcon.run("kill @e[tag=smoke_dead]")
@@ -1127,13 +1197,15 @@ def main():
     rcon.run('summon minecraft:cod 6.5 200 12.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
     time.sleep(0.5)
-    fish = '@e[type=minecraft:cod,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
-    check("a cod killed in her storm rises Dread", "execute if entity " + fish[:-1] + ',nbt={NeoForgeData:{"dreadpatch:risen":1b}}]', "Test passed")
-    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {fish} minecraft:generic.max_health get"))
-    record("with twice a cod's health", m is not None and abs(float(m.group(1)) - 6.0) < 0.01, m.group(0) if m else "no cod")
-    rcon.run(f"effect give {fish} dreadpatch:withering_rime 10")
+    # 0.71.0: a water creature rises a Rime Eel of hers (0.63.0-0.70.0: itself, Dread).
+    eel = '@e[type=dreadpatch:rime_eel,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
+    check("a cod killed in her storm rises a Rime Eel", "execute if entity " + eel, "Test passed")
+    check("hers", "data get entity " + eel + ' NeoForgeData."dreadpatch:risen_by"', "[I; 9, 9, 9, 9]")
+    check("and no Dread cod", "execute if entity @e[type=minecraft:cod,x=6.5,y=200,z=12.5,distance=..3]", "Test failed")
+    rcon.run(f"effect give {eel} dreadpatch:withering_rime 10")
     time.sleep(0.1)
-    record("and refuses Withering Rime, as the Dread do", not has_effect(fish, "dreadpatch:withering_rime"), "it took it")
+    record("the eel refuses Withering Rime, as the Dread do", not has_effect(eel, "dreadpatch:withering_rime"), "it took it")
+    rcon.run("kill @e[type=dreadpatch:rime_eel]")
     rcon.run("kill @e[type=minecraft:cod]")
     rcon.run("fill 6 200 12 6 201 12 minecraft:air")
     rcon.run('summon minecraft:iron_golem 13.5 200 6.5 {NoAI:1b,Tags:["smoke_dead"]}')

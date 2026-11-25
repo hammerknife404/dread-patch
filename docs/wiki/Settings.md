@@ -46,13 +46,14 @@ What the Dread Queen's defeat stirs.
 
 ## `[risen]`
 
-Bats, parrots and water creatures risen Dread, stirring on their own.
+Bats, parrots and water creatures risen Dread, stirring on their own; and Rime Eels.
 
 | Option | Default | What it does |
 |---|---|---|
 | `cave_dread_phantoms` | `40` | In the overworld and the Dreadlands, one in this chance per player every 10 seconds of a miniature dread phantom stirring in dark cave air near them. 0 for never. |
-| `cave_dread_water` | `40` | The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them. 0 for never. |
-| `chasma_dread_water` | `8` | In the Dreadlands' Rime Chasma, the same for a Dread water creature in one of the pockets of water sealed in its ice near them (on top of the above). 0 for never. |
+| `cave_dread_water` | `40` | The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them; in the Dreadlands, a Rime Eel in dark underground water. 0 for never. |
+| `chasma_dread_water` | `8` | In the Dreadlands' Rime Chasma, the same for a Rime Eel in one of the pockets of water sealed in its ice near them (on top of the above). 0 for never. |
+| `dreadlands_rime_eels` | `10` | In the Dreadlands, the same for a Rime Eel in any dark water near them (two deep, light 6 or less), on top of the above; never more than 4 eels near. 0 for never. |
 
 ## `[regalia]`
 

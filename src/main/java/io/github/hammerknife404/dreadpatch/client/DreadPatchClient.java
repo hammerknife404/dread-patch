@@ -151,6 +151,7 @@ public final class DreadPatchClient {
 
     private static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(DreadQueenModel.LAYER, DreadQueenModel::createBodyLayer);
+        event.registerLayerDefinition(RimeEelModel.LAYER, RimeEelModel::createBodyLayer);
     }
 
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -169,6 +170,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.DREAD_GATE.get(), NoopRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
         event.registerEntityRenderer(ModRegistries.MINIATURE_DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
+        event.registerEntityRenderer(ModRegistries.RIME_EEL.get(), RimeEelRenderer::new);
         // Drawn by its particles, as Iron's draws Cone of Cold.
         event.registerEntityRenderer(ModRegistries.RIMEFIRE_BLAST_PROJECTILE.get(), NoopRenderer::new);
     }
