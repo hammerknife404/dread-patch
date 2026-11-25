@@ -56,6 +56,7 @@ public final class DreadPatchClient {
         DreadlandsAmbience.register(NeoForge.EVENT_BUS);
         DreadlandsMusicClient.register(NeoForge.EVENT_BUS);
         BossMusicClient.register(NeoForge.EVENT_BUS);
+        DreadKnightCrouch.register(NeoForge.EVENT_BUS);
         DefeatStormClient.register(NeoForge.EVENT_BUS);
         RisenDreadClient.register(NeoForge.EVENT_BUS);
         SoundFilters.register(NeoForge.EVENT_BUS);
@@ -159,6 +160,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.DREAD_QUEEN.get(), DreadQueenRenderer::new);
         // Drawn entirely by its trail particles.
         event.registerEntityRenderer(ModRegistries.WITHERING_RIME_BOLT.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModRegistries.SCUTTLER_WEB.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         event.registerEntityRenderer(ModRegistries.RIMEFIRE_CROWN.get(), RimefireCrownRenderer::new);
         event.registerEntityRenderer(ModRegistries.SOVEREIGNS_ECLIPSE.get(), context -> new RimefireCrownRenderer(context, RimefireCrownRenderer.ECLIPSE));
         event.registerEntityRenderer(ModRegistries.BARROW_HUSK.get(), BarrowHuskRenderer::new);

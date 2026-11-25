@@ -21,6 +21,8 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - item models copy Ice and Fire's (the sword and axe have its large-texture display transforms);
   - armour is drawn with Ice and Fire's `IceDragonScaleArmorModel` / `DragonSteelIceArmorModel` (public, standalone; Ice and Fire hands its own to Uranus' `IArmorRendererBase.RENDERERS`, ours go through NeoForge's `IClientItemExtensions.getHumanoidArmorModel`), in layer textures recoloured from Ice and Fire's (`dragon_scales_white_layer_*`, `dragonsteel_ice_layer_*`) as `DynamicTexture`s the first time they're drawn (`DreadArmorItem.getArmorTexture` → `DreadArmorItem.textures`, set by the client), remade on a resource reload.
 
+**Against webs** (`effect/WebEase`, `magic/WebRules`; 0.75.0, the owner's Feature_Dump_11-24: "Dread armor sets partially reduce web effects rather than granting full immunity so webs preserve tactical counterplay"): each `DreadArmorItem` worn (Rimefrost dragonscale, dread dragonsteel, her regalia) eases a web's hold by 12.5%, 50% for four: before each tick (`EntityTickEvent.Pre`, both sides, since a player moves on its client) an entity standing in a `WebBlock` or `DreadWebBlock` has its `stuckSpeedMultiplier` (by reflection) moved that share toward 1 (a cobweb's 0.25 to 0.625 across, 0.05 to 0.525 up and down). Only webs: powder snow and berry bushes hold as ever.
+
 ## Her regalia (`registry/DreadGear`, `client/QueenArmorModels`, `entity/QueenRegalia`, `magic/RegaliaDrops`; 0.43.0)
 
 - **Items:** `dread_queen_crown`, `_bodice`, `_robe`, `_greaves` ("... of the Dreaded Queen", after Ice and Fire's "Blade/Staff of the Dreaded Queen"), `DreadArmorItem`s of `Kind.QUEEN`, epic, fire-resistant.
