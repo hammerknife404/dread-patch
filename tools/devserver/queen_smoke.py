@@ -513,8 +513,9 @@ def main():
     time.sleep(0.5)
     near, far, side = (health(f"@e[tag=smoke_sub_{n},limit=1]") for n in ("near", "far", "side"))
     record("Sublimate pierces: both golems in its cone are struck", 88 <= near < 100 and 88 <= far < 100, f"near {near}, far {far}")
-    record("Sublimate leaves Rimefrost on both", has_effect("@e[tag=smoke_sub_near,limit=1]", "dreadpatch:rimefrost")
-           and has_effect("@e[tag=smoke_sub_far,limit=1]", "dreadpatch:rimefrost"), "no Rimefrost")
+    record("Sublimate leaves Rimefrost and (0.74.1) Whiteout on both",
+           all(has_effect(f"@e[tag=smoke_sub_{n},limit=1]", e) for n in ("near", "far") for e in ("dreadpatch:rimefrost", "dreadpatch:whiteout")),
+           "no Rimefrost or Whiteout")
     record("Sublimate misses one outside its cone", side == 100 and not has_effect("@e[tag=smoke_sub_side,limit=1]", "dreadpatch:rimefrost"), f"side {side}")
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")

@@ -13,6 +13,8 @@ class SublimateRulesTest {
         assertEquals(12.0, SublimateRules.range(5));
         assertEquals(60, SublimateRules.rimefrostTicks(1));
         assertEquals(140, SublimateRules.rimefrostTicks(5));
+        assertEquals(20, SublimateRules.whiteoutTicks(1));
+        assertEquals(40, SublimateRules.whiteoutTicks(5));
     }
 
     @Test
