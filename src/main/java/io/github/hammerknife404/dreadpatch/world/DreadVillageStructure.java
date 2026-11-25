@@ -89,6 +89,48 @@ public class DreadVillageStructure extends Structure {
                 }
             }
         }
+        this.lich(level, random, chunkBox, pieces, box);
+    }
+
+    /**
+     * One village in {@code village_liches} (0.70.0) has a Dread Lich at its heart, the middle of its first piece (its
+     * meeting place), on the highest floor there with room for it, made as the chunk holding that spot is: once a village.
+     * Kept for good, as a structure's guardian (it raises its own minions as any lich does).
+     */
+    private void lich(WorldGenLevel level, RandomSource random, BoundingBox chunkBox, PiecesContainer pieces, BoundingBox box) {
+        if (pieces.pieces().isEmpty()) {
+            return;
+        }
+        BlockPos heart = pieces.pieces().get(0).getBoundingBox().getCenter();
+        int oneIn = io.github.hammerknife404.dreadpatch.DreadPatchConfig.villageLichOneIn();
+        if (heart.getX() < chunkBox.minX() || heart.getX() > chunkBox.maxX() || heart.getZ() < chunkBox.minZ() || heart.getZ() > chunkBox.maxZ()
+                || oneIn <= 0 || random.nextInt(oneIn) != 0) {
+            return;
+        }
+        BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos(heart.getX(), box.maxY() + TREE_HEADROOM, heart.getZ());
+        for (; at.getY() > box.minY() - 8; at.move(0, -1, 0)) {
+            // Room: nothing to bump into, so the snow layer the biome lays on everything counts as room.
+            if (!passable(level, at) && passable(level, at.above()) && passable(level, at.above(2))) {
+                break;
+            }
+        }
+        if (at.getY() <= box.minY() - 8) {
+            return;
+        }
+        com.iafenvoy.iceandfire.entity.DreadLichEntity lich = com.iafenvoy.iceandfire.registry.IafEntities.DREAD_LICH.get().create(level.getLevel());
+        if (lich == null) {
+            return;
+        }
+        lich.moveTo(at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+        net.neoforged.neoforge.event.EventHooks.finalizeMobSpawn(lich, level, level.getCurrentDifficultyAt(at.above()),
+                net.minecraft.world.entity.MobSpawnType.STRUCTURE, null);
+        lich.setPersistenceRequired();
+        level.addFreshEntityWithPassengers(lich);
+    }
+
+    private static boolean passable(WorldGenLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return state.getCollisionShape(level, pos).isEmpty() && state.getFluidState().isEmpty();
     }
 
     /** The Dread's block for a village's own, its shape kept; null to leave it. */

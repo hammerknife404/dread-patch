@@ -44,6 +44,7 @@ public final class DreadPatchClient {
         modBus.addListener(QueenArmorModels::onRegisterLayers);
         modBus.addListener(QueenArmorModels::onClientExtensions);
         modBus.addListener(EntityRenderersEvent.AddLayers.class, SaddleLayer::onAddLayers);
+        modBus.addListener(EntityRenderersEvent.AddLayers.class, ThrallArmorLayer::onAddLayers);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(RenderLivingEvent.Pre.class, SaddleLayer::onRenderLiving);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
