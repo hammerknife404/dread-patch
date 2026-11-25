@@ -35,7 +35,8 @@ import java.util.List;
  * Sublimate (0.74.0; the owner's Feature_Dump_11-24 "Whiteout" spell, named by them: "a brief near instant
  * cast piercing cone"): an instant cone of rime turning to vapour from the caster's eyes, {@link SublimateRules}.
  * It passes through everyone in it the caster may harm and can see (blocks stop it), for Rimefrost damage from
- * spell power and one level of Rimefrost (the dump: "1 stack of frost or freezing"; renewed, never raised).
+ * spell power and one level of Rimefrost (the dump: "1 stack of frost or freezing"; renewed, never raised), and
+ * (0.74.1, the owner) 1-2 s of Whiteout.
  * Made at the Scroll Forge from Epic up (the dump: "Craftable at Epic and up"), and found on Dread Liches and in
  * spire summit chests; kept out of Iron's random loot, as all of hers.
  */
@@ -86,7 +87,8 @@ public class SublimateSpell extends AbstractSpell {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(this.getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.dreadpatch.distance", Utils.stringTruncation(SublimateRules.range(spellLevel), 0)),
-                Component.translatable("ui.dreadpatch.rimefrost_seconds", Utils.stringTruncation(SublimateRules.rimefrostTicks(spellLevel) / 20.0, 1)));
+                Component.translatable("ui.dreadpatch.rimefrost_seconds", Utils.stringTruncation(SublimateRules.rimefrostTicks(spellLevel) / 20.0, 1)),
+                Component.translatable("ui.dreadpatch.whiteout_seconds", Utils.stringTruncation(SublimateRules.whiteoutTicks(spellLevel) / 20.0, 2)));
     }
 
     @Override
@@ -117,6 +119,7 @@ public class SublimateSpell extends AbstractSpell {
                 struck++;
             }
             target.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, SublimateRules.rimefrostTicks(spellLevel), SublimateRules.RIMEFROST_AMPLIFIER), caster);
+            target.addEffect(new MobEffectInstance(ModRegistries.WHITEOUT, SublimateRules.whiteoutTicks(spellLevel)), caster);
         }
         // A burst of rime turning to vapour down the cone.
         for (int i = 0; i < 24; i++) {
