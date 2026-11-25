@@ -98,6 +98,10 @@ dependencies {
     // Dev runs only: Guard Villagers as the owner's pack has it, so the smoke test sees a guard killed in
     // her storm rise wearing its gear (it keeps that gear in an inventory of its own). Never required.
     localRuntime "maven.modrinth:guard-villagers:${guardvillagers_version}"
+    // Dev runs only: Dummmmmmy (and Moonlight, which it needs) as the owner's pack has them: its target
+    // dummy and damage numbers show real damage and healing in a client. Never required.
+    localRuntime "maven.modrinth:Adega8YN:${dummy_version}"
+    localRuntime "maven.modrinth:moonlight:${moonlight_version}"
     // JEI as the owner's pack has it: the Rimefrost dragonforge's recipes get a page of their own (Ice and
     // Fire's pages show only its fire, ice and lightning forges'). Compiled against, loaded in the dev
     // runs; never required (JEI finds our plugin itself, and nothing else touches it).
