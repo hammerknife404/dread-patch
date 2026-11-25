@@ -165,12 +165,13 @@ public final class ModRegistries {
                             .build(DreadPatch.id("miniature_dread_phantom").toString()));
 
     /**
-     * The Rime Eel (0.71.0): its box at scale 1, its model 1.5 long; its {@code generic.scale} (0.4-0.93, rolled as
-     * it spawns) makes it 0.44-1.02 across.
+     * The Rime Eel (0.71.0): its box at scale 1, narrower than its model (curled 2 across, 1.45 tall to its lantern),
+     * as a dolphin's is, so it fits the water it lives in; its {@code generic.scale} (0.3-1.25, an alpha's to 2, rolled
+     * as it spawns) makes the box 0.27-1.1 across, an alpha's to 1.8.
      */
     public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.RimeEel>> RIME_EEL = ENTITY_TYPES.register("rime_eel",
             () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.RimeEel>of(io.github.hammerknife404.dreadpatch.entity.RimeEel::new, MobCategory.MONSTER)
-                    .sized(1.1F, 0.7F)
+                    .sized(0.9F, 0.6F)
                     .eyeHeight(0.4F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("rime_eel").toString()));

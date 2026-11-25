@@ -53,6 +53,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +64,8 @@ import java.util.Optional;
 
 /**
  * The Rime Eel (0.71.0, the owner's spec; numbers in {@link RimeEelRules}): a serpentine dread anglerfish of the
- * Dreadlands' dark water, 0.6 to 1.4 blocks long (its {@code generic.scale}, rolled as it spawns), its health and bite
- * growing with it, 4 armour. Of the Dread ({@link IDreadMob}: Ice and Fire's dread mobs take it for one of theirs, and
+ * Dreadlands' dark water, 0.6 to 2.5 blocks across, now and then an alpha or matron to 4 (its {@code generic.scale},
+ * rolled as it spawns), its health and bite growing with it, 4 armour. Of the Dread ({@link IDreadMob}: Ice and Fire's dread mobs take it for one of theirs, and
  * the Dread's rime and storms don't touch it).
  * <ul>
  * <li>Amphibious, as an axolotl moves: swift in water, a slither on land, up single blocks; it never drowns, chokes
@@ -146,7 +147,7 @@ public class RimeEel extends Monster implements IDreadMob {
     /** Its size, rolled as it spawns: its scale, and its health and bite with it. */
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData data) {
-        this.setSize(RimeEelRules.scale(this.random.nextDouble()));
+        this.setSize(RimeEelRules.scale(this.random.nextDouble(), this.random.nextInt(RimeEelRules.ALPHA_ONE_IN)));
         return super.finalizeSpawn(level, difficulty, spawnType, data);
     }
 
@@ -208,6 +209,12 @@ public class RimeEel extends Monster implements IDreadMob {
     public void aiStep() {
         super.aiStep();
         if (this.level().isClientSide()) {
+            if (this.lureLit() && this.random.nextFloat() < 0.35F) {
+                Vec3 lantern = this.lantern();
+                this.level().addParticle(this.random.nextInt(3) == 0 ? ParticleTypes.SNOWFLAKE : ParticleTypes.GLOW,
+                        lantern.x + (this.random.nextDouble() - 0.5) * 0.5, lantern.y + (this.random.nextDouble() - 0.5) * 0.5,
+                        lantern.z + (this.random.nextDouble() - 0.5) * 0.5, 0.0, 0.01, 0.0);
+            }
             return;
         }
         if (this.frenzy > 0) {
@@ -257,7 +264,7 @@ public class RimeEel extends Monster implements IDreadMob {
             this.frenzy = RimeEelRules.FRENZY_TICKS;
         }
         level.broadcastEntityEvent(this, PULSE_EVENT);
-        Vec3 lure = this.position().add(0.0, this.getBbHeight() * 1.3, 0.0);
+        Vec3 lure = this.lantern();
         level.sendParticles(ParticleTypes.GLOW, lure.x, lure.y, lure.z, 6, 0.1, 0.1, 0.1, 0.02);
         for (int i = 0; i < 24; i++) {
             double angle = i * Math.PI * 2.0 / 24;
@@ -278,6 +285,20 @@ public class RimeEel extends Monster implements IDreadMob {
         } else {
             super.handleEntityEvent(id);
         }
+    }
+
+    /**
+     * Where its lantern hangs, at rest: in model pixels (-6, 1, -14) from its feet (client/RimeEelModel), drawn as
+     * vanilla draws a living thing's model (turned by its body, flipped in x and y) and scaled with it.
+     */
+    public Vec3 lantern() {
+        double scale = this.getScale() / 16.0;
+        double x = 6.0 * scale;
+        double z = -14.0 * scale;
+        double turn = Math.toRadians(180.0F - this.yBodyRot);
+        double wx = x * Math.cos(turn) + z * Math.sin(turn);
+        double wz = -x * Math.sin(turn) + z * Math.cos(turn);
+        return this.position().add(wx, 23.0 * scale, wz);
     }
 
     /** On a client: whether its lure burns now (its flicker, or just after a pulse). */
@@ -356,8 +377,8 @@ public class RimeEel extends Monster implements IDreadMob {
     @Override
     public float getVoicePitch() {
         AttributeInstance scale = this.getAttribute(Attributes.SCALE);
-        double size = scale == null ? 1.0 : scale.getBaseValue();
-        return super.getVoicePitch() * (float) (1.3 - 0.4 * size);
+        double size = scale == null ? 0.5 : scale.getBaseValue();
+        return super.getVoicePitch() * (float) Math.max(0.6, 1.4 - 0.6 * size);
     }
 
     /** Swims and walks at its target and bites: every second, twice as often in a Frenzy. */
@@ -388,7 +409,10 @@ public class RimeEel extends Monster implements IDreadMob {
         }
     }
 
-    /** Out of water: to the nearest water within reach. As high a priority as a fight; whichever starts, it keeps to. */
+    /**
+     * Out of water: to the nearest water within reach with room for it (a big one doesn't fit every pool). As high a
+     * priority as a fight; whichever starts, it keeps to.
+     */
     static final class SeekWaterGoal extends Goal {
         private final RimeEel eel;
         private @Nullable BlockPos water;
@@ -406,26 +430,53 @@ public class RimeEel extends Monster implements IDreadMob {
             }
             Level level = this.eel.level();
             Optional<BlockPos> found = BlockPos.findClosestMatch(this.eel.blockPosition(), RimeEelRules.WATER_SEARCH, RimeEelRules.WATER_SEARCH_DEPTH,
-                    pos -> level.getFluidState(pos).is(FluidTags.WATER));
+                    pos -> level.getFluidState(pos).is(FluidTags.WATER) && level.noCollision(this.eel,
+                            this.eel.getDimensions(this.eel.getPose()).makeBoundingBox(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)));
             this.water = found.orElse(null);
             return this.water != null;
         }
 
+        private int timer;
+
         @Override
         public boolean canContinueToUse() {
-            return !this.eel.isInWater() && !this.eel.getNavigation().isDone();
+            return this.water != null && !this.eel.isInWater() && this.timer < 200;
         }
 
         @Override
         public void start() {
+            this.timer = 0;
             if (this.water != null) {
                 this.eel.getNavigation().moveTo(this.water.getX() + 0.5, this.water.getY(), this.water.getZ() + 0.5, 1.0);
             }
         }
 
+        /**
+         * No path (a big one, a small pool: a path needs room for its box): it slithers straight for it. (Vanilla's
+         * swimming move control drops a wanted spot while the navigation's done, so it's pushed itself.)
+         */
+        @Override
+        public void tick() {
+            this.timer++;
+            if (this.water == null || !this.eel.getNavigation().isDone()) {
+                return;
+            }
+            Vec3 to = new Vec3(this.water.getX() + 0.5 - this.eel.getX(), 0.0, this.water.getZ() + 0.5 - this.eel.getZ());
+            if (to.lengthSqr() < 1.0E-4) {
+                return;
+            }
+            Vec3 way = to.normalize();
+            this.eel.setYRot((float) (Mth.atan2(way.z, way.x) * Mth.RAD_TO_DEG) - 90.0F);
+            this.eel.yBodyRot = this.eel.getYRot();
+            Vec3 motion = this.eel.getDeltaMovement();
+            double push = RimeEelRules.LAND_SPEED * 0.5;
+            this.eel.setDeltaMovement(way.x * push, motion.y, way.z * push);
+        }
+
         @Override
         public void stop() {
             this.water = null;
+            this.eel.getNavigation().stop();
         }
     }
 

@@ -10,14 +10,27 @@ class RimeEelRulesTest {
     @Test
     void fromAFishToASquid() {
         assertEquals(0.6, RimeEelRules.scale(0.0) * RimeEelRules.MODEL_LENGTH, 1e-9);
-        assertEquals(1.4, RimeEelRules.scale(1.0) * RimeEelRules.MODEL_LENGTH, 1e-9);
+        assertEquals(2.5, RimeEelRules.scale(1.0) * RimeEelRules.MODEL_LENGTH, 1e-9);
         assertEquals(10.0, RimeEelRules.health(RimeEelRules.scale(0.0)));
         assertEquals(18.0, RimeEelRules.health(RimeEelRules.scale(1.0)));
         assertEquals(14.0, RimeEelRules.health(RimeEelRules.scale(0.5)));
         assertEquals(2.0, RimeEelRules.bite(RimeEelRules.scale(0.0)));
         assertEquals(4.0, RimeEelRules.bite(RimeEelRules.scale(1.0)));
         assertEquals(10.0, RimeEelRules.health(0.01), "past its range, its range's ends");
-        assertEquals(18.0, RimeEelRules.health(5.0));
+        assertEquals(24.5, RimeEelRules.health(5.0));
+    }
+
+    @Test
+    void nowAndThenAnAlpha() {
+        assertEquals(RimeEelRules.scale(0.3), RimeEelRules.scale(0.3, 7), "most are the usual size");
+        double small = RimeEelRules.scale(0.0, 0);
+        double big = RimeEelRules.scale(1.0, 0);
+        assertEquals(2.5, small * RimeEelRules.MODEL_LENGTH, 1e-9);
+        assertEquals(4.0, big * RimeEelRules.MODEL_LENGTH, 1e-9);
+        assertTrue(RimeEelRules.alpha(RimeEelRules.scale(0.5, 0)));
+        assertFalse(RimeEelRules.alpha(RimeEelRules.scale(1.0)));
+        assertEquals(24.5, RimeEelRules.health(big), "on up the same line: 10 + 8 x 3.4 / 1.9");
+        assertEquals(5.5, RimeEelRules.bite(big));
     }
 
     @Test
