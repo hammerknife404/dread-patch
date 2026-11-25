@@ -64,6 +64,37 @@ public final class TerrainRules {
         return (second - first) / 2.0;
     }
 
+    /** A hexagonal pattern's row spacing, in cells: its points one cell apart in every direction. */
+    static final double HEX_ROW = Math.sqrt(3.0) / 2.0;
+
+    /**
+     * As {@link #edgeDistance}, but with the points on a hexagonal lattice (0.69.0, the owner: the plates "not nearly
+     * as sharply defined as a hexagon"): rows {@link #HEX_ROW} apart, every other one shifted half a cell, so unjittered
+     * cells are regular hexagons a cell across their flats; {@code jitter} moves each point up to that much of a cell
+     * each way, so they stay recognisably hexagons with a little jitter. In cells; about 0.5 at a cell's heart.
+     */
+    public static double hexEdgeDistance(double x, double z, double jitter, Jitter at) {
+        int row = (int) Math.floor(z / HEX_ROW);
+        double first = Double.MAX_VALUE;
+        double second = Double.MAX_VALUE;
+        for (int j = row - 2; j <= row + 2; j++) {
+            double shift = Math.floorMod(j, 2) * 0.5;
+            int col = (int) Math.floor(x - shift);
+            for (int i = col - 2; i <= col + 2; i++) {
+                double px = i + shift + 0.5 * jitter * clamp(at.at(i, j, 0));
+                double pz = j * HEX_ROW + 0.5 * jitter * clamp(at.at(i, j, 1));
+                double d = Math.hypot(px - x, pz - z);
+                if (d < first) {
+                    second = first;
+                    first = d;
+                } else if (d < second) {
+                    second = d;
+                }
+            }
+        }
+        return (second - first) / 2.0;
+    }
+
     private static double clamp(double v) {
         return Math.max(-1.0, Math.min(1.0, v));
     }

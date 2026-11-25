@@ -15,8 +15,19 @@ public final class SoundRules {
     public static final float THUNDER = 0.65F;
     public static final float WHITEOUT = 1.0F;
     public static final float DEFEAT_STORM = 0.35F;
+    /**
+     * Music, jukeboxes and note blocks (0.69.0, the owner: "the music is not muffled by storms in the dreadlands ...
+     * apply the muffling to juke boxes and noteblocks in dread weather"): heard as though at least this far off, so
+     * in a whiteout they're at half even beside you. Music is heard all round, so this is all its distance.
+     */
+    public static final double MUSIC_AT = 8.0;
 
     private SoundRules() {
+    }
+
+    /** How far off a sound counts as, for {@link #muffle}: {@code music} (music, a jukebox, a note block) at least {@link #MUSIC_AT}. */
+    public static double heardAt(boolean music, double distance) {
+        return music ? Math.max(distance, MUSIC_AT) : distance;
     }
 
     /** What's left of a sound {@code distance} off at {@code severity} (0-1): falling faster the further, 1 with none. */

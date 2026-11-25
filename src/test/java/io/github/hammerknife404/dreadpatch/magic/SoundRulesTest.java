@@ -23,4 +23,12 @@ class SoundRulesTest {
         assertTrue(SoundRules.muffle(SoundRules.SNOW, 16.0) > SoundRules.muffle(SoundRules.THUNDER, 16.0));
         assertTrue(SoundRules.muffle(SoundRules.THUNDER, 16.0) > SoundRules.muffle(SoundRules.WHITEOUT, 16.0));
     }
+
+    @Test
+    void musicIsMuffledEvenClose() {
+        assertEquals(SoundRules.MUSIC_AT, SoundRules.heardAt(true, 0.0), 1e-9);
+        assertEquals(20.0, SoundRules.heardAt(true, 20.0), 1e-9, "a jukebox far off is as far as it is");
+        assertEquals(2.0, SoundRules.heardAt(false, 2.0), 1e-9, "anything else is where it is");
+        assertEquals(0.5F, SoundRules.muffle(SoundRules.WHITEOUT, SoundRules.heardAt(true, 0.0)), 1e-6, "half in a whiteout");
+    }
 }

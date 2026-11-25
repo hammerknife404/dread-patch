@@ -35,6 +35,38 @@ class TerrainRulesTest {
     }
 
     @Test
+    void unjitteredHexCellsAreRegularHexagons() {
+        // Points one cell apart: half way between two of them is an edge; a point itself is half a cell from the edges.
+        assertEquals(0.5, TerrainRules.hexEdgeDistance(0.0, 0.0, 0.0, NONE), 1e-9, "a cell's heart");
+        assertEquals(0.0, TerrainRules.hexEdgeDistance(0.5, 0.0, 0.0, NONE), 1e-9, "between two in a row");
+        // The next row's points sit half a cell along: between (0, 0) and (0.5, HEX_ROW) is an edge too.
+        assertEquals(0.0, TerrainRules.hexEdgeDistance(0.25, TerrainRules.HEX_ROW / 2.0, 0.0, NONE), 1e-9, "between rows");
+        // A corner, where three cells meet, is as far from all three points.
+        assertEquals(0.0, TerrainRules.hexEdgeDistance(0.5, TerrainRules.HEX_ROW / 3.0, 0.0, NONE), 1e-9, "a corner");
+        // Six neighbours at exactly a cell, all round: an edge half way to each, so six sides.
+        for (int k = 0; k < 6; k++) {
+            double a = k * Math.PI / 3.0;
+            assertEquals(0.0, TerrainRules.hexEdgeDistance(5.0 + 0.5 * Math.cos(a), 0.5 * Math.sin(a), 0.0, NONE), 1e-9, "edge " + k);
+        }
+    }
+
+    @Test
+    void hexEdgesAreThinLinesAndContinuous() {
+        int near = 0;
+        int n = 0;
+        double last = TerrainRules.hexEdgeDistance(-20.0, 3.3, 0.35, HASH);
+        for (double x = -20.0; x < 40.0; x += 0.01) {
+            double d = TerrainRules.hexEdgeDistance(x, 3.3, 0.35, HASH);
+            assertTrue(d >= 0.0 && d <= 1.0);
+            assertTrue(Math.abs(d - last) < 0.05, "no jumps: walls without seams");
+            last = d;
+            near += d < 0.05 ? 1 : 0;
+            n++;
+        }
+        assertTrue(near > 0 && near < n / 3, near + " of " + n);
+    }
+
+    @Test
     void crustByWeight() {
         int total = 0;
         for (TerrainRules.Crust kind : TerrainRules.Crust.values()) {
