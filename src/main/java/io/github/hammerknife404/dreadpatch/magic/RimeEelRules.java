@@ -9,16 +9,23 @@ package io.github.hammerknife404.dreadpatch.magic;
  * number, the number is ours.
  */
 public final class RimeEelRules {
-    /** Its model's length at scale 1, in blocks (24 pixels, head to tail fin). */
-    public static final double MODEL_LENGTH = 1.5;
-    /** How long it comes: 0.6 to 1.4 blocks (a fish's to a squid's). */
+    /** Its model's length at scale 1, in blocks: curled at rest, about 2 across (tools/models/make_rime_eel.py prints it). */
+    public static final double MODEL_LENGTH = 2.0;
+    /**
+     * How big it comes, across its curl: 0.6 to 2.5 blocks (0.71.1, the owner: "up to about 2.5 on average with a rare
+     * alpha or matron getting that large say up to 3.5 or 4"; 0.71.0's spec had 0.6-1.4); and one in {@link #ALPHA_ONE_IN}
+     * an alpha or matron, 2.5 to 4.
+     */
     public static final double LENGTH_MIN = 0.6;
-    public static final double LENGTH_MAX = 1.4;
-    /** Its health, with its length: 10 to 18. */
+    public static final double LENGTH_MAX = 2.5;
+    public static final double ALPHA_LENGTH_MAX = 4.0;
+    /** Ours: rare. */
+    public static final int ALPHA_ONE_IN = 20;
+    /** Its health, with its size: 10 to 18 (the spec's), and on up the same line for an alpha, to 24.5. */
     public static final double HEALTH_MIN = 10.0;
     public static final double HEALTH_MAX = 18.0;
     public static final double ARMOR = 4.0;
-    /** Its bite, with its length: 2 to 4 (ours). */
+    /** Its bite, with its size: 2 to 4 (ours), an alpha's up to 5.5. */
     public static final double BITE_MIN = 2.0;
     public static final double BITE_MAX = 4.0;
 
@@ -76,18 +83,31 @@ public final class RimeEelRules {
     private RimeEelRules() {
     }
 
-    /** Its {@code generic.scale}, from a roll in [0, 1): its length from 0.6 to 1.4 blocks. */
+    /** Its {@code generic.scale}, from a roll in [0, 1): 0.6 to 2.5 blocks across. */
     public static double scale(double roll) {
         return (LENGTH_MIN + (LENGTH_MAX - LENGTH_MIN) * roll) / MODEL_LENGTH;
     }
 
-    /** How far its scale is along its range: 0 the smallest, 1 the largest. */
-    static double growth(double scale) {
-        double length = scale * MODEL_LENGTH;
-        return Math.max(0.0, Math.min(1.0, (length - LENGTH_MIN) / (LENGTH_MAX - LENGTH_MIN)));
+    /** As it spawns: one in {@link #ALPHA_ONE_IN} ({@code alpha} rolled under it) an alpha, 2.5 to 4 across, by {@code roll}. */
+    public static double scale(double roll, int alpha) {
+        if (alpha != 0) {
+            return scale(roll);
+        }
+        return (LENGTH_MAX + (ALPHA_LENGTH_MAX - LENGTH_MAX) * roll) / MODEL_LENGTH;
     }
 
-    /** Its health at {@code scale}, to the half heart: 10 to 18. */
+    /** Whether one this size is an alpha or matron: past the usual most. */
+    public static boolean alpha(double scale) {
+        return scale * MODEL_LENGTH > LENGTH_MAX + 1e-9;
+    }
+
+    /** How far its size is along the usual range: 0 the smallest, 1 the usual largest, past 1 an alpha's (to 4's). */
+    static double growth(double scale) {
+        double length = Math.max(LENGTH_MIN, Math.min(ALPHA_LENGTH_MAX, scale * MODEL_LENGTH));
+        return (length - LENGTH_MIN) / (LENGTH_MAX - LENGTH_MIN);
+    }
+
+    /** Its health at {@code scale}, to the half heart: 10 to 18, an alpha's up to 24.5. */
     public static double health(double scale) {
         return Math.round(2.0 * (HEALTH_MIN + (HEALTH_MAX - HEALTH_MIN) * growth(scale))) / 2.0;
     }

@@ -6,6 +6,7 @@ server-ip=127.0.0.1. Then start `./gradlew runServer`, wait for "RCON running", 
 is done (pass --keep to leave it running) and exits non-zero if anything failed.
 """
 import atexit
+import math
 import pathlib
 import random
 import re
@@ -915,10 +916,10 @@ def main():
     check("a Rime Eel summons", "execute if entity " + eel, "Test passed, count: 1")
     m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.scale base get"))
     scale = float(m.group(1)) if m else -1.0
-    record("sized 0.6-1.4 blocks long", 0.6 - 1e-6 <= scale * 1.5 <= 1.4 + 1e-6, f"scale {scale}")
-    expected = round(2 * (10 + 8 * max(0.0, min(1.0, (scale * 1.5 - 0.6) / 0.8)))) / 2
+    record("sized 0.6-4 blocks across", 0.6 - 1e-6 <= scale * 2.0 <= 4.0 + 1e-6, f"scale {scale}")
+    expected = math.floor(2 * (10 + 8 * (max(0.6, min(4.0, scale * 2.0)) - 0.6) / 1.9) + 0.5) / 2  # Java's Math.round
     m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.max_health get"))
-    record("its health with its size, 10-18", m is not None and abs(float(m.group(1)) - expected) < 0.01,
+    record("its health with its size, 10-24.5", m is not None and abs(float(m.group(1)) - expected) < 0.01,
            f"{m.group(0) if m else 'none'}, expected {expected}")
     check("4 armour", f"attribute {eel} minecraft:generic.armor get", "is 4.0")
     for tag in ("#minecraft:undead", "#minecraft:aquatic"):
