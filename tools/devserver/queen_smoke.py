@@ -502,6 +502,33 @@ def main():
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")
 
+    # Sublimate (0.74.0): an instant piercing cone, 12 blocks at level 5, from an armor stand facing +x: a golem
+    # 6 off and one 10 off behind it are both struck (8 damage) and left Rimefrost I; one 6 off but 8 to the
+    # side, outside the cone, isn't touched.
+    rcon.run('summon minecraft:iron_golem 8.5 200 4.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target","smoke_sub_near"]}')
+    rcon.run('summon minecraft:iron_golem 12.5 200 4.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target","smoke_sub_far"]}')
+    rcon.run('summon minecraft:iron_golem 8.5 200 12.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target","smoke_sub_side"]}')
+    rcon.run('summon minecraft:armor_stand 2.5 200 4.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}')
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:sublimate 5")
+    time.sleep(0.5)
+    near, far, side = (health(f"@e[tag=smoke_sub_{n},limit=1]") for n in ("near", "far", "side"))
+    record("Sublimate pierces: both golems in its cone are struck", 88 <= near < 100 and 88 <= far < 100, f"near {near}, far {far}")
+    record("Sublimate leaves Rimefrost on both", has_effect("@e[tag=smoke_sub_near,limit=1]", "dreadpatch:rimefrost")
+           and has_effect("@e[tag=smoke_sub_far,limit=1]", "dreadpatch:rimefrost"), "no Rimefrost")
+    record("Sublimate misses one outside its cone", side == 100 and not has_effect("@e[tag=smoke_sub_side,limit=1]", "dreadpatch:rimefrost"), f"side {side}")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[tag=smoke_caster]")
+    # A Dread Lich killed by a player now and then leaves a Sublimate scroll: its table (10%; none in 60 is 0.2%)
+    # rolled here; the loot modifier adding it to Ice and Fire's lich (on a player's kill) needs a player.
+    rcon.run("kill @e[type=item]")
+    rcon.run('summon iceandfire:dread_lich 4.5 200 8.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_lich_loot"]}')
+    for _ in range(60):
+        rcon.run("execute as @e[tag=smoke_lich_loot,limit=1] run loot spawn 4.5 201 8.5 loot dreadpatch:entities/dread_lich_sublimate")
+    scrolls = count("irons_spellbooks:scroll")
+    record("the lich's table gives a Sublimate scroll now and then", 1 <= scrolls <= 20, f"{scrolls} in 60")
+    rcon.run("kill @e[tag=smoke_lich_loot]")
+    rcon.run("kill @e[type=item]")
+
     # Rimefire Blast (0.51.0): its cone, summoned (a mob can't hold a continuous spell through /cast: Iron's
     # Cone of Cold doesn't fire that way either), owned by a villager facing a golem, hits it for its
     # damage and leaves Withering Rime.

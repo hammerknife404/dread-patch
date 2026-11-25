@@ -54,7 +54,8 @@
                   "dreadpatch:rimefire_crown",
                   "dreadpatch:barrow_step",
                   "dreadpatch:summon_dread_phantoms",
-                  "dreadpatch:rimefire_blast"
+                  "dreadpatch:rimefire_blast",
+                  "dreadpatch:sublimate"
                 ],
                 "force": true
               }
