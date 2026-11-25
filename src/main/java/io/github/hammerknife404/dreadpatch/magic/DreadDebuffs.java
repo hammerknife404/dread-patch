@@ -6,14 +6,19 @@ package io.github.hammerknife404.dreadpatch.magic;
  * <ul>
  * <li>a dread scuttler: Withering Rime II (as Syndrigossa's bite) at a low {@link #SCUTTLER_WITHERING},
  * and a 2 s Rimefrost that refreshes, never stacks, at the phantom's odds;</li>
- * <li>a dread knight: Withering Rime at a low {@link #KNIGHT_WITHERING};</li>
- * <li>every other Dread mob: the dread phantom's bite ({@link PhantomRules}).</li>
+ * <li>a dread knight: Withering Rime at a low {@link #KNIGHT_WITHERING}, and (0.73.1) 3 s of Rimefrost at
+ * {@link #KNIGHT_RIMEFROST};</li>
+ * <li>every other Dread mob: each at {@link #OTHER_CHANCE} (0.73.1, the owner: "5%"; 0.73.0 had the phantom's
+ * odds), for the phantom's times.</li>
  * </ul>
  * The queen, the Rimefrost dragons, the phantoms and the Rime Eel keep their own.
  */
 public final class DreadDebuffs {
     public static final float SCUTTLER_WITHERING = 0.08F;
     public static final float KNIGHT_WITHERING = 0.08F;
+    public static final float KNIGHT_RIMEFROST = 0.13F;
+    public static final int KNIGHT_RIMEFROST_TICKS = 60;
+    public static final float OTHER_CHANCE = 0.05F;
     /** Withering Rime II's amplifier. */
     public static final int WITHERING_II = 1;
     /** A scuttler's frost: 2 s. */
@@ -34,9 +39,10 @@ public final class DreadDebuffs {
         return switch (kind) {
             case SCUTTLER -> new Hit(witheringRoll < SCUTTLER_WITHERING ? PhantomRules.WITHERING_TICKS : 0, WITHERING_II,
                     PhantomRules.rimefrost(rimefrostRoll) ? SCUTTLER_RIMEFROST_TICKS : 0);
-            case KNIGHT -> new Hit(witheringRoll < KNIGHT_WITHERING ? PhantomRules.WITHERING_TICKS : 0, 0, 0);
-            case OTHER -> new Hit(PhantomRules.witheringRime(witheringRoll) ? PhantomRules.WITHERING_TICKS : 0, 0,
-                    PhantomRules.rimefrost(rimefrostRoll) ? PhantomRules.RIMEFROST_TICKS : 0);
+            case KNIGHT -> new Hit(witheringRoll < KNIGHT_WITHERING ? PhantomRules.WITHERING_TICKS : 0, 0,
+                    rimefrostRoll < KNIGHT_RIMEFROST ? KNIGHT_RIMEFROST_TICKS : 0);
+            case OTHER -> new Hit(witheringRoll < OTHER_CHANCE ? PhantomRules.WITHERING_TICKS : 0, 0,
+                    rimefrostRoll < OTHER_CHANCE ? PhantomRules.RIMEFROST_TICKS : 0);
         };
     }
 
