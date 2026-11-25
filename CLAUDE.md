@@ -51,7 +51,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 
 **Dread lights:** none brighter than 6 (`registry/DreadLights.LIGHT`, the owner's); give a new one that.
 
-**Dev only:** `DevKit` gives a player joining a dev run her full set and a hydra heart, once; it registers only when `FMLEnvironment.production` is false, so never in a built jar.
+**Dev only:** `DevKit` gives a player joining a dev run enchanted dread dragonsteel, an enchanted diamond sword and a hydra heart, once; it registers only when `FMLEnvironment.production` is false, so never in a built jar.
 
 **Spawning:** mobs we raise go through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn.
 
