@@ -105,7 +105,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - **Iron's Spells:** it and its required libraries (Iron's Lib, playerAnimator, Curios) come the same way.
 - **NeoForge:** `neo_version` is the pack's, which the dev runs use; `neo_version_range` is the floor the jar declares (0.60.0: `[21.1.230,)`, Ice and Fire CE's own; 0.59.0 and before declared the pack's build).
 - **JEI** (0.59.0): the pack's file (19.70.0.469, `jei_version`, Modrinth version id `1vC6z8wV`), `compileOnly` for our plugin and `localRuntime` for the dev runs. Never required: JEI finds the plugin itself, and nothing else of ours touches JEI's classes.
-- **Test-only mods** go in `localRuntime`: Better Combat 2.4.0, Better Mob Combat Reimagined 1.1.22, Cloth Config 15.0.140, (0.53.0) Lootr 1.11.38.127, the pack's file (`lootr_version`, its Modrinth version id from the pack export), and (2026-11-24) Guard Villagers 2.4.12, the pack's file (`guardvillagers_version`; the owner's copy is in the untracked `custom_mods/`).
+- **Test-only mods** go in `localRuntime`: Better Combat 2.4.0, Better Mob Combat Reimagined 1.1.22, Cloth Config 15.0.140, (0.53.0) Lootr 1.11.38.127, the pack's file (`lootr_version`, its Modrinth version id from the pack export), (2026-11-24) Guard Villagers 2.4.12, the pack's file (`guardvillagers_version`), and Dummmmmmy 1.21-2.1.2 with the Moonlight 1.21.1-3.8.3 it needs (`dummy_version`, `moonlight_version`; its target dummy and damage numbers show the owner real damage and healing in a client; Modrinth's maven knows it only by its project id, `Adega8YN`, its slug being `mmmmmmmmmmmm`). The owner's copies are in the untracked `custom_mods/`.
   - They're the owner's files, from the untracked `compat_mods_testing_better_combat/`, pinned by the Modrinth version ids their SHA-1s resolve to.
   - The owner's pack export lists Reimagined 1.1.21.
   - The compat jars there for Cataclysm, Cataclysm: Spellbooks and Entity Model Features need mods the dev runs don't have, so they're left out.
@@ -113,7 +113,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 ### Dev runs and network
 
 **Dev runs**
-- **Server:** `./gradlew runServer` boots to `Done`, its mod list 21 long (Minecraft and NeoForge among them; Lootr made it 18 in 0.53.0, JEI and its bundled MezzConfig 20 in 0.59.0, Guard Villagers 21); the dev environment skips the EULA check.
+- **Server:** `./gradlew runServer` boots to `Done`, its mod list 23 long (Minecraft and NeoForge among them; Lootr made it 18 in 0.53.0, JEI and its bundled MezzConfig 20 in 0.59.0, Guard Villagers 21, Dummmmmmy and Moonlight 23); the dev environment skips the EULA check.
 - **Stopping:** `stop` over RCON, or SIGTERM to the java process. Both save the world.
 - **Expected noise:**
   - after a `mod_version` change, a warning that the world's `dreadpatch` version changed;
@@ -121,7 +121,8 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
   - missing Jupiter config files on a fresh `run/`;
   - refmap warnings from GeckoLib, Iron's Spells, Iron's Lib and Curios;
   - Lootr's mixin looking for Create's `SchematicPrinter`;
-  - `Not a list: null` whenever an ice dragon is summoned.
+  - `Not a list: null` whenever an ice dragon is summoned;
+  - Moonlight's `Detected config change` lines.
 - **After changes:** grep the log for `FAILED during APPLY|was not applied`.
 
 **Network:** a build needs:
