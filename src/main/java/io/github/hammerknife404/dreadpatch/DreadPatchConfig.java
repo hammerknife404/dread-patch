@@ -45,6 +45,8 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.BooleanValue CROWN_STORM_SIGHT;
     private static final ModConfigSpec.DoubleValue CROWN_WHITEOUT_SIGHT;
     private static final ModConfigSpec.BooleanValue REGALIA_EASES_WEATHER;
+    private static final ModConfigSpec.IntValue SIPHON_TARGETS;
+    private static final ModConfigSpec.BooleanValue SIPHON_SPLIT;
     /** The default: the owner's "after a lengthy time like several IRL hours"; ours, 6. */
     public static final double DEFAULT_ENCOUNTER_RESET_HOURS = 6.0;
 
@@ -115,6 +117,12 @@ public final class DreadPatchConfig {
         DARK_WATER_EELS = builder.comment("In the Dreadlands, each player's one-in-this chance every 10 s of a Rime Eel in any dark water near them",
                 "(two deep, light 6 or less), on top of the above; never past 4 eels near. 0: never.")
                 .defineInRange("dreadlands_rime_eels", RimeEelRules.DARK_WATER_ONE_IN, 0, 10000);
+        builder.pop();
+        builder.comment("The Dread Queen's siphon: how her Withering Rime heals her when it's on several at once.").push("siphon");
+        SIPHON_TARGETS = builder.comment("How many of those she's withering feed her at once, the nearest first. 0: every one.")
+                .defineInRange("siphon_targets", 0, 0, 64);
+        SIPHON_SPLIT = builder.comment("Whether her heal is shared among those feeding her, so all of them heal her what one would.")
+                .define("siphon_split", false);
         builder.pop();
         builder.comment("The Dread Queen's regalia.").push("regalia");
         CROWN_STORM_SIGHT = builder.comment("Whether her crown keeps the Dreadlands' storm fog (snow and heavy snowstorms) off its wearer: near clear sight.")
@@ -225,6 +233,14 @@ public final class DreadPatchConfig {
 
     public static double crownWhiteoutSight() {
         return SPEC.isLoaded() ? CROWN_WHITEOUT_SIGHT.get() : 0.75;
+    }
+
+    public static int siphonTargets() {
+        return SPEC.isLoaded() ? SIPHON_TARGETS.get() : 0;
+    }
+
+    public static boolean siphonSplit() {
+        return SPEC.isLoaded() && SIPHON_SPLIT.get();
     }
 
     public static boolean regaliaEasesWeather() {
