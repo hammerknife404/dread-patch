@@ -47,7 +47,7 @@ Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she 
 
 - Her sword and her staff, each one time in four (Looting raises it: 30% at Looting I, 40% at Looting III).
 - One epic or legendary ink.
-- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court, Create Rimefrost Dragon, Summon Dread Phantoms or Rimefire Blast. They're **Rimefrost** spells ([Spells](Spells)), and but for Rimefire Blast, found nowhere else.
+- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court, Create Rimefrost Dragon, Summon Dread Phantoms, Rimefire Blast or Sublimate. They're **Rimefrost** spells ([Spells](Spells)), and but for Rimefire Blast and Sublimate, found nowhere else.
 - **A piece of her regalia,** when a player kills her (below).
 
 ## Her regalia

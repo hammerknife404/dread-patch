@@ -691,6 +691,38 @@ def queen_greaves():
 
 
 
+def sublimate():
+    """A sudden narrow cone of rime driving left to right from a point of cyan: solid ice shards near its
+    tip, breaking up and turning to pale vapour toward its far end."""
+    im = dread_background(16, 97)
+    rnd = random.Random(59)
+    ox, oy = 1.5, 8.0
+    for y in range(16):
+        for x in range(16):
+            along = x - ox
+            across = abs(y - oy)
+            if along < 0.5:
+                continue
+            width = 0.4 + along * 0.36
+            if across > width:
+                continue
+            t = along / 14.5
+            # Solid near the tip, ever more broken toward the end, where what's left is vapour.
+            if rnd.random() < t * 0.55:
+                continue
+            edge = across / max(width, 0.01)
+            if t < 0.35:
+                c = ICE_LIGHT if edge < 0.4 else ICE
+            elif t < 0.7:
+                c = ICE if edge < 0.5 else ICE_DIM if rnd.random() < 0.6 else BONE_DIM
+            else:
+                c = BONE_LIGHT if rnd.random() < 0.5 else BONE
+            im.putpixel((x, y), rgba(c, 255 if t < 0.7 else 200))
+    for x, y in [(1, 8), (2, 8), (1, 7), (1, 9)]:
+        im.putpixel((x, y), rgba(DREAD_CYAN if (x, y) != (2, 8) else FIRE_CORE))
+    return im
+
+
 def main():
     out = {
         "gui/spell_icons/withering_rime_bolt.png": withering_rime_bolt(),
@@ -706,6 +738,7 @@ def main():
         "gui/spell_icons/summon_dread_phantoms.png": summon_dread_phantoms(),
         "mob_effect/rimefrost.png": rimefrost_effect(),
         "gui/spell_icons/rimefire_blast.png": rimefire_blast(),
+        "gui/spell_icons/sublimate.png": sublimate(),
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "item/dread_queen_crown.png": queen_crown(),
         "item/dread_queen_bodice.png": queen_bodice(),
