@@ -9,7 +9,7 @@ This file holds the rules and the shape of the code. How each part works, what I
 - **Version:** `mod_version` in `gradle.properties`.
 - **Done:** the big drop (finished with 0.48.0) and the second (finished with 0.54.0; 0.54.1 paced its ice cracks). Paused there on 2026-11-22 at the owner's word; 0.55.0–0.59.0 came after, at the owner's requests. The Rimefrost dragonforge shipped in 0.59.0.
 - **Left for later, the owner's call:** ready-built forges on some spires.
-- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0), being built on `beta` (below, PRs) in the owner's order: 0.60.0 the music and quick fixes; 0.61.0 the Dreadlands basics (random arrival, dreadwood saplings, stray undead); 0.62.0 the post-defeat escalation; 0.63.0 risen Dread (miniature phantoms, water creatures; also stirring in caves); 0.64.0 the owner's notes from the dev client (sound filters, dread lights at 6, her fire, the crown); 0.65.0 dreadwood's block set and dread lights' cold; 0.66.0 the terrain's land (three biomes, caves, trenches); 0.66.1 her storm putting fire out every tick; 0.67.0 the sky (sunlight at most 6, a dim cyan sun) and the plains' grave patches. Still to do: Guard Villagers rising in her storm with their gear (the owner: "we also need to test against guard villagers"; add the pack's Guard Villagers as a test-only `localRuntime` and a smoke check); the owner's `Feature_Dump_11-24.md` (local, unread when this was written); and all of 0.60.0-0.67.0 in a client (`testing.md`). The owner's answers and notes for each are in `decisions.md`. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
+- **The owner's feature dump of 2026-11-23** (`Feature_Dump_11-23.md`, local, written by another assistant against 0.57.0), being built on `beta` (below, PRs) in the owner's order: 0.60.0 the music and quick fixes; 0.61.0 the Dreadlands basics (random arrival, dreadwood saplings, stray undead); 0.62.0 the post-defeat escalation; 0.63.0 risen Dread (miniature phantoms, water creatures; also stirring in caves); 0.64.0 the owner's notes from the dev client (sound filters, dread lights at 6, her fire, the crown); 0.65.0 dreadwood's block set and dread lights' cold; 0.66.0 the terrain's land (three biomes, caves, trenches); 0.66.1 her storm putting fire out every tick; 0.67.0 the sky (sunlight at most 6, a dim cyan sun) and the plains' grave patches. Guard Villagers rising in her storm with their gear (the owner: "we also need to test against guard villagers") has a smoke check since 2026-11-24, the pack's Guard Villagers a test-only `localRuntime`. Still to do: the owner's `Feature_Dump_11-24.md` (local, unread when this was written); and all of 0.60.0-0.67.0 in a client (`testing.md`). The owner's answers and notes for each are in `decisions.md`. Already done, so not to build: its forge gating (0.59.0), ghost villages (0.53.0), the shelter rule (any roof already shelters).
 - **Owed:** the owner's own look at 0.52.0–0.54.1, 0.59.0 and 0.60.0's music in a client ([testing.md](docs/dev/testing.md), Client).
 - The queen's only natural spawning is her encounter atop the Dreadlands' spires (0.47.0). Player riders sit properly on Ice and Fire's dragons since 0.49.0 (wanted for a public release).
 
@@ -105,7 +105,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - **Iron's Spells:** it and its required libraries (Iron's Lib, playerAnimator, Curios) come the same way.
 - **NeoForge:** `neo_version` is the pack's, which the dev runs use; `neo_version_range` is the floor the jar declares (0.60.0: `[21.1.230,)`, Ice and Fire CE's own; 0.59.0 and before declared the pack's build).
 - **JEI** (0.59.0): the pack's file (19.70.0.469, `jei_version`, Modrinth version id `1vC6z8wV`), `compileOnly` for our plugin and `localRuntime` for the dev runs. Never required: JEI finds the plugin itself, and nothing else of ours touches JEI's classes.
-- **Test-only mods** go in `localRuntime`: Better Combat 2.4.0, Better Mob Combat Reimagined 1.1.22, Cloth Config 15.0.140, and (0.53.0) Lootr 1.11.38.127, the pack's file (`lootr_version`, its Modrinth version id from the pack export).
+- **Test-only mods** go in `localRuntime`: Better Combat 2.4.0, Better Mob Combat Reimagined 1.1.22, Cloth Config 15.0.140, (0.53.0) Lootr 1.11.38.127, the pack's file (`lootr_version`, its Modrinth version id from the pack export), and (2026-11-24) Guard Villagers 2.4.12, the pack's file (`guardvillagers_version`; the owner's copy is in the untracked `custom_mods/`).
   - They're the owner's files, from the untracked `compat_mods_testing_better_combat/`, pinned by the Modrinth version ids their SHA-1s resolve to.
   - The owner's pack export lists Reimagined 1.1.21.
   - The compat jars there for Cataclysm, Cataclysm: Spellbooks and Entity Model Features need mods the dev runs don't have, so they're left out.
@@ -113,7 +113,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 ### Dev runs and network
 
 **Dev runs**
-- **Server:** `./gradlew runServer` boots to `Done`, its mod list 20 long (Minecraft and NeoForge among them; Lootr made it 18 in 0.53.0, JEI and its bundled MezzConfig 20 in 0.59.0); the dev environment skips the EULA check.
+- **Server:** `./gradlew runServer` boots to `Done`, its mod list 21 long (Minecraft and NeoForge among them; Lootr made it 18 in 0.53.0, JEI and its bundled MezzConfig 20 in 0.59.0, Guard Villagers 21); the dev environment skips the EULA check.
 - **Stopping:** `stop` over RCON, or SIGTERM to the java process. Both save the world.
 - **Expected noise:**
   - after a `mod_version` change, a warning that the world's `dreadpatch` version changed;
@@ -137,7 +137,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 - Bump `mod_version` with user-visible changes; merging the bump releases it. Keep the README in step.
 - **Before committing (the owner's checklist, pasted 2026-11-22 for the second drop, followed since):**
   - one branch for each group of work;
-  - stage files by name (never `git add .` or `-A`; `compat_mods_testing_better_combat/` and the `.mrpack`s stay untracked), after checking the diff for debug leftovers;
+  - stage files by name (never `git add .` or `-A`; `compat_mods_testing_better_combat/`, `custom_mods/` and the `.mrpack`s stay untracked), after checking the diff for debug leftovers;
   - `./gradlew build` (unit tests included) and the smoke test pass before the merge, or a failure is understood and flagged;
   - the PR says what changed, what was assumed, and what still needs testing by hand;
   - no commit or PR until all that's done, or a blocker is resolved or clearly flagged.
