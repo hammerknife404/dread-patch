@@ -102,6 +102,12 @@ dependencies {
     // dummy and damage numbers show real damage and healing in a client. Never required.
     localRuntime "maven.modrinth:Adega8YN:${dummy_version}"
     localRuntime "maven.modrinth:moonlight:${moonlight_version}"
+    // Dev runs only, for now (the owner, 2026-11-25): a dev build of their Friendly Beacons, from the untracked
+    // custom_mods/, loaded only where that file is (so CI and other checkouts build without it). Never required.
+    def friendlyBeacons = file("custom_mods/friendlybeacons-1.5.0.jar")
+    if (friendlyBeacons.exists()) {
+        localRuntime files(friendlyBeacons)
+    }
     // JEI as the owner's pack has it: the Rimefrost dragonforge's recipes get a page of their own (Ice and
     // Fire's pages show only its fire, ice and lightning forges'). Compiled against, loaded in the dev
     // runs; never required (JEI finds our plugin itself, and nothing else touches it).
