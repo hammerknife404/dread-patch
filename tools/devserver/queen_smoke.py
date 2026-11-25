@@ -2375,8 +2375,9 @@ def main():
     # The Dread's hits (0.73.0): a melee hit (`/damage ... mob_attack by` it) from a scuttler, a knight and a
     # thrall on a sturdy NoAI zombie, 80 each, 0.55 s apart (past its half second of invulnerability after a
     # hit), its effects cleared between: a scuttler's leave Withering Rime II now and then (8%) and 2 s of
-    # Rimefrost often (35%); a knight's Withering Rime I now and then and never Rimefrost; a thrall's the
-    # phantom's (15%, 35%). (None in 80 at 8% is 0.1%.) The one-source cap is on players, so it needs one.
+    # Rimefrost often (35%); a knight's Withering Rime I now and then (8%) and 3 s of Rimefrost sometimes (13%,
+    # 0.73.1); a thrall's each at 5% (0.73.1). (None in 80 at 8% is 0.1%, at 5% 1.7%: both a thrall's are
+    # counted together, none of either in 80 being 0.03%.) The one-source cap is on players, so it needs one.
     rcon.run('summon minecraft:zombie 24.5 221 12.5 {UUID:[I;73,73,73,9],NoAI:1b,PersistenceRequired:1b,Silent:1b,'
              'attributes:[{id:"minecraft:generic.max_health",base:1000d}],Health:1000f}')
     dread_kinds = {"scuttler": "iceandfire:dread_scuttler", "knight": "iceandfire:dread_knight", "thrall": "iceandfire:dread_thrall"}
@@ -2403,9 +2404,9 @@ def main():
     s, k, t = tallies["scuttler"], tallies["knight"], tallies["thrall"]
     record("a scuttler's hits leave Withering Rime II now and then and a brief Rimefrost often",
            1 <= s["wr2"] <= 20 and s["wr1"] == 0 and 12 <= s["rf"] <= 48 and s["rf_long"] == 0, str(s))
-    record("a knight's hits leave Withering Rime now and then, never Rimefrost",
-           1 <= k["wr1"] <= 20 and k["wr2"] == 0 and k["rf"] == 0, str(k))
-    record("a thrall's hits leave what a phantom's bite does", 3 <= t["wr1"] <= 28 and 12 <= t["rf"] <= 48, str(t))
+    record("a knight's hits leave Withering Rime now and then, and a 3 s Rimefrost sometimes",
+           1 <= k["wr1"] <= 20 and k["wr2"] == 0 and 2 <= k["rf"] <= 26 and k["rf_long"] == k["rf"], str(k))
+    record("a thrall's hits leave Withering Rime and Rimefrost rarely", 1 <= t["wr1"] + t["rf"] <= 24 and t["wr1"] <= 14 and t["rf"] <= 14, str(t))
     rcon.run("kill 00000049-0000-0049-0000-004900000009")
     rcon.run("kill @e[type=item]")
     rcon.run("setblock 20 220 12 minecraft:jukebox")

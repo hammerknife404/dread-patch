@@ -18,17 +18,17 @@ class DreadDebuffsTest {
     }
 
     @Test
-    void knightsOnlyWither() {
-        assertEquals(new DreadDebuffs.Hit(PhantomRules.WITHERING_TICKS, 0, 0), DreadDebuffs.roll(DreadDebuffs.Kind.KNIGHT, 0.0F, 0.0F));
-        assertEquals(DreadDebuffs.Hit.NONE, DreadDebuffs.roll(DreadDebuffs.Kind.KNIGHT, 0.08F, 0.0F));
+    void knightsWitherRarelyAndFrostSometimes() {
+        assertEquals(new DreadDebuffs.Hit(PhantomRules.WITHERING_TICKS, 0, 60), DreadDebuffs.roll(DreadDebuffs.Kind.KNIGHT, 0.0F, 0.12F));
+        assertEquals(DreadDebuffs.Hit.NONE, DreadDebuffs.roll(DreadDebuffs.Kind.KNIGHT, 0.08F, 0.13F));
     }
 
     @Test
-    void othersMatchThePhantom() {
-        DreadDebuffs.Hit hit = DreadDebuffs.roll(DreadDebuffs.Kind.OTHER, 0.14F, 0.34F);
+    void othersAtFivePercentEach() {
+        DreadDebuffs.Hit hit = DreadDebuffs.roll(DreadDebuffs.Kind.OTHER, 0.04F, 0.04F);
         assertEquals(PhantomRules.WITHERING_TICKS, hit.witheringTicks());
         assertEquals(PhantomRules.RIMEFROST_TICKS, hit.rimefrostTicks());
-        assertEquals(DreadDebuffs.Hit.NONE, DreadDebuffs.roll(DreadDebuffs.Kind.OTHER, 0.15F, 0.35F));
+        assertEquals(DreadDebuffs.Hit.NONE, DreadDebuffs.roll(DreadDebuffs.Kind.OTHER, 0.05F, 0.05F));
     }
 
     @Test
