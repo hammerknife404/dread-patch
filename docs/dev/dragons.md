@@ -65,7 +65,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **Harvest** (`mobInteract`):
   - it refuses a glass bottle, and flags the harvest;
   - during the harvest, `spawnAtLocation` drops nothing for a `DragonEggItem`;
-  - the heart's drop rolls `.../heart` instead: shards and witherbones.
+  - the heart's drop rolls `.../heart` instead: shards and witherbones, and her theme's disc at 25% (0.72.0, [dreadlands.md](dreadlands.md)).
 - **Her egg:**
   - `dreadpatch:syndrigossa_egg`, a plain item for now;
   - a pool in `.../heart` under `entity_properties` `nbt {Ancient:1b}`, so one from every ancient corpse, of either gender;

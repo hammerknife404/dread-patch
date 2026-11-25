@@ -2352,6 +2352,34 @@ def main():
     record("spire summit chests hold the disc now and then", 1 <= discs <= 20, f"{discs} in 60 chests")
     rcon.run("kill @e[type=item]")
 
+    # Her boss theme (0.72.0): a fresh queen or Syndrigossa is marked as she spawns (the start goes to players
+    # near her; a marked one never plays it again). Its disc plays in a jukebox, and Syndrigossa's heart holds
+    # it one time in four (none in 40 is 1e-5).
+    out = rcon.run('summon dreadpatch:dread_queen 24.5 221 8.5 {UUID:[I;72,72,72,1],NoAI:1b,PersistenceRequired:1b}')
+    record("a summoned queen spawns (boss music)", "Summoned" in out, out.strip())
+    out = rcon.run('summon dreadpatch:syndrigossa 24.5 221 4.5 {UUID:[I;72,72,72,2],NoAI:1b,PersistenceRequired:1b}')
+    record("a summoned Syndrigossa spawns (boss music)", "Summoned" in out, out.strip())
+    marked = ["Test passed" in rcon.run(f'execute as {who} if data entity @s NeoForgeData."dreadpatch:boss_music_played"')
+              for who in ("00000048-0000-0048-0000-004800000001", "00000048-0000-0048-0000-004800000002")]
+    record("a fresh queen and Syndrigossa are marked for her theme", all(marked), str(marked))
+    rcon.run("kill @e[type=item]")
+    for _ in range(40):
+        rcon.run("execute as 00000048-0000-0048-0000-004800000002 run loot spawn 20.5 221 12.5 loot dreadpatch:entities/syndrigossa/heart")
+    discs = count("dreadpatch:music_disc_beneath_the_permafrost")
+    record("Syndrigossa's heart holds her theme's disc now and then", 1 <= discs <= 25, f"{discs} in 40 hearts")
+    rcon.run("kill @e[type=item]")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    rcon.run("kill @e[type=item]")
+    rcon.run("setblock 20 220 12 minecraft:jukebox")
+    rcon.run("item replace block 20 220 12 container.0 with dreadpatch:music_disc_beneath_the_permafrost")
+    time.sleep(0.5)
+    playing = "Test passed" in rcon.run("execute if block 20 220 12 minecraft:jukebox[has_record=true]") \
+        and "ticks_since_song_started" in rcon.run("data get block 20 220 12")
+    record("her theme's disc plays in a jukebox", playing, rcon.run("data get block 20 220 12").strip())
+    rcon.run("setblock 20 220 12 minecraft:air")
+    rcon.run("kill @e[type=item]")
+
     rcon.run("fill 3 199 2 7 204 2 minecraft:air")
     rcon.run("fill 9 199 1 17 206 13 minecraft:air")
 

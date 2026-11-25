@@ -355,6 +355,16 @@ public final class ModRegistries {
     public static final ResourceKey<JukeboxSong> ENTOMBED_IN_RIMEFROST = ResourceKey.create(Registries.JUKEBOX_SONG, DreadPatch.id("entombed_in_rimefrost"));
     public static final DeferredItem<Item> MUSIC_DISC_ENTOMBED_IN_RIMEFROST = ITEMS.registerSimpleItem("music_disc_entombed_in_rimefrost",
             new Item.Properties().stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(ENTOMBED_IN_RIMEFROST));
+    /**
+     * Her boss theme (0.72.0): the owner's "Beneath the Permafrost" (tools/music/make_music.py), played once as
+     * the queen or Syndrigossa spawns ({@code world/BossMusic}). Its disc, from Syndrigossa's heart, plays a mono
+     * copy at 0.7 volume (sounds.json).
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_QUEEN_MUSIC = sound("music.dread_queen");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BENEATH_THE_PERMAFROST_RECORD = sound("music_disc.beneath_the_permafrost");
+    public static final ResourceKey<JukeboxSong> BENEATH_THE_PERMAFROST = ResourceKey.create(Registries.JUKEBOX_SONG, DreadPatch.id("beneath_the_permafrost"));
+    public static final DeferredItem<Item> MUSIC_DISC_BENEATH_THE_PERMAFROST = ITEMS.registerSimpleItem("music_disc_beneath_the_permafrost",
+            new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).jukeboxPlayable(BENEATH_THE_PERMAFROST));
 
     /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",

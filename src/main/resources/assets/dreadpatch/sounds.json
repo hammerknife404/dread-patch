@@ -105,6 +105,16 @@
       {"name": "dreadpatch:records/entombed_in_rimefrost", "stream": true}
     ]
   },
+  "music.dread_queen": {
+    "sounds": [
+      {"name": "dreadpatch:music/beneath_the_permafrost", "stream": true}
+    ]
+  },
+  "music_disc.beneath_the_permafrost": {
+    "sounds": [
+      {"name": "dreadpatch:records/beneath_the_permafrost", "volume": 0.7, "stream": true}
+    ]
+  },
   "entity.rime_eel.ambient": {
     "subtitle": "subtitles.dreadpatch.entity.rime_eel.ambient",
     "sounds": [
