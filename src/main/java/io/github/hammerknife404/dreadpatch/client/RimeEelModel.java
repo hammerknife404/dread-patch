@@ -15,13 +15,18 @@ import net.minecraft.util.Mth;
  * The Rime Eel (0.71.0), after the owner's picture: a big, boxy anglerfish head with its jaw hanging open on rows of
  * fangs, a jagged crest, a lure on a tall stalk arching over its snout with a lantern hanging from it, fanned fins
  * behind; a thick, ribbed serpent's body of seven segments curling round behind it to a tail fin. Its geometry and
- * texture come from {@code tools/models/make_rime_eel.py} ({@link RimeEelGeometry}). At rest the body curls; a wave
- * runs down it on top of that, slight and slow in water, wider and quicker on land. Its jaw gapes wider to bite,
+ * texture come from {@code tools/models/make_rime_eel.py} ({@link RimeEelGeometry}). At rest the body curls; moving, it
+ * straightens out behind (0.71.2); a wave runs down it on top of that, slight and slow in water, wider and quicker on land. Its jaw gapes wider to bite,
  * its lure sways, its fins beat. (The first model, a small angler the owner liked, is kept on the branch
  * {@code angler-model} for later.)
  */
 public class RimeEelModel extends EntityModel<RimeEel> {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(DreadPatch.id("rime_eel"), "main");
+
+    /** How much of its curl goes as it moves (all but a little), and where its head sits when it's straight. */
+    static final float STRAIGHTENS = 0.9F;
+    static final float STRAIGHT_X = 0.0F;
+    static final float STRAIGHT_Z = -12.0F;
 
     private final ModelPart root;
     private final ModelPart head;
@@ -59,6 +64,16 @@ public class RimeEelModel extends EntityModel<RimeEel> {
         this.root.getAllParts().forEach(ModelPart::resetPose);
         boolean water = eel.isInWater();
         float moving = Mth.clamp(limbSwingAmount * (water ? 4.0F : 2.0F), 0.0F, 1.0F);
+        // Curled at rest; on the move its body straightens out behind it (0.71.2, the owner: "its tail is stuck in
+        // that pose"), the head drawn forward and over so the straight eel stays on its middle.
+        float curl = 1.0F - Mth.clamp(limbSwingAmount * 6.0F, 0.0F, 1.0F) * STRAIGHTENS;
+        for (ModelPart part : this.body) {
+            part.yRot *= curl;
+        }
+        this.body[0].xRot *= curl;
+        this.body[1].xRot *= curl;
+        this.head.x = Mth.lerp(curl, STRAIGHT_X, this.head.getInitialPose().x);
+        this.head.z = Mth.lerp(curl, STRAIGHT_Z, this.head.getInitialPose().z);
         // A wave down its segments, on top of its curl: an eel's in water, a serpent's on land.
         float rate = water ? 0.2F + 0.2F * moving : 0.3F + 0.4F * moving;
         float swing = water ? 0.08F + 0.14F * moving : 0.15F + 0.25F * moving;
