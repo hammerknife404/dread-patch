@@ -51,15 +51,18 @@ import java.util.UUID;
  * water and aquatic life"). Where the Dread raise the dead (her storm, so far):
  * <ul>
  * <li>a bat or parrot ({@link #AS_PHANTOMS}) rises as a {@link MiniatureDreadPhantom}, hers;</li>
- * <li>a water creature ({@code #minecraft:aquatic}, or any {@link WaterAnimal}) rises as itself, Dread
+ * <li>a water creature ({@code #minecraft:aquatic}, or any {@link WaterAnimal}) rises as a {@link RimeEel}, hers
+ * (0.71.0; from 0.63.0 to 0.70.0 it rose as itself made Dread).</li>
+ * </ul>
+ * In the overworld's underground water a water creature still stirs now and then as itself made Dread
  * ({@link #makeDread}): marked {@link #RISEN} in its persistent data, twice its health, much faster
  * ({@link RisenRules}), hunting players and what she hunts, its bite the dread phantom's (Rimefrost and
- * Withering Rime, each by chance) and sized by its own health, so a fish is an ankle-biter and a great
- * beast a leviathan. Drawn frost-tinted ({@link RisenDreadClient}, told by {@link Marked}).</li>
- * </ul>
+ * Withering Rime, each by chance) and sized by its own health. Drawn frost-tinted ({@link RisenDreadClient},
+ * told by {@link Marked}).
  * They're of the Dread to this mod ({@link #dread}): they refuse its rime and storms, and the Dread's magic
  * spares them. (Ice and Fire's own dread mobs still take them for prey: its tests know only its own.) Now and
- * then they also stir on their own, in caves and underground water ({@code world/RisenSpawns}).
+ * then they also stir on their own, in caves and underground water, and Rime Eels in the Dreadlands' dark water
+ * ({@code world/RisenSpawns}).
  */
 public final class RisenDread {
     public static final String RISEN = "dreadpatch:risen";
@@ -109,7 +112,7 @@ public final class RisenDread {
         return entity.getType().is(EntityTypeTags.AQUATIC) || entity instanceof WaterAnimal;
     }
 
-    /** What {@code dead} rises as, raised by {@code raiser}, not yet added; null if it rises as something else. */
+    /** What {@code dead} rises as (a miniature dread phantom or a Rime Eel), raised by {@code raiser}, not yet added; null if it rises as something else. */
     @Nullable
     public static Mob rise(ServerLevel level, LivingEntity dead, @Nullable LivingEntity raiser) {
         if (dead.getType().is(AS_PHANTOMS)) {
@@ -124,19 +127,21 @@ public final class RisenDread {
             }
             return phantom;
         }
-        if (!(dead instanceof Mob) || !aquatic(dead) || !(dead.getType().create(level) instanceof Mob beast)) {
+        // A water creature rises a Rime Eel (0.71.0, the owner's spec: "any aquatic-type creature slain during the Dread
+        // Queen's Whiteout Dominion becomes a Rime Eel"), its raiser's.
+        if (!(dead instanceof Mob) || !aquatic(dead)) {
             return null;
         }
-        // Itself again (its kind, colour, pattern), not its death, wounds, effects, attributes or its own UUID.
-        CompoundTag tag = new CompoundTag();
-        dead.saveWithoutId(tag);
-        for (String key : new String[]{"UUID", "Health", "DeathTime", "HurtTime", "HurtByTimestamp", "active_effects", "attributes", "Fire", "Brain",
-                "Motion", "leash", "Leash", "PersistenceRequired"}) {
-            tag.remove(key);
+        RimeEel eel = ModRegistries.RIME_EEL.get().create(level);
+        if (eel == null) {
+            return null;
         }
-        beast.load(tag);
-        makeDread(beast, raiser);
-        return beast;
+        eel.moveTo(dead.getX(), dead.getY(), dead.getZ(), dead.getYRot(), 0.0F);
+        EventHooks.finalizeMobSpawn(eel, level, level.getCurrentDifficultyAt(dead.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+        if (raiser != null) {
+            eel.getPersistentData().putUUID(RAISED_BY, raiser.getUUID());
+        }
+        return eel;
     }
 
     /** Makes {@code mob} risen Dread: marked, its health doubled and whole, much faster. Before it's added. */

@@ -8,7 +8,8 @@ abyssal indigo #1E2A4A; her dread fire is the cyan of Ice and Fire's dread torch
 like vanilla's. The dread fire and the Dread Gate's face are animated block-atlas textures (16x16
 frames, each with its .mcmeta): the fire drawn by the Rimefire Crown's renderer, the gate's face by its
 block. Syndrigossa's egg and the Dread Queen's regalia are 16x16 item textures on transparency, the
-regalia in her outfit's colours from Ice and Fire's texture of her.
+regalia in her outfit's colours from Ice and Fire's texture of her.(The Rime Eel's textures come from
+tools/models/make_rime_eel.py.)
 """
 import json
 import math
@@ -687,6 +688,7 @@ def queen_greaves():
         "OOOOOOO.",
         "........",
     ])
+
 
 
 def main():

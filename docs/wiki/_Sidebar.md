@@ -5,6 +5,7 @@
 - [The Dreadlands](The-Dreadlands)
 - [Rimefrost dragons](Rimefrost-Dragons)
 - [Dread phantoms](Dread-Phantoms)
+- [Rime Eels](Rime-Eels)
 - [Gear](Gear)
 - [Spells](Spells)
 - [Fixes to Ice and Fire](Fixes-to-Ice-and-Fire)
