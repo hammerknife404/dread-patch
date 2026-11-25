@@ -1443,6 +1443,63 @@ def main():
     # Its three biomes (0.66.0): the plains, the sunken Sastrugi Wastes, the Rime Chasma's trenches.
     check("the Sastrugi Wastes exist", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:sastrugi_wastes", "is at")
     check("the Rime Chasma exists", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:rime_chasma", "is at")
+    # The Rime Chasma's floor (0.68.0, the owner's pictures): far out on new ground, its middle found on a coarse grid
+    # (32 apart round where locate puts its edge), then every 2 blocks over 64 x 64 there. Most of it is the flat
+    # floor (top block 30), its plates' ridges a block or two over it in snow, its cracks at least 6 deep (fall
+    # damage); its top clear blue ice and snow; water sealed in its ice; slabs heaved up at its cracks.
+    def top_block(x, z):
+        rcon.run(dl + f'positioned {x} 0 {z} positioned over world_surface run summon minecraft:marker ~ ~ ~ {{Tags:["smoke_probe"]}}')
+        pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+        rcon.run("kill @e[tag=smoke_probe]")
+        return int(float(pos.group(1))) - 1 if pos else None
+
+    cfx, cfz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
+    m = re.search(r"at \[(-?\d+), \S+, (-?\d+)\]", rcon.run(dl + f"positioned {cfx} 0 {cfz} run locate biome dreadpatch:rime_chasma"))
+    if m:
+        lx, lz = int(m.group(1)), int(m.group(2))
+        grid = [(lx + i * 32, lz + j * 32) for j in range(-5, 6) for i in range(-5, 6)]
+        for gx, gz in grid:
+            rcon.run(dl + f"run forceload add {gx} {gz}")
+        time.sleep(8.0)
+        coarse = {p: top_block(*p) for p in grid}
+        rcon.run(dl + "run forceload remove all")
+        floor_points = [p for p in grid if coarse[p] is not None and 29 <= coarse[p] <= 32]
+        mid = max(floor_points, key=lambda p: sum(1 for q in grid if abs(q[0] - p[0]) <= 64 and abs(q[1] - p[1]) <= 64
+                                                  and coarse[q] is not None and coarse[q] <= 32), default=None)
+        record("the Rime Chasma has a floor near where it's found", mid is not None, f"none of 121 points at 29-32 round {lx} {lz}")
+        if mid:
+            mx, mz = mid
+            rcon.run(dl + f"run forceload add {mx - 32} {mz - 32} {mx + 32} {mz + 32}")
+            time.sleep(8.0)
+            tops = [top_block(x, z) for x in range(mx - 32, mx + 32, 2) for z in range(mz - 32, mz + 32, 2)]
+            tops = [t for t in tops if t is not None]
+            chasma_share = lambda test: sum(1 for t in tops if test(t)) / max(1, len(tops))
+            record("most of the Rime Chasma is its flat floor at 30", chasma_share(lambda t: t == 30) >= 0.4,
+                   f"{chasma_share(lambda t: t == 30):.0%} at 30; at {mx} {mz}")
+            record("its plates have ridges over the floor", chasma_share(lambda t: t in (31, 32)) >= 0.03, f"{chasma_share(lambda t: t in (31, 32)):.0%} at 31-32")
+            cracks = [t for t in tops if t < 30]
+            record("its cracks are deep enough to hurt a fall", bool(cracks) and max(cracks) <= 30 - 6,
+                   f"{len(cracks)} crack columns, the shallowest's top at {max(cracks) if cracks else None}")
+            # Counted by swapping to sponge and back (as count_blocks below; it isn't defined yet here).
+            def chasma_count(block, y0, y1):
+                total = 0
+                for x in range(mx - 32, mx + 32, 32):
+                    for z in range(mz - 32, mz + 32, 32):
+                        box = f"{x} {y0} {z} {x + 31} {y1} {z + 31}"
+                        filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {box} minecraft:sponge replace {block}"))
+                        if filled and int(filled.group(1)):
+                            rcon.run(dl + f"run fill {box} {block} replace minecraft:sponge")
+                            total += int(filled.group(1))
+                return total
+            record("its top is clear blue ice and snow", chasma_count("minecraft:blue_ice", 30, 30) > 0 and chasma_count("minecraft:snow_block", 30, 30) > 0, "one's missing")
+            record("its ridges are snow", chasma_count("minecraft:snow_block", 31, 32) > 0, "no snow at 31-32")
+            water = chasma_count("minecraft:water", 14, 28)
+            record("water's sealed in its ice", water > 0, f"{water} water blocks at 14-28")
+            heaved = chasma_share(lambda t: 33 <= t <= 40)
+            record("slabs are heaved up at its cracks", heaved > 0, f"{heaved:.1%} of columns at 33-40")
+            rcon.run(dl + "run forceload remove all")
+    else:
+        record("the Rime Chasma is found far out", False, "locate found none")
     out = rcon.run(dl + "run locate structure dreadpatch:spire")
     m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
     record("a spire stands in them", m is not None, out.strip())

@@ -9,9 +9,13 @@ blocks. Deterministic; tune the numbers here and re-run rather than editing the 
 - Plains (dreadpatch:dreadlands): the ground at about 72, rolling, faint hummocks, now and then a field of drifts.
 - Sastrugi Wastes: where the basins noise (continents) passes 0.12, the ground falls about 22 blocks to a sunken
   seabed of tall smooth dunes. How fast it falls is the shores noise (erosion): a gradual shelf, or a sharp bluff.
-- Rime Chasma: in the basins where the chasma noise (ridges) passes 0.3, a lakebed lower still, cut by polygonal
-  trenches (dreadpatch:cell_edges) with sheer walls, pinching shut into snow bridges, down into the caves; and
-  narrower sheer fissures through it. The owner: "Caves should be much more sheered in the cracked biomes."
+- Rime Chasma (0.68.0, the owner's two pictures; "No canyon walls. The floor is flat as shown with the hexegonal
+  ridges and shattered deep cracks and ravines"): in the basins where the chasma noise (ridges) passes 0.35, the
+  ground eases down gentle slopes to a flat floor at FLOOR_Y, an ice sheet (packed ice and blue ice in bands, its top
+  clear blue ice or snow plates). Polygonal plates (dreadpatch:cell_edges) with ridges a block or two high along their
+  edges; where the fissures noise says so an edge is a crack instead, and on wider cells trenches (pinching shut into
+  snow bridges). Cracks reach CRACK_MIN below the floor at least ("almost always deep enough to cause fall damage"),
+  mostly 10-30, and now and then to bedrock ("Rarely").
 - Caves everywhere to bedrock: vanilla's spaghetti, noodle and entrance caves and its cheese caverns (closed near the
   surface). Sea level at the bottom, so nothing floods: the basins stay dry.
 """
@@ -23,10 +27,13 @@ DATA = REPO / "src/main/resources/data/dreadpatch"
 
 SURFACE_Y = 72
 SHELF = -0.92        # the basins' fall: 22 blocks
-CHASMA_FLOOR = -0.45  # the chasma's lakebed, 11 blocks lower again
-TRENCH_FLOOR = -24    # the trenches cut down to here
+FLOOR_Y = 31          # the chasma's floor: its top block at 30 (the owner: "Mostly #1", about y 30)
+ICE_SHEET = 16        # how deep its ice goes
 CELL = 80.0           # a trench cell's size (blocks)
-FISSURE_CELL = 20.0
+FISSURE_CELL = 18.0   # a plate's size
+RIDGE_WIDTH = 1.2     # a ridge is the blocks this near a plate's edge
+CRACK_MIN = 6         # every crack at least this deep
+BEDROCK_TOP = -59     # a crack to bedrock stops here (bedrock fades in from -64 to -60)
 
 
 def noise(name, y_scale=0.0):
@@ -64,11 +71,48 @@ def spline(coordinate, points):
     return {"coordinate": coordinate, "points": [{"location": loc, "derivative": 0.0, "value": val} for loc, val in points]}
 
 
+def block(name):
+    return {"type": "minecraft:block", "result_state": {"Name": name}}
+
+
+def when(condition, then):
+    return {"type": "minecraft:condition", "if_true": condition, "then_run": then}
+
+
+def y_above(at):
+    return {"type": "minecraft:y_above", "anchor": {"absolute": at}, "surface_depth_multiplier": 0, "add_stone_depth": False}
+
+
+def depth(offset):
+    return {"type": "minecraft:stone_depth", "offset": offset, "surface_type": "floor", "add_surface_depth": False, "secondary_depth_range": 0}
+
+
+def chasma_surface():
+    """The Rime Chasma's ice sheet: its ridges snow over packed ice; its floor's top clear blue ice (the owner's
+    first picture) or snow plates (the second), "Mix of both"; under it to ICE_SHEET bands of packed ice and blue
+    ice, which the cracks' walls show. A crack's bottom falls through to the plains' rules."""
+    top = FLOOR_Y - 1
+    bands = [when(y_above(top - 3), block("minecraft:packed_ice")), when(y_above(top - 5), block("minecraft:blue_ice")),
+             when(y_above(top - 9), block("minecraft:packed_ice")), when(y_above(top - 10), block("minecraft:blue_ice")),
+             block("minecraft:packed_ice")]
+    return when({"type": "minecraft:biome", "biome_is": ["dreadpatch:rime_chasma"]}, {"type": "minecraft:sequence", "sequence": [
+        when(y_above(FLOOR_Y), when(depth(0), block("minecraft:snow_block"))),
+        when(y_above(FLOOR_Y), when(depth(ICE_SHEET), block("minecraft:packed_ice"))),
+        when(y_above(top - 3), when(depth(0), {"type": "minecraft:sequence", "sequence": [
+            when({"type": "minecraft:noise_threshold", "noise": "dreadpatch:dreadlands_clear_ice", "min_threshold": 0.0, "max_threshold": 10.0},
+                 block("minecraft:blue_ice")),
+            when({"type": "minecraft:noise_threshold", "noise": "minecraft:packed_ice", "min_threshold": -0.08, "max_threshold": 0.08},
+                 block("minecraft:packed_ice")),
+            block("minecraft:snow_block")]})),
+        when(y_above(top - ICE_SHEET), when(depth(ICE_SHEET), {"type": "minecraft:sequence", "sequence": bands})),
+    ]})
+
+
 def main():
     # Scaled so the basins (past 0.14) cover about a third of the land, the chasma a smaller share within them.
     basins = mul(1.6, noise("dreadpatch:dreadlands_basins"))
     shores = noise("dreadpatch:dreadlands_shores")
-    chasma = noise("dreadpatch:dreadlands_chasma")
+    chasma = mul(1.5, noise("dreadpatch:dreadlands_chasma"))  # widened (0.68.0), so a chasma is mostly its floor
     # Ground at SURFACE_Y: vanilla's gradient over the world's height, shifted.
     base = grad(-64, 320, 5.666666666666667 + (SURFACE_Y - 72) / 24.0, -10.333333333333334 + (SURFACE_Y - 72) / 24.0)
     rolling = mul(0.42, noise("dreadpatch:dreadlands_rolling"))
@@ -82,34 +126,75 @@ def main():
         (1.0, spline(basins, [(0.04, 0.0), (0.28, SHELF)])),
     ])}
     sunk = clamp(mul(shelf, 1.0 / SHELF), 0.0, 1.0)
-    chasma_mask = mul(sunk, clamp(mul(4.0, add(-0.4, chasma)), 0.0, 1.0))
-    terrain = total(
+    # The chasma: 0 outside, 1 on its flat floor; the slope between is the gentle way down.
+    # Saturating soon, so most of a chasma is its level floor: by the chasma noise and by the basins (not the shelf,
+    # which on a long shore is still part-way where the chasma starts).
+    chasma_mask = {"type": "minecraft:cache_2d", "argument": mul(clamp(mul(10.0, add(-0.12, basins)), 0.0, 1.0),
+                                                                 clamp(mul(6.0, add(-0.38, chasma)), 0.0, 1.0))}
+    land = total(
         base, rolling, hummocks, shelf,
         mul(add(1.0, mul(-1.0, sunk)), mul(0.32, mul(fields, ridge))),  # the plains' occasional drifts
         mul(sunk, add(mul(0.7, ridge), mul(0.25, noise("dreadpatch:dreadlands_rolling")))),  # sastrugi: tall dunes
-        mul(CHASMA_FLOOR, chasma_mask),
     )
+    # Eased toward a level floor: on it, exactly FLOOR_Y (a straight gradient interpolates exactly). Twice the land's
+    # steepness, so the way down stays gentle but the floor holds its height.
+    # Zero half a block under FLOOR_Y: at FLOOR_Y itself, rounding made it solid.
+    level_floor = grad(-64, 320, (FLOOR_Y - 0.5 + 64) / 12.0, (FLOOR_Y - 0.5 - 320) / 12.0)
+    terrain = add(land, mul(chasma_mask, add(level_floor, mul(-1.0, land))))
     # Vanilla's noodle caves carry their own interpolation, so they go outside ours, as in vanilla's own overworld
     # (nested inside, they left the first six columns of every chunk air, bedrock and all).
     caves = minimum(
         add("minecraft:overworld/caves/spaghetti_2d", "minecraft:overworld/caves/spaghetti_roughness_function"),
         minimum("minecraft:overworld/caves/entrances",
                 add(add(0.27, noise("minecraft:cave_cheese", 0.6666666666666666)), grad(16, 60, 0.0, 1.5))))
+    # Kept out of the chasma's ice sheet (as vanilla keeps its caves off its surface): inside the interpolation, their
+    # small values at the cell corner under the floor pulled the floor down 2-4 blocks. Its cracks still reach them.
+    # The noodle caves (outside the interpolation) too.
+    sheet = mul(chasma_mask, grad(FLOOR_Y - ICE_SHEET - 6, FLOOR_Y - ICE_SHEET + 2, 0.0, 10.0))
+    caves = add(caves, sheet)
+    noodle = add("minecraft:overworld/caves/noodle", sheet)  # likewise: they holed its floor 1-6 deep
+    y = grad(-64, 320, -64.0, 320.0)  # the block's height itself
+    on_floor = {"type": "minecraft:cache_2d", "argument": clamp(mul(25.0, add(-0.95, chasma_mask)), 0.0, 1.0)}
+    # How deep the cracks go, by place: their bottom from FLOOR_Y - CRACK_MIN - 4 down to 10 under the floor's sheet;
+    # where the depths noise is highest (now and then), to bedrock.
+    depths = noise("dreadpatch:dreadlands_crack_depths")
+    shallow_bottom = FLOOR_Y - CRACK_MIN - 4
+    bottom = {"type": "minecraft:cache_2d", "argument": {"type": "minecraft:spline", "spline": spline(depths, [
+        (-0.7, shallow_bottom), (-0.3, FLOOR_Y - 14), (0.0, FLOOR_Y - 24), (0.3, FLOOR_Y - 40), (0.45, FLOOR_Y - 52), (0.52, BEDROCK_TOP)])}}
+    fissure_bottom = {"type": "minecraft:cache_2d", "argument": {"type": "minecraft:max", "argument1": bottom,
+                                                                 "argument2": float(FLOOR_Y - CRACK_MIN - 16)}}
+
+    def carve(columns, floor):
+        """Air where the 2D mask passes a half, from just over the floor's height down to `floor` (a 2D function)."""
+        band = mul(clamp(mul(0.25, add(y, mul(-1.0, floor))), 0.0, 1.0), clamp(mul(0.25, add(float(FLOOR_Y + 8), mul(-1.0, y))), 0.0, 1.0))
+        return add(64.0, mul(-128.0, mul(columns, band)))
+
     cells = {"type": "dreadpatch:cell_edges", "noise": "dreadpatch:dreadlands_cells", "size": CELL, "jitter": 0.9}
-    width = add(3.5, mul(5.0, noise("dreadpatch:dreadlands_bridges")))
-    trench = {"type": "minecraft:cache_2d", "argument": mul(chasma_mask, clamp(add(width, mul(-1.0, cells)), 0.0, 1.0))}
-    trench_carve = add(64.0, mul(-128.0, mul(trench, grad(TRENCH_FLOOR - 6, TRENCH_FLOOR, 0.0, 1.0))))
-    fissure_cells = {"type": "dreadpatch:cell_edges", "noise": "dreadpatch:dreadlands_cells", "size": FISSURE_CELL, "jitter": 0.9}
-    fissure = {"type": "minecraft:cache_2d", "argument": mul(chasma_mask, mul(
-        clamp(add(1.0, mul(-1.0, fissure_cells)), 0.0, 1.0),
-        clamp(mul(3.0, noise("dreadpatch:dreadlands_fissures")), 0.0, 1.0)))}
-    fissure_carve = add(64.0, mul(-128.0, mul(fissure, mul(grad(-48, -40, 0.0, 1.0), grad(52, 60, 1.0, 0.0)))))
-    final = minimum({"type": "minecraft:interpolated", "argument": minimum(terrain, caves)},
-                    minimum("minecraft:overworld/caves/noodle", minimum(trench_carve, fissure_carve)))
+    width = add(1.5, mul(2.5, noise("dreadpatch:dreadlands_bridges")))  # half-width: up to about 4
+    trench = {"type": "minecraft:cache_2d", "argument": mul(on_floor, clamp(add(width, mul(-1.0, cells)), 0.0, 1.0))}
+    trench_carve = carve(trench, bottom)
+    plates = {"type": "dreadpatch:cell_edges", "noise": "dreadpatch:dreadlands_cells", "size": FISSURE_CELL, "jitter": 0.9}
+    cracked = clamp(mul(3.0, add(-0.1, noise("dreadpatch:dreadlands_fissures"))), 0.0, 1.0)  # an edge is a crack here (about a third)
+    crack_width = add(0.7, mul(0.6, clamp(noise("dreadpatch:dreadlands_bridges"), 0.0, 1.0)))  # 1-2 blocks across
+    fissure = {"type": "minecraft:cache_2d", "argument": mul(on_floor, mul(clamp(add(crack_width, mul(-1.0, plates)), 0.0, 1.0), cracked))}
+    fissure_carve = carve(fissure, fissure_bottom)
+    # The plates' ridges: along every edge that isn't a crack, a block or two over the floor (two where the
+    # ridges noise is up), only on the floor itself. Positive from FLOOR_Y to the ridge's top, else nothing.
+    ridge_cols = {"type": "minecraft:cache_2d", "argument": mul(on_floor, mul(
+        clamp(mul(4.0, add(RIDGE_WIDTH, mul(-1.0, plates))), 0.0, 1.0), add(1.0, mul(-1.0, cracked))))}
+    ridge_top = add(float(FLOOR_Y) + 0.5, {"type": "minecraft:cache_2d", "argument": clamp(mul(4.0, noise("dreadpatch:dreadlands_ridges")), 0.0, 1.0)})
+    ridges = mul(ridge_cols, minimum(add(ridge_top, mul(-1.0, y)), add(y, -(FLOOR_Y - 0.5))))
+    ground = {"type": "minecraft:max", "argument1": minimum({"type": "minecraft:interpolated", "argument": minimum(terrain, caves)},
+                                                             noodle), "argument2": ridges}
+    final = minimum(ground, minimum(trench_carve, fissure_carve))
 
     path = DATA / "worldgen/noise_settings/dreadlands.json"
     settings = json.loads(path.read_text())
     settings["sea_level"] = -63
+    # The chasma's ice (0.68.0): its own rules, before the rest (which still makes its cracks' bottoms and the stone).
+    rules = [r for r in settings["surface_rule"]["sequence"] if r.get("if_true", {}).get("type") != "minecraft:biome"]
+    rules.insert(1, chasma_surface())
+    settings["surface_rule"]["sequence"] = rules
     router = settings["noise_router"]
     router.update({"continents": basins, "erosion": shores, "ridges": chasma, "temperature": 0.0, "vegetation": 0.0, "depth": 0.0,
                    "initial_density_without_jaggedness": terrain, "final_density": final})
@@ -122,6 +207,9 @@ def main():
         "dreadlands_cells": (0, [1.0]),
         "dreadlands_bridges": (-6, [1.0, 0.5]),
         "dreadlands_fissures": (-5, [1.0]),
+        "dreadlands_crack_depths": (-6, [1.0, 0.5]),
+        "dreadlands_ridges": (-4, [1.0]),
+        "dreadlands_clear_ice": (-5, [1.0, 0.5]),
     }
     for name, (octave, amplitudes) in noises.items():
         (DATA / f"worldgen/noise/{name}.json").write_text(json.dumps({"firstOctave": octave, "amplitudes": amplitudes}, indent=2) + "\n")
@@ -153,6 +241,13 @@ def main():
         {"type": "minecraft:height_range", "height": {"type": "minecraft:uniform", "min_inclusive": {"absolute": -50}, "max_inclusive": {"absolute": 20}}},
         {"type": "minecraft:biome"}]}, indent=2) + "\n")
 
+    # The chasma's water pockets and heaved slabs (0.68.0).
+    for name, count in (("chasma_pocket", 5), ("heaved_slabs", 3)):
+        (DATA / f"worldgen/configured_feature/{name}.json").write_text(json.dumps({"type": f"dreadpatch:{name}", "config": {}}, indent=2) + "\n")
+        (DATA / f"worldgen/placed_feature/{name}.json").write_text(json.dumps({"feature": f"dreadpatch:{name}", "placement": [
+            {"type": "minecraft:count", "count": count}, {"type": "minecraft:in_square"},
+            {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
+
     # The plains' grave patches (0.67.0): graveyard soil, wither roses, now and then a dead dreadwood tree.
     (DATA / "worldgen/configured_feature/grave_patch.json").write_text(json.dumps({"type": "dreadpatch:grave_patch", "config": {}}, indent=2) + "\n")
     (DATA / "worldgen/placed_feature/grave_patch.json").write_text(json.dumps({"feature": "dreadpatch:grave_patch", "placement": [
@@ -171,6 +266,12 @@ def main():
             steps.append([])
         # Step 9: vegetal decoration; the plains only.
         steps[9] = [f for f in steps[9] if f != "dreadpatch:grave_patch"] + (["dreadpatch:grave_patch"] if name == "dreadlands" else [])
+        if name == "rime_chasma":
+            # Step 2, local modifications: water sealed in its ice; step 9: slabs heaved up at its cracks' lips. No
+            # snow laid at step 10, which would bury its clear ice (blue ice takes snow; packed ice doesn't).
+            steps[2] = steps[2] + ["dreadpatch:chasma_pocket"]
+            steps[9] = steps[9] + ["dreadpatch:heaved_slabs"]
+            steps[10] = [f for f in steps[10] if f != "minecraft:freeze_top_layer"]
         biome["features"] = steps
         (DATA / f"worldgen/biome/{name}.json").write_text(json.dumps(biome, indent=2) + "\n")
 

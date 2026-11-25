@@ -51,6 +51,7 @@ Bats, parrots and water creatures risen Dread, stirring on their own.
 |---|---|---|
 | `cave_dread_phantoms` | `40` | In the overworld and the Dreadlands, one in this chance per player every 10 seconds of a miniature dread phantom stirring in dark cave air near them. 0 for never. |
 | `cave_dread_water` | `40` | The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them. 0 for never. |
+| `chasma_dread_water` | `8` | In the Dreadlands' Rime Chasma, the same for a Dread water creature in one of the pockets of water sealed in its ice near them (on top of the above). 0 for never. |
 
 ## `[regalia]`
 

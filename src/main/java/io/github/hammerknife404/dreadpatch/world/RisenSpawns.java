@@ -6,6 +6,7 @@ import io.github.hammerknife404.dreadpatch.entity.RisenDread;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
 import io.github.hammerknife404.dreadpatch.magic.RisenRules;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
+import io.github.hammerknife404.dreadpatch.magic.TerrainRules;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,9 +36,13 @@ import java.util.Random;
  * one-in-{@code cave_dread_water} chance of a Dread water creature in underground water near them
  * ({@link RisenRules}: 12-32 blocks off, within 12 up or down, under the ground's top, no sky; the air no
  * brighter than 7 by block light), never past {@link RisenRules#CAVE_CAP} of them near. No raiser, so they
- * hunt players.
+ * hunt players. In the Rime Chasma (0.68.0) a further one-in-{@code chasma_dread_water} of one in a pocket of water
+ * sealed in its ice ({@link DreadTerrain.ChasmaPocket}), searched for column by column under the floor.
  */
 public final class RisenSpawns {
+    private static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.biome.Biome> RIME_CHASMA = net.minecraft.resources.ResourceKey.create(
+            net.minecraft.core.registries.Registries.BIOME, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("dreadpatch", "rime_chasma"));
+
     private RisenSpawns() {
     }
 
@@ -59,7 +64,9 @@ public final class RisenSpawns {
             Random roll = new Random(random.nextLong());
             boolean phantom = DreadlandsSpawning.comesUp(DreadPatchConfig.cavePhantomOneIn(), roll);
             boolean water = DreadlandsSpawning.comesUp(DreadPatchConfig.caveWaterOneIn(), roll);
-            if (!phantom && !water || level.getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(DreadlandsSpawning.CAP_RANGE),
+            boolean pocket = Dreadlands.is(level) && level.getBiome(player.blockPosition()).is(RIME_CHASMA)
+                    && DreadlandsSpawning.comesUp(DreadPatchConfig.chasmaWaterOneIn(), roll);
+            if (!phantom && !water && !pocket || level.getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(DreadlandsSpawning.CAP_RANGE),
                     mob -> mob instanceof MiniatureDreadPhantom || RisenDread.is(mob)).size() >= RisenRules.CAVE_CAP) {
                 continue;
             }
@@ -71,22 +78,54 @@ public final class RisenSpawns {
                 }
             }
             if (water) {
-                BlockPos spot = cave(level, player, random, true);
-                EntityType<? extends Mob> kind = switch (RisenRules.waterKind(roll.nextInt(RisenRules.WATER_WEIGHT))) {
-                    case GLOW_SQUID -> EntityType.GLOW_SQUID;
-                    case SQUID -> EntityType.SQUID;
-                    case COD -> EntityType.COD;
-                    case SALMON -> EntityType.SALMON;
-                };
-                Mob beast = spot == null ? null : kind.create(level);
-                if (beast != null) {
-                    beast.moveTo(spot.getX() + 0.5, spot.getY() + 0.1, spot.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
-                    EventHooks.finalizeMobSpawn(beast, level, level.getCurrentDifficultyAt(spot), MobSpawnType.NATURAL, null);
-                    RisenDread.makeDread(beast, null);
-                    level.addFreshEntity(beast);
+                spawnWater(level, cave(level, player, random, true), roll, random);
+            }
+            if (pocket) {
+                spawnWater(level, pocket(level, player, random), roll, random);
+            }
+        }
+    }
+
+    private static void spawnWater(ServerLevel level, @Nullable BlockPos spot, Random roll, RandomSource random) {
+        if (spot == null) {
+            return;
+        }
+        EntityType<? extends Mob> kind = switch (RisenRules.waterKind(roll.nextInt(RisenRules.WATER_WEIGHT))) {
+            case GLOW_SQUID -> EntityType.GLOW_SQUID;
+            case SQUID -> EntityType.SQUID;
+            case COD -> EntityType.COD;
+            case SALMON -> EntityType.SALMON;
+        };
+        Mob beast = kind.create(level);
+        if (beast != null) {
+            beast.moveTo(spot.getX() + 0.5, spot.getY() + 0.1, spot.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+            EventHooks.finalizeMobSpawn(beast, level, level.getCurrentDifficultyAt(spot), MobSpawnType.NATURAL, null);
+            RisenDread.makeDread(beast, null);
+            level.addFreshEntity(beast);
+        }
+    }
+
+    /** Water in a pocket sealed under the Rime Chasma's floor near the player (a source with water over it); null if none's found. */
+    @Nullable
+    static BlockPos pocket(ServerLevel level, ServerPlayer player, RandomSource random) {
+        for (int attempt = 0; attempt < 32; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            double distance = 6 + random.nextDouble() * (RisenRules.CAVE_MAX - 6);
+            int x = Mth.floor(player.getX() + Math.cos(angle) * distance);
+            int z = Mth.floor(player.getZ() + Math.sin(angle) * distance);
+            if (!level.hasChunk(x >> 4, z >> 4)) {
+                continue;
+            }
+            int top = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+            for (int y = top - TerrainRules.POCKET_DEPTH + 2; y >= top - TerrainRules.POCKET_DEPTH - TerrainRules.POCKET_DEPTH_SPREAD - 3; y--) {
+                BlockPos pos = new BlockPos(x, y, z);
+                if (level.getFluidState(pos).isSourceOfType(net.minecraft.world.level.material.Fluids.WATER)
+                        && level.getFluidState(pos.above()).is(FluidTags.WATER)) {
+                    return pos;
                 }
             }
         }
+        return null;
     }
 
     private static void add(ServerLevel level, Mob mob, BlockPos spot, RandomSource random) {
