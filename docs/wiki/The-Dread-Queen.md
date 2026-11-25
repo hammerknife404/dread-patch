@@ -15,6 +15,10 @@ She fights like a necromancer. She keeps her distance, circling at casting range
 
 **Withering Rime** is the mark of all her magic. It withers through armor, freezes and stops all healing, and it feeds her: each second it withers anyone she afflicted (by her bolt, her crown's shrapnel, her sword, her Decree or her husk), she heals 1 on Easy, 2 on Normal and 3 on Hard for each of them, while she's within 32 blocks. Her victims lose 1 a second, as under anyone's Withering Rime; a player's Withering Rime feeds no one. No share of anything's max health she takes, from any spell or her sword, is ever more than 20, so a warden or a dragon is a long fight for her too.
 
+**The Dread's own hits** carry it too. A dread scuttler's bite leaves Withering Rime II now and then (8%), as Syndrigossa's does, and one bite in three a brief 2-second Rimefrost, which a fresh bite renews but never deepens. A dread knight's blows leave Withering Rime now and then (8%). Every other Dread mob (thralls, ghouls, beasts, liches and the risen) hits as a dread phantom bites: one in seven leaves Withering Rime, one in three Rimefrost.
+
+**One source at a time:** on a player, Withering Rime and Rimefrost each come from one source at a time. While one mob's lasts, another's doesn't land, so a pack can't keep piling it on; the same mob can renew its own. The queen and Syndrigossa always land theirs, taking it over. The weather's Rimefrost is no one's, so it never blocks anyone's. When her Withering Rime is on several targets at once, each feeds her in full unless the server caps how many do (`siphon_targets`) or shares her heal among them (`siphon_split`).
+
 Her abilities:
 
 - **Withering Rime-Bolt:** from range, a flame-sized streak of cold cyan dread fire and soot. It takes a share of the target's own life on top of its damage (5% of their max health, 8% on Hard), and leaves Withering Rime.

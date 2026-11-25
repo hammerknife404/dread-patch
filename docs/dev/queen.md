@@ -103,6 +103,15 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - Not while it's rising.
 - It runs from `EntityTickEvent.Post`, since the class is Ice and Fire's.
 
+**The Dread's hits and the one-source cap** (`effect/DreadHits`, `magic/DreadDebuffs`; 0.73.0)
+- **The owner** (Feature_Dump_11-24): scuttlers "Low-chance roll for Withering Rime II (matching Syndrigossa's bite) plus a 2-second, non-stacking frost/freezing proc on bite (refreshes rather than stacking)"; heavy knights "Low-chance roll for Withering Rime"; "All Other Dread Mobs: Match the Dread Phantom's debuff odds"; "A player can only suffer one active source of Withering Rime or frost/rime debuffs at a time"; multi-target healing "open to debate/configuration".
+- **The hit** (`LivingDamageEvent.Post`, damage over 0): a melee hit (`mob_attack` or `mob_attack_no_aggro`, its direct entity its attacker, not a projectile) by anything `RisenDread.dread` but the queen, Rimefrost dragons, dread phantoms and Rime Eels (their own rules). Two rolls, apart:
+  - a `DreadScuttlerEntity`: Withering Rime II (amplifier 1) for 3 s at 8%; Rimefrost II (`HEAVY`) for 2 s at 35% (vanilla's `addEffect` renews it with a longer remaining time, never raises it);
+  - a `DreadKnightEntity` (every hit: Ice and Fire's knight has no separate heavy attack): Withering Rime for 3 s at 8%;
+  - the rest: the phantom's, Withering Rime 3 s at 15%, Rimefrost II 5 s at 35%.
+- **The cap** (players only, `MobEffectEvent.Applicable` at low priority, after the Dread's own refusal): while a player has Withering Rime or Rimefrost, a laying by another source than the one recorded is `DO_NOT_APPLY`. The same source may renew it; the queen and Syndrigossa always land theirs (so a pack's never keeps her siphon from her). The source is recorded on `Added` (by UUID, per effect; weak map, server only) and forgotten when it's removed or runs out. A laying with no source (the weather, rimefire) is no one's: it always lands and doesn't change the record; a player with an effect and no record (after a relog) takes the next one.
+- **Her siphon over several targets** (`RimeSiphon.feed`, the config's `[siphon]`): `siphon_targets` (0, every one) lets only that many feed her, the nearest her first; `siphon_split` (false) divides each target's heal by how many feed her, so together they heal her what one would. Counted over everyone in her level within 32 blocks carrying her Withering Rime.
+
 ## Her model and rendering
 
 **`client/DreadQueenModel`**

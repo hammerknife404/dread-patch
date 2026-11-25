@@ -2371,6 +2371,43 @@ def main():
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     rcon.run("kill @e[type=item]")
+
+    # The Dread's hits (0.73.0): a melee hit (`/damage ... mob_attack by` it) from a scuttler, a knight and a
+    # thrall on a sturdy NoAI zombie, 80 each, 0.55 s apart (past its half second of invulnerability after a
+    # hit), its effects cleared between: a scuttler's leave Withering Rime II now and then (8%) and 2 s of
+    # Rimefrost often (35%); a knight's Withering Rime I now and then and never Rimefrost; a thrall's the
+    # phantom's (15%, 35%). (None in 80 at 8% is 0.1%.) The one-source cap is on players, so it needs one.
+    rcon.run('summon minecraft:zombie 24.5 221 12.5 {UUID:[I;73,73,73,9],NoAI:1b,PersistenceRequired:1b,Silent:1b,'
+             'attributes:[{id:"minecraft:generic.max_health",base:1000d}],Health:1000f}')
+    dread_kinds = {"scuttler": "iceandfire:dread_scuttler", "knight": "iceandfire:dread_knight", "thrall": "iceandfire:dread_thrall"}
+    tallies = {}
+    for n, (kind, entity_type) in enumerate(dread_kinds.items()):
+        uuid = f"00000049-0000-0049-0000-00490000000{n + 1}"
+        rcon.run(f'summon {entity_type} 28.5 221 12.5 {{UUID:[I;73,73,73,{n + 1}],NoAI:1b,PersistenceRequired:1b,Silent:1b}}')
+        tally = {"wr1": 0, "wr2": 0, "rf": 0, "rf_long": 0}
+        for _ in range(80):
+            time.sleep(0.55)
+            rcon.run("effect clear 00000049-0000-0049-0000-004900000009")
+            rcon.run("data merge entity 00000049-0000-0049-0000-004900000009 {Health:1000f}")
+            rcon.run(f"damage 00000049-0000-0049-0000-004900000009 2 minecraft:mob_attack by {uuid}")
+            effects = rcon.run("data get entity 00000049-0000-0049-0000-004900000009 active_effects")
+            wr = re.search(r'\{[^{}]*id: "dreadpatch:withering_rime"[^{}]*\}', effects)
+            if wr:
+                tally["wr2" if "amplifier: 1b" in wr.group(0) else "wr1"] += 1
+            rf = re.search(r'\{[^{}]*id: "dreadpatch:rimefrost"[^{}]*\}', effects)
+            if rf:
+                tally["rf"] += 1
+                tally["rf_long"] += int(re.search(r"duration: (\d+)", rf.group(0)).group(1)) > 40
+        tallies[kind] = tally
+        rcon.run(f"kill {uuid}")
+    s, k, t = tallies["scuttler"], tallies["knight"], tallies["thrall"]
+    record("a scuttler's hits leave Withering Rime II now and then and a brief Rimefrost often",
+           1 <= s["wr2"] <= 20 and s["wr1"] == 0 and 12 <= s["rf"] <= 48 and s["rf_long"] == 0, str(s))
+    record("a knight's hits leave Withering Rime now and then, never Rimefrost",
+           1 <= k["wr1"] <= 20 and k["wr2"] == 0 and k["rf"] == 0, str(k))
+    record("a thrall's hits leave what a phantom's bite does", 3 <= t["wr1"] <= 28 and 12 <= t["rf"] <= 48, str(t))
+    rcon.run("kill 00000049-0000-0049-0000-004900000009")
+    rcon.run("kill @e[type=item]")
     rcon.run("setblock 20 220 12 minecraft:jukebox")
     rcon.run("item replace block 20 220 12 container.0 with dreadpatch:music_disc_beneath_the_permafrost")
     time.sleep(0.5)
