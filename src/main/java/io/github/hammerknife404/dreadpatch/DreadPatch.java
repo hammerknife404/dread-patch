@@ -74,6 +74,8 @@ public final class DreadPatch {
         SyndrigossaEvents.register(NeoForge.EVENT_BUS);
         ScuttlerBolts.register(NeoForge.EVENT_BUS);
         ScuttlerClimbing.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.ScuttlerWebs.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.DreadKnights.register(NeoForge.EVENT_BUS);
         WhiteoutDominion.register(NeoForge.EVENT_BUS);
         DreadGate.register(NeoForge.EVENT_BUS);
         SummonedCourt.register(NeoForge.EVENT_BUS);

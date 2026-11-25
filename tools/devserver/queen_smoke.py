@@ -94,7 +94,7 @@ def main():
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
                   "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms",
-                  "dreadpatch:rimefire_blast"}
+                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -2399,6 +2399,68 @@ def main():
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     rcon.run("kill @e[type=dreadpatch:syndrigossa]")
     rcon.run("kill @e[type=item]")
+
+    # Dread knights and webs (0.75.0), at x 100-125 (forceloaded):
+    rcon.run("forceload add 96 -8 127 15")
+    rcon.run("fill 96 219 -6 127 226 12 minecraft:air")
+    rcon.run("fill 96 218 -6 127 218 12 minecraft:stone")
+    time.sleep(2.0)  # the forceloaded chunks ticking, or a summon there isn't found at once
+    # - a knight is half again as large, an eighth faster, and steps a full block;
+    rcon.run('summon iceandfire:dread_knight 100.5 219 10.5 {UUID:[I;75,75,75,1],NoAI:1b,PersistenceRequired:1b,Silent:1b}')
+    knight = "0000004b-0000-004b-0000-004b00000001"
+    check("a dread knight is half again as large", f"attribute {knight} minecraft:generic.scale get", "is 1.5")
+    check("a dread knight is an eighth faster", f"attribute {knight} minecraft:generic.movement_speed get", "is 0.28125")
+    check("a dread knight steps a full block", f"attribute {knight} minecraft:generic.step_height get", "is 1.0")
+    # - standing in the open it's 2.7 tall (its box reaches 221.5 from 219); under a ceiling 2 blocks up it
+    #   crouches to 1.8 (its box stays under 221);
+    standing = "Test passed" in rcon.run(f"execute positioned 100.0 221.5 10.0 if entity @e[type=iceandfire:dread_knight,dx=0,dy=0,dz=0]")
+    rcon.run("fill 102 221 9 104 221 11 minecraft:stone")
+    rcon.run('summon iceandfire:dread_knight 103.5 219 10.5 {UUID:[I;75,75,75,2],NoAI:1b,PersistenceRequired:1b,Silent:1b}')
+    time.sleep(1.0)
+    crouched = "Test passed" not in rcon.run(f"execute positioned 103.0 220.9 10.0 if entity @e[type=iceandfire:dread_knight,dx=0,dy=0,dz=0]") \
+        and "Test passed" in rcon.run(f"execute positioned 103.0 220.5 10.0 if entity @e[type=iceandfire:dread_knight,dx=0,dy=0,dz=0]")
+    record("a dread knight stands 2.7 tall in the open", standing, "its box doesn't reach 221.5")
+    record("a dread knight crouches under a 2-block ceiling", crouched, "its box reaches past 220.9, or isn't there")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000001")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000002")
+    # - with its AI, from an open room it walks crouched down a 2-high, 1-wide tunnel 11 long to a zombie
+    #   (NoAI, resistance) at its end, within 30 s (by hand, 10 s).
+    rcon.run("fill 100 219 -6 125 224 4 minecraft:stone")
+    rcon.run("fill 101 219 -5 106 222 3 minecraft:air")
+    rcon.run("fill 107 219 -1 117 220 -1 minecraft:air")
+    time.sleep(0.5)
+    rcon.run('summon minecraft:zombie 117.5 219 -0.5 {UUID:[I;75,75,75,9],NoAI:1b,PersistenceRequired:1b,Silent:1b,active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:99999}]}')
+    rcon.run('summon iceandfire:dread_knight 102.5 219 -0.5 {UUID:[I;75,75,75,3],PersistenceRequired:1b,Silent:1b}')
+    # Standing in the room its eyes (221.3) are over the tunnel's roof, so it can't see the zombie down it; the
+    # zombie's "hit" makes it the knight's target (revenge needs no sight). Unprovoked, a knight wandered in
+    # by hand, but not every run.
+    time.sleep(0.5)
+    rcon.run("damage 0000004b-0000-004b-0000-004b00000003 1 minecraft:mob_attack by 0000004b-0000-004b-0000-004b00000009")
+    walked = None
+    for _ in range(60):
+        time.sleep(0.5)
+        pos = re.search(r"\[([-0-9.]+)d,", rcon.run("data get entity 0000004b-0000-004b-0000-004b00000003 Pos"))
+        if pos and float(pos.group(1)) >= 113.0:
+            walked = float(pos.group(1))
+            break
+    record("a dread knight walks crouched down a 2-high tunnel", walked is not None,
+           "x " + (pos.group(1) if pos else "?") + " after 30 s (tunnel 107-117)")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000003")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000009")
+    rcon.run("fill 100 219 -6 125 224 4 minecraft:air")
+    # - a scuttler's web melts after 3 s; its shot, falling onto the floor, leaves one (mobGriefing on).
+    rcon.run("setblock 110 219 8 dreadpatch:dread_web")
+    placed = "Test passed" in rcon.run("execute if block 110 219 8 dreadpatch:dread_web")
+    time.sleep(4.0)
+    melted = "Test passed" in rcon.run("execute if block 110 219 8 minecraft:air")
+    record("a dread web melts away after 3 s", placed and melted, f"placed {placed}, melted {melted}")
+    rcon.run('summon dreadpatch:scuttler_web 114.5 222 8.5 {Motion:[0.0d,-0.6d,0.0d]}')
+    time.sleep(1.0)
+    shot = "Test passed" in rcon.run("execute if block 114 219 8 dreadpatch:dread_web")
+    record("a scuttler's web shot leaves a web where it lands", shot, rcon.run("execute if block 114 219 8 dreadpatch:dread_web").strip())
+    time.sleep(3.5)
+    rcon.run("fill 96 218 -6 127 226 12 minecraft:air")
+    rcon.run("forceload remove 96 -8 127 15")
 
     # The Dread's hits (0.73.0): a melee hit (`/damage ... mob_attack by` it) from a scuttler, a knight and a
     # thrall on a sturdy NoAI zombie, 80 each, 0.55 s apart (past its half second of invulnerability after a

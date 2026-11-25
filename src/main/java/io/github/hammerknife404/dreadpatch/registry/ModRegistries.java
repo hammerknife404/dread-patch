@@ -125,6 +125,13 @@ public final class ModRegistries {
                     .clientTrackingRange(10)
                     .build(DreadPatch.id("dread_queen").toString()));
 
+    /** A dread scuttler's web shot (0.75.0). */
+    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.ScuttlerWeb>> SCUTTLER_WEB = ENTITY_TYPES.register("scuttler_web",
+            () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.ScuttlerWeb>of(io.github.hammerknife404.dreadpatch.entity.ScuttlerWeb::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10)
+                    .build(DreadPatch.id("scuttler_web").toString()));
     public static final DeferredHolder<EntityType<?>, EntityType<WitheringRimeBolt>> WITHERING_RIME_BOLT = ENTITY_TYPES.register("withering_rime_bolt",
             () -> EntityType.Builder.<WitheringRimeBolt>of(WitheringRimeBolt::new, MobCategory.MISC)
                     .sized(0.5F, 0.5F)
@@ -241,6 +248,17 @@ public final class ModRegistries {
                     .lightLevel(state -> RimefireBlock.LIGHT)
                     .sound(SoundType.WOOL)
                     .pushReaction(PushReaction.DESTROY)
+                    .noLootTable()));
+
+    /** A dread scuttler's web (0.75.0): holds less than a cobweb, melts after 3 s, drops nothing. No item. */
+    public static final DeferredBlock<io.github.hammerknife404.dreadpatch.block.DreadWebBlock> DREAD_WEB = BLOCKS.register("dread_web",
+            () -> new io.github.hammerknife404.dreadpatch.block.DreadWebBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOL)
+                    .noCollission()
+                    .strength(1.0F)
+                    .sound(SoundType.COBWEB)
+                    .pushReaction(PushReaction.DESTROY)
+                    .noOcclusion()
                     .noLootTable()));
 
     /** The Dread's lantern (0.57.0): a soul lantern's shape and light, its flame her cyan. Fading lanterns and the villages' end as it. */
