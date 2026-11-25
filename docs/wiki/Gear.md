@@ -4,7 +4,7 @@
 
 Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon gear, with Ice and Fire's ice sets' own numbers and models, recoloured soot, bone and cyan:
 
-- **Rimefrost Dragon Scales:** from a [Rimefrost dragon](Rimefrost-Dragons)'s corpse, or from dread phantoms a player kills.
+- **Rimefrost Dragon Scales:** from a [Rimefrost dragon](Rimefrost-Dragons)'s corpse, from dread phantoms a player kills, or now and then from a [Rime Eel](Rime-Eels).
 - **Rimefrost Dragon Blood:** Rimefrost Dragon Scales and a glass bottle in the Rimefrost dragonforge (below), as Ice and Fire makes ice dragon blood.
 - **Dread Dragonsteel Ingot:** an iron ingot and Rimefrost Dragon Blood in the Rimefrost dragonforge.
 - **Rimefrost dragonscale armour,** crafted from the scales like Ice and Fire's dragonscale armour.

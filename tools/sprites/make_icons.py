@@ -8,7 +8,8 @@ abyssal indigo #1E2A4A; her dread fire is the cyan of Ice and Fire's dread torch
 like vanilla's. The dread fire and the Dread Gate's face are animated block-atlas textures (16x16
 frames, each with its .mcmeta): the fire drawn by the Rimefire Crown's renderer, the gate's face by its
 block. Syndrigossa's egg and the Dread Queen's regalia are 16x16 item textures on transparency, the
-regalia in her outfit's colours from Ice and Fire's texture of her.
+regalia in her outfit's colours from Ice and Fire's texture of her. The Rime Eel's skin, eyes and lure are
+64x64 entity textures laid out for its model (client/RimeEelModel).
 """
 import json
 import math
@@ -689,6 +690,145 @@ def queen_greaves():
     ])
 
 
+
+def box_faces(u, v, w, h, d):
+    """A model box's faces on its texture, as vanilla lays them out (y down, so its DOWN face is its top in the
+    world): each (x, y, width, height). On the top face the front (-z) is the bottom row; on each side the front is
+    the column next to the front face."""
+    return {
+        "top": (u + d, v, w, d),
+        "bottom": (u + d + w, v, w, d),
+        "right": (u, v + d, d, h),
+        "front": (u + d, v + d, w, h),
+        "left": (u + d + w, v + d, d, h),
+        "back": (u + 2 * d + w, v + d, w, h),
+    }
+
+
+def fill_face(im, face, colour_at):
+    x0, y0, w, h = face
+    for y in range(h):
+        for x in range(w):
+            c = colour_at(x, y, w, h)
+            if c is not None:
+                im.putpixel((x0 + x, y0 + y), c)
+
+
+# The Rime Eel's hide: rime-pale bone over slate, its belly paler.
+EEL_LIGHT = (0xE2, 0xE8, 0xF0)
+EEL = (0xC4, 0xCE, 0xDC)
+EEL_DIM = (0x96, 0xA2, 0xB6)
+EEL_DARK = (0x5A, 0x64, 0x78)
+EEL_MOUTH = (0x1A, 0x16, 0x22)
+EEL_GUM = (0x3C, 0x2A, 0x3A)
+LANTERN_GLASS_DIM = (0x2A, 0x58, 0x70)
+
+
+def rime_eel():
+    """The Rime Eel's skin, eyes and lure (64x64, laid out for client/RimeEelModel): a pale, frost-mottled hide,
+    darker along its back; a dark mouth and white fangs (the gaps between them cut out); a ragged dorsal ridge,
+    tail and side fins; dark eye sockets with the Dread's cyan in them (the eyes texture, always glowing); a
+    lantern of dark glass in an iron frame (the lure texture: the same lantern lit, drawn only while it is)."""
+    rnd = random.Random(71)
+    skin = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    eyes = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    lure = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+
+    def hide(top_dark):
+        def at(x, y, w, h):
+            pick = rnd.random()
+            shade = (y / max(1, h - 1)) if not top_dark else 0.0
+            if top_dark:
+                base = EEL_DIM if pick < 0.35 else EEL_DARK if pick < 0.5 else EEL
+            else:
+                # Sides: darker toward the back (top row), paler toward the belly.
+                base = EEL_DARK if pick < 0.18 * (1 - shade) else EEL_DIM if pick < 0.45 - 0.25 * shade else EEL if pick < 0.9 else EEL_LIGHT
+            return rgba(base)
+        return at
+
+    def belly(x, y, w, h):
+        return rgba(EEL_LIGHT if rnd.random() < 0.6 else EEL)
+
+    def body_box(u, v, w, h, d):
+        f = box_faces(u, v, w, h, d)
+        fill_face(skin, f["top"], hide(True))
+        fill_face(skin, f["bottom"], belly)
+        for side in ("right", "left", "front", "back"):
+            fill_face(skin, f[side], hide(False))
+        return f
+
+    # The body's segments (client/RimeEelModel): 4x4x4, 3x3x4, 2x2x4, 1x1x3.
+    for u, v, w, h, d in ((0, 0, 4, 4, 4), (20, 0, 3, 3, 4), (34, 0, 2, 2, 4), (46, 0, 1, 1, 3)):
+        body_box(u, v, w, h, d)
+
+    # The head, 5x3x5: its underside the roof of its mouth; dark sockets near the front of each side.
+    head = body_box(0, 8, 5, 3, 5)
+    fill_face(skin, head["bottom"], lambda x, y, w, h: rgba(EEL_MOUTH if 0 < x < w - 1 else EEL_GUM))
+    fx, fy, fw, fh = head["right"]
+    for (ex, ey) in ((fx + fw - 2, fy), (head["left"][0] + 1, fy)):
+        for dx in range(2):
+            skin.putpixel((ex - (1 if ex == fx + fw - 2 else 0) + dx, ey), rgba(SOOT))
+            skin.putpixel((ex - (1 if ex == fx + fw - 2 else 0) + dx, ey + 1), rgba(SOOT))
+    # Its pupils: a cyan pixel in each socket, nearest the front.
+    rx = fx + fw - 2
+    lx = head["left"][0]
+    for px in (rx, lx + 1):
+        skin.putpixel((px, fy), rgba(DREAD_CYAN))
+        eyes.putpixel((px, fy), rgba(FIRE_BRIGHT))
+    # The front face: a brow over the mouth.
+    fill_face(skin, head["front"], lambda x, y, w, h: rgba(EEL_DARK if y == h - 1 else EEL_DIM if rnd.random() < 0.5 else EEL))
+
+    # The jaw, 5x2x5: its top the floor of its mouth, a gum line round it.
+    jaw = body_box(0, 16, 5, 2, 5)
+    fill_face(skin, jaw["top"], lambda x, y, w, h: rgba(EEL_GUM if x in (0, w - 1) or y == h - 1 else EEL_MOUTH))
+    fill_face(skin, jaw["front"], lambda x, y, w, h: rgba(EEL_DARK if y == 0 else EEL))
+
+    # Fangs, 4x1x4 above and below: every other pixel round the edge a fang, the rest cut out.
+    for u, v in ((20, 8), (20, 13)):
+        f = box_faces(u, v, 4, 1, 4)
+        for side in ("right", "left", "front", "back"):
+            fill_face(skin, f[side], lambda x, y, w, h: rgba(BONE_LIGHT if x % 2 == 0 else BONE) if (x + 1) % 2 else None)
+        for face in ("top", "bottom"):
+            fill_face(skin, f[face], lambda x, y, w, h: rgba(BONE) if (x in (0, w - 1) or y in (0, h - 1)) and (x + y) % 2 == 0 else None)
+
+    # The stalk (1x4x1, then 1x1x4): bone, darker at its joints.
+    for u, v, w, h, d in ((36, 8, 1, 4, 1), (40, 8, 1, 1, 4)):
+        f = box_faces(u, v, w, h, d)
+        for face in f.values():
+            fill_face(skin, face, lambda x, y, w, h: rgba(BONE_DIM if rnd.random() < 0.4 else EEL))
+
+    # The lantern, 2x3x2: an iron frame round dark glass; lit, the glass white-hot to cyan.
+    f = box_faces(50, 8, 2, 3, 2)
+    for name, face in f.items():
+        def glass(x, y, w, h, lit=False, side=name):
+            # Its cap (the top face, and each side's top row) iron; the rest glass.
+            if side == "top" or side != "bottom" and y == 0:
+                return None if lit else rgba(CHARCOAL)
+            if lit:
+                return rgba(FIRE_CORE if side != "bottom" and y == 1 else FIRE_BRIGHT)
+            return rgba(LANTERN_GLASS_DIM)
+        fill_face(skin, face, glass)
+        fill_face(lure, face, lambda x, y, w, h, side=name: glass(x, y, w, h, True, side))
+
+    # Fins: the tail's (0x5x4), the dorsal ridge's (0x3x4, 0x2x4), ragged; the side fins (3x0x3), spined.
+    def fin(spine_every):
+        def at(x, y, w, h):
+            spine = x % spine_every == 0
+            # Ragged toward the outer edge (the top row of a dorsal fin; the far rows of a tail's).
+            edge = y / max(1, h - 1)
+            if not spine and rnd.random() < 0.55 * (1 - edge) + 0.1:
+                return None
+            return rgba(EEL_LIGHT if spine else (EEL_DIM if rnd.random() < 0.5 else EEL), 255)
+        return at
+    for u, v, h in ((0, 24, 5), (8, 24, 3), (16, 24, 2)):
+        # A flat box (no width): its two sides, side by side, 4 wide each.
+        fill_face(skin, (u, v + 4, 8, h), fin(2))
+    side_fin = box_faces(24, 24, 3, 0, 3)
+    for face in ("top", "bottom"):
+        fill_face(skin, (side_fin[face][0], side_fin[face][1], 3, 3), lambda x, y, w, h: rgba(EEL_LIGHT) if x == y or x == 0 or y == 0 else (rgba(EEL_DIM) if rnd.random() < 0.6 else None))
+    return skin, eyes, lure
+
+
 def main():
     out = {
         "gui/spell_icons/withering_rime_bolt.png": withering_rime_bolt(),
@@ -713,6 +853,10 @@ def main():
         "block/dread_fire_1.png": dread_fire(8),
         "block/dread_gate.png": dread_gate(17),
     }
+    eel, eel_eyes, eel_lure = rime_eel()
+    out["entity/rime_eel.png"] = eel
+    out["entity/rime_eel_eyes.png"] = eel_eyes
+    out["entity/rime_eel_lure.png"] = eel_lure
     for rel, im in out.items():
         path = ROOT / rel
         path.parent.mkdir(parents=True, exist_ok=True)

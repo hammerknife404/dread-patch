@@ -164,6 +164,17 @@ public final class ModRegistries {
                             .clientTrackingRange(8)
                             .build(DreadPatch.id("miniature_dread_phantom").toString()));
 
+    /**
+     * The Rime Eel (0.71.0): its box at scale 1, its model 1.5 long; its {@code generic.scale} (0.4-0.93, rolled as
+     * it spawns) makes it 0.44-1.02 across.
+     */
+    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.RimeEel>> RIME_EEL = ENTITY_TYPES.register("rime_eel",
+            () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.RimeEel>of(io.github.hammerknife404.dreadpatch.entity.RimeEel::new, MobCategory.MONSTER)
+                    .sized(1.1F, 0.7F)
+                    .eyeHeight(0.4F)
+                    .clientTrackingRange(8)
+                    .build(DreadPatch.id("rime_eel").toString()));
+
     /** Rimefire Blast's cone (0.51.0): Iron's Cone of Cold's size and tracking; it draws itself in particles. */
     public static final DeferredHolder<EntityType<?>, EntityType<RimefireBlastProjectile>> RIMEFIRE_BLAST_PROJECTILE = ENTITY_TYPES.register("rimefire_blast",
             () -> EntityType.Builder.<RimefireBlastProjectile>of(RimefireBlastProjectile::new, MobCategory.MISC)
@@ -288,6 +299,10 @@ public final class ModRegistries {
     public static final DeferredItem<DeferredSpawnEggItem> MINIATURE_DREAD_PHANTOM_SPAWN_EGG = ITEMS.register("miniature_dread_phantom_spawn_egg",
             () -> new DeferredSpawnEggItem(MINIATURE_DREAD_PHANTOM, 0x3E465C, 0x9CF0FF, new Item.Properties()));
 
+    /** Bone-pale, spotted with its lure's cyan. */
+    public static final DeferredItem<DeferredSpawnEggItem> RIME_EEL_SPAWN_EGG = ITEMS.register("rime_eel_spawn_egg",
+            () -> new DeferredSpawnEggItem(RIME_EEL, 0xC9D3E0, 0x00CBFF, new Item.Properties()));
+
     /**
      * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's
      * heart would be. Laid on dreadstone, three full Whiteout Dominion storms over it hatch it (0.39.0).
@@ -314,6 +329,14 @@ public final class ModRegistries {
     public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_HURT = sound("entity.dread_phantom.hurt");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_DEATH = sound("entity.dread_phantom.death");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_SWOOP = sound("entity.dread_phantom.swoop");
+    /** The Rime Eel's (0.71.0): vanilla's guardian, deeper; its pulse a conduit's strike over amethyst; its bite an axolotl's, its lunge a dolphin's. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_AMBIENT = sound("entity.rime_eel.ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_FLOP = sound("entity.rime_eel.flop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_HURT = sound("entity.rime_eel.hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_DEATH = sound("entity.rime_eel.death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_PULSE = sound("entity.rime_eel.pulse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_BITE = sound("entity.rime_eel.bite");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_LUNGE = sound("entity.rime_eel.lunge");
     /** The Dreadlands' ambience (0.54.0): its loop and whispers a little louder than the soul sand valley's, ice cracking, rumbles below. */
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_LOOP = sound("ambient.dreadlands.loop");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_ADDITIONS = sound("ambient.dreadlands.additions");
