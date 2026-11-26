@@ -31,6 +31,8 @@ public final class TerrainRules {
      * {@code SKELETON_MIN_DAYS} and up to {@code SKELETON_DAYS} more, as Ice and Fire's.
      */
     public static final int SKELETON_ONE_IN = 100;
+    /** The deeps' water (0.77.0): every open space from the world's floor up to this y (12 blocks over bedrock's bottom). */
+    public static final int DEEP_WATER_TOP = -52;
     public static final int SKELETON_MIN_DAYS = 10;
     public static final int SKELETON_DAYS = 100;
     public static final float TREE_CHANCE = 0.4F;

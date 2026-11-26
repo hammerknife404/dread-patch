@@ -1570,9 +1570,25 @@ def main():
     record("an ice dragon's skeleton lies in the Dreadlands", "Test passed" in rcon.run(bones)
            and "Test failed" in rcon.run(bones[:-1] + ",nbt={DeathStage:0}]"), f"place said: {placed.strip()}")
     rcon.run(dl + f"run kill @e[type=iceandfire:ice_dragon,x={sx - 8},y=-64,z={sz - 8},dx=32,dy=400,dz=32]")
+    # The deeps flooded (0.77.0, the owner: "Water should fill most of the open air spaces just above the worlds bedrock
+    # layers"): over 3 x 3 chunks there, from just over bedrock's bottom to y -52, water and no open air. Counted by
+    # swapping to glass and back: not sponge, which soaks up the water round it (the first run counted its own damage).
+    rcon.run(dl + f"run forceload add {sx - 16} {sz - 16} {sx + 31} {sz + 31}")
+    time.sleep(6.0)
+    deep = f"{sx - 16} -63 {sz - 16} {sx + 31} -52 {sz + 31}"
+
+    def deep_count(block):
+        filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {deep} minecraft:glass replace {block}"))
+        if filled and int(filled.group(1)):
+            rcon.run(dl + f"run fill {deep} {block} replace minecraft:glass")
+            return int(filled.group(1))
+        return 0
+    deep_water, deep_air = deep_count("minecraft:water"), deep_count("minecraft:air")
+    record("the deeps are flooded: water over bedrock, no open air to y -52", deep_water > 0 and deep_air == 0,
+           f"{deep_water} water, {deep_air} air in {deep}")
     rcon.run(dl + "run forceload remove all")
     # The Rime Chasma's floor (0.68.0, the owner's pictures): far out on new ground, its middle found on a coarse grid
-    # (32 apart round where locate puts its edge), then every 2 blocks over 64 x 64 there. Most of it is the flat
+    # (64 apart round where locate puts its edge; 32 before 0.77.0), then every 2 blocks over 64 x 64 there. Most of it is the flat
     # floor (top block 30), its plates' ridges a block or two over it in snow, its cracks at least 6 deep (fall
     # damage); its top clear blue ice and snow; water sealed in its ice; slabs heaved up at its cracks.
     def top_block(x, z):
@@ -1585,16 +1601,20 @@ def main():
     m = re.search(r"at \[(-?\d+), \S+, (-?\d+)\]", rcon.run(dl + f"positioned {cfx} 0 {cfz} run locate biome dreadpatch:rime_chasma"))
     if m:
         lx, lz = int(m.group(1)), int(m.group(2))
-        grid = [(lx + i * 32, lz + j * 32) for j in range(-5, 6) for i in range(-5, 6)]
+        # 64 apart since 0.77.0: a chasma is 2.3 times as wide, its slopes too.
+        # 9 x 9, a pause after each: each lone chunk needs its neighbours generated, and 121 of them queued at once held
+        # one tick past the watchdog's 60 s.
+        grid = [(lx + i * 64, lz + j * 64) for j in range(-4, 5) for i in range(-4, 5)]
         for gx, gz in grid:
             rcon.run(dl + f"run forceload add {gx} {gz}")
+            time.sleep(0.4)
         time.sleep(8.0)
         coarse = {p: top_block(*p) for p in grid}
         rcon.run(dl + "run forceload remove all")
         floor_points = [p for p in grid if coarse[p] is not None and 29 <= coarse[p] <= 32]
-        mid = max(floor_points, key=lambda p: sum(1 for q in grid if abs(q[0] - p[0]) <= 64 and abs(q[1] - p[1]) <= 64
+        mid = max(floor_points, key=lambda p: sum(1 for q in grid if abs(q[0] - p[0]) <= 128 and abs(q[1] - p[1]) <= 128
                                                   and coarse[q] is not None and coarse[q] <= 32), default=None)
-        record("the Rime Chasma has a floor near where it's found", mid is not None, f"none of 121 points at 29-32 round {lx} {lz}")
+        record("the Rime Chasma has a floor near where it's found", mid is not None, f"none of {len(grid)} points at 29-32 round {lx} {lz}")
         if mid:
             mx, mz = mid
             rcon.run(dl + f"run forceload add {mx - 32} {mz - 32} {mx + 32} {mz + 32}")
