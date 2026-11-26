@@ -13,8 +13,9 @@ import net.minecraft.util.Mth;
 
 /**
  * The Rime Eel (0.71.0), after the owner's picture: a big, boxy anglerfish head with its jaw hanging open on rows of
- * fangs, a jagged crest, a lure on a tall stalk arching over its snout with a lantern hanging from it, fanned fins
- * behind; a thick, ribbed serpent's body of seven segments curling round behind it to a tail fin. Its geometry and
+ * fangs, a lure on a tall stalk reaching over its snout with a lantern hanging from it (on one in six), fanned fins
+ * behind, a jagged dorsal fin; a thick, ribbed serpent's body of eight segments curling round behind it into a ring,
+ * to a tail fin (0.76.0, the owner's picture again). Its geometry and
  * texture come from {@code tools/models/make_rime_eel.py} ({@link RimeEelGeometry}). At rest the body curls; moving, it
  * straightens out behind (0.71.2); a wave runs down it on top of that, slight and slow in water, wider and quicker on land. Its jaw gapes wider to bite,
  * its lure sways, its fins beat. (The first model, a small angler the owner liked, is kept on the branch
@@ -26,16 +27,23 @@ public class RimeEelModel extends EntityModel<RimeEel> {
     /** How much of its curl goes as it moves (all but a little), and where its head sits when it's straight. */
     static final float STRAIGHTENS = 0.9F;
     static final float STRAIGHT_X = 0.0F;
-    static final float STRAIGHT_Z = -12.0F;
+    static final float STRAIGHT_Z = -18.0F;
+    /** Its lure drawn in, idle (0.76.0): added to the stalk's and arm's x turns (the script's {@code RETRACT}). */
+    static final float RETRACT_STALK = -0.6F;
+    static final float RETRACT_ARM = -0.1F;
+    /** Its body's segments (the script's {@code SEGMENTS}). */
+    static final int SEGMENTS = 8;
 
     private final ModelPart root;
     private final ModelPart head;
     private final ModelPart jaw;
     private final ModelPart stalk;
+    private final ModelPart arm;
+    private final ModelPart hook;
     private final ModelPart lantern;
     private final ModelPart leftFin;
     private final ModelPart rightFin;
-    private final ModelPart[] body = new ModelPart[7];
+    private final ModelPart[] body = new ModelPart[SEGMENTS];
     private final ModelPart tailFin;
 
     public RimeEelModel(ModelPart root) {
@@ -44,7 +52,9 @@ public class RimeEelModel extends EntityModel<RimeEel> {
         this.head = root.getChild("head");
         this.jaw = this.head.getChild("jaw");
         this.stalk = this.head.getChild("stalk");
-        this.lantern = this.stalk.getChild("stalk_arm").getChild("stalk_hook").getChild("lantern");
+        this.arm = this.stalk.getChild("stalk_arm");
+        this.hook = this.arm.getChild("stalk_hook");
+        this.lantern = this.hook.getChild("lantern");
         this.leftFin = this.head.getChild("left_fin");
         this.rightFin = this.head.getChild("right_fin");
         ModelPart part = this.head;
@@ -87,12 +97,22 @@ public class RimeEelModel extends EntityModel<RimeEel> {
         this.head.xRot += (water ? headPitch * Mth.DEG_TO_RAD * 0.5F : 0.0F) + 0.03F * Mth.sin(ageInTicks * 0.1F);
         // Its jaw hangs open, breathing a little, and gapes to bite.
         float bite = Mth.sin(this.attackTime * Mth.PI);
-        this.jaw.xRot += 0.06F * Mth.sin(ageInTicks * 0.08F) + 0.5F * bite;
-        // Its lure sways, and its lantern swings under it.
-        this.stalk.xRot += 0.06F * Mth.sin(ageInTicks * 0.09F) - 0.12F * bite;
+        // An alpha's wind-up (0.80.0): rearing back, head up, its jaw gaping wide, before the snap; plain to read.
+        float rear = eel.rear(ageInTicks - eel.tickCount);
+        this.head.xRot -= 0.45F * rear;
+        this.head.y -= 2.0F * rear;
+        this.jaw.xRot += 0.06F * Mth.sin(ageInTicks * 0.08F) + 0.5F * bite + 0.75F * rear;
+        // Its lure (0.76.0): none at all without its lantern; reaching out as it hunts or swims about, drawn in over its
+        // head while still; swaying. Its lantern hangs plumb under it, whatever the rest is doing, swinging a little
+        // and trailing back as it moves.
+        this.stalk.visible = eel.hasLantern();
+        float drawnIn = 1.0F - eel.reach(ageInTicks - eel.tickCount);
+        this.stalk.xRot += RETRACT_STALK * drawnIn + 0.06F * Mth.sin(ageInTicks * 0.09F) - 0.12F * bite;
         this.stalk.zRot += 0.05F * Mth.sin(ageInTicks * 0.07F);
-        this.lantern.xRot += 0.15F * Mth.sin(ageInTicks * 0.13F + 1.0F);
-        this.lantern.zRot += 0.1F * Mth.sin(ageInTicks * 0.11F);
+        this.arm.xRot += RETRACT_ARM * drawnIn;
+        this.lantern.xRot = -(this.head.xRot + this.stalk.xRot + this.arm.xRot + this.hook.xRot)
+                + 0.12F * Mth.sin(ageInTicks * 0.13F + 1.0F) + 0.35F * moving;
+        this.lantern.zRot = -this.stalk.zRot + 0.1F * Mth.sin(ageInTicks * 0.11F);
         float fin = 0.2F * Mth.sin(ageInTicks * (water ? 0.25F : 0.5F));
         this.leftFin.yRot += fin;
         this.rightFin.yRot -= fin;

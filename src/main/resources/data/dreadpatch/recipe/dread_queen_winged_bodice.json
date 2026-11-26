@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "tag": "dreadpatch:winged_bodice_scales"
+  },
+  "base": {
+    "item": "dreadpatch:dread_queen_bodice"
+  },
+  "addition": {
+    "item": "minecraft:elytra"
+  },
+  "result": {
+    "id": "dreadpatch:dread_queen_winged_bodice",
+    "count": 1
+  }
+}

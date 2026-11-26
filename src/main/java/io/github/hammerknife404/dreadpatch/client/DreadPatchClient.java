@@ -43,6 +43,9 @@ public final class DreadPatchClient {
         modBus.addListener(DreadRecolors::onClientExtensions);
         modBus.addListener(QueenArmorModels::onRegisterLayers);
         modBus.addListener(QueenArmorModels::onClientExtensions);
+        RegaliaWeapons.register(modBus);
+        modBus.addListener(EntityRenderersEvent.AddLayers.class, RegaliaWingsLayer::onAddLayers);
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientTickEvent.Post event) -> RegaliaWingsLayer.tickFrost(net.minecraft.client.Minecraft.getInstance()));
         modBus.addListener(EntityRenderersEvent.AddLayers.class, SaddleLayer::onAddLayers);
         modBus.addListener(EntityRenderersEvent.AddLayers.class, ThrallArmorLayer::onAddLayers);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);

@@ -30,6 +30,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * ice, blue ice, basalt, dreadstone, obsidian and now and then crying obsidian.</li>
  * <li>{@link ChasmaPocket} ({@code dreadpatch:chasma_pocket}) and {@link HeavedSlabs} ({@code dreadpatch:heaved_slabs}):
  * the Rime Chasma's water sealed in its ice, and slabs heaved up at its cracks' lips (0.68.0).</li>
+ * <li>{@link DragonSkeleton} ({@code dreadpatch:dragon_skeleton}): an ice dragon's bones lying out (0.76.0).</li>
+ * <li>{@link DeepWater} ({@code dreadpatch:deep_water}): the open air just over bedrock flooded (0.77.0).</li>
  * </ul>
  */
 public final class DreadTerrain {
@@ -43,6 +45,8 @@ public final class DreadTerrain {
     public static final DeferredHolder<Feature<?>, GravePatch> GRAVE_PATCH = FEATURES.register("grave_patch", GravePatch::new);
     public static final DeferredHolder<Feature<?>, ChasmaPocket> CHASMA_POCKET = FEATURES.register("chasma_pocket", ChasmaPocket::new);
     public static final DeferredHolder<Feature<?>, HeavedSlabs> HEAVED_SLABS = FEATURES.register("heaved_slabs", HeavedSlabs::new);
+    public static final DeferredHolder<Feature<?>, DragonSkeleton> DRAGON_SKELETON = FEATURES.register("dragon_skeleton", DragonSkeleton::new);
+    public static final DeferredHolder<Feature<?>, DeepWater> DEEP_WATER = FEATURES.register("deep_water", DeepWater::new);
 
     private DreadTerrain() {
     }
@@ -92,6 +96,82 @@ public final class DreadTerrain {
         @Override
         public KeyDispatchDataCodec<? extends DensityFunction> codec() {
             return CODEC;
+        }
+    }
+
+    /**
+     * An ice dragon's skeleton lying out (0.76.0, the owner: "ice dragon skeleton corpses spawn in the dreadlands"): Ice and
+     * Fire's own, as its {@code DragonSkeletonSpawnFeature} lays them in the overworld's snow (an ice dragon 10-109 days old,
+     * dead and down to bones, any colour, facing anywhere), but placed by our own data ({@code placed_feature/dragon_skeleton}),
+     * so Ice and Fire's {@code generateSkeletons} and its chance don't touch it. Never on a spire's or a village's stone
+     * or wood: structures are laid before features, and the heightmap would find their tops.
+     */
+    public static final class DragonSkeleton extends Feature<NoneFeatureConfiguration> {
+        DragonSkeleton() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            RandomSource random = context.random();
+            BlockPos at = context.origin();
+            BlockState floor = level.getBlockState(at.below());
+            if (floor.is(io.github.hammerknife404.dreadpatch.block.DreadGateBlock.FRAME) && !floor.is(com.iafenvoy.iceandfire.registry.IafBlocks.DREAD_STONE.get())
+                    || floor.is(net.minecraft.tags.BlockTags.PLANKS) || floor.is(net.minecraft.tags.BlockTags.LOGS)
+                    || floor.is(net.minecraft.tags.BlockTags.STONE_BRICKS)) {
+                return false;
+            }
+            com.iafenvoy.iceandfire.entity.IceDragonEntity dragon = com.iafenvoy.iceandfire.registry.IafEntities.ICE_DRAGON.get().create(level.getLevel());
+            if (dragon == null) {
+                return false;
+            }
+            dragon.setPos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
+            int age = TerrainRules.SKELETON_MIN_DAYS + random.nextInt(TerrainRules.SKELETON_DAYS);
+            dragon.growDragon(age);
+            dragon.modelDeadProgress = 20.0F;
+            dragon.setModelDead(true);
+            dragon.setDeathStage(age / 10);
+            dragon.setYRot(random.nextInt(360));
+            java.util.List<com.iafenvoy.iceandfire.data.DragonColor> colours = dragon.dragonType.colors();
+            dragon.setVariant(colours.get(random.nextInt(colours.size())).getName());
+            level.addFreshEntity(dragon);
+            return true;
+        }
+    }
+
+    /**
+     * The deeps flooded (0.77.0, the owner: "Water should fill most of the open air spaces just above the worlds bedrock
+     * layers"): in each chunk, every air block from the world's floor up to {@link TerrainRules#DEEP_WATER_TOP} turned to
+     * still water, so the caves and cracks that reach the bottom end in black water, level across the chunk and the next.
+     * Vanilla's own flooding (sea level, aquifers) can't do it: the disabled aquifer puts lava under y −54.
+     */
+    public static final class DeepWater extends Feature<NoneFeatureConfiguration> {
+        DeepWater() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            BlockPos corner = context.origin();
+            BlockState water = Blocks.WATER.defaultBlockState();
+            BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+            boolean placed = false;
+            int x0 = corner.getX() & ~15;
+            int z0 = corner.getZ() & ~15;
+            for (int x = x0; x < x0 + 16; x++) {
+                for (int z = z0; z < z0 + 16; z++) {
+                    for (int y = level.getMinBuildHeight() + 1; y <= TerrainRules.DEEP_WATER_TOP; y++) {
+                        at.set(x, y, z);
+                        if (level.getBlockState(at).isAir()) {
+                            level.setBlock(at, water, Block.UPDATE_CLIENTS);
+                            placed = true;
+                        }
+                    }
+                }
+            }
+            return placed;
         }
     }
 

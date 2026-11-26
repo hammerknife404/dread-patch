@@ -210,7 +210,7 @@ public class DreadGate extends Entity {
             for (int i = 0; i < count; i++) {
                 Vec3 at = this.randomPane(level);
                 double out = (this.random.nextBoolean() ? 1 : -1) * (0.05 + this.random.nextDouble() * 0.1);
-                level.sendParticles(this.random.nextInt(4) == 0 ? ParticleTypes.SNOWFLAKE : ModRegistries.RIME_FLAME.get(),
+                level.sendParticles(this.random.nextInt(4) == 0 ? ParticleTypes.SNOWFLAKE : ModRegistries.RIME_FLAME_SMALL.get(),
                         at.x, at.y, at.z, 0, normal.x * out, 0.02, normal.z * out, 1.0);
             }
         }
@@ -344,7 +344,7 @@ public class DreadGate extends Entity {
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
             }
             level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ice), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 6, 0.3, 0.3, 0.3, 0.1);
-            level.sendParticles(done ? ModRegistries.RIME_FLAME.get() : ParticleTypes.LARGE_SMOKE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 3, 0.3, 0.3, 0.3, 0.05);
+            level.sendParticles(done ? ModRegistries.RIME_FLAME_SMALL.get() : ParticleTypes.LARGE_SMOKE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 3, 0.3, 0.3, 0.3, 0.05);
         });
         Vec3 center = this.center();
         level.playSound(null, center.x, center.y, center.z, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 2.0F, done ? 0.6F : 0.4F);

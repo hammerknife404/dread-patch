@@ -83,4 +83,43 @@ class RimeEelRulesTest {
         assertEquals(6, RimeEelRules.light(2, 15));
         assertEquals(3, RimeEelRules.light(3, 0));
     }
+
+    @Test
+    void aboutOneInSixHasItsLantern() {
+        int with = 0;
+        for (int roll = 0; roll < RimeEelRules.LANTERN_ONE_IN; roll++) {
+            with += RimeEelRules.spawnsWithLantern(roll) ? 1 : 0;
+        }
+        double share = (double) with / RimeEelRules.LANTERN_ONE_IN;
+        assertTrue(share >= 0.10 && share <= 0.25, "the owner's 10-25%: " + share);
+    }
+
+    @Test
+    void itsLureReachesOutSearchingAndDrawsInStill() {
+        float reach = 0.0F;
+        for (int i = 0; i < 40; i++) {
+            reach = RimeEelRules.reachToward(reach, true);
+        }
+        assertEquals(1.0F, reach);
+        for (int i = 0; i < 40; i++) {
+            reach = RimeEelRules.reachToward(reach, false);
+        }
+        assertEquals(0.0F, reach);
+        // Drawn in, the lantern sits nearer the head (higher and less far forward) than reaching out.
+        assertTrue(RimeEelRules.LANTERN_IN[1] > RimeEelRules.LANTERN_OUT[1]);
+        assertTrue(RimeEelRules.LANTERN_IN[2] > RimeEelRules.LANTERN_OUT[2]);
+    }
+
+    @Test
+    void anAlphaHitsHardSlowlyAndPlainly() {
+        double small = RimeEelRules.scale(0.5);
+        double alpha = RimeEelRules.scale(0.5, 0);
+        assertFalse(RimeEelRules.alpha(small));
+        assertTrue(RimeEelRules.alpha(alpha));
+        assertEquals(RimeEelRules.bite(small), RimeEelRules.fullBite(small), "an ordinary eel's bite unchanged");
+        assertTrue(RimeEelRules.fullBite(alpha) >= 1.7 * RimeEelRules.bite(alpha), "an alpha's three-quarters harder: " + RimeEelRules.fullBite(alpha));
+        assertTrue(RimeEelRules.ALPHA_BITE_TICKS > 2 * RimeEelRules.BITE_TICKS, "slow");
+        assertTrue(RimeEelRules.ALPHA_WINDUP_TICKS >= 10, "a wind-up long enough to see coming");
+        assertTrue(RimeEelRules.ALPHA_ARMOR >= 3 * RimeEelRules.ARMOR, "heavy armour");
+    }
 }

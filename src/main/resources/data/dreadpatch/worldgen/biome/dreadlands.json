@@ -33,10 +33,14 @@
   "carvers": {},
   "features": [
     [],
+    [
+      "dreadpatch:deep_water"
+    ],
     [],
     [],
-    [],
-    [],
+    [
+      "dreadpatch:dragon_skeleton"
+    ],
     [],
     [
       "dreadpatch:dreadstone_blobs",

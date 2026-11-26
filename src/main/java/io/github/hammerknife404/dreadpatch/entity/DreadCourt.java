@@ -42,8 +42,7 @@ import java.util.List;
  * of its own.
  */
 final class DreadCourt {
-    /** The most of her court standing at once, and how many rise per call. */
-    static final int MAX = 6;
+    /** How many rise per call (the most standing at once is {@link CourtRules#courtLimit}, by difficulty). */
     static final int WAVE = 3;
     static final int SUMMON_COOLDOWN = 400;
     static final int DECREE_COOLDOWN = 300;
@@ -112,7 +111,7 @@ final class DreadCourt {
             }
         }
         if (summonReady) {
-            this.raise(level, CourtRules.toRaise(court.size(), MAX, WAVE), target);
+            this.raise(level, CourtRules.toRaise(court.size(), CourtRules.courtLimit(level.getDifficulty().getId()), WAVE), target);
             this.summonCooldown = SUMMON_COOLDOWN;
         }
         if (decreeReady && this.decree(level, court)) {

@@ -20,7 +20,7 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 - **Its blocks:**
   - **Block of Rimefrost Dragon Scales:** 9 Rimefrost Dragon Scales, and back.
   - **Rimefrost Dragonforge Brick:** 5 blocks of Rimefrost Dragon Scales and 4 dreadstone bricks (scale blocks on the corners and in the middle) make 4.
-  - **Rimefrost Dragonforge Core:** 8 bricks round an ice dragon heart. Now and then one turns up in a spire's summit chest.
+  - **Rimefrost Dragonforge Core:** 8 bricks round an ice dragon heart. Now and then one turns up in a spire's summit chest, or in a forge ruin on a summit.
   - **Rimefrost Dragonforge Aperture:** 4 bricks on the corners and 4 iron ingots on the sides.
 - **Lighting it:** only a Rimefrost dragon's breath lights it, landing on its aperture (an older dragon's breath needn't land quite so close). A whole forge with something to make draws a tame Rimefrost dragon within 50 blocks that can see the aperture, and it breathes on it until the work is done, as Ice and Fire's tame dragons tend its forges. A wild one's breath lights it too, Syndrigossa's in her fight included. While the breath is on it the aperture glows; once the breath stops, the work holds where it is until the breath comes back.
 - **Using it:** right-click the core, a brick or the aperture to open it. As in Ice and Fire's, what's being made goes in the first slot and blood in the second, and the work comes out on the right. Hoppers on the top brick feed the first slot, hoppers on a side brick feed the blood slot, and a hopper under the bottom brick takes out what it makes.
@@ -31,6 +31,8 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 - **JEI:** with JEI installed, its recipes have a page of their own.
 
 ## Her staff and sword
+
+**How they look** (0.81.0): redrawn as models of their own. Her sword is a long dark blade with a frosted edge, a diamond tip, cyan gems, a spiked guard and a gemmed pommel; her staff a slender dark twisted shaft, ice along it, with claws of ice round a cluster of glowing cyan crystals at its head. The cyan parts glow. She holds the same.
 
 **Her staff** is an Iron's staff now:
 

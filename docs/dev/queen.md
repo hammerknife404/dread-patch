@@ -71,7 +71,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **Waves:**
   - every 20 s with a target, up to 3 at a time;
   - weighted thrall 3 : ghoul 2 : knight 1 : scuttler 1;
-  - up to 6 standing at once;
+  - up to `CourtRules.courtLimit` standing at once: 4 on Easy (and Peaceful), 6 on Normal, 8 on Hard (0.79.0; 6 always before), her storm's risen counted among them;
   - on solid ground 2–5 blocks off.
 - **Spawning:** through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn. She commands them (`CommanderUUID`).
 - **Targets:** Ice and Fire only syncs targets for a lich's minions, so every second she hands hers her target.
@@ -89,7 +89,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - then every 1,800 ticks;
   - never while one of hers stands (she retries every 20 ticks).
 - **Spawning:** on a court spot, through `EventHooks.finalizeMobSpawn`, with her `CommanderUUID`, so it gets her target.
-- **Not court:** it isn't counted in her court's 6, it's never burnt for the decree, and its minions answer to it, not to her.
+- **Not court:** it isn't counted in her court's places, it's never burnt for the decree, and its minions answer to it, not to her.
 
 **Scuttler climbing** (`entity/ScuttlerClimbing`; 0.41.0)
 - Every `DreadScuttlerEntity` climbs walls as vanilla's spider does, done from outside (Ice and Fire's class):
@@ -138,6 +138,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - two 4×4×3 boxes on the chestplate, tipped forward and splayed, with a gap between them for the pendant;
   - in the chestplate's armor from rows 39–45 of her texture;
   - rows 32–38 hold the chestplate's cut-out straps and neckline, so faces taken from there would show holes.
+- **Her outfit hidden** (0.81.0): headware, chestplate (bust and necklace with it), cloak, sleeves and robes kept but not drawn (`visible` false), since she wears her regalia over her body: `DreadQueenRenderer.RegaliaLayer` draws its four pieces (`QueenArmorModels.plain`, posed from hers) in `RenderType.armorCutoutNoCull(QueenArmorModels.TEXTURE)`. Her arms are slimmer than a player's, so the vambraces stand a little off them.
 - **The spawn animation:** Ice and Fire's `DreadBaseModel.animate` + `setRotationAnglesSpawn`, redone on vanilla parts in `client/RisePose`.
 
 **Previewing a model change** before a release: render its quads offline.
@@ -147,7 +148,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 
 **`client/DreadQueenRenderer`**
 - A `HumanoidMobRenderer`, so held items come with it.
-- Ice and Fire's texture, plus an `EyesLayer` for `_eyes`.
+- Ice and Fire's texture, her regalia's layer (0.81.0), plus an `EyesLayer` for `_eyes`.
 - `_inactive` and `_injured` aren't used yet.
 
 ## Her staff and sword

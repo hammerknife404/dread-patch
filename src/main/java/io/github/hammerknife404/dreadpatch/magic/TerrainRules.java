@@ -25,6 +25,16 @@ public final class TerrainRules {
     public static final int CRUST_WEIGHT = 12;
     /** A grave patch on the plains: one chunk in this many; a dead tree in it at this chance. */
     public static final int GRAVE_PATCH_ONE_IN = 6;
+    /**
+     * An ice dragon's skeleton (0.76.0): one chunk in this many ({@code placed_feature/dragon_skeleton}'s rarity), seven
+     * times Ice and Fire's own in the overworld's snow (its {@code generateSkeletonChance}, 1 in 750); and how old its dragon was,
+     * {@code SKELETON_MIN_DAYS} and up to {@code SKELETON_DAYS} more, as Ice and Fire's.
+     */
+    public static final int SKELETON_ONE_IN = 100;
+    /** The deeps' water (0.77.0): every open space from the world's floor up to this y (12 blocks over bedrock's bottom). */
+    public static final int DEEP_WATER_TOP = -52;
+    public static final int SKELETON_MIN_DAYS = 10;
+    public static final int SKELETON_DAYS = 100;
     public static final float TREE_CHANCE = 0.4F;
 
     /** The Rime Chasma's floor (0.68.0): its top block's height, as the terrain script's FLOOR_Y - 1. */

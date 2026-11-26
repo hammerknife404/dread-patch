@@ -99,6 +99,12 @@ public final class DreadPatrols {
         return raised;
     }
 
+    /** A random one of her court (by {@link CourtRules}' weights), not yet placed or risen; null if its type made none. */
+    @Nullable
+    public static DreadMobEntity loose(ServerLevel level, RandomSource random) {
+        return DreadCourt.create(level, CourtRules.pick(random.nextInt(CourtRules.TOTAL_WEIGHT)));
+    }
+
     /** Whether a patrol's leader is within {@code range} of {@code at}. */
     public static boolean patrolNear(ServerLevel level, Vec3 at, double range) {
         return !level.getEntitiesOfClass(DreadMobEntity.class, new net.minecraft.world.phys.AABB(at, at).inflate(range), mob -> {

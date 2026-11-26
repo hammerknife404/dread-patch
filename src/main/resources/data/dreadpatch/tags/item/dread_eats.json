@@ -1,0 +1,78 @@
+{
+  "values": [
+    {
+      "id": "#c:foods",
+      "required": false
+    },
+    {
+      "id": "#c:seeds",
+      "required": false
+    },
+    {
+      "id": "#c:crops",
+      "required": false
+    },
+    {
+      "id": "#c:eggs",
+      "required": false
+    },
+    {
+      "id": "#c:mushrooms",
+      "required": false
+    },
+    {
+      "id": "#c:feathers",
+      "required": false
+    },
+    {
+      "id": "#c:leathers",
+      "required": false
+    },
+    {
+      "id": "#c:strings",
+      "required": false
+    },
+    {
+      "id": "#c:bones",
+      "required": false
+    },
+    {
+      "id": "#c:slime_balls",
+      "required": false
+    },
+    "#minecraft:wool",
+    "#minecraft:saplings",
+    "#minecraft:leaves",
+    "#minecraft:flowers",
+    "#minecraft:fishes",
+    "#minecraft:meat",
+    "minecraft:ink_sac",
+    "minecraft:glow_ink_sac",
+    "minecraft:rabbit_hide",
+    "minecraft:rabbit_foot",
+    "minecraft:spider_eye",
+    "minecraft:fermented_spider_eye",
+    "minecraft:phantom_membrane",
+    "minecraft:kelp",
+    "minecraft:dried_kelp",
+    "minecraft:sugar_cane",
+    "minecraft:bamboo",
+    "minecraft:honeycomb",
+    "minecraft:egg",
+    "minecraft:bone",
+    "minecraft:bone_meal",
+    "minecraft:leather",
+    "minecraft:feather",
+    "minecraft:string",
+    "minecraft:slime_ball",
+    "minecraft:wheat",
+    "minecraft:wheat_seeds",
+    "minecraft:nether_wart",
+    "minecraft:brown_mushroom",
+    "minecraft:red_mushroom",
+    "minecraft:vine",
+    "minecraft:lily_pad",
+    "minecraft:sweet_berries",
+    "minecraft:glow_berries"
+  ]
+}

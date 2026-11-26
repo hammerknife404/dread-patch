@@ -27,7 +27,9 @@ import java.util.Random;
  */
 public final class SpireShape {
     public enum Material {
-        STONE, DREAD_STONE, DREAD_BRICKS, DREAD_BRICKS_CRACKED, DREAD_BRICKS_CHISELED, DREAD_TILE, DREAD_TORCH, PACKED_ICE, BLUE_ICE, SNOW
+        STONE, DREAD_STONE, DREAD_BRICKS, DREAD_BRICKS_CRACKED, DREAD_BRICKS_CHISELED, DREAD_TILE, DREAD_TORCH, PACKED_ICE, BLUE_ICE, SNOW,
+        /** A ruined Rimefrost dragonforge's (0.78.0). */
+        FORGE_CORE, FORGE_BRICK, FORGE_INPUT, DRAGON_BONE
     }
 
     /** How deep its foundation goes under the ground it stands on. */
@@ -52,6 +54,20 @@ public final class SpireShape {
     public static final double SUMMIT_CHEST_CHANCE = 0.5;
     /** Of the spires with a chest, how many have a Dread Lich by it. */
     public static final double LICH_CHANCE = 1.0 / 3.0;
+    /**
+     * How many spires keep a partly built Rimefrost dragonforge on their summit (0.78.0, the owner: "include partially
+     * built rimefrost dragon forge's on some spires as a low chance"; ours: about one in seven).
+     */
+    public static final double FORGE_CHANCE = 0.15;
+    /** How far from the summit's middle the forge's core stands (its cube clear of the dais, torches and chest). */
+    static final int FORGE_OFFSET = 5;
+    /**
+     * Of a ruined forge, how much of each layer still stands (bottom, middle, top); its aperture half the time; its core
+     * (the owner: "make it sometimes missing the core") a little over half.
+     */
+    static final double[] FORGE_KEPT = {0.8, 0.65, 0.35};
+    static final double FORGE_INPUT_KEPT = 0.5;
+    static final double FORGE_CORE_KEPT = 0.6;
     /** Its dread torches, this far out from the middle along the diagonals. */
     static final int TORCH_OFFSET = 3;
 
@@ -70,6 +86,10 @@ public final class SpireShape {
     /** Whether its summit keeps a chest, and a lich by it. */
     public final boolean chest;
     public final boolean lich;
+    /** Whether its summit keeps a ruined Rimefrost dragonforge, and where its core stands (from the middle, on the summit's plane). */
+    public final boolean forge;
+    final int forgeX;
+    final int forgeZ;
     private final int[] spikeX;
     private final int[] spikeZ;
     private final int[] spikeLength;
@@ -88,6 +108,11 @@ public final class SpireShape {
         this.lich = this.chest && hash(3, 0, 0, seed ^ 0x1C4L) < LICH_CHANCE;
         // The crown: spikes round the rim, none where the ledge comes up onto it.
         double arrival = this.ledgeAngle(height - 1);
+        // Its forge: on whichever of the four sides faces most away from where the ledge arrives.
+        this.forge = hash(4, 0, 0, seed ^ 0xF0E6L) < FORGE_CHANCE;
+        int side = Math.floorMod((int) Math.round(wrapPositive(arrival + Math.PI) / (Math.PI / 2.0)), 4);
+        this.forgeX = side == 0 ? FORGE_OFFSET : side == 2 ? -FORGE_OFFSET : 0;
+        this.forgeZ = side == 1 ? FORGE_OFFSET : side == 3 ? -FORGE_OFFSET : 0;
         this.spikeX = new int[SPIKES];
         this.spikeZ = new int[SPIKES];
         this.spikeLength = new int[SPIKES];
@@ -192,6 +217,36 @@ public final class SpireShape {
             return dx == 0 && dz == 0 ? Material.DREAD_BRICKS_CHISELED : Material.DREAD_TILE;
         }
         return Math.abs(dx) == TORCH_OFFSET && Math.abs(dz) == TORCH_OFFSET ? Material.DREAD_TORCH : null;
+    }
+
+    /**
+     * Its ruined forge here, or null (none, or that block's fallen): Ice and Fire's forge shape (as {@link ForgeRules#assembled}
+     * wants it) round a core one block over the summit, its aperture on the side facing the summit's middle. The core stands
+     * by {@link #FORGE_CORE_KEPT}; each other block by {@link #FORGE_KEPT} for its layer (hashed, so every chunk agrees), the
+     * aperture by {@link #FORGE_INPUT_KEPT}.
+     */
+    public Material forge(int dx, int y, int dz) {
+        if (!this.forge) {
+            return null;
+        }
+        int fx = dx - this.forgeX;
+        int fy = y - this.height - 1;
+        int fz = dz - this.forgeZ;
+        if (Math.abs(fx) > 1 || Math.abs(fy) > 1 || Math.abs(fz) > 1) {
+            return null;
+        }
+        double roll = hash(dx, y, dz, this.seed ^ 0xF0E7L);
+        if (fx == 0 && fy == 0 && fz == 0) {
+            return roll < FORGE_CORE_KEPT ? Material.FORGE_CORE : null;
+        }
+        // The aperture: the middle layer's side toward the summit's middle.
+        if (fy == 0 && fx == -Integer.signum(this.forgeX) && fz == -Integer.signum(this.forgeZ) && (fx == 0) != (fz == 0)) {
+            return roll < FORGE_INPUT_KEPT ? Material.FORGE_INPUT : null;
+        }
+        if (roll >= FORGE_KEPT[fy + 1]) {
+            return null;
+        }
+        return fy != 0 && fx != 0 && fz != 0 ? Material.DRAGON_BONE : Material.FORGE_BRICK;
     }
 
     /** Whether a spot {@code dx}, {@code dz} from its middle and {@code above} its summit's top block is on its summit. */

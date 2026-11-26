@@ -11,6 +11,11 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -74,7 +79,7 @@ import java.util.Optional;
  * within 4 blocks, and if that catches anything, a Frenzy that halves the time between its bites. A bite may leave
  * Withering Rime. On land it lunges, then waits 2 s.</li>
  * <li>Out of water, seeking water and chasing prey have the same priority: whichever it takes up first it keeps
- * to. With nothing to fight it eats dropped food ({@link #EATS}, any food but {@link #REFUSES}), one item at a
+ * to. With nothing to fight it eats what's dropped ({@link DreadFeeding}: since 0.83.0 most organic things, only food healing), one item at a
  * time, healing 0.25-1 each.</li>
  * </ul>
  * Raised from a water creature in her storm ({@link RisenDread#rise}) it takes its raiser's target, as the risen
@@ -82,10 +87,6 @@ import java.util.Optional;
  * are drawn by {@code client/RimeEelRenderer}.
  */
 public class RimeEel extends Monster implements IDreadMob {
-    /** Not food, but eaten (ink sacs). */
-    public static final TagKey<Item> EATS = TagKey.create(Registries.ITEM, DreadPatch.id("rime_eel_eats"));
-    /** Food, but left (golden apples and carrots). */
-    public static final TagKey<Item> REFUSES = TagKey.create(Registries.ITEM, DreadPatch.id("rime_eel_refuses"));
     /** To its clients: it has pulsed (its lure flares). */
     public static final byte PULSE_EVENT = 101;
 
@@ -94,6 +95,18 @@ public class RimeEel extends Monster implements IDreadMob {
     private int lungeCooldown;
     /** On a client: the tick it last pulsed. */
     private int flaredAt = -1000;
+    /** Whether it has its lantern (0.76.0): most don't. Saved as {@code Lantern}; an eel from before had one. */
+    private static final EntityDataAccessor<Boolean> LANTERN = SynchedEntityData.defineId(RimeEel.class, EntityDataSerializers.BOOLEAN);
+    /** An alpha rearing back to bite (0.80.0), for its clients to draw. */
+    private static final EntityDataAccessor<Boolean> WINDING = SynchedEntityData.defineId(RimeEel.class, EntityDataSerializers.BOOLEAN);
+    /** How far it has reared back (0 to 1), this tick and last; on a client. */
+    private float rear;
+    private float rearO;
+    /** Ticks left of an alpha's wind-up; 0 when it isn't winding. */
+    int windup;
+    /** How far its lure reaches out (0 drawn in, 1 out), this tick and last; on both sides, for {@link #lantern}. */
+    private float reach;
+    private float reachO;
 
     public RimeEel(EntityType<? extends RimeEel> type, Level level) {
         super(type, level);
@@ -101,6 +114,26 @@ public class RimeEel extends Monster implements IDreadMob {
         this.setPathfindingMalus(PathType.WATER, 0.0F);
         this.moveControl = new SmoothSwimmingMoveControl(this, 85, 10, RimeEelRules.WATER_SPEED, RimeEelRules.LAND_SPEED, true);
         this.lookControl = new SmoothSwimmingLookControl(this, 10);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(LANTERN, true);
+        builder.define(WINDING, false);
+    }
+
+    public boolean hasLantern() {
+        return this.entityData.get(LANTERN);
+    }
+
+    public void setLantern(boolean lantern) {
+        this.entityData.set(LANTERN, lantern);
+    }
+
+    /** Its lure's reach, between last tick's and this one's. */
+    public float reach(float partialTick) {
+        return Mth.lerp(partialTick, this.reachO, this.reach);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -123,7 +156,7 @@ public class RimeEel extends Monster implements IDreadMob {
     protected void registerGoals() {
         this.goalSelector.addGoal(2, new BiteGoal(this));
         this.goalSelector.addGoal(2, new SeekWaterGoal(this));
-        this.goalSelector.addGoal(3, new EatFoodGoal(this));
+        this.goalSelector.addGoal(3, new DreadFeeding.EatDroppedGoal(this, RimeEelRules.FOOD_SEARCH));
         this.goalSelector.addGoal(5, new RandomSwimmingGoal(this, 1.0, 30));
         this.goalSelector.addGoal(6, new RandomStrollGoal(this, 1.0) {
             @Override
@@ -148,14 +181,50 @@ public class RimeEel extends Monster implements IDreadMob {
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData data) {
         this.setSize(RimeEelRules.scale(this.random.nextDouble(), this.random.nextInt(RimeEelRules.ALPHA_ONE_IN)));
+        this.setLantern(RimeEelRules.spawnsWithLantern(this.random.nextInt(RimeEelRules.LANTERN_ONE_IN)));
         return super.finalizeSpawn(level, difficulty, spawnType, data);
     }
 
     public void setSize(double scale) {
         set(this.getAttribute(Attributes.SCALE), scale);
         set(this.getAttribute(Attributes.MAX_HEALTH), RimeEelRules.health(scale));
-        set(this.getAttribute(Attributes.ATTACK_DAMAGE), RimeEelRules.bite(scale));
+        this.build(scale);
         this.setHealth(this.getMaxHealth());
+    }
+
+    /** Its bite, and an alpha's hide, weight and knockback (0.80.0), for its size; health aside. */
+    private void build(double scale) {
+        boolean alpha = RimeEelRules.alpha(scale);
+        set(this.getAttribute(Attributes.ATTACK_DAMAGE), RimeEelRules.fullBite(scale));
+        // An alpha's heavy hide and weight, and its knockback (0.80.0).
+        set(this.getAttribute(Attributes.ARMOR), alpha ? RimeEelRules.ALPHA_ARMOR : RimeEelRules.ARMOR);
+        set(this.getAttribute(Attributes.ARMOR_TOUGHNESS), alpha ? RimeEelRules.ALPHA_TOUGHNESS : 0.0);
+        set(this.getAttribute(Attributes.KNOCKBACK_RESISTANCE), alpha ? RimeEelRules.ALPHA_KNOCKBACK_RESISTANCE : 0.0);
+        set(this.getAttribute(Attributes.ATTACK_KNOCKBACK), alpha ? RimeEelRules.ALPHA_KNOCKBACK : 0.0);
+    }
+
+    /** Whether it's an alpha or matron (by its size). */
+    public boolean isAlpha() {
+        return RimeEelRules.alpha(this.getScale());
+    }
+
+    /** An alpha or matron is a Rime Wyrm by name (0.80.0, the owner: "Yes", to naming them so); its id stays the eel's. */
+    @Override
+    protected Component getTypeName() {
+        return this.isAlpha() ? Component.translatable("entity.dreadpatch.rime_wyrm") : super.getTypeName();
+    }
+
+    /** Whether it's rearing back to bite (an alpha's wind-up), and how far, this tick and last, for drawing. */
+    public boolean winding() {
+        return this.entityData.get(WINDING);
+    }
+
+    void setWinding(boolean winding) {
+        this.entityData.set(WINDING, winding);
+    }
+
+    public float rear(float partialTick) {
+        return Mth.lerp(partialTick, this.rearO, this.rear);
     }
 
     private static void set(@Nullable AttributeInstance attribute, double value) {
@@ -208,6 +277,11 @@ public class RimeEel extends Monster implements IDreadMob {
     @Override
     public void aiStep() {
         super.aiStep();
+        // Its lure reaches out while it hunts or swims about, and draws in while it's still.
+        this.reachO = this.reach;
+        this.reach = RimeEelRules.reachToward(this.reach, this.isAggressive() || this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4);
+        this.rearO = this.rear;
+        this.rear = this.winding() ? Math.min(1.0F, this.rear + 1.0F / 6.0F) : Math.max(0.0F, this.rear - 0.34F);
         if (this.level().isClientSide()) {
             if (this.lureLit() && this.random.nextFloat() < 0.35F) {
                 Vec3 lantern = this.lantern();
@@ -229,12 +303,17 @@ public class RimeEel extends Monster implements IDreadMob {
             this.auraCooldown = Math.max(this.auraCooldown, RimeEelRules.AURA_MIN_TICKS / 2);
             return;
         }
-        if (--this.auraCooldown <= 0) {
+        // A Glowing target sends it into a Frenzy (0.76.0): a lantern eel's pulse lights its prey for the rest.
+        if (target.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING)) {
+            this.frenzy = Math.max(this.frenzy, RimeEelRules.GLOW_FRENZY_TICKS);
+        }
+        // Only its lantern pulses (0.76.0).
+        if (this.hasLantern() && --this.auraCooldown <= 0) {
             this.auraCooldown = RimeEelRules.auraTicks(this.random.nextDouble());
             this.pulse();
         }
         if (RimeEelRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
-            this.lungeCooldown = RimeEelRules.LUNGE_TICKS;
+            this.lungeCooldown = this.isAlpha() ? RimeEelRules.ALPHA_LUNGE_TICKS : RimeEelRules.LUNGE_TICKS;
             Vec3 toward = target.position().subtract(this.position()).multiply(1.0, 0.0, 1.0).normalize();
             this.setDeltaMovement(toward.x * RimeEelRules.LUNGE_SPEED, RimeEelRules.LUNGE_LIFT, toward.z * RimeEelRules.LUNGE_SPEED);
             this.playSound(ModRegistries.RIME_EEL_LUNGE.get(), 1.0F, this.getVoicePitch());
@@ -296,22 +375,27 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /**
-     * Where its lantern hangs, at rest: in model pixels (-6, 1, -14) from its feet (client/RimeEelModel), drawn as
-     * vanilla draws a living thing's model (turned by its body, flipped in x and y) and scaled with it.
+     * Where its lantern's glass hangs: between {@link RimeEelRules#LANTERN_IN} and {@code LANTERN_OUT} by its reach (model
+     * pixels from its feet, client/RimeEelModel), drawn as vanilla draws a living thing's model (turned by its body) and
+     * scaled with it.
      */
     public Vec3 lantern() {
         double scale = this.getScale() / 16.0;
-        double x = 6.0 * scale;
-        double z = -14.0 * scale;
+        double[] in = RimeEelRules.LANTERN_IN;
+        double[] out = RimeEelRules.LANTERN_OUT;
+        double x = Mth.lerp(this.reach, in[0], out[0]) * scale;
+        double y = Mth.lerp(this.reach, in[1], out[1]) * scale;
+        double z = Mth.lerp(this.reach, in[2], out[2]) * scale;
         double turn = Math.toRadians(180.0F - this.yBodyRot);
         double wx = x * Math.cos(turn) + z * Math.sin(turn);
         double wz = -x * Math.sin(turn) + z * Math.cos(turn);
-        return this.position().add(wx, 23.0 * scale, wz);
+        return this.position().add(wx, y, wz);
     }
 
     /** On a client: whether its lure burns now (its flicker, or just after a pulse). */
     public boolean lureLit() {
-        return this.tickCount - this.flaredAt < RimeEelRules.FLARE_TICKS || RimeEelRules.lureLit(this.getUUID().hashCode(), this.tickCount);
+        return this.hasLantern() && (this.tickCount - this.flaredAt < RimeEelRules.FLARE_TICKS
+                || RimeEelRules.lureLit(this.getUUID().hashCode(), this.tickCount));
     }
 
     /** A bite: its own damage, then a chance of Withering Rime (laid by it, so the queen's siphon passes it by). */
@@ -328,37 +412,29 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /** Whether it eats {@code stack}: its extras (ink), or any food it doesn't refuse. */
+    /** What it eats: the Dread's list since 0.83.0 ({@link DreadFeeding#eats}). */
     public static boolean eats(ItemStack stack) {
-        return !stack.isEmpty() && (stack.is(EATS) || stack.has(DataComponents.FOOD) && !stack.is(REFUSES));
+        return DreadFeeding.eats(stack);
     }
 
-    /** Eats one of {@code item}'s stack, healing by its food. */
     void eat(ItemEntity item) {
-        ItemStack stack = item.getItem().copy();
-        FoodProperties food = stack.get(DataComponents.FOOD);
-        stack.shrink(1);
-        if (stack.isEmpty()) {
-            item.discard();
-        } else {
-            item.setItem(stack);
-        }
-        this.heal(RimeEelRules.heal(food == null ? 0 : food.nutrition()));
-        this.playSound(SoundEvents.GENERIC_EAT, 0.6F, this.getVoicePitch());
-        if (this.level() instanceof ServerLevel level) {
-            level.sendParticles(ParticleTypes.BUBBLE, item.getX(), item.getY() + 0.1, item.getZ(), 4, 0.1, 0.1, 0.1, 0.02);
-        }
+        DreadFeeding.eat(this, item);
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("Frenzy", this.frenzy);
+        tag.putBoolean("Lantern", this.hasLantern());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.frenzy = tag.getInt("Frenzy");
+        this.setLantern(!tag.contains("Lantern") || tag.getBoolean("Lantern"));
+        // An alpha saved before 0.80.0 kept its old bite and hide: its build for its size again.
+        this.build(this.getScale());
     }
 
     @Override
@@ -407,8 +483,49 @@ public class RimeEel extends Monster implements IDreadMob {
 
         @Override
         protected boolean isTimeToAttack() {
-            int wait = this.eel.frenzied() ? RimeEelRules.FRENZY_BITE_TICKS : RimeEelRules.BITE_TICKS;
+            boolean alpha = this.eel.isAlpha();
+            int wait = this.eel.frenzied() ? (alpha ? RimeEelRules.ALPHA_FRENZY_BITE_TICKS : RimeEelRules.FRENZY_BITE_TICKS)
+                    : (alpha ? RimeEelRules.ALPHA_BITE_TICKS : RimeEelRules.BITE_TICKS);
             return this.eel.tickCount - this.lastBite >= wait;
+        }
+
+        /**
+         * An alpha winds up before it bites (0.80.0): in reach and ready, it stops, rears back and gapes, with a roar;
+         * {@link RimeEelRules#ALPHA_WINDUP_TICKS} later it snaps, hitting if its target's still in reach. The rest bite
+         * as vanilla's melee does.
+         */
+        @Override
+        protected void checkAndPerformAttack(LivingEntity target) {
+            if (!this.eel.isAlpha()) {
+                super.checkAndPerformAttack(target);
+                return;
+            }
+            if (this.eel.windup > 0) {
+                this.eel.getNavigation().stop();
+                this.eel.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                if (--this.eel.windup == 0) {
+                    this.eel.setWinding(false);
+                    this.eel.swing(InteractionHand.MAIN_HAND);
+                    if (this.eel.isWithinMeleeAttackRange(target)) {
+                        this.eel.doHurtTarget(target);
+                    }
+                    this.resetAttackCooldown();
+                }
+                return;
+            }
+            if (this.canPerformAttack(target)) {
+                this.eel.windup = RimeEelRules.ALPHA_WINDUP_TICKS;
+                this.eel.setWinding(true);
+                this.eel.getNavigation().stop();
+                this.eel.playSound(SoundEvents.RAVAGER_ROAR, 0.7F, 1.5F);
+            }
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            this.eel.windup = 0;
+            this.eel.setWinding(false);
         }
 
         @Override
@@ -489,76 +606,4 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /** With nothing to fight: to the nearest food lying near, and eats it, an item at a time. */
-    static final class EatFoodGoal extends Goal {
-        private final RimeEel eel;
-        private @Nullable ItemEntity food;
-        private int timer;
-
-        EatFoodGoal(RimeEel eel) {
-            this.eel = eel;
-            this.setFlags(EnumSet.of(Flag.MOVE));
-        }
-
-        private boolean wanted(ItemEntity item) {
-            return item.isAlive() && !item.hasPickUpDelay() && eats(item.getItem());
-        }
-
-        @Override
-        public boolean canUse() {
-            if (this.eel.getTarget() != null || this.eel.getRandom().nextInt(5) != 0) {
-                return false;
-            }
-            this.food = this.eel.level().getEntitiesOfClass(ItemEntity.class, this.eel.getBoundingBox().inflate(RimeEelRules.FOOD_SEARCH), this::wanted)
-                    .stream().min(java.util.Comparator.comparingDouble(this.eel::distanceToSqr)).orElse(null);
-            return this.food != null;
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return this.food != null && this.wanted(this.food) && this.eel.getTarget() == null && this.timer < 300
-                    && this.eel.distanceToSqr(this.food) < (RimeEelRules.FOOD_SEARCH + 4) * (RimeEelRules.FOOD_SEARCH + 4);
-        }
-
-        @Override
-        public void start() {
-            this.timer = 0;
-        }
-
-        @Override
-        public void stop() {
-            this.food = null;
-            this.eel.getNavigation().stop();
-        }
-
-        @Override
-        public boolean requiresUpdateEveryTick() {
-            return true;
-        }
-
-        /** Within a block of its snout across, and up to a block and a half over or under it (food floats on water it swims in). */
-        private boolean inReach(ItemEntity item) {
-            double across = this.eel.getBbWidth() / 2.0 + 1.0;
-            double dx = item.getX() - this.eel.getX();
-            double dz = item.getZ() - this.eel.getZ();
-            double dy = item.getY() - this.eel.getY();
-            return dx * dx + dz * dz <= across * across && dy >= -1.5 && dy <= this.eel.getBbHeight() + 1.5;
-        }
-
-        @Override
-        public void tick() {
-            if (this.food == null) {
-                return;
-            }
-            this.timer++;
-            this.eel.getLookControl().setLookAt(this.food);
-            if (this.inReach(this.food)) {
-                this.eel.getNavigation().stop();
-                if (this.timer % RimeEelRules.EAT_TICKS == 0) {
-                    this.eel.eat(this.food);
-                }
-            } else if (this.timer % 10 == 1) {
-                this.eel.getNavigation().moveTo(this.food, 1.0);
-            }
-        }
-    }
 }

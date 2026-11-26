@@ -579,15 +579,16 @@ def dread_gate(seed):
     return im
 
 
-# The Dread Queen's regalia, in her outfit's colours as Ice and Fire's texture of her has them.
+# The Dread Queen's regalia (0.81.0: redrawn after the owner's pictures, as the armour is): dark steel, cyan trim, ice.
 REGALIA = {
     ".": None,
     "O": (0x0B, 0x0C, 0x10),  # outline
-    "S": (0xDF, 0xE6, 0xF2), "s": (0xA0, 0xAB, 0xBF), "d": (0x6B, 0x73, 0x80),  # her silver
-    "I": (0x7F, 0xB2, 0xEE), "i": (0xC9, 0xE3, 0xFF),  # her crown's ice
-    "C": (0x00, 0xF4, 0xFF),  # her pendant's gem
-    "K": (0x15, 0x17, 0x1B), "k": (0x29, 0x2C, 0x33), "m": (0x3A, 0x3E, 0x47), "g": (0x5A, 0x60, 0x6C),  # her black, banded
-    "B": (0x3F, 0x71, 0x93), "b": (0x2D, 0x51, 0x6C), "c": (0x2C, 0x58, 0x75), "n": (0x1D, 0x37, 0x4C),  # her blues
+    "K": (0x14, 0x1A, 0x24), "k": (0x22, 0x2B, 0x38), "m": (0x30, 0x3C, 0x4E), "g": (0x46, 0x56, 0x6C),  # dark steel
+    "Y": (0x4E, 0x9A, 0xBC), "y": (0x8C, 0xC8, 0xDE),  # the trim's muted ice-blue (0.82.7, as the armour's)
+    "I": (0x4E, 0x8C, 0xB8), "i": (0x9C, 0xEC, 0xFF),  # the crown's ice
+    "F": (0xC4, 0xE0, 0xEE), "f": (0x92, 0xC2, 0xDC),  # frost
+    "N": (0x28, 0x36, 0x7A), "n": (0x1C, 0x26, 0x5A),  # the tabard's blue
+    "W": (0xD8, 0xE6, 0xEE), "M": (0x40, 0x3E, 0x5E),  # the wings' bone and membrane
 }
 
 
@@ -603,73 +604,97 @@ def mirrored_icon(left_half):
 
 
 def queen_crown():
-    """Her crown: a silver band under spikes of ice, the tallest at its middle, her gem hung beneath."""
+    """Her crown (0.82.1, the owner: the icons "too weird"): a vanilla helmet's shape, dark steel, its T visor dark, a
+    cyan brow, under a crown of ice spikes."""
     return mirrored_icon([
         "........",
-        "........",
-        "........",
-        ".......i",
-        "...i...I",
+        "...i...i",
         "...I..iI",
-        ".i.I..II",
-        ".IiIi.II",
-        ".IIIIiII",
-        "OSSSSSSS",
-        "OsSSSsSC",
-        "OddssssC",
-        ".OOdddds",
-        "......Od",
-        ".......O",
+        "..yIy.II",
+        "..YYYYYY",
+        "..OKKKKK",
+        ".OKmkkkk",
+        ".OKkkkkk",
+        ".OKYYYYY",
+        ".OKkOOOO",
+        ".OKkkkkO",
+        ".OKk...O",
+        ".OO.....",
+        "........",
+        "........",
         "........",
     ])
 
 
 def queen_bodice():
-    """Her bodice: black, her silver pauldrons at the shoulders, blue straps, a silver V of necklace down to her gem, a blue sash."""
+    """Her bodice: a vanilla chestplate's shape, dark steel, cyan-rimmed pauldrons, a cyan V at the collar, a belt with a
+    cyan buckle."""
     return mirrored_icon([
         "........",
-        ".OOOO...",
-        "OSSSSO..",
-        "OSsssdOO",
-        "OsdddBsk",
-        ".OOOOBks",
-        "...OkBkC",
-        "...OKBkk",
-        "...OKBkk",
-        "...OKBkk",
-        "...ObBBB",
+        "..OOO...",
+        ".OmmmO..",
+        ".OYYYYOO",
+        ".OKkkYkk",
+        ".OKkkkYk",
+        "..OOKkkY",
+        "...OKkkY",
+        "...OKkkk",
         "...OKmkk",
-        "...OKmkk",
-        "...OKkmk",
+        "...OKkkk",
+        "...OYYYY",
+        "...OKkky",
+        "...OKkkk",
         "....OOOO",
         "........",
     ])
 
 
-def queen_robe():
-    """Her robes: a silver girdle, then deep blue, flaring to a ragged hem."""
+def queen_winged_bodice():
+    """Her winged bodice: her bodice's shape, smaller, bone-white wings spread from behind it, frosted membranes."""
     return mirrored_icon([
         "........",
+        "WWW.....",
+        "MMWW....",
+        "MMMWW...",
+        "fMMMWOOO",
+        "WfMMWOYY",
+        ".WfMMOkY",
+        ".fWfMOkY",
+        "..fWfOkk",
+        "..f.fOYY",
+        "...f.Oky",
+        ".....Okk",
+        "......OO",
+        "........",
+        "........",
+        "........",
+    ])
+
+
+def queen_robe():
+    """Her robe: a vanilla leggings' shape, a dark belt, the tabard's blue down each leg, frost at its edges and hem."""
+    return mirrored_icon([
+        "........",
+        "........",
         "..OOOOOO",
-        "..OsSSSS",
-        "..ObBBBB",
-        "..ObBBcc",
-        "..ObBccO",
-        "..ObBcnO",
-        "..ObBcnO",
-        ".ObBccnO",
-        ".ObBccnO",
-        ".ObBcnnO",
-        "ObBBcnnO",
-        "ObBccnnO",
-        "OdnndnnO",
-        ".O.OO.O.",
+        "..OKKKKK",
+        "..OYNnnn",
+        "..OFNnnn",
+        "..OFNnnO",
+        "..ONnnO.",
+        "..OFNnO.",
+        "..ONnnO.",
+        "..OFNnO.",
+        "..ONnnO.",
+        "..OFfnO.",
+        "..OfFfO.",
+        "..OOOOO.",
         "........",
     ])
 
 
 def queen_greaves():
-    """Her greaves: her legs' black wraps, banded in grey."""
+    """Her greaves: a vanilla boots' shape, dark steel banded cyan, steel toes."""
     return mirrored_icon([
         "........",
         "........",
@@ -677,15 +702,15 @@ def queen_greaves():
         "........",
         "........",
         "........",
-        "..OOOOO.",
-        "..OkgmO.",
-        "..OkkkO.",
-        "..OgggO.",
-        "..OkkmO.",
-        "OOOkkkO.",
-        "OgmkgmO.",
-        "OkkkkkO.",
-        "OOOOOOO.",
+        "...OOOO.",
+        "...OkkO.",
+        "...OYYO.",
+        "...OkkO.",
+        "...OkmO.",
+        ".OOOkkO.",
+        ".OgmkkO.",
+        ".OgggmO.",
+        ".OOOOOO.",
         "........",
     ])
 
@@ -742,6 +767,7 @@ def main():
         "item/syndrigossa_egg.png": syndrigossa_egg(),
         "item/dread_queen_crown.png": queen_crown(),
         "item/dread_queen_bodice.png": queen_bodice(),
+        "item/dread_queen_winged_bodice.png": queen_winged_bodice(),
         "item/dread_queen_robe.png": queen_robe(),
         "item/dread_queen_greaves.png": queen_greaves(),
         "block/dread_fire_0.png": dread_fire(31),

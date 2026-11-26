@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch.magic;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -164,5 +165,49 @@ class SpireShapeTest {
         }
         assertEquals(0.5, chests / 3000.0, 0.03);
         assertEquals(1.0 / 6.0, liches / 3000.0, 0.03);
+    }
+
+    @Test
+    void someSummitsKeepARuinedForgeClearOfEverythingElse() {
+        int forges = 0;
+        int withCore = 0;
+        int seeds = 2000;
+        for (long seed = 0; seed < seeds; seed++) {
+            SpireShape spire = SpireShape.roll(seed * 7919L);
+            if (!spire.forge) {
+                for (int dx = -12; dx <= 12; dx++) {
+                    for (int dz = -12; dz <= 12; dz++) {
+                        assertNull(spire.forge(dx, spire.height + 1, dz), "a forge block on a spire without one");
+                    }
+                }
+                continue;
+            }
+            forges++;
+            int cores = 0;
+            int[] chest = spire.chestAt();
+            for (int dx = -12; dx <= 12; dx++) {
+                for (int dz = -12; dz <= 12; dz++) {
+                    for (int y = spire.height; y <= spire.height + 2; y++) {
+                        SpireShape.Material part = spire.forge(dx, y, dz);
+                        if (part == null) {
+                            continue;
+                        }
+                        cores += part == SpireShape.Material.FORGE_CORE ? 1 : 0;
+                        assertTrue(Math.hypot(dx, dz) <= spire.summitRadius - 2.0, "on the summit, in from its rim");
+                        assertNull(spire.summit(dx, y, dz), "clear of the dais and torches");
+                        assertFalse(spire.spike(dx, y, dz), "clear of the crown's spikes");
+                        assertFalse(spire.headroom(dx, y, dz), "clear of the ledge's way up");
+                        assertFalse(chest[0] == dx && chest[1] == y && chest[2] == dz, "clear of the chest");
+                        assertFalse(dx == chest[0] + 1 && dz == chest[2] + 1, "clear of the lich's spot");
+                    }
+                }
+            }
+            assertTrue(cores <= 1, "one core at most");
+            withCore += cores;
+        }
+        double share = (double) forges / seeds;
+        assertTrue(share > 0.10 && share < 0.20, "a low chance, about one in seven: " + share);
+        double cored = (double) withCore / forges;
+        assertTrue(cored > 0.45 && cored < 0.75, "its core sometimes missing (the owner), mostly there: " + cored);
     }
 }

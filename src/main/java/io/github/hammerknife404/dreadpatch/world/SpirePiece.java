@@ -110,6 +110,8 @@ public class SpirePiece extends StructurePiece {
                         state = block(this.shape.material(dx, dy, dz));
                     } else if (this.shape.summit(dx, dy, dz) != null) {
                         state = block(this.shape.summit(dx, dy, dz));
+                    } else if (this.shape.forge(dx, dy, dz) != null) {
+                        state = block(this.shape.forge(dx, dy, dz));
                     } else if (this.shape.spike(dx, dy, dz)) {
                         state = block(this.shape.spikeMaterial(dx, dy, dz));
                     } else {
@@ -153,6 +155,10 @@ public class SpirePiece extends StructurePiece {
             case PACKED_ICE -> Blocks.PACKED_ICE.defaultBlockState();
             case BLUE_ICE -> Blocks.BLUE_ICE.defaultBlockState();
             case SNOW -> Blocks.SNOW_BLOCK.defaultBlockState();
+            case FORGE_CORE -> io.github.hammerknife404.dreadpatch.registry.DreadForge.CORE.get().defaultBlockState();
+            case FORGE_BRICK -> io.github.hammerknife404.dreadpatch.registry.DreadForge.BRICK.get().defaultBlockState();
+            case FORGE_INPUT -> io.github.hammerknife404.dreadpatch.registry.DreadForge.INPUT.get().defaultBlockState();
+            case DRAGON_BONE -> IafBlocks.DRAGON_BONE_BLOCK.get().defaultBlockState();
         };
     }
 }

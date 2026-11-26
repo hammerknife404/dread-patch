@@ -13,7 +13,7 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 @SuppressWarnings("unused")
 final class RimeEelGeometry {
     static final int TEXTURE_WIDTH = 128;
-    static final int TEXTURE_HEIGHT = 64;
+    static final int TEXTURE_HEIGHT = 128;
 
     private RimeEelGeometry() {
     }
@@ -21,40 +21,40 @@ final class RimeEelGeometry {
     static LayerDefinition create() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
-        PartDefinition head = root.addOrReplaceChild("head", CubeListBuilder.create().texOffs(36, 0).addBox(-4.0F, -5.0F, -9.0F, 8.0F, 6.0F, 9.0F).texOffs(0, 31).addBox(-3.5F, 1.0F, -8.5F, 7.0F, 2.0F, 8.0F).texOffs(0, 50).addBox(-3.5F, 0.5F, -3.0F, 7.0F, 3.0F, 3.0F).texOffs(94, 50).addBox(-4.6F, -3.5F, -7.5F, 1.0F, 2.0F, 2.0F).texOffs(100, 50).addBox(3.6F, -3.5F, -7.5F, 1.0F, 2.0F, 2.0F),
-                PartPose.offsetAndRotation(-6.0F, 15.0F, -1.0F, 0.0F, 0.0F, 0.0F));
-        PartDefinition jaw = head.addOrReplaceChild("jaw", CubeListBuilder.create().texOffs(0, 19).addBox(-3.5F, 0.0F, -9.5F, 7.0F, 3.0F, 9.0F).texOffs(30, 31).addBox(-3.0F, -2.0F, -9.0F, 6.0F, 2.0F, 8.0F),
-                PartPose.offsetAndRotation(0.0F, 1.0F, -0.5F, 0.6F, 0.0F, 0.0F));
-        PartDefinition crest = head.addOrReplaceChild("crest", CubeListBuilder.create().texOffs(70, 0).addBox(0.0F, -4.0F, 0.0F, 0.0F, 4.0F, 10.0F),
-                PartPose.offsetAndRotation(0.0F, -5.0F, -8.0F, -0.08F, 0.0F, 0.0F));
-        PartDefinition stalk = head.addOrReplaceChild("stalk", CubeListBuilder.create().texOffs(58, 31).addBox(-0.5F, -9.0F, -0.5F, 1.0F, 9.0F, 1.0F),
-                PartPose.offsetAndRotation(0.0F, -5.0F, -4.0F, -0.12F, 0.0F, 0.0F));
-        PartDefinition stalkarm = stalk.addOrReplaceChild("stalk_arm", CubeListBuilder.create().texOffs(62, 31).addBox(-0.5F, -0.5F, -9.0F, 1.0F, 1.0F, 9.0F),
-                PartPose.offsetAndRotation(0.0F, -9.0F, 0.0F, 0.3F, 0.0F, 0.0F));
-        PartDefinition stalkhook = stalkarm.addOrReplaceChild("stalk_hook", CubeListBuilder.create().texOffs(106, 50).addBox(-0.5F, 0.0F, -0.5F, 1.0F, 2.0F, 1.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, -9.0F, -0.18F, 0.0F, 0.0F));
-        PartDefinition lantern = stalkhook.addOrReplaceChild("lantern", CubeListBuilder.create().texOffs(52, 50).addBox(-2.0F, 0.0F, -2.0F, 4.0F, 1.0F, 4.0F).texOffs(50, 41).addBox(-1.5F, 1.0F, -1.5F, 3.0F, 4.0F, 3.0F).texOffs(68, 50).addBox(-2.0F, 5.0F, -2.0F, 4.0F, 1.0F, 4.0F),
-                PartPose.offsetAndRotation(0.0F, 2.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        PartDefinition rightfin = head.addOrReplaceChild("right_fin", CubeListBuilder.create().texOffs(0, 0).addBox(0.0F, -6.0F, 0.0F, 0.0F, 10.0F, 9.0F),
-                PartPose.offsetAndRotation(-4.0F, -0.5F, -1.5F, 0.15F, -0.75F, 0.25F));
-        PartDefinition leftfin = head.addOrReplaceChild("left_fin", CubeListBuilder.create().texOffs(18, 0).addBox(0.0F, -6.0F, 0.0F, 0.0F, 10.0F, 9.0F),
-                PartPose.offsetAndRotation(4.0F, -0.5F, -1.5F, 0.15F, 0.75F, -0.25F));
-        PartDefinition body1 = head.addOrReplaceChild("body1", CubeListBuilder.create().texOffs(32, 19).addBox(-3.5F, -3.5F, 0.0F, 7.0F, 7.0F, 5.0F).texOffs(102, 31).addBox(-4.0F, -4.0F, 0.5F, 8.0F, 8.0F, 1.0F).texOffs(62, 41).addBox(0.0F, -7.0F, 1.0F, 0.0F, 3.0F, 4.0F),
-                PartPose.offsetAndRotation(0.0F, -0.5F, -0.5F, -0.45F, 0.0F, 0.0F));
-        PartDefinition body2 = body1.addOrReplaceChild("body2", CubeListBuilder.create().texOffs(56, 19).addBox(-3.0F, -3.0F, 0.0F, 6.0F, 6.0F, 5.0F).texOffs(18, 41).addBox(-3.5F, -3.5F, 0.5F, 7.0F, 7.0F, 1.0F).texOffs(70, 41).addBox(0.0F, -6.0F, 1.0F, 0.0F, 3.0F, 4.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 5.0F, 0.45F, 0.35F, 0.0F));
-        PartDefinition body3 = body2.addOrReplaceChild("body3", CubeListBuilder.create().texOffs(78, 19).addBox(-3.0F, -3.0F, 0.0F, 6.0F, 6.0F, 5.0F).texOffs(34, 41).addBox(-3.5F, -3.5F, 0.5F, 7.0F, 7.0F, 1.0F).texOffs(78, 41).addBox(0.0F, -6.0F, 1.0F, 0.0F, 3.0F, 4.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 5.0F, 0.0F, 0.45F, 0.0F));
-        PartDefinition body4 = body3.addOrReplaceChild("body4", CubeListBuilder.create().texOffs(82, 31).addBox(-2.5F, -2.5F, 0.0F, 5.0F, 5.0F, 5.0F).texOffs(86, 41).addBox(-3.0F, -3.0F, 0.5F, 6.0F, 6.0F, 1.0F).texOffs(100, 41).addBox(0.0F, -5.0F, 1.0F, 0.0F, 3.0F, 4.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 5.0F, 0.0F, 0.5F, 0.0F));
-        PartDefinition body5 = body4.addOrReplaceChild("body5", CubeListBuilder.create().texOffs(0, 41).addBox(-2.0F, -2.0F, 0.0F, 4.0F, 4.0F, 5.0F).texOffs(20, 50).addBox(-2.5F, -2.5F, 0.5F, 5.0F, 5.0F, 1.0F).texOffs(32, 50).addBox(0.0F, -4.0F, 1.0F, 0.0F, 2.0F, 4.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 5.0F, 0.0F, 0.5F, 0.0F));
-        PartDefinition body6 = body5.addOrReplaceChild("body6", CubeListBuilder.create().texOffs(108, 41).addBox(-1.5F, -1.5F, 0.0F, 3.0F, 3.0F, 4.0F).texOffs(84, 50).addBox(-2.0F, -2.0F, 0.5F, 4.0F, 4.0F, 1.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 5.0F, 0.0F, 0.45F, 0.0F));
-        PartDefinition body7 = body6.addOrReplaceChild("body7", CubeListBuilder.create().texOffs(40, 50).addBox(-1.0F, -1.0F, 0.0F, 2.0F, 2.0F, 4.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 4.0F, 0.0F, 0.4F, 0.0F));
-        PartDefinition tailfin = body7.addOrReplaceChild("tail_fin", CubeListBuilder.create().texOffs(90, 0).addBox(0.0F, -4.0F, 0.0F, 0.0F, 8.0F, 6.0F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 3.5F, 0.0F, 0.0F, 0.0F));
+        PartDefinition head = root.addOrReplaceChild("head", CubeListBuilder.create().texOffs(82, 0).addBox(-4.5F, -6.0F, -10.0F, 9.0F, 6.0F, 10.0F).texOffs(26, 35).addBox(-4.0F, 0.0F, -9.5F, 8.0F, 3.0F, 9.0F).texOffs(84, 59).addBox(-4.0F, 0.0F, -4.0F, 8.0F, 3.0F, 4.0F).texOffs(106, 68).addBox(-4.7F, -4.5F, -8.0F, 1.0F, 2.0F, 2.0F).texOffs(112, 68).addBox(3.7F, -4.5F, -8.0F, 1.0F, 2.0F, 2.0F),
+                PartPose.offsetAndRotation(-9.0F, 16.0F, -2.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition jaw = head.addOrReplaceChild("jaw", CubeListBuilder.create().texOffs(60, 35).addBox(-4.0F, 0.0F, -9.5F, 8.0F, 2.0F, 9.5F).texOffs(0, 48).addBox(-3.5F, -2.0F, -9.0F, 7.0F, 2.0F, 8.5F),
+                PartPose.offsetAndRotation(0.0F, 1.0F, -1.0F, 0.42F, 0.0F, 0.0F));
+        PartDefinition stalk = head.addOrReplaceChild("stalk", CubeListBuilder.create().texOffs(120, 0).addBox(-1.0F, -12.0F, -1.0F, 2.0F, 12.0F, 2.0F),
+                PartPose.offsetAndRotation(0.0F, -6.0F, -4.5F, -0.3F, 0.0F, 0.0F));
+        PartDefinition stalkarm = stalk.addOrReplaceChild("stalk_arm", CubeListBuilder.create().texOffs(48, 0).addBox(-1.0F, -1.0F, -15.0F, 2.0F, 2.0F, 15.0F),
+                PartPose.offsetAndRotation(0.0F, -12.0F, 0.0F, 0.75F, 0.0F, 0.0F));
+        PartDefinition stalkhook = stalkarm.addOrReplaceChild("stalk_hook", CubeListBuilder.create().texOffs(118, 68).addBox(-0.5F, 0.0F, -0.5F, 1.0F, 2.0F, 1.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, -14.5F, 0.0F, 0.0F, 0.0F));
+        PartDefinition lantern = stalkhook.addOrReplaceChild("lantern", CubeListBuilder.create().texOffs(0, 75).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 1.0F, 2.0F).texOffs(44, 68).addBox(-2.5F, 1.0F, -2.5F, 5.0F, 1.0F, 5.0F).texOffs(36, 59).addBox(-2.0F, 2.0F, -2.0F, 4.0F, 4.0F, 4.0F).texOffs(64, 68).addBox(-2.5F, 6.0F, -2.5F, 5.0F, 1.0F, 5.0F),
+                PartPose.offsetAndRotation(0.0F, 2.0F, 0.0F, -0.45F, 0.0F, 0.0F));
+        PartDefinition rightfin = head.addOrReplaceChild("right_fin", CubeListBuilder.create().texOffs(0, 0).addBox(0.0F, -4.0F, 0.0F, 0.0F, 9.0F, 12.0F),
+                PartPose.offsetAndRotation(-4.5F, -1.0F, -2.0F, 0.35F, -0.95F, 0.45F));
+        PartDefinition leftfin = head.addOrReplaceChild("left_fin", CubeListBuilder.create().texOffs(24, 0).addBox(0.0F, -4.0F, 0.0F, 0.0F, 9.0F, 12.0F),
+                PartPose.offsetAndRotation(4.5F, -1.0F, -2.0F, 0.35F, 0.95F, -0.45F));
+        PartDefinition body1 = head.addOrReplaceChild("body1", CubeListBuilder.create().texOffs(0, 21).addBox(-4.0F, -4.0F, 0.0F, 8.0F, 8.0F, 6.0F).texOffs(54, 48).addBox(-4.5F, -4.5F, 0.5F, 9.0F, 9.0F, 1.0F).texOffs(68, 21).addBox(0.0F, -10.0F, 0.0F, 0.0F, 6.0F, 7.0F),
+                PartPose.offsetAndRotation(0.0F, -3.0F, -0.5F, 0.2F, 0.15F, 0.0F));
+        PartDefinition body2 = body1.addOrReplaceChild("body2", CubeListBuilder.create().texOffs(28, 21).addBox(-4.0F, -4.0F, 0.0F, 8.0F, 8.0F, 6.0F).texOffs(74, 48).addBox(-4.5F, -4.5F, 0.5F, 9.0F, 9.0F, 1.0F).texOffs(108, 59).addBox(0.0F, -6.0F, 1.0F, 0.0F, 2.0F, 5.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 6.0F, -0.2F, 0.45F, 0.0F));
+        PartDefinition body3 = body2.addOrReplaceChild("body3", CubeListBuilder.create().texOffs(82, 21).addBox(-3.5F, -3.5F, 0.0F, 7.0F, 7.0F, 6.0F).texOffs(94, 48).addBox(-4.0F, -4.0F, 0.5F, 8.0F, 8.0F, 1.0F).texOffs(118, 59).addBox(0.0F, -5.5F, 1.0F, 0.0F, 2.0F, 5.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 6.0F, 0.0F, 0.7F, 0.0F));
+        PartDefinition body4 = body3.addOrReplaceChild("body4", CubeListBuilder.create().texOffs(0, 35).addBox(-3.5F, -3.5F, 0.0F, 7.0F, 7.0F, 6.0F).texOffs(0, 59).addBox(-4.0F, -4.0F, 0.5F, 8.0F, 8.0F, 1.0F).texOffs(0, 68).addBox(0.0F, -5.5F, 1.0F, 0.0F, 2.0F, 5.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 6.0F, 0.0F, 0.62F, 0.0F));
+        PartDefinition body5 = body4.addOrReplaceChild("body5", CubeListBuilder.create().texOffs(96, 35).addBox(-3.0F, -3.0F, 0.0F, 6.0F, 6.0F, 6.0F).texOffs(52, 59).addBox(-3.5F, -3.5F, 0.5F, 7.0F, 7.0F, 1.0F).texOffs(10, 68).addBox(0.0F, -5.0F, 1.0F, 0.0F, 2.0F, 5.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 6.0F, 0.0F, 0.75F, 0.0F));
+        PartDefinition body6 = body5.addOrReplaceChild("body6", CubeListBuilder.create().texOffs(32, 48).addBox(-2.5F, -2.5F, 0.0F, 5.0F, 5.0F, 6.0F).texOffs(20, 68).addBox(-3.0F, -3.0F, 0.5F, 6.0F, 6.0F, 1.0F).texOffs(34, 68).addBox(0.0F, -4.5F, 1.0F, 0.0F, 2.0F, 5.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 6.0F, 0.0F, 0.75F, 0.0F));
+        PartDefinition body7 = body6.addOrReplaceChild("body7", CubeListBuilder.create().texOffs(18, 59).addBox(-2.0F, -2.0F, 0.0F, 4.0F, 4.0F, 5.0F).texOffs(84, 68).addBox(-2.5F, -2.5F, 0.5F, 5.0F, 5.0F, 1.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 6.0F, 0.0F, 0.75F, 0.0F));
+        PartDefinition body8 = body7.addOrReplaceChild("body8", CubeListBuilder.create().texOffs(68, 59).addBox(-1.5F, -1.5F, 0.0F, 3.0F, 3.0F, 5.0F).texOffs(96, 68).addBox(-2.0F, -2.0F, 0.5F, 4.0F, 4.0F, 1.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 5.0F, 0.0F, 0.7F, 0.0F));
+        PartDefinition tailfin = body8.addOrReplaceChild("tail_fin", CubeListBuilder.create().texOffs(56, 21).addBox(0.0F, -4.0F, 0.0F, 0.0F, 8.0F, 6.0F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 4.5F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 }

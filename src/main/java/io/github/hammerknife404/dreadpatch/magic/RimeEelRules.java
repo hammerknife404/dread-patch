@@ -47,6 +47,27 @@ public final class RimeEelRules {
     public static final int AURA_SPREAD_TICKS = 40;
     public static final int AURA_EFFECT_TICKS = 80;
     public static final int FRENZY_TICKS = 80;
+    /**
+     * A Glowing target sends it into a Frenzy (0.76.0, the owner: "Highlighted creatures also send rime eels into
+     * frenzies"), kept up this many ticks at a time while it glows.
+     */
+    public static final int GLOW_FRENZY_TICKS = 20;
+    /**
+     * One in this many spawns with its lantern (0.76.0, the owner: "Only about 10-25% spawn with the lantern"; ours 1 in 6,
+     * about 17%). Without one it has no lure at all ("no fish horns"), and no pulse (asked: "No pulse without it").
+     */
+    public static final int LANTERN_ONE_IN = 6;
+    /**
+     * Its lure reaching out while it hunts or swims about, drawn in while still (0.76.0, the owner: "It retracts closer
+     * when idle and extends out when searching"): how much of the way a tick (0 drawn in, 1 out).
+     */
+    public static final float REACH_STEP = 0.08F;
+    /**
+     * Where its lantern's glass hangs reaching out and drawn in, in model pixels from its feet ({@code x} to its left, {@code y}
+     * up, {@code z} back), at scale 1: {@code tools/models/make_rime_eel.py} prints them.
+     */
+    public static final double[] LANTERN_OUT = {9.0, 24.0 - 10.6, -15.1};
+    public static final double[] LANTERN_IN = {9.0, 24.0 - 4.9, -11.6};
 
     /** On land, in combat: a lunge at a target 1.5-5 blocks off, then 2 s before the next (ours). */
     public static final double LUNGE_MIN = 1.5;
@@ -97,6 +118,23 @@ public final class RimeEelRules {
     }
 
     /** Whether one this size is an alpha or matron: past the usual most. */
+    /**
+     * An alpha's or matron's way of fighting (0.80.0, the owner: "A mix of heavy natural armor and slow easy to read
+     * attacks. Hit hrd and with knockback."): heavy armour and toughness, a heavy body hard to shove; a bite every
+     * {@link #ALPHA_BITE_TICKS} (a Frenzy's {@link #ALPHA_FRENZY_BITE_TICKS}), each after a wind-up of
+     * {@link #ALPHA_WINDUP_TICKS} rearing back, its jaw gaping (in reach as it starts, and still in reach as it ends, or it
+     * snaps on air); its bite {@link #ALPHA_BITE_FACTOR} times a size's, with knockback; its lunges half as often.
+     */
+    public static final double ALPHA_ARMOR = 14.0;
+    public static final double ALPHA_TOUGHNESS = 4.0;
+    public static final double ALPHA_KNOCKBACK_RESISTANCE = 0.6;
+    public static final double ALPHA_KNOCKBACK = 1.5;
+    public static final double ALPHA_BITE_FACTOR = 1.75;
+    public static final int ALPHA_BITE_TICKS = 50;
+    public static final int ALPHA_FRENZY_BITE_TICKS = 30;
+    public static final int ALPHA_WINDUP_TICKS = 16;
+    public static final int ALPHA_LUNGE_TICKS = 80;
+
     public static boolean alpha(double scale) {
         return scale * MODEL_LENGTH > LENGTH_MAX + 1e-9;
     }
@@ -110,6 +148,12 @@ public final class RimeEelRules {
     /** Its health at {@code scale}, to the half heart: 10 to 18, an alpha's up to 24.5. */
     public static double health(double scale) {
         return Math.round(2.0 * (HEALTH_MIN + (HEALTH_MAX - HEALTH_MIN) * growth(scale))) / 2.0;
+    }
+
+    /** An eel's bite at its size: an alpha's {@link #ALPHA_BITE_FACTOR} times what the size's line gives, to the half. */
+    public static double fullBite(double scale) {
+        double bite = bite(scale);
+        return alpha(scale) ? Math.round(2.0 * bite * ALPHA_BITE_FACTOR) / 2.0 : bite;
     }
 
     public static double bite(double scale) {
@@ -135,6 +179,16 @@ public final class RimeEelRules {
      * Whether its lure is lit at {@code tick}: erratic, by a hash of its own {@code seed} and the step, so each eel's
      * flickers its own way, and the same on every client. Off far more often than on.
      */
+    /** Whether a spawn, rolling {@code roll} in {@code [0, LANTERN_ONE_IN)}, has its lantern. */
+    public static boolean spawnsWithLantern(int roll) {
+        return roll == 0;
+    }
+
+    /** Its lure's reach next tick: a step toward out (searching) or in. */
+    public static float reachToward(float reach, boolean searching) {
+        return searching ? Math.min(1.0F, reach + REACH_STEP) : Math.max(0.0F, reach - REACH_STEP);
+    }
+
     public static boolean lureLit(int seed, int tick) {
         int step = Math.floorDiv(tick, FLICKER_STEP);
         double here = hash(seed, step);

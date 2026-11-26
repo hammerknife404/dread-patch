@@ -111,7 +111,7 @@ Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have
 - **Summon NBT:** `Lifetime`, `Radius`, `Owner`, `RaisesDead`.
 
 **Raising the dead** (only hers, `RaisesDead`)
-- **When:** on `LivingDeathEvent` at `LOWEST`, skipped if cancelled; up to 8 a storm.
+- **When:** on `LivingDeathEvent` at `LOWEST`, skipped if cancelled; up to `WhiteoutStorm.PLACES` (12; 8 before 0.79.0) places a storm, counted in halves: the small dead (no wider than 0.7 and no taller than 1, or a baby: `WhiteoutStorm.halves`) take half a place, so up to 24 of them (the owner: "increase the number of minions the dread queen can control, specifically with her whiteout domininion ... about 50-100% its current cap ... converting more of them at lower stats is ok"; asked, "Small dead count half"). They rise as they always did: a small one a small dread beast (size by width, at least 0.4), or a miniature phantom or Rime Eel.
 - **Who rises:** a `Mob` or a player. Not:
   - an armor stand or a husk;
   - the Dread, a dragon, or `#c:bosses`;
@@ -121,7 +121,7 @@ Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have
   - else, by shape, a thrall (`WhiteoutStorm.risesAsThrall`: at least a block tall and 1.5× as tall as wide);
   - else a dread beast sized `width / 1.2`, kept to 0.4–2.5.
 - **After rising:**
-  - She commands them, so they count in her court's 6.
+  - She commands them, so they count in her court's places (by difficulty since 0.79.0: 4, 6, 8).
   - They take her target.
   - Every equipment slot is copied with drop chance 0, since the dead drop their own.
   - **How a thrall's armour looks** (0.70.0, `client/ThrallArmorLayer`): Ice and Fire's thrall renderer draws any `ArmorItem` a thrall wears in its own thrall textures (`BipedArmorFeatureRendererMultiple` → `IHasArmorVariantResource`), so a guard's iron looked like rags. Ours takes that layer's place in the renderer's `layers` (`EntityRenderersEvent.AddLayers`, by reflection): chainmail (what Ice and Fire gives its thralls) still goes to theirs; any other armour to vanilla's `HumanoidArmorLayer` on a zombie-shaped `HumanoidModel` posed from the thrall model's root parts (`head`, `body`, `armRight`…: rotation points and angles), so it looks as on a player, our client extensions included. Each layer draws with the other's pieces taken out of the thrall's `armorItems` list (`getArmorSlots`) and put back straight after.
