@@ -13,8 +13,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 /**
- * Dread scuttlers spit webs (0.75.0, {@link WebRules}) at what they hunt 4-12 blocks off, in sight, every
- * 10-15 s, never at one already held in a web, never in the tick they spit a bolt ({@code ScuttlerBolts}).
+ * Dread scuttlers spit webs (0.75.0, {@link WebRules}) at what they hunt 4-24 blocks off, in sight, every
+ * 5-8 s (0.75.1), never at one already held in a web, never in the tick they spit a bolt ({@code ScuttlerBolts}).
  * Every scuttler, not while rising. The class is Ice and Fire's, so it's done from its tick.
  */
 public final class ScuttlerWebs {
@@ -26,6 +26,26 @@ public final class ScuttlerWebs {
 
     public static void register(IEventBus gameBus) {
         gameBus.addListener(ScuttlerWebs::onTick);
+        gameBus.addListener(ScuttlerWebs::onJoin);
+    }
+
+    /** 0.75.1: it notices what's 24 blocks off (its follow range, Ice and Fire's 12, raised), and it's 10% faster. Transient, set as it joins. */
+    private static void onJoin(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
+        if (!(event.getEntity() instanceof DreadScuttlerEntity scuttler)) {
+            return;
+        }
+        var follow = scuttler.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.FOLLOW_RANGE);
+        if (follow != null) {
+            double raise = Math.max(0.0, WebRules.SCUTTLER_FOLLOW_RANGE - follow.getBaseValue());
+            follow.addOrUpdateTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                    io.github.hammerknife404.dreadpatch.DreadPatch.id("scuttler_reach"), raise, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE));
+        }
+        var speed = scuttler.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);
+        if (speed != null) {
+            speed.addOrUpdateTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                    io.github.hammerknife404.dreadpatch.DreadPatch.id("scuttler_speed"), WebRules.SCUTTLER_SPEED_BONUS,
+                    net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
     }
 
     private static void onTick(EntityTickEvent.Post event) {

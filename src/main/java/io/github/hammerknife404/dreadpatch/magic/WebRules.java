@@ -13,11 +13,18 @@ public final class WebRules {
     public static final double DREAD_WEB_UP = 0.15;
     /** It lasts 3 s, then melts away. */
     public static final int LIFETIME_TICKS = 60;
-    /** A scuttler spits one every 10-15 s, at what it hunts 4-12 blocks off, never at one already held. */
-    public static final int COOLDOWN = 200;
-    public static final int COOLDOWN_SPREAD = 101;
+    /**
+     * A scuttler spits one every 5-8 s, at what it hunts 4-24 blocks off, never at one already held (0.75.1, the
+     * owner: "engage via web spit much further away - 24 ... 5 - 8 seconds"; 0.75.0 had 10-15 s and 12).
+     */
+    public static final int COOLDOWN = 100;
+    public static final int COOLDOWN_SPREAD = 61;
     public static final double MIN_RANGE = 4.0;
-    public static final double MAX_RANGE = 12.0;
+    public static final double MAX_RANGE = 24.0;
+    /** So it notices what's that far off: its follow range (Ice and Fire's 12) raised to at least this. */
+    public static final double SCUTTLER_FOLLOW_RANGE = 24.0;
+    /** And 10% faster (0.75.1, the owner). */
+    public static final double SCUTTLER_SPEED_BONUS = 0.10;
 
     private WebRules() {
     }
