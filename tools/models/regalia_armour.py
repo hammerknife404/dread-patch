@@ -188,15 +188,14 @@ def paint(skin, boxes, wings_image=None):
         if m == "helm":
             for s in f:
                 fill(im, f[s], steel)
-            # The front: open at the face (rows 2-6, columns 1-6) under a cyan-edged brow and a nasal bar.
+            # The front (0.82.0, the owner's videos): a closed helm, a T-shaped visor (an eye slit across, a slot down
+            # its middle) open onto the face, cyan-edged; a cyan brow over it.
             def front(i, j, w, h):
-                if 1 <= i <= 6 and 3 <= j <= 6 and i not in (3, 4):
+                if j == 3 and 1 <= i <= 6 or 3 <= i <= 4 and 4 <= j <= 6:
                     return (0, 0, 0, 0)
-                if 3 <= i <= 4 and 3 <= j <= 5:
-                    return STEEL_MID
                 if j == 2 and 1 <= i <= 6:
                     return CYAN
-                if j == 7 and 2 <= i <= 5:
+                if (j == 4 and i in (1, 2, 5, 6)) or (i in (2, 5) and 5 <= j <= 6):
                     return STEEL_LIGHT
                 return steel(i, j, w, h)
             fill(im, f["front"], front)
@@ -231,9 +230,10 @@ def paint(skin, boxes, wings_image=None):
             for s in f:
                 fill(im, f[s], lambda i, j, w, h: CYAN_LIGHT if (i, j) == (1, 1) else CYAN)
         elif m == "pauldron":
+            # Layered steel (0.82.0, the videos'): plates stepping down, each rimmed cyan, a little frost on top.
             for s in f:
-                fill(im, f[s], lambda i, j, w, h: FROST if j == 0 else FROST_MID if j == 1 else (STEEL_LIGHT if rnd.random() < 0.4 else STEEL_MID))
-            fill(im, f["top"], lambda i, j, w, h: FROST if rnd.random() < 0.7 else FROST_MID)
+                fill(im, f[s], lambda i, j, w, h: CYAN if j in (1, h - 1) else STEEL_DARK if j in (0, 2) else (STEEL_LIGHT if rnd.random() < 0.3 else STEEL_MID))
+            fill(im, f["top"], lambda i, j, w, h: FROST_MID if rnd.random() < 0.35 else STEEL_MID)
         elif m == "frost_spike":
             for s in f:
                 fill(im, f[s], lambda i, j, w, h: FROST if j < h / 2 else FROST_MID)
