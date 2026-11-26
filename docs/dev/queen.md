@@ -138,6 +138,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - two 4×4×3 boxes on the chestplate, tipped forward and splayed, with a gap between them for the pendant;
   - in the chestplate's armor from rows 39–45 of her texture;
   - rows 32–38 hold the chestplate's cut-out straps and neckline, so faces taken from there would show holes.
+- **Her outfit hidden** (0.81.0): headware, chestplate (bust and necklace with it), cloak, sleeves and robes kept but not drawn (`visible` false), since she wears her regalia over her body: `DreadQueenRenderer.RegaliaLayer` draws its four pieces (`QueenArmorModels.plain`, posed from hers) in `RenderType.armorCutoutNoCull(QueenArmorModels.TEXTURE)`. Her arms are slimmer than a player's, so the vambraces stand a little off them.
 - **The spawn animation:** Ice and Fire's `DreadBaseModel.animate` + `setRotationAnglesSpawn`, redone on vanilla parts in `client/RisePose`.
 
 **Previewing a model change** before a release: render its quads offline.
@@ -147,7 +148,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 
 **`client/DreadQueenRenderer`**
 - A `HumanoidMobRenderer`, so held items come with it.
-- Ice and Fire's texture, plus an `EyesLayer` for `_eyes`.
+- Ice and Fire's texture, her regalia's layer (0.81.0), plus an `EyesLayer` for `_eyes`.
 - `_inactive` and `_injured` aren't used yet.
 
 ## Her staff and sword

@@ -51,7 +51,7 @@ public final class QueenRegalia {
             return;
         }
         boolean dressed = player.getItemBySlot(EquipmentSlot.HEAD).is(DreadGear.DREAD_QUEEN_CROWN.get())
-                && player.getItemBySlot(EquipmentSlot.CHEST).is(DreadGear.DREAD_QUEEN_BODICE.get())
+                && DreadGear.isBodice(player.getItemBySlot(EquipmentSlot.CHEST))
                 && player.getItemBySlot(EquipmentSlot.LEGS).is(DreadGear.DREAD_QUEEN_ROBE.get())
                 && player.getItemBySlot(EquipmentSlot.FEET).is(DreadGear.DREAD_QUEEN_GREAVES.get());
         if (!dressed) {
@@ -68,7 +68,7 @@ public final class QueenRegalia {
 
     private static boolean isHers(ItemStack stack) {
         return !stack.isEmpty() && (stack.is(IafItems.DREAD_QUEEN_SWORD.get()) || stack.is(IafItems.DREAD_QUEEN_STAFF.get())
-                || DreadGear.queenArmor().stream().anyMatch(piece -> stack.is(piece.get())));
+                || DreadGear.regalia().stream().anyMatch(piece -> stack.is(piece.get())));
     }
 
     private static void onDrops(LivingDropsEvent event) {

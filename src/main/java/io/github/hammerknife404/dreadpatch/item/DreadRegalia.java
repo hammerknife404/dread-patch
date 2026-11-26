@@ -97,7 +97,7 @@ public final class DreadRegalia {
     }
 
     private static void onModifyDefaultComponents(ModifyDefaultComponentsEvent event) {
-        DreadGear.queenArmor().forEach(piece -> event.modify(piece.get(), components -> components.set(DataComponents.UNBREAKABLE, new Unbreakable(true))));
+        DreadGear.regalia().forEach(piece -> event.modify(piece.get(), components -> components.set(DataComponents.UNBREAKABLE, new Unbreakable(true))));
     }
 
     /** +150 max mana, in the piece's own slot. */

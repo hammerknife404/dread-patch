@@ -1031,17 +1031,17 @@ def main():
     attrs = {a: re.search(r"is ([0-9.]+)", rcon.run(f"attribute {alpha} minecraft:generic.{a} get")) for a in ("armor", "armor_toughness", "attack_knockback")}
     attrs = {a: float(m.group(1)) if m else -1.0 for a, m in attrs.items()}
     record("an alpha's heavy hide and knockback", attrs == {"armor": 14.0, "armor_toughness": 4.0, "attack_knockback": 1.5}, str(attrs))
-    rcon.run('summon minecraft:zombie 44.5 199 45.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_alpha_prey"]}')
+    rcon.run('summon minecraft:zombie 44.5 198 44.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_alpha_prey"]}')
     rcon.run("effect give @e[tag=smoke_alpha_prey,limit=1] minecraft:fire_resistance 60 0 true")
     rcon.run("damage @e[tag=smoke_alpha,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_alpha_prey,limit=1]")
     prey_hp = health("@e[tag=smoke_alpha_prey,limit=1]")
     bitten = False
-    for _ in range(40):
+    for _ in range(64):  # 16 s: it's slow, and it winds up first
         time.sleep(0.25)
         if 0 <= health("@e[tag=smoke_alpha_prey,limit=1]") < prey_hp:
             bitten = True
             break
-    record("an alpha's wound-up bite lands", bitten, f"the zombie at {health('@e[tag=smoke_alpha_prey,limit=1]')} of {prey_hp} 10 s on")
+    record("an alpha's wound-up bite lands", bitten, f"the zombie at {health('@e[tag=smoke_alpha_prey,limit=1]')} of {prey_hp} 16 s on")
     # Named a Rime Wyrm (0.80.0); /kill says whom it killed.
     check("an alpha is a Rime Wyrm", "kill @e[tag=smoke_alpha]", "Rime Wyrm")
     rcon.run("kill @e[tag=smoke_alpha_prey]")
@@ -2228,6 +2228,22 @@ def main():
     for tag in ("smoke_blaster", "smoke_blasted_11", "smoke_blasted_12"):
         rcon.run(f"kill @e[tag={tag}]")
     rcon.run("kill @e[tag=smoke_regalia]")
+    rcon.run("kill @e[tag=smoke_steel]")
+    # Her winged bodice (0.81.0) is her bodice in every way: in its place her set is whole (+600 mana, nothing freezes),
+    # and it's indestructible; made at a smithing table from a scale, her bodice and an elytra.
+    winged = ["dreadpatch:dread_queen_greaves", "dreadpatch:dread_queen_robe", "dreadpatch:dread_queen_winged_bodice", "dreadpatch:dread_queen_crown"]
+    armoured("smoke_winged", 4.5, winged)
+    armoured("smoke_steel", 8.5, pieces_of("dreadpatch:dread_dragonsteel"))
+    time.sleep(0.3)
+    winged_mana, steel_mana = worn("smoke_winged", "irons_spellbooks:max_mana"), worn("smoke_steel", "irons_spellbooks:max_mana")
+    rcon.run("data merge entity @e[tag=smoke_winged,limit=1] {TicksFrozen:140}")
+    time.sleep(0.3)
+    record("her winged bodice counts as her bodice: the set's mana, and nothing freezes",
+           winged_mana is not None and steel_mana is not None and winged_mana - steel_mana == 600.0 and frozen("smoke_winged") == 0,
+           f"mana {winged_mana} against {steel_mana}, frozen ticks {frozen('smoke_winged')}")
+    check("her winged bodice is indestructible", "execute if items entity @e[tag=smoke_winged,limit=1] armor.chest *[minecraft:unbreakable]", "count: 1")
+    check("its smithing recipe is there", "recipe give @a dreadpatch:dread_queen_winged_bodice", "No player was found")
+    rcon.run("kill @e[tag=smoke_winged]")
     rcon.run("kill @e[tag=smoke_steel]")
     # Her staff: +5% Rimefrost spell power in the hand (0.51.0).
     rcon.run('summon minecraft:armor_stand 12.5 240 4.5 {Tags:["smoke_staff"],ShowArms:1b,HandItems:[{id:"iceandfire:dread_queen_staff",count:1},{}]}')

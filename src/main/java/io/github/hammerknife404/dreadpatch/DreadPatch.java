@@ -157,7 +157,7 @@ public final class DreadPatch {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_INGOT.get());
         } else if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             DreadGear.armor().forEach(item -> event.accept(item.get()));
-            DreadGear.queenArmor().forEach(item -> event.accept(item.get()));
+            DreadGear.regalia().forEach(item -> event.accept(item.get()));
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SWORD.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
         } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
