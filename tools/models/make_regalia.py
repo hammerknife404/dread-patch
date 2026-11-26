@@ -417,9 +417,9 @@ def wing_pose(root, fold):
     return pose
 
 
-# Its states (0.82.0), at their middle: idle partly folded behind; walking swept back; falling pushed up and trailing;
+# Its states (0.82.0), at their middle: idle folded like a perched dragon's (0.82.2); walking swept back; falling pushed up and trailing;
 # gliding spread wide and level.
-WING_STATES = {"idle": wing_pose((-0.1, 0.25, 0.05), -0.2), "walk": wing_pose((0.18, 0.8, -0.05), -0.75),
+WING_STATES = {"idle": wing_pose((0.1, 1.1, 0.1), -2.0), "walk": wing_pose((0.15, 1.0, 0.0), -1.7),
                "fall": wing_pose((-0.2, 0.3, 0.35), -0.15), "glide": wing_pose((0.6, 0.1, -0.35), 0.1)}
 
 

@@ -18,10 +18,12 @@ import java.util.WeakHashMap;
  * The winged bodice's wings (0.82.0, the owner's spec and example videos: a scaled-down Syndrigossa's tattered ice
  * wings), {@link RegaliaWingsGeometry}'s chains, posed by state and eased between them, each wearer's own:
  * <ul>
- * <li>idle: held up in a V behind the back, the hand folded a little, breathing slowly;</li>
- * <li>walking: swept back, bobbing with the steps, flaring open a little when sprinting;</li>
+ * <li>idle: folded like a perched dragon's, tucked down the back, breathing slowly (0.82.2);</li>
+ * <li>walking: half folded, bobbing with the steps, flaring open when sprinting;</li>
  * <li>falling: pushed up and trailing against the air, the hands fluttering;</li>
- * <li>gliding: spread wide and nearly level, banking into turns (a roll from how fast the wearer turns);</li>
+ * <li>gliding: spread in a shallow V, banking into turns (a roll from how fast the wearer turns), and by how it flies
+ * (0.82.2): swept back and tucked with speed, tighter diving, opened up and beating when climbing or slow, a flutter
+ * growing with speed;</li>
  * <li>a creative player's flight: beating.</li>
  * </ul>
  * Turns are the right wing's; the left mirrors them (y and z negated), but banking rolls both the same way.
@@ -68,12 +70,33 @@ public final class RegaliaWingsModel extends Model {
 
         float breathe = Mth.sin(time * 0.1F);
         // Each state: the root's x, y, z turns and the hand's fold (a y turn).
-        float[] idle = {-0.1F + 0.04F * breathe, 0.25F, 0.05F + 0.03F * breathe, -0.2F};
+        // Idle (0.82.2, the owner: "fold/collapse in more, like a dragons wings when sitting"): the arm bones tucked down
+        // the back, the wrists up at the shoulders, the hands folded down behind, the membranes draped; breathing.
+        float[] idle = {0.1F + 0.03F * breathe, 1.1F, 0.1F + 0.02F * breathe, -2.0F + 0.05F * breathe};
         float bob = Mth.sin(limbSwing * 0.6662F) * Math.min(1.0F, limbSwingAmount);
-        float[] walk = {0.18F + 0.06F * bob, 0.8F - 0.3F * state.sprint, -0.05F + 0.25F * state.sprint, -0.75F + 0.3F * state.sprint};
+        // Walking: half folded, bobbing with the steps; sprinting, flaring open.
+        float[] walk = {0.15F + 0.06F * bob, 1.0F - 0.4F * state.sprint, 0.0F + 0.2F * state.sprint, -1.7F + 0.9F * state.sprint};
         float[] fall = {-0.2F, 0.3F, 0.35F + 0.06F * Mth.sin(time * 1.1F), -0.15F + 0.12F * Mth.sin(time * 1.3F)};
-        // Tilted up into a shallow V (0.82.1: seen edge-on from behind, only the bones showed).
-        float[] glide = {0.6F, 0.1F, -0.35F + 0.03F * Mth.sin(time * 0.15F), 0.1F};
+
+        // Gliding, by how it's flying (0.82.2, the owner: "more flight animations in general, dynamic with speeds and
+        // tilt"): faster, swept back and tucked; diving, tucked tighter; climbing or slow, opened up and beating to hold
+        // the air (harder the slower); a flutter growing with speed.
+        net.minecraft.world.phys.Vec3 motion = entity.getDeltaMovement();
+        float speed = (float) motion.length();
+        state.speed += (speed - state.speed) * step;
+        state.climb += ((speed > 0.05F ? Mth.clamp((float) motion.y / speed, -1.0F, 1.0F) : 0.0F) - state.climb) * step;
+        float sweep = Mth.clamp((state.speed - 0.5F) / 1.5F, 0.0F, 1.0F);
+        float dive = Mth.clamp(-state.climb * 1.5F, 0.0F, 1.0F);
+        float climb = Mth.clamp(state.climb * 2.0F, 0.0F, 1.0F);
+        float slow = Mth.clamp(1.0F - state.speed / 0.8F, 0.0F, 1.0F);
+        float flap = Math.max(slow, 0.7F * climb) * state.glide;
+        state.flapPhase += (time - state.flapTime) * (0.3F + 0.25F * flap);
+        state.flapTime = time;
+        float beatGlide = flap * Mth.sin(state.flapPhase);
+        float[] glide = {0.6F - 0.25F * dive + 0.2F * climb, 0.1F + 0.7F * sweep + 0.4F * dive,
+                -0.35F + 0.15F * climb + 0.6F * beatGlide + 0.03F * Mth.sin(time * 0.15F),
+                0.1F - 0.6F * sweep - 0.5F * dive + 0.3F * flap * Mth.sin(state.flapPhase - 0.9F)};
+        float flutter = 0.05F * Math.min(1.0F, state.speed) * Mth.sin(time * 2.3F) * state.glide;
         float phase = time * (Mth.TWO_PI / 22.0F);
         float[] beat = {0.0F, 0.2F, -0.3F + 0.7F * Mth.sin(phase), 0.3F * Mth.sin(phase - 0.8F)};
         float[] pose = new float[4];
@@ -89,6 +112,7 @@ public final class RegaliaWingsModel extends Model {
             this.roots[i].yRot = pose[1] * m;
             this.roots[i].zRot = pose[2] * m + state.bank;
             this.hands[i].yRot = pose[3] * m;
+            this.hands[i].zRot += flutter * m;
         }
     }
 
@@ -106,6 +130,10 @@ public final class RegaliaWingsModel extends Model {
         float sprint;
         float bank;
         float lastYaw;
+        float speed;
+        float climb;
+        float flapPhase;
+        float flapTime;
 
         State(float time) {
             this.time = time;
