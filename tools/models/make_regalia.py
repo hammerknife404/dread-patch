@@ -17,6 +17,7 @@ import sys
 from PIL import Image, ImageDraw
 
 import regalia_armour as armour
+import regalia_wings as wingmod
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 ASSETS = REPO / "src/main/resources/assets/dreadpatch"
@@ -157,6 +158,10 @@ def staff_boxes():
     boxes.append(((6.5, shaft_top + 10, 6.5), (9.5, shaft_top + 12, 9.5), "crystal"))
     boxes.append(((7.25, shaft_top + 12, 7.25), (8.75, shaft_top + 13, 8.75), "crystal_light"))
     boxes.append(((6.75, shaft_top + 5, 5.5), (9.25, shaft_top + 9, 5.75), "crystal_light"))
+    # A cluster (0.82.0, the videos'): smaller crystals leaning out of the big one.
+    boxes.append(((4.5, shaft_top + 5, 7.0), (6.0, shaft_top + 9, 8.5), "crystal"))
+    boxes.append(((10.0, shaft_top + 6, 7.5), (11.5, shaft_top + 10, 9.0), "crystal"))
+    boxes.append(((7.25, shaft_top + 6, 10.0), (8.75, shaft_top + 11, 11.25), "crystal_light"))
     # Its foot: an ice point.
     boxes.append(((7.25, -2, 7.25), (8.75, 0, 8.75), "ice_deep"))
     boxes.append(((7.6, -3, 7.6), (8.4, -2, 8.4), "ice"))
@@ -397,23 +402,27 @@ def render_quads(path, quads, yaw, pitch, scale, size=(720, 720), centre=(0, 8, 
 POSE = {"right_arm": (-0.35, 0, 0.55), "left_arm": (-0.35, 0, -0.55)}
 
 
-def wing_pose(root, mid, tip):
-    """The right wing's segments' turns (x, y, z), the left's mirrored (y and z negated), as client/QueenArmorModels sets them."""
+def wing_pose(root, fold):
+    """The right wing's root turn (x, y, z) and its hand's fold (a y turn), the left mirrored, as client/RegaliaWingsModel
+    sets them at each state's middle."""
     pose = {}
-    for name, r in (("right_wing", root), ("right_wing_mid", mid), ("right_wing_tip", tip)):
-        pose[name] = r
-        pose[name.replace("right", "left")] = (r[0], -r[1], -r[2])
+    for side, name in ((-1, "right_wing"), (1, "left_wing")):
+        m = 1 if side < 0 else -1
+        pose[name] = (root[0], root[1] * m, root[2] * m)
+        pose[name + "_arm"] = (0.0, 0.0, wingmod.ARM_RISE * m)
+        pose[name + "_hand"] = (0.0, fold * m, -wingmod.ARM_RISE * m)
     return pose
 
 
-# QueenArmorModels' poses at their middle: folded at rest (an accordion behind the back), spread gliding.
-FOLDED = wing_pose((-0.1, 1.1, -0.2), (0.0, -2.1, 0.0), (0.0, 1.9, 0.0))
-SPREAD = wing_pose((0.52, 0.15, 0.0), (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+# Its states (0.82.0), at their middle: idle partly folded behind; walking swept back; falling pushed up and trailing;
+# gliding spread wide and level.
+WING_STATES = {"idle": wing_pose((-0.1, 0.3, 0.2), -0.25), "walk": wing_pose((0.18, 0.8, -0.05), -0.75),
+               "fall": wing_pose((-0.2, 0.3, 0.35), -0.15), "glide": wing_pose((0.0, 0.1, -0.35), 0.1)}
 
 
 def sheet():
     """Every part, packed onto one sheet and painted: (parts, image)."""
-    parts = armour.parts(winged=True)
+    parts = armour.parts(winged=False)
     boxes = [b for p in parts for b in p.boxes]
     armour.pack(boxes, armour.TEX_W, armour.TEX_H)
     image = Image.new("RGBA", (armour.TEX_W, armour.TEX_H), (0, 0, 0, 0))
@@ -421,10 +430,21 @@ def sheet():
     return parts, image
 
 
-def figure(out, sword, staff, parts, image):
-    textures = {"head": image, "chest": image, "legs": image, "feet": image, "wings": image}
-    for wings, label in ((SPREAD, ""), (FOLDED, "folded_")):
-        figure_posed(out, sword, staff, parts, textures, {**POSE, **wings}, label)
+def wing_sheet():
+    """The wings (0.82.0): their parts, packed on a sheet of their own, painted, and their glints: (parts, image, glow)."""
+    parts = wingmod.parts()
+    boxes = [b for p in parts for b in p.boxes]
+    armour.pack(boxes, wingmod.TEX_W, wingmod.TEX_H)
+    image = Image.new("RGBA", (wingmod.TEX_W, wingmod.TEX_H), (0, 0, 0, 0))
+    glow = Image.new("RGBA", (wingmod.TEX_W, wingmod.TEX_H), (0, 0, 0, 0))
+    wingmod.paint(image, glow, boxes, armour.faces)
+    return parts, image, glow
+
+
+def figure(out, sword, staff, parts, image, wing_parts, wing_image):
+    textures = {"head": image, "chest": image, "legs": image, "feet": image, "wings": wing_image}
+    for state, pose in WING_STATES.items():
+        figure_posed(out, sword, staff, parts + wing_parts, textures, {**POSE, **pose}, state + "_")
 
 
 def figure_posed(out, sword, staff, parts, textures, pose, label):
@@ -444,7 +464,48 @@ def figure_posed(out, sword, staff, parts, textures, pose, label):
 BASE = (("head", "PartPose.ZERO"), ("hat", "PartPose.ZERO"), ("body", "PartPose.ZERO"),
         ("right_arm", "PartPose.offset(-5.0F, 2.0F, 0.0F)"), ("left_arm", "PartPose.offset(5.0F, 2.0F, 0.0F)"),
         ("right_leg", "PartPose.offset(-1.9F, 12.0F, 0.0F)"), ("left_leg", "PartPose.offset(1.9F, 12.0F, 0.0F)"))
-LAYERS = {"head": ("head",), "chest": ("chest",), "chest_winged": ("chest", "wings"), "legs": ("legs",), "feet": ("feet",)}
+LAYERS = {"head": ("head",), "chest": ("chest",), "legs": ("legs",), "feet": ("feet",)}
+
+
+def java_wings(parts):
+    """client/RegaliaWingsGeometry: the wings' chains, each part a child of the last (the roots of the model's root)."""
+    def f(n):
+        return f"{float(n)}F"
+    lines = ["        MeshDefinition mesh = new MeshDefinition();", "        PartDefinition root = mesh.getRoot();"]
+    for p in parts:
+        cubes = "CubeListBuilder.create()" + "".join(
+            f".texOffs({b.u}, {b.v}).addBox({f(b.x)}, {f(b.y)}, {f(b.z)}, {f(b.w)}, {f(b.h)}, {f(b.d)})" for b in p.boxes)
+        parent = p.parent.replace("_", "") if p.parent else "root"
+        lines.append(f"        PartDefinition {p.name.replace('_', '')} = {parent}.addOrReplaceChild(\"{p.name}\", {cubes},")
+        lines.append(f"                PartPose.offsetAndRotation({', '.join(f(n) for n in p.pivot)}, {', '.join(f(n) for n in p.rot)}));")
+    lines.append("        return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);")
+    body = "\n".join(lines)
+    return f'''package io.github.hammerknife404.dreadpatch.client;
+
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+
+/**
+ * The winged bodice's wings (0.82.0), generated by {{@code tools/models/make_regalia.py}} ({{@code regalia_wings.py}}):
+ * edit and re-run that, not this. Each wing a chain: its root on the back, its arm bone, its hand (the wrist's spikes and
+ * the membrane), its four fingers. Drawn by {{@link RegaliaWingsLayer}} off the wearer's body.
+ */
+@SuppressWarnings("unused")
+final class RegaliaWingsGeometry {{
+    static final int TEXTURE_WIDTH = {wingmod.TEX_W};
+    static final int TEXTURE_HEIGHT = {wingmod.TEX_H};
+
+    private RegaliaWingsGeometry() {{
+    }}
+
+    static LayerDefinition create() {{
+{body}
+    }}
+}}
+'''
 
 
 def java(parts):
@@ -517,9 +578,13 @@ def main():
     (models / "dread_queen_sword_regalia.json").write_text(json.dumps(item_model(sword, SWORD_DISPLAY), indent=1) + "\n")
     (models / "dread_queen_staff_regalia.json").write_text(json.dumps(item_model(staff, STAFF_DISPLAY), indent=1) + "\n")
     parts, image = sheet()
+    wing_parts, wing_image, wing_glow = wing_sheet()
     (ASSETS / "textures/entity").mkdir(parents=True, exist_ok=True)
     image.save(ASSETS / "textures/entity/regalia.png")
     (REPO / "src/main/java/io/github/hammerknife404/dreadpatch/client/RegaliaGeometry.java").write_text(java(parts))
+    wing_image.save(ASSETS / "textures/entity/regalia_wings.png")
+    wing_glow.save(ASSETS / "textures/entity/regalia_wings_glow.png")
+    (REPO / "src/main/java/io/github/hammerknife404/dreadpatch/client/RegaliaWingsGeometry.java").write_text(java_wings(wing_parts))
     for name, boxes in (("sword", sword), ("staff", staff)):
         ys = [b[0][1] for b in boxes] + [b[1][1] for b in boxes]
         print(f"{name}: {len(boxes)} elements, y {min(ys)} to {max(ys)}")
@@ -528,7 +593,7 @@ def main():
         out.mkdir(parents=True, exist_ok=True)
         render_boxes(out / "sword.png", coloured(sword), math.radians(25), math.radians(-12), 14, centre=(8, 12, 8))
         render_boxes(out / "staff.png", coloured(staff), math.radians(25), math.radians(-12), 11, centre=(8, 9, 8))
-        figure(out, sword, staff, parts, image)
+        figure(out, sword, staff, parts, image, wing_parts, wing_image)
         print("previews in", out)
 
 

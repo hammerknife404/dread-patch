@@ -17,14 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class QueenArmorModelsTest {
     private static final Map<String, Supplier<LayerDefinition>> LAYERS = Map.of(
-            "head", RegaliaGeometry::head, "chest", RegaliaGeometry::chest, "chest_winged", RegaliaGeometry::chestWinged,
+            "head", RegaliaGeometry::head, "chest", RegaliaGeometry::chest,
             "legs", RegaliaGeometry::legs, "feet", RegaliaGeometry::feet);
     private static final Map<String, String[]> PARTS = Map.of(
             "head", new String[]{"head/head_regalia"},
             "chest", new String[]{"body/body_regalia", "right_arm/right_arm_regalia", "left_arm/left_arm_regalia"},
-            "chest_winged", new String[]{"body/body_regalia", "right_arm/right_arm_regalia", "left_arm/left_arm_regalia",
-                    "body/right_wing", "body/left_wing", "body/right_wing/right_wing_mid", "body/right_wing/right_wing_mid/right_wing_tip",
-                    "body/left_wing/left_wing_mid/left_wing_tip"},
             "legs", new String[]{"right_leg/right_leg_regalia", "left_leg/left_leg_regalia"},
             "feet", new String[]{"right_leg/right_leg_regalia", "left_leg/left_leg_regalia"});
 
@@ -45,7 +42,15 @@ class QueenArmorModelsTest {
                 assertTrue(root.getChild(bare).isEmpty(), piece.getKey() + ": " + bare + " has cubes of its own");
             }
         }
-        // Only the winged bodice has wings.
-        assertTrue(!RegaliaGeometry.chest().bakeRoot().getChild("body").hasChild("right_wing"), "the plain bodice has wings");
+        // The wings (0.82.0) are a model of their own: each a chain, root, arm, hand, four fingers, all with cubes.
+        ModelPart wings = RegaliaWingsGeometry.create().bakeRoot();
+        for (String side : new String[]{"right_wing", "left_wing"}) {
+            ModelPart hand = wings.getChild(side).getChild(side + "_arm").getChild(side + "_hand");
+            assertTrue(!hand.isEmpty(), side + ": its hand has no cubes");
+            for (int i = 0; i < 4; i++) {
+                assertTrue(!hand.getChild(side + "_finger" + i).isEmpty(), side + ": finger " + i + " has no cubes");
+            }
+        }
+        assertDoesNotThrow(() -> new RegaliaWingsModel(wings));
     }
 }
