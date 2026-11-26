@@ -63,10 +63,18 @@ final class RegaliaGeometry {
         body.addOrReplaceChild("body_regalia", CubeListBuilder.create().texOffs(152, 0).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, new CubeDeformation(1.01F)).texOffs(48, 41).addBox(-4.0F, 9.5F, -2.0F, 8.0F, 2.0F, 4.0F, new CubeDeformation(1.3F)).texOffs(160, 41).addBox(-1.5F, 9.0F, -3.7F, 3.0F, 3.0F, 0.6F), PartPose.ZERO);
         rightarm.addOrReplaceChild("right_arm_regalia", CubeListBuilder.create().texOffs(176, 0).addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(1.0F)).texOffs(68, 28).addBox(-4.5F, -3.5F, -3.0F, 5.0F, 4.0F, 6.0F).texOffs(168, 41).addBox(-5.5F, -6.5F, -2.2F, 1.0F, 3.0F, 1.0F).texOffs(136, 41).addBox(-5.5F, -7.5F, -0.5F, 1.0F, 4.0F, 1.0F).texOffs(172, 41).addBox(-5.5F, -6.5F, 1.3F, 1.0F, 3.0F, 1.0F), PartPose.ZERO);
         leftarm.addOrReplaceChild("left_arm_regalia", CubeListBuilder.create().texOffs(192, 0).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(1.0F)).texOffs(90, 28).addBox(-0.5F, -3.5F, -3.0F, 5.0F, 4.0F, 6.0F).texOffs(176, 41).addBox(4.5F, -6.5F, -2.2F, 1.0F, 3.0F, 1.0F).texOffs(140, 41).addBox(4.5F, -7.5F, -0.5F, 1.0F, 4.0F, 1.0F).texOffs(180, 41).addBox(4.5F, -6.5F, 1.3F, 1.0F, 3.0F, 1.0F), PartPose.ZERO);
-        body.addOrReplaceChild("right_wing", CubeListBuilder.create().texOffs(0, 0).addBox(-30.0F, -14.0F, 0.0F, 30.0F, 28.0F, 0.0F).texOffs(0, 48).addBox(-29.0F, -14.5F, -0.75F, 29.0F, 1.5F, 1.5F),
+        PartDefinition rightwing = body.addOrReplaceChild("right_wing", CubeListBuilder.create().texOffs(0, 0).addBox(-10.0F, -14.0F, 0.0F, 10.0F, 28.0F, 0.0F).texOffs(216, 41).addBox(-10.0F, -14.5F, -0.75F, 10.0F, 1.5F, 1.5F),
                 PartPose.offsetAndRotation(-2.0F, 2.5F, 3.2F, 0.0F, 0.0F, 0.0F));
-        body.addOrReplaceChild("left_wing", CubeListBuilder.create().texOffs(60, 0).addBox(0.0F, -14.0F, 0.0F, 30.0F, 28.0F, 0.0F).texOffs(62, 48).addBox(0.0F, -14.5F, -0.75F, 29.0F, 1.5F, 1.5F),
+        PartDefinition rightwingmid = rightwing.addOrReplaceChild("right_wing_mid", CubeListBuilder.create().texOffs(20, 0).addBox(-10.0F, -14.0F, 0.0F, 10.0F, 28.0F, 0.0F).texOffs(0, 48).addBox(-10.0F, -14.5F, -0.75F, 10.0F, 1.5F, 1.5F),
+                PartPose.offsetAndRotation(-10.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition rightwingtip = rightwingmid.addOrReplaceChild("right_wing_tip", CubeListBuilder.create().texOffs(40, 0).addBox(-10.0F, -14.0F, 0.0F, 10.0F, 28.0F, 0.0F).texOffs(24, 48).addBox(-10.0F, -14.5F, -0.75F, 10.0F, 1.5F, 1.5F),
+                PartPose.offsetAndRotation(-10.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition leftwing = body.addOrReplaceChild("left_wing", CubeListBuilder.create().texOffs(60, 0).addBox(0.0F, -14.0F, 0.0F, 10.0F, 28.0F, 0.0F).texOffs(48, 48).addBox(0.0F, -14.5F, -0.75F, 10.0F, 1.5F, 1.5F),
                 PartPose.offsetAndRotation(2.0F, 2.5F, 3.2F, 0.0F, 0.0F, 0.0F));
+        PartDefinition leftwingmid = leftwing.addOrReplaceChild("left_wing_mid", CubeListBuilder.create().texOffs(80, 0).addBox(0.0F, -14.0F, 0.0F, 10.0F, 28.0F, 0.0F).texOffs(72, 48).addBox(0.0F, -14.5F, -0.75F, 10.0F, 1.5F, 1.5F),
+                PartPose.offsetAndRotation(10.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition leftwingtip = leftwingmid.addOrReplaceChild("left_wing_tip", CubeListBuilder.create().texOffs(100, 0).addBox(0.0F, -14.0F, 0.0F, 10.0F, 28.0F, 0.0F).texOffs(96, 48).addBox(0.0F, -14.5F, -0.75F, 10.0F, 1.5F, 1.5F),
+                PartPose.offsetAndRotation(10.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
