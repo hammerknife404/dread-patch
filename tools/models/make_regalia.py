@@ -336,7 +336,7 @@ def textured_quads(parts, mats, textures):
                             bot = [c[2][k] + (c[3][k] - c[2][k]) * s for k in range(3)]
                             return [top[k] + (bot[k] - top[k]) * t for k in range(3)]
                         s0, s1, t0, t1 = i / cols, (i + 1) / cols, j / rows, (j + 1) / rows
-                        glow = colour[:3] in (armour.CYAN, armour.CYAN_LIGHT)
+                        glow = colour[:3] in (armour.CROWN, armour.CROWN_LIGHT)
                         quads.append(([at(s0, t0), at(s1, t0), at(s1, t1), at(s0, t1)], colour[:3], glow))
     return quads
 
