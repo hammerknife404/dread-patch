@@ -38,6 +38,7 @@ public final class RegaliaWingsModel extends Model {
     private final ModelPart root;
     private final ModelPart[] roots = new ModelPart[2];
     private final ModelPart[] hands = new ModelPart[2];
+    private final ModelPart[] arms = new ModelPart[2];
     private final Map<LivingEntity, State> states = new WeakHashMap<>();
 
     public RegaliaWingsModel(ModelPart root) {
@@ -46,7 +47,8 @@ public final class RegaliaWingsModel extends Model {
         String[] names = {"right_wing", "left_wing"};
         for (int i = 0; i < 2; i++) {
             this.roots[i] = root.getChild(names[i]);
-            this.hands[i] = this.roots[i].getChild(names[i] + "_arm").getChild(names[i] + "_hand");
+            this.arms[i] = this.roots[i].getChild(names[i] + "_arm");
+            this.hands[i] = this.arms[i].getChild(names[i] + "_hand");
         }
     }
 
@@ -107,6 +109,10 @@ public final class RegaliaWingsModel extends Model {
                 -0.35F + 0.25F * open + 0.15F * beatGlide + 0.03F * Mth.sin(time * 0.15F),
                 0.1F - 0.6F * sweep * (1.0F - open) - 0.5F * dive + 0.5F * open + 0.3F * flap * Mth.sin(state.flapPhase - 0.9F)};
         float flutter = 0.05F * Math.min(1.0F, state.speed) * Mth.sin(time * 2.3F) * state.glide;
+        // Lifted (0.82.6, the owner: "The wings should go up/out a bit more during slowing or slower banking", the wrist
+        // circled): slowing, or banking at less than a fast glide's speed, raises the shoulders and the arm bones, the
+        // wrists going up and out.
+        float lift = state.glide * Mth.clamp(open + 1.5F * Math.abs(state.bank) * (1.0F - sweep), 0.0F, 1.0F);
         float phase = time * (Mth.TWO_PI / 22.0F);
         float[] beat = {0.0F, 0.35F + 0.7F * Mth.sin(phase), -0.3F + 0.15F * Mth.sin(phase), 0.3F * Mth.sin(phase - 0.8F)};
         float[] pose = new float[4];
@@ -123,6 +129,10 @@ public final class RegaliaWingsModel extends Model {
             this.roots[i].zRot = pose[2] * m + state.bank;
             this.hands[i].yRot = pose[3] * m;
             this.hands[i].zRot += flutter * m;
+            this.roots[i].zRot += 0.3F * lift * m;
+            this.roots[i].yRot -= 0.2F * lift * m;
+            this.arms[i].zRot += 0.25F * lift * m;
+            this.hands[i].zRot -= 0.25F * lift * m;
         }
     }
 
