@@ -94,7 +94,7 @@ def main():
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
                   "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms",
-                  "dreadpatch:rimefire_blast"}
+                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -501,6 +501,34 @@ def main():
     record("her bolt's share is capped at 20", 963 <= hp <= 967, f"golem health {hp}, expected about 966 (uncapped it'd be 906)")
     rcon.run("kill @e[tag=smoke_target]")
     rcon.run("kill @e[tag=smoke_caster]")
+
+    # Sublimate (0.74.0): an instant piercing cone, 12 blocks at level 5, from an armor stand facing +x: a golem
+    # 6 off and one 10 off behind it are both struck (8 damage) and left Rimefrost I; one 6 off but 8 to the
+    # side, outside the cone, isn't touched.
+    rcon.run('summon minecraft:iron_golem 8.5 200 4.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target","smoke_sub_near"]}')
+    rcon.run('summon minecraft:iron_golem 12.5 200 4.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target","smoke_sub_far"]}')
+    rcon.run('summon minecraft:iron_golem 8.5 200 12.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_target","smoke_sub_side"]}')
+    rcon.run('summon minecraft:armor_stand 2.5 200 4.5 {Tags:["smoke_caster"],Rotation:[-90f,0f]}')
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:sublimate 5")
+    time.sleep(0.5)
+    near, far, side = (health(f"@e[tag=smoke_sub_{n},limit=1]") for n in ("near", "far", "side"))
+    record("Sublimate pierces: both golems in its cone are struck", 88 <= near < 100 and 88 <= far < 100, f"near {near}, far {far}")
+    record("Sublimate leaves Rimefrost and (0.74.1) Whiteout on both",
+           all(has_effect(f"@e[tag=smoke_sub_{n},limit=1]", e) for n in ("near", "far") for e in ("dreadpatch:rimefrost", "dreadpatch:whiteout")),
+           "no Rimefrost or Whiteout")
+    record("Sublimate misses one outside its cone", side == 100 and not has_effect("@e[tag=smoke_sub_side,limit=1]", "dreadpatch:rimefrost"), f"side {side}")
+    rcon.run("kill @e[tag=smoke_target]")
+    rcon.run("kill @e[tag=smoke_caster]")
+    # A Dread Lich killed by a player now and then leaves a Sublimate scroll: its table (10%; none in 60 is 0.2%)
+    # rolled here; the loot modifier adding it to Ice and Fire's lich (on a player's kill) needs a player.
+    rcon.run("kill @e[type=item]")
+    rcon.run('summon iceandfire:dread_lich 4.5 200 8.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_lich_loot"]}')
+    for _ in range(60):
+        rcon.run("execute as @e[tag=smoke_lich_loot,limit=1] run loot spawn 4.5 201 8.5 loot dreadpatch:entities/dread_lich_sublimate")
+    scrolls = count("irons_spellbooks:scroll")
+    record("the lich's table gives a Sublimate scroll now and then", 1 <= scrolls <= 20, f"{scrolls} in 60")
+    rcon.run("kill @e[tag=smoke_lich_loot]")
+    rcon.run("kill @e[type=item]")
 
     # Rimefire Blast (0.51.0): its cone, summoned (a mob can't hold a continuous spell through /cast: Iron's
     # Cone of Cold doesn't fire that way either), owned by a villager facing a golem, hits it for its
@@ -961,6 +989,8 @@ def main():
             break
     record("in a fight its lure's pulse lays Rimefrost or Whiteout", pulsed, "the zombie had neither 10 s on")
     record("and sends it into a Frenzy", frenzied, rcon.run(f"data get entity {eel} Frenzy").strip())
+    record("and lights it up (0.75.1): Glowing on the zombie, none on the eel",
+           pulsed and has_effect(prey, "minecraft:glowing") and not has_effect(eel, "minecraft:glowing"), "glowing wrong")
     rcon.run("kill @e[tag=smoke_eel_prey]")
     rcon.run("kill @e[type=item]")
     for _ in range(10):
@@ -2350,6 +2380,139 @@ def main():
         rcon.run("loot spawn 20.5 221 12.5 loot dreadpatch:chests/spire_summit")
     discs = count("dreadpatch:music_disc_entombed_in_rimefrost")
     record("spire summit chests hold the disc now and then", 1 <= discs <= 20, f"{discs} in 60 chests")
+    rcon.run("kill @e[type=item]")
+
+    # Her boss theme (0.72.0): a fresh queen or Syndrigossa is marked as she spawns (the start goes to players
+    # near her; a marked one never plays it again). Its disc plays in a jukebox, and Syndrigossa's heart holds
+    # it one time in four (none in 40 is 1e-5).
+    out = rcon.run('summon dreadpatch:dread_queen 24.5 221 8.5 {UUID:[I;72,72,72,1],NoAI:1b,PersistenceRequired:1b}')
+    record("a summoned queen spawns (boss music)", "Summoned" in out, out.strip())
+    out = rcon.run('summon dreadpatch:syndrigossa 24.5 221 4.5 {UUID:[I;72,72,72,2],NoAI:1b,PersistenceRequired:1b}')
+    record("a summoned Syndrigossa spawns (boss music)", "Summoned" in out, out.strip())
+    marked = ["Test passed" in rcon.run(f'execute as {who} if data entity @s NeoForgeData."dreadpatch:boss_music_played"')
+              for who in ("00000048-0000-0048-0000-004800000001", "00000048-0000-0048-0000-004800000002")]
+    record("a fresh queen and Syndrigossa are marked for her theme", all(marked), str(marked))
+    rcon.run("kill @e[type=item]")
+    for _ in range(40):
+        rcon.run("execute as 00000048-0000-0048-0000-004800000002 run loot spawn 20.5 221 12.5 loot dreadpatch:entities/syndrigossa/heart")
+    discs = count("dreadpatch:music_disc_beneath_the_permafrost")
+    record("Syndrigossa's heart holds her theme's disc now and then", 1 <= discs <= 25, f"{discs} in 40 hearts")
+    rcon.run("kill @e[type=item]")
+    rcon.run("kill @e[type=dreadpatch:dread_queen]")
+    rcon.run("kill @e[type=dreadpatch:syndrigossa]")
+    rcon.run("kill @e[type=item]")
+
+    # Dread knights and webs (0.75.0), at x 100-125 (forceloaded):
+    rcon.run("forceload add 96 -8 127 15")
+    rcon.run("fill 96 219 -6 127 226 12 minecraft:air")
+    rcon.run("fill 96 218 -6 127 218 12 minecraft:stone")
+    time.sleep(2.0)  # the forceloaded chunks ticking, or a summon there isn't found at once
+    # - a knight is half again as large, an eighth faster, and steps a full block;
+    rcon.run('summon iceandfire:dread_knight 100.5 219 10.5 {UUID:[I;75,75,75,1],NoAI:1b,PersistenceRequired:1b,Silent:1b}')
+    knight = "0000004b-0000-004b-0000-004b00000001"
+    check("a dread knight is half again as large", f"attribute {knight} minecraft:generic.scale get", "is 1.5")
+    check("a dread knight is an eighth faster", f"attribute {knight} minecraft:generic.movement_speed get", "is 0.28125")
+    check("a dread knight steps a full block", f"attribute {knight} minecraft:generic.step_height get", "is 1.0")
+    # - standing in the open it's 2.7 tall (its box reaches 221.5 from 219); under a ceiling 2 blocks up it
+    #   crouches to 1.8 (its box stays under 221);
+    standing = "Test passed" in rcon.run(f"execute positioned 100.0 221.5 10.0 if entity @e[type=iceandfire:dread_knight,dx=0,dy=0,dz=0]")
+    rcon.run("fill 102 221 9 104 221 11 minecraft:stone")
+    rcon.run('summon iceandfire:dread_knight 103.5 219 10.5 {UUID:[I;75,75,75,2],NoAI:1b,PersistenceRequired:1b,Silent:1b}')
+    time.sleep(1.0)
+    crouched = "Test passed" not in rcon.run(f"execute positioned 103.0 220.9 10.0 if entity @e[type=iceandfire:dread_knight,dx=0,dy=0,dz=0]") \
+        and "Test passed" in rcon.run(f"execute positioned 103.0 220.5 10.0 if entity @e[type=iceandfire:dread_knight,dx=0,dy=0,dz=0]")
+    record("a dread knight stands 2.7 tall in the open", standing, "its box doesn't reach 221.5")
+    record("a dread knight crouches under a 2-block ceiling", crouched, "its box reaches past 220.9, or isn't there")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000001")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000002")
+    # - with its AI, from an open room it walks crouched down a 2-high, 1-wide tunnel 11 long to a zombie
+    #   (NoAI, resistance) at its end, within 30 s (by hand, 10 s).
+    rcon.run("fill 100 219 -6 125 224 4 minecraft:stone")
+    rcon.run("fill 101 219 -5 106 222 3 minecraft:air")
+    rcon.run("fill 107 219 -1 117 220 -1 minecraft:air")
+    time.sleep(0.5)
+    rcon.run('summon minecraft:zombie 117.5 219 -0.5 {UUID:[I;75,75,75,9],NoAI:1b,PersistenceRequired:1b,Silent:1b,active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:99999}]}')
+    rcon.run('summon iceandfire:dread_knight 102.5 219 -0.5 {UUID:[I;75,75,75,3],PersistenceRequired:1b,Silent:1b}')
+    # Standing in the room its eyes (221.3) are over the tunnel's roof, so it can't see the zombie down it; the
+    # zombie's "hit" makes it the knight's target (revenge needs no sight). Unprovoked, a knight wandered in
+    # by hand, but not every run.
+    time.sleep(0.5)
+    rcon.run("damage 0000004b-0000-004b-0000-004b00000003 1 minecraft:mob_attack by 0000004b-0000-004b-0000-004b00000009")
+    walked = None
+    for _ in range(60):
+        time.sleep(0.5)
+        pos = re.search(r"\[([-0-9.]+)d,", rcon.run("data get entity 0000004b-0000-004b-0000-004b00000003 Pos"))
+        if pos and float(pos.group(1)) >= 113.0:
+            walked = float(pos.group(1))
+            break
+    record("a dread knight walks crouched down a 2-high tunnel", walked is not None,
+           "x " + (pos.group(1) if pos else "?") + " after 30 s (tunnel 107-117)")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000003")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000009")
+    rcon.run("fill 100 219 -6 125 224 4 minecraft:air")
+    # - (0.75.1) a scuttler notices what's 24 off and is 10% faster (Ice and Fire's 12 and 0.34);
+    rcon.run('summon iceandfire:dread_scuttler 120.5 219 10.5 {UUID:[I;75,75,75,5],NoAI:1b,PersistenceRequired:1b,Silent:1b}')
+    check("a dread scuttler notices what's 24 blocks off", "attribute 0000004b-0000-004b-0000-004b00000005 minecraft:generic.follow_range get", "is 24.0")
+    check("a dread scuttler is 10% faster", "attribute 0000004b-0000-004b-0000-004b00000005 minecraft:generic.movement_speed get", "is 0.374")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000005")
+    # - a scuttler's web melts after 3 s; its shot, falling onto the floor, leaves one (mobGriefing on).
+    rcon.run("setblock 110 219 8 dreadpatch:dread_web")
+    placed = "Test passed" in rcon.run("execute if block 110 219 8 dreadpatch:dread_web")
+    time.sleep(4.0)
+    melted = "Test passed" in rcon.run("execute if block 110 219 8 minecraft:air")
+    record("a dread web melts away after 3 s", placed and melted, f"placed {placed}, melted {melted}")
+    rcon.run('summon dreadpatch:scuttler_web 114.5 222 8.5 {Motion:[0.0d,-0.6d,0.0d]}')
+    time.sleep(1.0)
+    shot = "Test passed" in rcon.run("execute if block 114 219 8 dreadpatch:dread_web")
+    record("a scuttler's web shot leaves a web where it lands", shot, rcon.run("execute if block 114 219 8 dreadpatch:dread_web").strip())
+    time.sleep(3.5)
+    rcon.run("fill 96 218 -6 127 226 12 minecraft:air")
+    rcon.run("forceload remove 96 -8 127 15")
+
+    # The Dread's hits (0.73.0): a melee hit (`/damage ... mob_attack by` it) from a scuttler, a knight and a
+    # thrall on a sturdy NoAI zombie, 80 each, 0.55 s apart (past its half second of invulnerability after a
+    # hit), its effects cleared between: a scuttler's leave Withering Rime II now and then (8%) and 2 s of
+    # Rimefrost often (35%); a knight's Withering Rime I now and then (8%) and 3 s of Rimefrost sometimes (13%,
+    # 0.73.1); a thrall's each at 5% (0.73.1). (None in 80 at 8% is 0.1%, at 5% 1.7%: both a thrall's are
+    # counted together, none of either in 80 being 0.03%.) The one-source cap is on players, so it needs one.
+    rcon.run('summon minecraft:zombie 24.5 221 12.5 {UUID:[I;73,73,73,9],NoAI:1b,PersistenceRequired:1b,Silent:1b,'
+             'attributes:[{id:"minecraft:generic.max_health",base:1000d}],Health:1000f}')
+    dread_kinds = {"scuttler": "iceandfire:dread_scuttler", "knight": "iceandfire:dread_knight", "thrall": "iceandfire:dread_thrall"}
+    tallies = {}
+    for n, (kind, entity_type) in enumerate(dread_kinds.items()):
+        uuid = f"00000049-0000-0049-0000-00490000000{n + 1}"
+        rcon.run(f'summon {entity_type} 28.5 221 12.5 {{UUID:[I;73,73,73,{n + 1}],NoAI:1b,PersistenceRequired:1b,Silent:1b}}')
+        tally = {"wr1": 0, "wr2": 0, "rf": 0, "rf_long": 0}
+        for _ in range(80):
+            time.sleep(0.55)
+            rcon.run("effect clear 00000049-0000-0049-0000-004900000009")
+            rcon.run("data merge entity 00000049-0000-0049-0000-004900000009 {Health:1000f}")
+            rcon.run(f"damage 00000049-0000-0049-0000-004900000009 2 minecraft:mob_attack by {uuid}")
+            effects = rcon.run("data get entity 00000049-0000-0049-0000-004900000009 active_effects")
+            wr = re.search(r'\{[^{}]*id: "dreadpatch:withering_rime"[^{}]*\}', effects)
+            if wr:
+                tally["wr2" if "amplifier: 1b" in wr.group(0) else "wr1"] += 1
+            rf = re.search(r'\{[^{}]*id: "dreadpatch:rimefrost"[^{}]*\}', effects)
+            if rf:
+                tally["rf"] += 1
+                tally["rf_long"] += int(re.search(r"duration: (\d+)", rf.group(0)).group(1)) > 40
+        tallies[kind] = tally
+        rcon.run(f"kill {uuid}")
+    s, k, t = tallies["scuttler"], tallies["knight"], tallies["thrall"]
+    record("a scuttler's hits leave Withering Rime II now and then and a brief Rimefrost often",
+           1 <= s["wr2"] <= 20 and s["wr1"] == 0 and 12 <= s["rf"] <= 48 and s["rf_long"] == 0, str(s))
+    record("a knight's hits leave Withering Rime now and then, and a 3 s Rimefrost sometimes",
+           1 <= k["wr1"] <= 20 and k["wr2"] == 0 and 2 <= k["rf"] <= 26 and k["rf_long"] == k["rf"], str(k))
+    record("a thrall's hits leave Withering Rime and Rimefrost rarely", 1 <= t["wr1"] + t["rf"] <= 24 and t["wr1"] <= 14 and t["rf"] <= 14, str(t))
+    rcon.run("kill 00000049-0000-0049-0000-004900000009")
+    rcon.run("kill @e[type=item]")
+    rcon.run("setblock 20 220 12 minecraft:jukebox")
+    rcon.run("item replace block 20 220 12 container.0 with dreadpatch:music_disc_beneath_the_permafrost")
+    time.sleep(0.5)
+    playing = "Test passed" in rcon.run("execute if block 20 220 12 minecraft:jukebox[has_record=true]") \
+        and "ticks_since_song_started" in rcon.run("data get block 20 220 12")
+    record("her theme's disc plays in a jukebox", playing, rcon.run("data get block 20 220 12").strip())
+    rcon.run("setblock 20 220 12 minecraft:air")
     rcon.run("kill @e[type=item]")
 
     rcon.run("fill 3 199 2 7 204 2 minecraft:air")

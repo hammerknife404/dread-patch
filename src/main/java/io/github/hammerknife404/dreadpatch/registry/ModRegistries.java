@@ -125,6 +125,13 @@ public final class ModRegistries {
                     .clientTrackingRange(10)
                     .build(DreadPatch.id("dread_queen").toString()));
 
+    /** A dread scuttler's web shot (0.75.0). */
+    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.ScuttlerWeb>> SCUTTLER_WEB = ENTITY_TYPES.register("scuttler_web",
+            () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.ScuttlerWeb>of(io.github.hammerknife404.dreadpatch.entity.ScuttlerWeb::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10)
+                    .build(DreadPatch.id("scuttler_web").toString()));
     public static final DeferredHolder<EntityType<?>, EntityType<WitheringRimeBolt>> WITHERING_RIME_BOLT = ENTITY_TYPES.register("withering_rime_bolt",
             () -> EntityType.Builder.<WitheringRimeBolt>of(WitheringRimeBolt::new, MobCategory.MISC)
                     .sized(0.5F, 0.5F)
@@ -243,6 +250,17 @@ public final class ModRegistries {
                     .pushReaction(PushReaction.DESTROY)
                     .noLootTable()));
 
+    /** A dread scuttler's web (0.75.0): holds less than a cobweb, melts after 3 s, drops nothing. No item. */
+    public static final DeferredBlock<io.github.hammerknife404.dreadpatch.block.DreadWebBlock> DREAD_WEB = BLOCKS.register("dread_web",
+            () -> new io.github.hammerknife404.dreadpatch.block.DreadWebBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOL)
+                    .noCollission()
+                    .strength(1.0F)
+                    .sound(SoundType.COBWEB)
+                    .pushReaction(PushReaction.DESTROY)
+                    .noOcclusion()
+                    .noLootTable()));
+
     /** The Dread's lantern (0.57.0): a soul lantern's shape and light, its flame her cyan. Fading lanterns and the villages' end as it. */
     public static final DeferredBlock<net.minecraft.world.level.block.LanternBlock> DREAD_LANTERN = BLOCKS.register("dread_lantern",
             () -> new net.minecraft.world.level.block.LanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)
@@ -355,6 +373,16 @@ public final class ModRegistries {
     public static final ResourceKey<JukeboxSong> ENTOMBED_IN_RIMEFROST = ResourceKey.create(Registries.JUKEBOX_SONG, DreadPatch.id("entombed_in_rimefrost"));
     public static final DeferredItem<Item> MUSIC_DISC_ENTOMBED_IN_RIMEFROST = ITEMS.registerSimpleItem("music_disc_entombed_in_rimefrost",
             new Item.Properties().stacksTo(1).rarity(Rarity.RARE).jukeboxPlayable(ENTOMBED_IN_RIMEFROST));
+    /**
+     * Her boss theme (0.72.0): the owner's "Beneath the Permafrost" (tools/music/make_music.py), played once as
+     * the queen or Syndrigossa spawns ({@code world/BossMusic}). Its disc, from Syndrigossa's heart, plays a mono
+     * copy at 0.7 volume (sounds.json).
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_QUEEN_MUSIC = sound("music.dread_queen");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BENEATH_THE_PERMAFROST_RECORD = sound("music_disc.beneath_the_permafrost");
+    public static final ResourceKey<JukeboxSong> BENEATH_THE_PERMAFROST = ResourceKey.create(Registries.JUKEBOX_SONG, DreadPatch.id("beneath_the_permafrost"));
+    public static final DeferredItem<Item> MUSIC_DISC_BENEATH_THE_PERMAFROST = ITEMS.registerSimpleItem("music_disc_beneath_the_permafrost",
+            new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).jukeboxPlayable(BENEATH_THE_PERMAFROST));
 
     /** On her sword: its guard has charged the blade, and its next full strike shatters. Saved and sent to clients (the tooltip shows it). */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FROST_CHARGE = DATA_COMPONENTS.registerComponentType("frost_charge",
@@ -368,6 +396,7 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, CreateRimefrostDragonSpell> CREATE_RIMEFROST_DRAGON_SPELL = SPELLS.register("create_rimefrost_dragon", CreateRimefrostDragonSpell::new);
     public static final DeferredHolder<AbstractSpell, SummonDreadPhantomsSpell> SUMMON_DREAD_PHANTOMS_SPELL = SPELLS.register("summon_dread_phantoms", SummonDreadPhantomsSpell::new);
     public static final DeferredHolder<AbstractSpell, RimefireBlastSpell> RIMEFIRE_BLAST_SPELL = SPELLS.register("rimefire_blast", RimefireBlastSpell::new);
+    public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.SublimateSpell> SUBLIMATE_SPELL = SPELLS.register("sublimate", io.github.hammerknife404.dreadpatch.spell.SublimateSpell::new);
 
     private ModRegistries() {
     }

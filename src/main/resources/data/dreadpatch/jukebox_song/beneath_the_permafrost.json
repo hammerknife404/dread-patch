@@ -1,0 +1,8 @@
+{
+  "comparator_output": 10,
+  "description": {
+    "translate": "jukebox_song.dreadpatch.beneath_the_permafrost"
+  },
+  "length_in_seconds": 180.0,
+  "sound_event": "dreadpatch:music_disc.beneath_the_permafrost"
+}

@@ -1,28 +1,32 @@
-"""Makes the Dreadlands' music from the owner's recording, into src/main/resources.
+"""Makes the mod's music from the owner's recordings, into src/main/resources.
 
 Python 3 (stdlib) and ffmpeg with libvorbis.
 
-    python3 tools/music/make_music.py ["custom_music/Entombed In Rimefrost.mp4"]
+    python3 tools/music/make_music.py
 
-The source isn't in the repository (a 9 MB video). Two Ogg Vorbis files come out of it, both brought to
-TARGET_LUFS by a plain gain (so its dynamics are kept; the recording is about -12.4 LUFS, vanilla's
-music about -15 to -16.5, and the owner asked for it not too loud):
+The sources (videos in the untracked custom_music/) aren't in the repository. Each track (TRACKS) gives
+two Ogg Vorbis files, both brought to TARGET_LUFS by a plain gain (so its dynamics are kept; the
+recordings are about -12.4 LUFS, vanilla's music about -15 to -16.5, and the owner asked for it not too
+loud):
 
-- sounds/music/entombed_in_rimefrost.ogg, stereo: the Dreadlands' background music;
-- sounds/records/entombed_in_rimefrost.ogg, mono: the music disc. A jukebox's sound fades with distance
-  only if it's mono (OpenAL plays stereo at full volume wherever the listener is).
+- sounds/music/<name>.ogg, stereo: played as music (the Dreadlands', 0.60.0; her boss theme, 0.72.0);
+- sounds/records/<name>.ogg, mono: its music disc. A jukebox's sound fades with distance only if it's
+  mono (OpenAL plays stereo at full volume wherever the listener is).
 
 It prints each file's length: the jukebox song's length_in_seconds must cover it.
 """
 import pathlib
 import re
 import subprocess
-import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SOUNDS = REPO / "src/main/resources/assets/dreadpatch/sounds"
-SOURCE = REPO / "custom_music/Entombed In Rimefrost.mp4"
-NAME = "entombed_in_rimefrost"
+MUSIC = REPO / "custom_music"
+# name: source video.
+TRACKS = {
+    "entombed_in_rimefrost": "Entombed In Rimefrost.mp4",
+    "beneath_the_permafrost": "Beneath_the_Permafrost.mp4",
+}
 TARGET_LUFS = -17.0
 # Vorbis quality: 4 is about 128 kb/s stereo, vanilla's own music is near it.
 QUALITY = {"music": 4, "records": 3}
@@ -46,9 +50,9 @@ def length(path):
     return float(out.strip())
 
 
-def make(source, folder, channels):
+def make(source, name, folder, channels):
     gain = TARGET_LUFS - loudness(source, channels)
-    target = SOUNDS / folder / f"{NAME}.ogg"
+    target = SOUNDS / folder / f"{name}.ogg"
     target.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source), "-vn", "-map_metadata", "-1",
@@ -61,9 +65,9 @@ def make(source, folder, channels):
 
 
 def main():
-    source = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else SOURCE
-    make(source, "music", 2)
-    make(source, "records", 1)
+    for name, file in TRACKS.items():
+        make(MUSIC / file, name, "music", 2)
+        make(MUSIC / file, name, "records", 1)
 
 
 if __name__ == "__main__":

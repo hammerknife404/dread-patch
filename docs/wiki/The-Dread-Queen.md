@@ -9,9 +9,15 @@
 
 A lean sovereign: 300 health behind 20 armor and 12 toughness (a full netherite set's), with a boss bar and her sword and staff. She has her original model from Ice and Fire, given a woman's figure (a bust in her chestplate's armor, as body mods give female player models), and she rises out of the ground when she spawns.
 
+**Her theme**, "Beneath the Permafrost", plays once for everyone within 96 blocks when she or Syndrigossa spawns, cutting off whatever music was playing. It never starts over or plays twice at once (she spawns with her dragon), and no other music cuts it off. Once it ends, the usual music comes back after the usual wait.
+
 She fights like a necromancer. She keeps her distance, circling at casting range and giving ground when pressed, and saves her sword for whoever still reaches her.
 
 **Withering Rime** is the mark of all her magic. It withers through armor, freezes and stops all healing, and it feeds her: each second it withers anyone she afflicted (by her bolt, her crown's shrapnel, her sword, her Decree or her husk), she heals 1 on Easy, 2 on Normal and 3 on Hard for each of them, while she's within 32 blocks. Her victims lose 1 a second, as under anyone's Withering Rime; a player's Withering Rime feeds no one. No share of anything's max health she takes, from any spell or her sword, is ever more than 20, so a warden or a dragon is a long fight for her too.
+
+**The Dread's own hits** carry it too. A dread scuttler's bite leaves Withering Rime II now and then (8%), as Syndrigossa's does, and one bite in three a brief 2-second Rimefrost, which a fresh bite renews but never deepens. A dread knight's blows leave Withering Rime now and then (8%), and 3 seconds of Rimefrost a little more often (13%). Every other Dread mob (thralls, ghouls, beasts, liches and the risen) leaves 3 seconds of Withering Rime with 5% of its hits and 5 seconds of Rimefrost with another 5%, rolled apart.
+
+**One source at a time:** on a player, Withering Rime and Rimefrost each come from one source at a time. While one mob's lasts, another's doesn't land, so a pack can't keep piling it on; the same mob can renew its own. The queen and Syndrigossa always land theirs, taking it over. The weather's Rimefrost is no one's, so it never blocks anyone's. When her Withering Rime is on several targets at once, each feeds her in full unless the server caps how many do (`siphon_targets`) or shares her heal among them (`siphon_split`).
 
 Her abilities:
 
@@ -19,7 +25,8 @@ Her abilities:
 - **Rimefire Crown:** a ring of ice spikes round her target, wreathed in cold cyan dread fire over cyan and black smoke. It roots everyone inside and drinks every other fire within it. She then shatters it with her bolt for a burst of shrapnel.
 - **Barrow-Step:** when cornered, she steps 10 to 15 blocks away through the cold, leaving a husk of rime-glass in her shape where she stood. Whatever was hunting her turns on the husk, and when it's struck, or after 5 seconds, it shatters, rooting everyone near it for 2 seconds and touching them with Withering Rime.
 - **Rimewalk:** still water freezes under her feet, 4 blocks round, as under Frost Walker II boots, and holds while she stands on it, so water won't keep you from her: she walks straight across lakes and rivers. If she's in water, the surface freezes round her and she climbs out onto it. It's vanilla's frosted ice, which melts back to water in the light once she's gone.
-- **Court of the Dread:** she raises Ice and Fire's own thralls, ghouls, knights and scuttlers from the ground around her. Dread scuttlers, hers and any others, spit a weaker Withering Rime-Bolt from up to 12 blocks every 3 to 4 seconds, and climb walls like spiders.
+- **Court of the Dread:** she raises Ice and Fire's own thralls, ghouls, knights and scuttlers from the ground around her. Dread scuttlers, hers and any others, spit a weaker Withering Rime-Bolt from up to 12 blocks every 3 to 4 seconds, and climb walls like spiders. They notice what's up to 24 blocks off, move a tenth faster than Ice and Fire made them, and every 5 to 8 seconds spit a web at whatever they hunt 4 to 24 blocks off (never at someone already caught in one): where it lands it leaves a **Dread Web**, which holds less than a cobweb and melts away after 3 seconds, drops nothing, and lets the Dread through. They don't spit webs where mobs can't change blocks (`mobGriefing` off).
+- **Dread knights,** hers and any others, stand half again as large as Ice and Fire made them (2.7 blocks tall), walk an eighth faster, and step up a full block. Where a passage is lower than they are, they crouch like a player to squeeze in, down to 1.8 blocks, so a 2-block hallway won't keep one out; it still has to see you to strike, and its box is its real size, so it never hits through a wall.
 - **Beater's Decree:** she burns one of her court from behind as it presses an enemy, a burst of rime that sends the rest of her court into a frenzy.
 - **A Dread Lich:** half a minute into a fight, and at most every 90 seconds after, she raises one beside her, never two at once. It's Ice and Fire's own, with its skulls and the minions it raises itself (up to 5 over its life), fighting what she fights.
 - **Create Rimefrost Dragon:** in a fight, once she's lost a quarter of her health, she raises the corpse of an ice dragon within 32 blocks as a Rimefrost dragon of hers, at most every 3 minutes and one at a time. It rises with half the health she's lost, and fights what she fights.
@@ -41,7 +48,7 @@ Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she 
 
 - Her sword and her staff, each one time in four (Looting raises it: 30% at Looting I, 40% at Looting III).
 - One epic or legendary ink.
-- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court, Create Rimefrost Dragon, Summon Dread Phantoms or Rimefire Blast. They're **Rimefrost** spells ([Spells](Spells)), and but for Rimefire Blast, found nowhere else.
+- One scroll of her spells: Withering Rime-Bolt, Rimefire Crown, Barrow-Step, Whiteout Dominion, Summon Court, Create Rimefrost Dragon, Summon Dread Phantoms, Rimefire Blast or Sublimate. They're **Rimefrost** spells ([Spells](Spells)), and but for Rimefire Blast and Sublimate, found nowhere else.
 - **A piece of her regalia,** when a player kills her (below).
 
 ## Her regalia

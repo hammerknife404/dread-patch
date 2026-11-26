@@ -55,6 +55,15 @@ Bats, parrots and water creatures risen Dread, stirring on their own; and Rime E
 | `chasma_dread_water` | `8` | In the Dreadlands' Rime Chasma, the same for a Rime Eel in one of the pockets of water sealed in its ice near them (on top of the above). 0 for never. |
 | `dreadlands_rime_eels` | `10` | In the Dreadlands, the same for a Rime Eel in any dark water near them (two deep, light 6 or less), on top of the above; never more than 4 eels near. 0 for never. |
 
+## `[siphon]`
+
+How her Withering Rime heals her when it's on several at once. The defaults keep every target feeding her in full.
+
+| Option | Default | What it does |
+|---|---|---|
+| `siphon_targets` | `0` | How many of those she's withering feed her at once, the nearest first. 0 for every one. |
+| `siphon_split` | `false` | Her heal is shared among those feeding her, so all of them heal her what one would. |
+
 ## `[regalia]`
 
 | Option | Default | What it does |

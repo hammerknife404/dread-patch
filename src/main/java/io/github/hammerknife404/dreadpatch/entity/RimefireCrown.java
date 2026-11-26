@@ -132,7 +132,7 @@ public class RimefireCrown extends Entity implements TraceableEntity {
     }
 
     /** Who her magic hits: not its caster or their allies (their summoned court too), and the Dread don't hit the Dread. */
-    static boolean canHarm(@Nullable Entity owner, Entity target) {
+    public static boolean canHarm(@Nullable Entity owner, Entity target) {
         if (owner == null) {
             return true;
         }

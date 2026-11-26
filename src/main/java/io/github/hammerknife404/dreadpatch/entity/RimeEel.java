@@ -244,6 +244,7 @@ public class RimeEel extends Monster implements IDreadMob {
     /**
      * Its lure's pulse: Rimefrost (heavy) or Whiteout, by a coin, on each living thing not of the Dread within
      * {@link RimeEelRules#AURA_RADIUS} (players in creative or spectating aside); if it takes on anything, a Frenzy.
+     * And (0.75.1) Glowing on every living thing in it but Rime Eels, the Dread too.
      */
     void pulse() {
         if (!(this.level() instanceof ServerLevel level)) {
@@ -262,6 +263,13 @@ public class RimeEel extends Monster implements IDreadMob {
         }
         if (caught) {
             this.frenzy = RimeEelRules.FRENZY_TICKS;
+        }
+        // Its lure lights up everything it reaches (0.75.1, the owner): Glowing on every other living thing in
+        // the pulse, the Dread too, but no Rime Eel.
+        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(radius),
+                entity -> !(entity instanceof RimeEel) && entity.isAlive() && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity)
+                        && entity.distanceToSqr(this) <= radius * radius)) {
+            entity.addEffect(new MobEffectInstance(net.minecraft.world.effect.MobEffects.GLOWING, RimeEelRules.AURA_EFFECT_TICKS), this);
         }
         level.broadcastEntityEvent(this, PULSE_EVENT);
         Vec3 lure = this.lantern();

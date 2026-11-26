@@ -74,6 +74,8 @@ public final class DreadPatch {
         SyndrigossaEvents.register(NeoForge.EVENT_BUS);
         ScuttlerBolts.register(NeoForge.EVENT_BUS);
         ScuttlerClimbing.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.ScuttlerWebs.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.DreadKnights.register(NeoForge.EVENT_BUS);
         WhiteoutDominion.register(NeoForge.EVENT_BUS);
         DreadGate.register(NeoForge.EVENT_BUS);
         SummonedCourt.register(NeoForge.EVENT_BUS);
@@ -92,6 +94,7 @@ public final class DreadPatch {
         DreadPatrols.register(NeoForge.EVENT_BUS);
         DevKit.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadlandsMusic.register(modBus, NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.BossMusic.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadlandsUndead.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadwoodSaplings.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.Escalation.register(modBus, NeoForge.EVENT_BUS);
@@ -163,6 +166,7 @@ public final class DreadPatch {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SHOVEL.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_HOE.get());
             event.accept(ModRegistries.MUSIC_DISC_ENTOMBED_IN_RIMEFROST.get());
+            event.accept(ModRegistries.MUSIC_DISC_BENEATH_THE_PERMAFROST.get());
         }
     }
 
