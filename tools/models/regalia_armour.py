@@ -20,8 +20,12 @@ STEEL_DARK = (0x14, 0x1A, 0x24)
 STEEL = (0x22, 0x2B, 0x38)
 STEEL_MID = (0x30, 0x3C, 0x4E)
 STEEL_LIGHT = (0x46, 0x56, 0x6C)
-CYAN = (0x2C, 0xC8, 0xF0)
-CYAN_LIGHT = (0x9C, 0xEC, 0xFF)
+# The armour's trim: a muted ice-blue (0.82.7, the owner: "less overall, not something from the tron movies, close to
+# the videos"); the crown keeps its bright ice.
+CYAN = (0x4E, 0x9A, 0xBC)
+CYAN_LIGHT = (0x8C, 0xC8, 0xDE)
+CROWN = (0x2C, 0xC8, 0xF0)
+CROWN_LIGHT = (0x9C, 0xEC, 0xFF)
 FROST = (0xC4, 0xE0, 0xEE)
 FROST_MID = (0x92, 0xC2, 0xDC)
 ICE_DEEP = (0x4E, 0x8C, 0xB8)
@@ -69,14 +73,15 @@ def crown_spikes():
         z = -3.8 + i * 1.55
         spikes.append(Box(-5.2, -9.2 - h, z, 1.2, h, 1.4, "crown"))
         spikes.append(Box(4.0, -9.2 - h, z, 1.2, h, 1.4, "crown"))
-    spikes.append(Box(-5.2, -9.4, -5.2, 10.4, 1.2, 10.4, "crown_band"))
+    spikes.append(Box(-4.95, -9.4, -4.95, 9.9, 1.2, 9.9, "crown_band"))  # inside the spikes' outer faces (0.82.7)
     return spikes
 
 
 def pauldron(side):
     """Its pauldron (over the arm's top, outward), and frost spikes along it."""
     x = -4.5 if side < 0 else -0.5
-    boxes = [Box(x, -3.5, -3.0, 5.0, 4.0, 6.0, "pauldron")]
+    # 0.82.7: 0.3 out past the vambrace's front and back faces (they shared them, and flickered).
+    boxes = [Box(x, -3.7, -3.3, 5.0, 4.2, 6.6, "pauldron")]
     out = -4.5 if side < 0 else 4.5
     for i, (dz, h) in enumerate(((-2.2, 3), (-0.5, 4), (1.3, 3))):
         sx = out - 1.0 if side < 0 else out - 0.0
@@ -117,7 +122,7 @@ def parts(winged=True):
     p = []
     p.append(Part("head", None, VANILLA["head"], (0, 0, 0), [Box(-4, -8, -4, 8, 8, 8, "helm", 1.0)] + crown_spikes(), "head"))
     p.append(Part("body", None, VANILLA["body"], (0, 0, 0), [
-        Box(-4, 0, -2, 8, 12, 4, "plate", 1.01),
+        Box(-4, 0, -2, 8, 12, 4, "plate", 1.12),  # 1.12, not 1.01: clear of the vambraces at the shoulders (0.82.7)
         Box(-4, 9.5, -2, 8, 2, 4, "belt", 1.3),
         Box(-1.5, 9.0, -3.7, 3, 3, 0.6, "buckle"),
     ], "chest"))
@@ -129,9 +134,10 @@ def parts(winged=True):
         p.append(Part(name + "_legs", None, VANILLA[name], (0, 0, 0), [
             Box(-2, 0, -2, 4, 12, 4, "legging", 0.5),
             # Its half of the tabard, before and behind, hanging from the belt to the knee and swinging with the leg.
-            Box(-2.4, -0.5, -3.1, 4.8, 9, 0.6, "tabard"),
-            Box(-2.4, -0.5, 2.5, 4.8, 9, 0.6, "tabard"),
-            Box(-3.0 if side < 0 else 2.4, -0.5, -2.5, 0.6, 7, 5.0, "tabard_side"),
+            # Clear of the greaves (grown to ±3) all round (0.82.7: the side flaps lay on the greaves' sides, flickering).
+            Box(-2.4, -0.5, -3.6, 4.8, 9, 0.5, "tabard"),
+            Box(-2.4, -0.5, 3.1, 4.8, 9, 0.5, "tabard"),
+            Box(-3.6 if side < 0 else 3.1, -0.5, -2.5, 0.5, 7, 5.0, "tabard_side"),
         ], "legs"))
         p.append(Part(name + "_feet", None, VANILLA[name], (0, 0, 0), [
             Box(-2, 6, -2, 4, 6, 4, "greave", 1.0),
@@ -202,15 +208,15 @@ def paint(skin, boxes, wings_image=None):
                 return steel(i, j, w, h)
             fill(im, f["front"], front)
             for s in ("right", "left"):
-                fill(im, f[s], lambda i, j, w, h: CYAN if j == 2 and 1 <= i <= 6 else (STEEL_LIGHT if j == 6 else steel(i, j, w, h)))
-            fill(im, f["back"], lambda i, j, w, h: CYAN if j == 2 else steel(i, j, w, h))
+                fill(im, f[s], lambda i, j, w, h: STEEL_LIGHT if j in (3, 6) and 1 <= i <= 6 else steel(i, j, w, h))
+            fill(im, f["back"], lambda i, j, w, h: STEEL_LIGHT if j == 3 else steel(i, j, w, h))
         elif m == "crown":
             # Ice: deep at its foot, bright at its tip.
             for s in f:
-                fill(im, f[s], lambda i, j, w, h: CYAN_LIGHT if j < h * 0.3 else CYAN if j < h * 0.65 else ICE_DEEP)
+                fill(im, f[s], lambda i, j, w, h: CROWN_LIGHT if j < h * 0.3 else CROWN if j < h * 0.65 else ICE_DEEP)
         elif m == "crown_band":
             for s in f:
-                fill(im, f[s], lambda i, j, w, h: CYAN if (i + j) % 3 else ICE_DEEP)
+                fill(im, f[s], lambda i, j, w, h: CROWN if (i + j) % 3 else ICE_DEEP)
         elif m == "plate":
             for s in f:
                 fill(im, f[s], steel)
@@ -219,7 +225,7 @@ def paint(skin, boxes, wings_image=None):
                 if j <= 3 and abs((i - 3.5)) >= 3.5 - j:
                     return CYAN if abs(abs(i - 3.5) - (3.5 - j)) < 1.0 else STEEL_MID
                 if (i in (3, 4)) and 4 <= j <= 8:
-                    return CYAN if j % 2 == 0 else STEEL_LIGHT
+                    return STEEL_LIGHT if j % 2 == 0 else STEEL_MID  # 0.82.7: steel, not cyan (fewer stripes)
                 if j in (5, 6) and i in (1, 6):
                     return STEEL_LIGHT
                 return steel(i, j, w, h)
@@ -234,19 +240,19 @@ def paint(skin, boxes, wings_image=None):
         elif m == "pauldron":
             # Layered steel (0.82.0, the videos'): plates stepping down, each rimmed cyan, a little frost on top.
             for s in f:
-                fill(im, f[s], lambda i, j, w, h: CYAN if j in (1, h - 1) else STEEL_DARK if j in (0, 2) else (STEEL_LIGHT if rnd.random() < 0.3 else STEEL_MID))
+                fill(im, f[s], lambda i, j, w, h: CYAN if j == h - 1 else STEEL_LIGHT if j == 1 else STEEL_DARK if j in (0, 2) else (STEEL_LIGHT if rnd.random() < 0.3 else STEEL_MID))
             fill(im, f["top"], lambda i, j, w, h: FROST_MID if rnd.random() < 0.35 else STEEL_MID)
         elif m == "frost_spike":
             for s in f:
                 fill(im, f[s], lambda i, j, w, h: FROST if j < h / 2 else FROST_MID)
         elif m == "vambrace":
             for s in f:
-                fill(im, f[s], lambda i, j, w, h: CYAN if j in (3, 8) else (STEEL_DARK if j >= 10 else steel(i, j, w, h)))
+                fill(im, f[s], lambda i, j, w, h: CYAN if j == 8 else STEEL_LIGHT if j == 3 else (STEEL_DARK if j >= 10 else steel(i, j, w, h)))
         elif m == "legging":
             for s in f:
                 fill(im, f[s], lambda i, j, w, h: NAVY_MID if rnd.random() < 0.3 else NAVY)
             for s in ("right", "left"):
-                fill(im, f[s], lambda i, j, w, h: CYAN if i == 1 and j % 3 != 2 else (NAVY_MID if rnd.random() < 0.3 else NAVY))
+                fill(im, f[s], lambda i, j, w, h: NAVY_LIGHT if i == 1 and j % 3 == 0 else (NAVY_MID if rnd.random() < 0.3 else NAVY))
         elif m in ("tabard", "tabard_side"):
             # Dark blue, its edges and hem jagged with ice.
             def tab(i, j, w, h):
