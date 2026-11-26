@@ -16,6 +16,14 @@ blocks. Deterministic; tune the numbers here and re-run rather than editing the 
   edges; where the fissures noise says so an edge is a crack instead, and on wider cells trenches (pinching shut into
   snow bridges). Cracks reach CRACK_MIN below the floor at least ("almost always deep enough to cause fall damage"),
   mostly 10-30, and now and then to bedrock ("Rarely").
+- Glacial Plains (0.84.0, the owner: "A new biome that goes up to ~y200's are the Glacial Plains. High sheered walls
+  mostly made of ices, with some chunks of stone/dread stone here and there burried throughout the ice. It's top is
+  almost flat, long gradual slopes with ice and snow sheets, and high winds"; asked, the most common, about 40%; and a
+  picture: fluted ice cliffs, columns jutting from them to different depths, the stone dark in the ice, blocks fallen
+  at their feet): where the glacier noise (temperature) passes G_BIOME, over any of the others. An ice sheet up to
+  GLACIER_TOP, swelling gently, its walls sheer (a vertical face where the noise crosses G_WALL, whatever the height,
+  pushed in and out by a vertically stretched noise, columns, jutting further toward the top), a talus of fallen blocks
+  at its foot (the apron). Ice from GLACIER_ICE_FROM up, its veins blue ice; blobs of dreadstone and stone in it.
 - Caves everywhere to bedrock: vanilla's spaghetti, noodle and entrance caves and its cheese caverns (closed near the
   surface). Sea level at the bottom, so nothing floods: the basins stay dry.
 """
@@ -42,6 +50,15 @@ RIDGE_WIDTH = 1.2     # a ridge is the blocks this near a plate's edge
 HEX_JITTER = 0.3      # how far a plate's point strays from its hexagonal lattice (of a plate); 0.9 before 0.69.0
 CRACK_MIN = 6         # every crack at least this deep
 BEDROCK_TOP = -59     # a crack to bedrock stops here (bedrock fades in from -64 to -60)
+# The Glacial Plains (0.84.0). The glacier noise moves about G_STEP a block (measured: its mean gradient spread out by
+# SPREAD), and passes G_BIOME on about 40% of the land (its 60th percentile, measured over three seeds: 0.067-0.072).
+G_STEP = 0.00087
+G_BIOME = 0.066
+G_APRON = G_BIOME + 3 * G_STEP   # the talus' foot: 3 blocks in from the biome's edge
+G_WALL = G_APRON + 8 * G_STEP    # the cliff: 8 more blocks in
+GLACIER_TOP = 198     # the ice sheet's top, on average
+GLACIER_SWELL = 12    # its long slopes: this many blocks up or down
+GLACIER_ICE_FROM = 26 # ice from here up (the chasma's floor 30)
 
 
 def noise(name, y_scale=0.0, xz_scale=1.0):
@@ -125,6 +142,25 @@ def chasma_surface():
     ]})
 
 
+def glacier_surface():
+    """The Glacial Plains' ice (0.84.0): its top snow, with sheets of packed ice and blue ice where the noises say
+    (the steep tops of its columns bare ice); a little firn under the snow; and from GLACIER_ICE_FROM up, all of it
+    packed ice, veined with blue ice (streaks running up the cliffs)."""
+    def ice_noise(name, lo):
+        return {"type": "minecraft:noise_threshold", "noise": name, "min_threshold": lo, "max_threshold": 10.0}
+    return when({"type": "minecraft:biome", "biome_is": ["dreadpatch:glacial_plains"]}, {"type": "minecraft:sequence", "sequence": [
+        when(depth(0), {"type": "minecraft:sequence", "sequence": [
+            when({"type": "minecraft:steep"}, block("minecraft:packed_ice")),
+            when(ice_noise("dreadpatch:dreadlands_clear_ice", 0.3), block("minecraft:packed_ice")),
+            when(ice_noise("dreadpatch:dreadlands_glacier_veins", 0.55), block("minecraft:blue_ice")),
+            block("minecraft:snow_block")]}),
+        when(depth(2), when({"type": "minecraft:not", "invert": {"type": "minecraft:steep"}}, block("minecraft:snow_block"))),
+        when(y_above(GLACIER_ICE_FROM), {"type": "minecraft:sequence", "sequence": [
+            when(ice_noise("dreadpatch:dreadlands_glacier_veins", 0.35), block("minecraft:blue_ice")),
+            block("minecraft:packed_ice")]}),
+    ]})
+
+
 def main():
     # Scaled so the basins (past 0.14) cover about a third of the land, the chasma a smaller share within them.
     basins = mul(1.6, wide("dreadpatch:dreadlands_basins"))
@@ -171,6 +207,20 @@ def main():
     terrain = add(land, mul(chasma_mask, add(level_floor, mul(-1.0, land))))
     # The crags' faces broken up in three dimensions: ledges and overhangs, not smooth cones.
     terrain = add(terrain, mul(mul(crag_mask, add(1.0, mul(-1.0, chasma_mask))), mul(0.45, noise("dreadpatch:dreadlands_crag_faces", 1.0))))
+    # The Glacial Plains (0.84.0): the glacier over everything, sheer-walled; its talus.
+    glacier_noise = wide("dreadpatch:dreadlands_glacier")
+    inward = add(mul(1.0 / G_STEP, glacier_noise), -G_WALL / G_STEP)  # blocks inside the cliff line
+    flutes = noise("dreadpatch:dreadlands_glacier_flutes", 0.05, 1.0)  # columns: stretched 20 times up and down
+    near_top = grad(GLACIER_TOP - 50, GLACIER_TOP - 8, 0.0, 1.0)
+    reach = add(inward, mul(flutes, add(6.0, mul(7.0, near_top))))
+    top = add(grad(-64, 320, (GLACIER_TOP + 64) / 8.0, (GLACIER_TOP - 320) / 8.0),
+              add(mul(GLACIER_SWELL / 8.0, wide("dreadpatch:dreadlands_glacier_swell")), mul(1.5 / 8.0, noise("dreadpatch:dreadlands_hummocks"))))
+    glacier = minimum(mul(0.25, reach), top)
+    # The talus: blocks fallen at the cliff's foot, up to about 10 over the ground, stepped.
+    talus = noise("dreadpatch:dreadlands_glacier_talus", 0.3, 1.0)
+    apron_in = add(add(mul(1.0 / G_STEP, glacier_noise), -G_APRON / G_STEP), mul(3.0, talus))
+    apron = minimum(mul(0.25, apron_in), add(terrain, add(mul(clamp(mul(0.125, apron_in), 0.0, 1.0), 8.0 / 24.0), mul(3.0 / 24.0, talus))))
+    terrain = {"type": "minecraft:max", "argument1": terrain, "argument2": {"type": "minecraft:max", "argument1": glacier, "argument2": apron}}
     # Vanilla's noodle caves carry their own interpolation, so they go outside ours, as in vanilla's own overworld
     # (nested inside, they left the first six columns of every chunk air, bedrock and all).
     caves = minimum(
@@ -228,15 +278,17 @@ def main():
     # The chasma's ice (0.68.0): its own rules, before the rest (which still makes its cracks' bottoms and the stone).
     rules = [r for r in settings["surface_rule"]["sequence"] if r.get("if_true", {}).get("type") != "minecraft:biome"]
     rules.insert(1, chasma_surface())
+    # The Glacial Plains' ice (0.84.0): first of all, as it's over every other.
+    rules.insert(1, glacier_surface())
     # Steep ground (0.77.0: the crags, the bluffs, the hills' steeper sides) bare dreadstone and packed ice, not snow.
     rules = [r for r in rules if r.get("if_true", {}).get("type") != "minecraft:steep"]
-    rules.insert(2, when({"type": "minecraft:steep"}, when(depth(0), {"type": "minecraft:sequence", "sequence": [
+    rules.insert(3, when({"type": "minecraft:steep"}, when(depth(0), {"type": "minecraft:sequence", "sequence": [
         when({"type": "minecraft:noise_threshold", "noise": "minecraft:packed_ice", "min_threshold": 0.0, "max_threshold": 10.0},
              block("minecraft:packed_ice")),
         block("iceandfire:dread_stone")]})))
     settings["surface_rule"]["sequence"] = rules
     router = settings["noise_router"]
-    router.update({"continents": basins, "erosion": shores, "ridges": chasma, "temperature": 0.0, "vegetation": 0.0, "depth": 0.0,
+    router.update({"continents": basins, "erosion": shores, "ridges": chasma, "temperature": glacier_noise, "vegetation": 0.0, "depth": 0.0,
                    "initial_density_without_jaggedness": terrain, "final_density": final})
     path.write_text(json.dumps(settings, indent=2) + "\n")
 
@@ -257,17 +309,24 @@ def main():
         "dreadlands_crags": (-7, [1.0]),
         "dreadlands_spikes": (-4, [1.0, 0.6, 0.3]),
         "dreadlands_crag_faces": (-4, [1.0, 0.5]),
+        # 0.84.0: the Glacial Plains.
+        "dreadlands_glacier": (-9, [1.0, 0.5, 0.25]),
+        "dreadlands_glacier_flutes": (-3, [1.0, 0.5]),
+        "dreadlands_glacier_swell": (-8, [1.0]),
+        "dreadlands_glacier_talus": (-3, [1.0]),
+        "dreadlands_glacier_veins": (-3, [1.0, 0.5]),
     }
     for name, (octave, amplitudes) in noises.items():
         (DATA / f"worldgen/noise/{name}.json").write_text(json.dumps({"firstOctave": octave, "amplitudes": amplitudes}, indent=2) + "\n")
 
-    point = lambda c, w: {"temperature": 0.0, "humidity": 0.0, "continentalness": c, "erosion": [-1.0, 1.0], "weirdness": w, "depth": 0.0, "offset": 0.0}
+    point = lambda c, w, t=(-2.0, G_BIOME): {"temperature": list(t), "humidity": 0.0, "continentalness": c, "erosion": [-1.0, 1.0], "weirdness": w, "depth": 0.0, "offset": 0.0}
     dimension = DATA / "dimension/dreadlands.json"
     dim = json.loads(dimension.read_text())
     dim["generator"]["biome_source"] = {"type": "minecraft:multi_noise", "biomes": [
         {"biome": "dreadpatch:dreadlands", "parameters": point([-1.0, 0.14], [-1.0, 1.0])},
         {"biome": "dreadpatch:sastrugi_wastes", "parameters": point([0.14, 1.0], [-1.0, 0.45])},
         {"biome": "dreadpatch:rime_chasma", "parameters": point([0.2, 1.0], [0.45, 1.0])},
+        {"biome": "dreadpatch:glacial_plains", "parameters": point([-1.0, 1.0], [-1.0, 1.0], (G_BIOME, 2.0))},
     ]}
     dimension.write_text(json.dumps(dim, indent=2) + "\n")
 
@@ -288,6 +347,23 @@ def main():
         {"type": "minecraft:height_range", "height": {"type": "minecraft:uniform", "min_inclusive": {"absolute": -50}, "max_inclusive": {"absolute": 20}}},
         {"type": "minecraft:biome"}]}, indent=2) + "\n")
 
+    # The glacier's buried stone (0.84.0): blobs of dreadstone and stone in its ice.
+    for name, ore, size, count in (("glacier_dreadstone", "iceandfire:dread_stone", 44, 6), ("glacier_stone", "minecraft:stone", 36, 4)):
+        (DATA / f"worldgen/configured_feature/{name}.json").write_text(json.dumps({"type": "minecraft:ore", "config": {
+            "size": size, "discard_chance_on_air_exposure": 0.0, "targets": [
+                {"target": {"predicate_type": "minecraft:block_match", "block": ice}, "state": {"Name": ore}}
+                for ice in ("minecraft:packed_ice", "minecraft:blue_ice")]}}, indent=2) + "\n")
+        (DATA / f"worldgen/placed_feature/{name}.json").write_text(json.dumps({"feature": f"dreadpatch:{name}", "placement": [
+            {"type": "minecraft:count", "count": count}, {"type": "minecraft:in_square"},
+            {"type": "minecraft:height_range", "height": {"type": "minecraft:uniform", "min_inclusive": {"absolute": GLACIER_ICE_FROM},
+                                                          "max_inclusive": {"absolute": GLACIER_TOP + GLACIER_SWELL}}},
+            {"type": "minecraft:biome"}]}, indent=2) + "\n")
+    # The wild Rimefrost dragons' nests (0.84.0): NestRules.ONE_IN.
+    (DATA / "worldgen/configured_feature/rimefrost_nest.json").write_text(json.dumps({"type": "dreadpatch:rimefrost_nest", "config": {}}, indent=2) + "\n")
+    (DATA / "worldgen/placed_feature/rimefrost_nest.json").write_text(json.dumps({"feature": "dreadpatch:rimefrost_nest", "placement": [
+        {"type": "minecraft:rarity_filter", "chance": 160}, {"type": "minecraft:in_square"},
+        {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
+
     # The chasma's water pockets and heaved slabs (0.68.0).
     for name, count in (("chasma_pocket", 5), ("heaved_slabs", 3)):
         (DATA / f"worldgen/configured_feature/{name}.json").write_text(json.dumps({"type": f"dreadpatch:{name}", "config": {}}, indent=2) + "\n")
@@ -305,19 +381,22 @@ def main():
         {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
     plains = json.loads((DATA / "worldgen/biome/dreadlands.json").read_text())
     underground = ["dreadpatch:dreadstone_blobs", "dreadpatch:packed_ice_blobs", "dreadpatch:crusted_lava_pocket"]
-    for name in ("dreadlands", "sastrugi_wastes", "rime_chasma"):
+    glacial = ["dreadpatch:glacier_dreadstone", "dreadpatch:glacier_stone"]
+    for name in ("dreadlands", "sastrugi_wastes", "rime_chasma", "glacial_plains"):
         biome = json.loads(json.dumps(plains))
         steps = biome.get("features", [])
         while len(steps) < 7:
             steps.append([])
         # Step 6: underground ores.
-        steps[6] = [f for f in steps[6] if f not in underground] + underground
+        steps[6] = [f for f in steps[6] if f not in underground + glacial] + underground + (glacial if name == "glacial_plains" else [])
         while len(steps) < 10:
             steps.append([])
         # Step 1, lakes: the deeps flooded (0.77.0), every biome.
         steps[1] = [f for f in steps[1] if f != "dreadpatch:deep_water"] + ["dreadpatch:deep_water"]
         # Step 4, surface structures: an ice dragon's bones now and then (0.76.0), every biome.
-        steps[4] = [f for f in steps[4] if f != "dreadpatch:dragon_skeleton"] + ["dreadpatch:dragon_skeleton"]
+        steps[4] = [f for f in steps[4] if f not in ("dreadpatch:dragon_skeleton", "dreadpatch:rimefrost_nest")] + ["dreadpatch:dragon_skeleton"]
+        if name == "glacial_plains":
+            steps[4].append("dreadpatch:rimefrost_nest")
         # Step 9: vegetal decoration; the plains only.
         steps[9] = [f for f in steps[9] if f != "dreadpatch:grave_patch"] + (["dreadpatch:grave_patch"] if name == "dreadlands" else [])
         if name == "rime_chasma":

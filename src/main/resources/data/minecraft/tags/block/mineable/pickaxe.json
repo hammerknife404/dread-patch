@@ -4,6 +4,8 @@
     "dreadpatch:rimefrost_forge_core",
     "dreadpatch:rimefrost_forge_brick",
     "dreadpatch:rimefrost_forge_input",
-    "dreadpatch:rimefrost_dragonscale_block"
+    "dreadpatch:rimefrost_dragonscale_block",
+    "dreadpatch:iron_pile",
+    "dreadpatch:blacksteel_pile"
   ]
 }

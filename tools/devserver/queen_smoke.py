@@ -1005,6 +1005,23 @@ def main():
     check("and it leaves a golden apple", "execute if entity @e[tag=smoke_beast_refused]", "Test passed")
     rcon.run("kill @e[tag=smoke_beast]")
     rcon.run("kill @e[type=item]")
+    # Scuttlers too (0.84.0, the owner: "extend the beast eating to scuttlers too"): one hurt on the same pad eats rotten
+    # flesh, healing by it.
+    rcon.run('summon iceandfire:dread_scuttler 64.5 200 44.5 {PersistenceRequired:1b,Tags:["smoke_beast"]}')
+    time.sleep(3.0)
+    rcon.run(f"data merge entity {beast} {{Health:4.0f}}")
+    scuttler_hurt = health(beast)
+    rcon.run('summon item 66.5 200.2 44.5 {Item:{id:"minecraft:rotten_flesh",count:1},PickupDelay:0s,Tags:["smoke_beast_food"]}')
+    eaten = False
+    for _ in range(80):
+        time.sleep(0.25)
+        if "Test failed" in rcon.run("execute if entity @e[tag=smoke_beast_food]"):
+            eaten = True
+            break
+    record("a dread scuttler eats dropped rotten flesh, healing by it", eaten and health(beast) > scuttler_hurt,
+           f"eaten {eaten}, health {scuttler_hurt} -> {health(beast)}")
+    rcon.run("kill @e[tag=smoke_beast]")
+    rcon.run("kill @e[type=item]")
     rcon.run("forceload remove 60 40 68 48")
     # Only one in six has its lantern (0.76.0), and only that one pulses: this one's given it.
     rcon.run(f"data merge entity {eel} {{Lantern:1b,Frenzy:0}}")
@@ -1641,7 +1658,8 @@ def main():
     check("the Sastrugi Wastes exist", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:sastrugi_wastes", "is at")
     check("the Rime Chasma exists", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:rime_chasma", "is at")
     # An ice dragon's skeleton lying out (0.76.0, the owner: "ice dragon skeleton corpses spawn in the dreadlands"), one
-    # chunk in 100: placed by hand on new ground (its rarity aside), it's Ice and Fire's ice dragon, dead, down to bones.
+    # chunk in 600 since 0.84.0 (100 before; the owner: "much more rare ... now that real rimefrost dragons will live
+    # here"): placed by hand on new ground (its rarity aside), it's Ice and Fire's ice dragon, dead, down to bones.
     sx, sz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
     rcon.run(dl + f"run forceload add {sx} {sz}")
     time.sleep(4.0)
@@ -1651,6 +1669,89 @@ def main():
     record("an ice dragon's skeleton lies in the Dreadlands", "Test passed" in rcon.run(bones)
            and "Test failed" in rcon.run(bones[:-1] + ",nbt={DeathStage:0}]"), f"place said: {placed.strip()}")
     rcon.run(dl + f"run kill @e[type=iceandfire:ice_dragon,x={sx - 8},y=-64,z={sz - 8},dx=32,dy=400,dz=32]")
+    # The Glacial Plains (0.84.0): the ice sheet to about y 200 over 40% of the land, sheer-walled; its top snow and ice,
+    # its body ice (blue-veined, stone buried in it). Found far out on new ground, its columns probed on a grid round
+    # where locate puts its edge (80 apart, a pause after each: each lone chunk needs its neighbours).
+    check("the Glacial Plains exist", dl + "positioned 1500000 0 -1500000 run locate biome dreadpatch:glacial_plains", "is at")
+
+    def surface_y(x, z):
+        rcon.run(dl + f'positioned {x} 0 {z} positioned over world_surface run summon minecraft:marker ~ ~ ~ {{Tags:["smoke_probe"]}}')
+        pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+        rcon.run("kill @e[tag=smoke_probe]")
+        return int(float(pos.group(1))) - 1 if pos else None
+
+    def dl_block(x, y, z, block):
+        return "Test passed" in rcon.run(dl + f"if block {x} {y} {z} {block}")
+    gx0, gz0 = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
+    m = re.search(r"at \[(-?\d+), \S+, (-?\d+)\]", rcon.run(dl + f"positioned {gx0} 0 {gz0} run locate biome dreadpatch:glacial_plains"))
+    glacial_tops = []
+    if m:
+        lx, lz = int(m.group(1)), int(m.group(2))
+        for j in range(-3, 4):
+            for i in range(-3, 4):
+                x, z = lx + 80 * i, lz + 80 * j
+                rcon.run(dl + f"run forceload add {x} {z}")
+                time.sleep(0.6)
+                if "Test passed" in rcon.run(dl + f"positioned {x} 100 {z} if biome ~ ~ ~ dreadpatch:glacial_plains"):
+                    y = surface_y(x, z)
+                    if y is not None:
+                        glacial_tops.append((x, y, z))
+    high = [t for t in glacial_tops if t[1] >= 170]
+    record("the Glacial Plains stand up to about y 200", len(glacial_tops) >= 6 and len(high) >= len(glacial_tops) // 2
+           and all(t[1] <= 235 for t in glacial_tops), f"tops {[(t[0], t[1], t[2]) for t in glacial_tops]} from {m and m.group(0)}")
+    ice = "#minecraft:ice"
+    # A spire stands on the glacier now and then (its bricks, tiles, bones and torches): not the glacier's surface.
+    spire = ("iceandfire:dread_stone_bricks", "iceandfire:dread_stone_bricks_cracked", "iceandfire:dread_stone_bricks_chiseled",
+             "iceandfire:dread_stone_tile", "iceandfire:dragon_bone_block", "iceandfire:dread_torch")
+    high = [t for t in high if not any(dl_block(t[0], t[1], t[2], b) for b in spire)]
+    on_top = [t for t in high if any(dl_block(t[0], t[1], t[2], b) for b in
+                                     ("minecraft:snow_block", ice, "minecraft:snow", "iceandfire:dread_stone", "minecraft:stone"))]
+    body = [t for t in high if dl_block(t[0], t[1] - 30, t[2], ice) or dl_block(t[0], t[1] - 30, t[2], "iceandfire:dread_stone")
+            or dl_block(t[0], t[1] - 30, t[2], "minecraft:stone") or dl_block(t[0], t[1] - 30, t[2], "minecraft:air")]
+    # Most of its top: snow (mostly layers), sheets of ice, its buried stone and dreadstone breaking through (0.84.0's
+    # first runs: 22 of 24, then 34 of 43 with a spire's top among them).
+    record("the glacier's top is snow and ice, its body ice", len(high) > 0 and len(on_top) >= 0.8 * len(high) and len(body) == len(high),
+           f"top {len(on_top)}/{len(high)}, 30 under {len(body)}/{len(high)} at {high}")
+    # A wild Rimefrost dragon's nest (0.84.0), one glacier chunk in 160: placed by hand up on the glacier (somewhere flat
+    # enough), a bowl of hoard piles and its dragon, wild, stage 2 or more, its home the nest.
+    nest = None
+    for t in high[:6]:
+        placed = rcon.run(dl + f"positioned {t[0]} 0 {t[2]} positioned over world_surface run place feature dreadpatch:rimefrost_nest ~ ~ ~")
+        if "laced" in placed and "ailed" not in placed:
+            nest = t
+            break
+    time.sleep(0.5)
+    if nest:
+        nx, ny, nz = nest
+        near = f"x={nx - 16},y={ny - 16},z={nz - 16},dx=32,dy=40,dz=32"
+        dragon = dl + f"if entity @e[type=dreadpatch:rimefrost_dragon,{near}]"
+        piles = 0
+        for block in ("iceandfire:gold_pile", "iceandfire:silver_pile", "iceandfire:copper_pile", "dreadpatch:iron_pile"):
+            area = f"{nx - 12} {ny - 8} {nz - 12} {nx + 12} {ny + 4} {nz + 12}"
+            filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {area} minecraft:glass replace {block}"))
+            if filled:
+                piles += int(filled.group(1))
+                rcon.run(dl + f"run fill {area} {block}[layers=4] replace minecraft:glass")
+        age = re.search(r"entity data: (\d+)", rcon.run(dl + f"run data get entity @e[type=dreadpatch:rimefrost_dragon,{near},limit=1] AgeTicks"))
+        record("a wild Rimefrost dragon nests on its hoard", "Test passed" in rcon.run(dragon) and piles >= 40
+               and "Test failed" in rcon.run(dragon[:-1] + ",nbt={TamedDragon:1b}]")
+               and "Test passed" in rcon.run(dragon[:-1] + ",nbt={HasHomePosition:1b}]")
+               and age is not None and int(age.group(1)) >= 25 * 24000, f"piles {piles}, age {age and age.group(1)} at {nest}")
+        rcon.run(dl + f"run kill @e[type=dreadpatch:rimefrost_dragon,{near}]")
+    else:
+        record("a wild Rimefrost dragon nests on its hoard", False, f"no nest would place on {high[:6]}")
+    rcon.run(dl + "run forceload remove all")
+    # The hoard's piles drop their nuggets (0.84.0), two a layer; the blacksteel pile nothing without Cataclysm; the
+    # blacksteel dragon armour is there to wear.
+    rcon.run("setblock 30 199 30 minecraft:stone")
+    rcon.run("setblock 30 200 30 dreadpatch:iron_pile[layers=3]")
+    check("an iron pile drops two iron nuggets a layer", "loot spawn 30 202 30 mine 30 200 30 minecraft:diamond_pickaxe", "Dropped 6")
+    rcon.run("setblock 30 200 30 dreadpatch:blacksteel_pile[layers=3]")
+    check("a blacksteel pile drops nothing without Cataclysm", "loot spawn 30 202 30 mine 30 200 30 minecraft:diamond_pickaxe", "Dropped 0")
+    rcon.run("fill 30 199 30 30 200 30 minecraft:air")
+    rcon.run("kill @e[type=item]")
+    check("blacksteel dragon armour exists", "summon minecraft:item 30 201 30 {Item:{id:\"dreadpatch:dragonarmor_blacksteel_body\",count:1}}", "Summoned")
+    rcon.run("kill @e[type=item]")
     # The deeps flooded (0.77.0, the owner: "Water should fill most of the open air spaces just above the worlds bedrock
     # layers"): over 3 x 3 chunks there, from just over bedrock's bottom to y -52, water and no open air. Counted by
     # swapping to glass and back: not sponge, which soaks up the water round it (the first run counted its own damage).
@@ -1713,7 +1814,9 @@ def main():
                                                          and coarse[q] is not None and 30 <= coarse[q] <= 31))
         # The biome reaches past the flat floor onto its slopes, so a point at 30 there can be slope: the best three are
         # each looked at closer (5 x 5, 8 apart), and the flattest kept.
-        mid, flattest = None, -1
+        # Only a point with some flat floor round it (0.84.0: the Glacial Plains cover 40% of the land, so fewer of the
+        # grid's points are in a chasma, and a slope's point was kept with no floor at all).
+        mid, flattest = None, 0
         for cx, cz in ranked[:3]:
             rcon.run(dl + f"run forceload add {cx - 16} {cz - 16} {cx + 16} {cz + 16}")
             time.sleep(4.0)
@@ -1723,9 +1826,9 @@ def main():
                 mid, flattest = (cx, cz), flat
         return mid, lx, lz
 
-    # Some chasmas never quite flatten (the biome reaches past where the floor's mask saturates): up to three tried.
+    # Some chasmas never quite flatten (the biome reaches past where the floor's mask saturates): up to five tried (three before 0.84.0).
     m = mid = None
-    for _ in range(3):
+    for _ in range(5):
         cfx, cfz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
         mid, lx, lz = chasma_floor(cfx, cfz)
         m = lx is not None

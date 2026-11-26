@@ -1,6 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.entity.DreadBeastEntity;
+import com.iafenvoy.iceandfire.entity.DreadScuttlerEntity;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.magic.RimeEelRules;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -30,13 +31,14 @@ import java.util.EnumSet;
  * mushrooms, meat and fish, bones, leather and hide, feathers, string, wool, slime, ink, spider eyes, saplings, leaves,
  * flowers) or anything edible, but never {@link #REFUSES} ({@code #dreadpatch:dread_refuses}: golden apples and carrots);
  * a pack can add to either. Only food heals ({@link RimeEelRules#heal}: an eighth of its nutrition, 0.25 to 1); the rest is
- * just eaten. Rime Eels (since 0.71.0, their own list until 0.83.0) and Ice and Fire's Dread Beasts eat, with nothing to
- * fight: the nearest such item in reach of their search, one at a time.
+ * just eaten. Rime Eels (since 0.71.0, their own list until 0.83.0), Ice and Fire's Dread Beasts and (0.84.0, the owner:
+ * "extend the beast eating to scuttlers too") its Dread Scuttlers eat, with nothing to fight: the nearest such item in
+ * reach of their search, one at a time.
  */
 public final class DreadFeeding {
     public static final TagKey<Item> EATS = TagKey.create(Registries.ITEM, DreadPatch.id("dread_eats"));
     public static final TagKey<Item> REFUSES = TagKey.create(Registries.ITEM, DreadPatch.id("dread_refuses"));
-    /** How far a beast looks for something to eat, and how often it takes a mouthful. */
+    /** How far a beast or a scuttler looks for something to eat. */
     static final double BEAST_SEARCH = 8.0;
 
     private DreadFeeding() {
@@ -46,10 +48,11 @@ public final class DreadFeeding {
         gameBus.addListener(DreadFeeding::onJoin);
     }
 
-    /** Goals aren't saved: a Dread Beast's is added each time it joins a level. */
+    /** Goals aren't saved: a Dread Beast's or a scuttler's is added each time it joins a level. */
     private static void onJoin(EntityJoinLevelEvent event) {
-        if (!event.getLevel().isClientSide() && event.getEntity() instanceof DreadBeastEntity beast) {
-            beast.goalSelector.addGoal(4, new EatDroppedGoal(beast, BEAST_SEARCH));
+        if (!event.getLevel().isClientSide() && (event.getEntity() instanceof DreadBeastEntity || event.getEntity() instanceof DreadScuttlerEntity)) {
+            Mob mob = (Mob) event.getEntity();
+            mob.goalSelector.addGoal(4, new EatDroppedGoal(mob, BEAST_SEARCH));
         }
     }
 

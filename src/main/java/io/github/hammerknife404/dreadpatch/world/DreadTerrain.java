@@ -47,6 +47,8 @@ public final class DreadTerrain {
     public static final DeferredHolder<Feature<?>, HeavedSlabs> HEAVED_SLABS = FEATURES.register("heaved_slabs", HeavedSlabs::new);
     public static final DeferredHolder<Feature<?>, DragonSkeleton> DRAGON_SKELETON = FEATURES.register("dragon_skeleton", DragonSkeleton::new);
     public static final DeferredHolder<Feature<?>, DeepWater> DEEP_WATER = FEATURES.register("deep_water", DeepWater::new);
+    /** A wild Rimefrost dragon's nest on the Glacial Plains (0.84.0). */
+    public static final DeferredHolder<Feature<?>, RimefrostNests.Nest> RIMEFROST_NEST = FEATURES.register("rimefrost_nest", RimefrostNests.Nest::new);
 
     private DreadTerrain() {
     }

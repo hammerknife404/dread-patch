@@ -1,0 +1,12 @@
+{
+  "values": [
+    {
+      "id": "cataclysm:black_steel_block",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/black_steel",
+      "required": false
+    }
+  ]
+}

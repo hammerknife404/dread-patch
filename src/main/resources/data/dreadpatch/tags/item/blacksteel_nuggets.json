@@ -1,0 +1,12 @@
+{
+  "values": [
+    {
+      "id": "cataclysm:black_steel_nugget",
+      "required": false
+    },
+    {
+      "id": "#c:nuggets/black_steel",
+      "required": false
+    }
+  ]
+}

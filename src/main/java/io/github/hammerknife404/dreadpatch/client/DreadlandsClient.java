@@ -29,6 +29,7 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
  * winds"): a haze over the Rime Chasma in any weather, the fog's far plane down to {@link #HAZE_FAR} and its near one
  * to {@link #HAZE_NEAR}; and a gale over the Sastrugi Wastes, its flakes blowing in clear weather too, faster, with
  * the wind's sound ({@link WhiteoutClient#windVolume}). Both eased in and out as the camera goes, under the open sky.
+ * The Glacial Plains (0.84.0, the owner: "high winds") have the wastes' gale too.
  */
 public final class DreadlandsClient {
     private static final float FOG_R = 0.62F;
@@ -81,7 +82,7 @@ public final class DreadlandsClient {
         whiteout = Mth.clamp(whiteout + (blinded ? FADE : -FADE), 0.0F, 1.0F);
         var biome = out ? level.getBiome(BlockPos.containing(camera.getEyePosition())) : null;
         haze = Mth.clamp(haze + (biome != null && biome.is(Dreadlands.RIME_CHASMA) ? FADE : -FADE), 0.0F, 1.0F);
-        gale = Mth.clamp(gale + (biome != null && biome.is(Dreadlands.SASTRUGI_WASTES) ? FADE : -FADE), 0.0F, 1.0F);
+        gale = Mth.clamp(gale + (biome != null && (biome.is(Dreadlands.SASTRUGI_WASTES) || biome.is(Dreadlands.GLACIAL_PLAINS)) ? FADE : -FADE), 0.0F, 1.0F);
         if (storm > 0.0F || gale > 0.0F) {
             blowFlakes(level, camera.getEyePosition());
         }

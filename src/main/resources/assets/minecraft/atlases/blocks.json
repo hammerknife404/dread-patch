@@ -138,6 +138,36 @@
         {
           "from": "minecraft:item/dark_oak_door",
           "to": "dreadpatch:item/dreadwood_door"
+        },
+        {
+          "from": "iceandfire:block/silverpile",
+          "to": "dreadpatch:block/iron_pile",
+          "palette": "iron"
+        },
+        {
+          "from": "iceandfire:block/silverpile",
+          "to": "dreadpatch:block/blacksteel_pile",
+          "palette": "blacksteel"
+        },
+        {
+          "from": "iceandfire:item/dragonarmor_netherite_head",
+          "to": "dreadpatch:item/dragonarmor_blacksteel_head",
+          "palette": "blacksteel"
+        },
+        {
+          "from": "iceandfire:item/dragonarmor_netherite_neck",
+          "to": "dreadpatch:item/dragonarmor_blacksteel_neck",
+          "palette": "blacksteel"
+        },
+        {
+          "from": "iceandfire:item/dragonarmor_netherite_body",
+          "to": "dreadpatch:item/dragonarmor_blacksteel_body",
+          "palette": "blacksteel"
+        },
+        {
+          "from": "iceandfire:item/dragonarmor_netherite_tail",
+          "to": "dreadpatch:item/dragonarmor_blacksteel_tail",
+          "palette": "blacksteel"
         }
       ]
     }

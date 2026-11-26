@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:ore",
+  "config": {
+    "size": 44,
+    "discard_chance_on_air_exposure": 0.0,
+    "targets": [
+      {
+        "target": {
+          "predicate_type": "minecraft:block_match",
+          "block": "minecraft:packed_ice"
+        },
+        "state": {
+          "Name": "iceandfire:dread_stone"
+        }
+      },
+      {
+        "target": {
+          "predicate_type": "minecraft:block_match",
+          "block": "minecraft:blue_ice"
+        },
+        "state": {
+          "Name": "iceandfire:dread_stone"
+        }
+      }
+    ]
+  }
+}
