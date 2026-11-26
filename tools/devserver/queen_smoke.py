@@ -1588,7 +1588,7 @@ def main():
            f"{deep_water} water, {deep_air} air in {deep}")
     rcon.run(dl + "run forceload remove all")
     # The Rime Chasma's floor (0.68.0, the owner's pictures): far out on new ground, its middle found on a coarse grid
-    # (64 apart round where locate puts its edge; 32 before 0.77.0), then every 2 blocks over 64 x 64 there. Most of it is the flat
+    # (80 apart round where locate puts its edge; 32 before 0.77.0), then every 2 blocks over 64 x 64 there. Most of it is the flat
     # floor (top block 30), its plates' ridges a block or two over it in snow, its cracks at least 6 deep (fall
     # damage); its top clear blue ice and snow; water sealed in its ice; slabs heaved up at its cracks.
     def top_block(x, z):
@@ -1604,16 +1604,31 @@ def main():
         # 64 apart since 0.77.0: a chasma is 2.3 times as wide, its slopes too.
         # 9 x 9, a pause after each: each lone chunk needs its neighbours generated, and 121 of them queued at once held
         # one tick past the watchdog's 60 s.
-        grid = [(lx + i * 64, lz + j * 64) for j in range(-4, 5) for i in range(-4, 5)]
+        grid = [(lx + i * 80, lz + j * 80) for j in range(-4, 5) for i in range(-4, 5)]
         for gx, gz in grid:
             rcon.run(dl + f"run forceload add {gx} {gz}")
             time.sleep(0.4)
         time.sleep(8.0)
         coarse = {p: top_block(*p) for p in grid}
+        # In the chasma itself: since 0.77.0 the wastes' dune valleys go down past 30 too.
+        in_chasma = {p for p in grid if "Test passed" in rcon.run(dl + f"positioned {p[0]} 31 {p[1]} if biome ~ ~ ~ dreadpatch:rime_chasma")}
         rcon.run(dl + "run forceload remove all")
+        coarse = {p: (h if p in in_chasma else None) for p, h in coarse.items()}
         floor_points = [p for p in grid if coarse[p] is not None and 29 <= coarse[p] <= 32]
-        mid = max(floor_points, key=lambda p: sum(1 for q in grid if abs(q[0] - p[0]) <= 128 and abs(q[1] - p[1]) <= 128
-                                                  and coarse[q] is not None and coarse[q] <= 32), default=None)
+        # Its middle: the floor point with the most floor (30-31: not slope, not crack) round it. Scoring by anything
+        # at or under 32 counted cracks and picked an edge twice in 0.77.0's wider chasmas.
+        ranked = sorted(floor_points, key=lambda p: -sum(1 for q in grid if abs(q[0] - p[0]) <= 160 and abs(q[1] - p[1]) <= 160
+                                                         and coarse[q] is not None and 30 <= coarse[q] <= 31))
+        # The biome reaches past the flat floor onto its slopes, so a point at 30 there can be slope: the best three are
+        # each looked at closer (5 x 5, 8 apart), and the flattest kept.
+        mid, flattest = None, -1
+        for cx, cz in ranked[:3]:
+            rcon.run(dl + f"run forceload add {cx - 16} {cz - 16} {cx + 16} {cz + 16}")
+            time.sleep(4.0)
+            flat = sum(1 for x in range(cx - 16, cx + 17, 8) for z in range(cz - 16, cz + 17, 8) if top_block(x, z) == 30)
+            rcon.run(dl + "run forceload remove all")
+            if flat > flattest:
+                mid, flattest = (cx, cz), flat
         record("the Rime Chasma has a floor near where it's found", mid is not None, f"none of {len(grid)} points at 29-32 round {lx} {lz}")
         if mid:
             mx, mz = mid
@@ -2003,6 +2018,7 @@ def main():
         rcon.run(dl + "run forceload remove all")
     rcon.run("dreadpatch config village_liches 3")
     summit_chests, plain_summit, torches = 0, 0, 0
+    forge_cores, forge_ok = [], True
     for sx_far, sz_far in ((-far_x, far_z), (far_x, -far_z)):
         out = rcon.run(dl + f"positioned {sx_far} 0 {sz_far} run locate structure dreadpatch:spire")
         m = re.search(r"at \[(-?\d+), ~, (-?\d+)\]", out)
@@ -2019,8 +2035,16 @@ def main():
         summit_chests += count_blocks("lootr:lootr_chest", *summit)
         plain_summit += count_blocks("minecraft:chest", *summit)
         torches += count_blocks("iceandfire:dread_torch", *summit)
+        # A ruined Rimefrost dragonforge now and then (0.78.0; about one spire in seven, so mostly none here): never more
+        # than one core a summit, and any core with some of its bricks still round it. (Counted by swapping, so a core
+        # found loses its empty block entity; nothing's in it.)
+        cores = count_blocks("dreadpatch:rimefrost_forge_core", *summit)
+        bricks = count_blocks("dreadpatch:rimefrost_forge_brick", *summit)
+        forge_cores.append(cores)
+        forge_ok = forge_ok and cores <= 1 and (cores == 0 or bricks > 0)
         rcon.run(dl + "run forceload remove all")
     record("a spire's summit chest is Lootr's", plain_summit == 0, f"{summit_chests} Lootr chests, {plain_summit} plain chests on two summits ({torches} dread torches)")
+    record("a summit's forge ruin, if any, is one core among its bricks", forge_ok, f"cores per summit {forge_cores}")
 
     # Dread scuttlers climb walls like spiders (0.41.0): one at the foot of a solid block 4 high, a
     # golem (Resistance V) on top that has hit it, is up on top with it within 10 s; it couldn't jump it.
