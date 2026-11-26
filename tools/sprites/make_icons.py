@@ -604,44 +604,45 @@ def mirrored_icon(left_half):
 
 
 def queen_crown():
-    """Her crown: a dark helm open at the face, a cyan brow and nose bar, under a crown of ice spikes."""
+    """Her crown (0.82.1, the owner: the icons "too weird"): a vanilla helmet's shape, dark steel, its T visor dark, a
+    cyan brow, under a crown of ice spikes."""
     return mirrored_icon([
+        "........",
         "...i...i",
-        "...I.i.I",
-        ".i.I.I.I",
-        ".IiIiIiI",
-        ".yYYYYYY",
-        "OKkkkkkk",
-        "OKkmkkkk",
-        "OKYYYYYY",
-        "OKkOOOOm",
-        "OKkOOOOm",
-        "OKkkOOOm",
-        "OKmkkkkk",
-        ".OKKKKKK",
-        "..OOOOOO",
+        "...I..iI",
+        "..yIy.II",
+        "..YYYYYY",
+        "..OKKKKK",
+        ".OKmkkkk",
+        ".OKkkkkk",
+        ".OKYYYYY",
+        ".OKkOOOO",
+        ".OKkkkkO",
+        ".OKk...O",
+        ".OO.....",
+        "........",
         "........",
         "........",
     ])
 
 
 def queen_bodice():
-    """Her bodice: a dark breastplate, a cyan V at its collar and a line down its middle, frosted pauldrons, a belt
-    with a cyan buckle."""
+    """Her bodice: a vanilla chestplate's shape, dark steel, cyan-rimmed pauldrons, a cyan V at the collar, a belt with a
+    cyan buckle."""
     return mirrored_icon([
         "........",
-        "f.f.....",
-        "FfFf....",
-        "FFFFOOOO",
-        "OmmmOYkk",
-        "OkkkOkYk",
-        ".OOOOkkY",
+        "..OOO...",
+        ".OmmmO..",
+        ".OYYYYOO",
+        ".OKkkYkk",
+        ".OKkkkYk",
+        "..OOKkkY",
         "...OKkkY",
-        "...OKkkY",
+        "...OKkkk",
         "...OKmkk",
-        "...OKmkk",
-        "...OKKKK",
-        "...OmmmY",
+        "...OKkkk",
+        "...OYYYY",
+        "...OKkky",
         "...OKkkk",
         "....OOOO",
         "........",
@@ -649,21 +650,21 @@ def queen_bodice():
 
 
 def queen_winged_bodice():
-    """Her winged bodice: her bodice small between bone-white wings, their dark membranes spread."""
+    """Her winged bodice: her bodice's shape, smaller, bone-white wings spread from behind it, frosted membranes."""
     return mirrored_icon([
-        "W.......",
-        "MW......",
-        "MMW.....",
-        "MMMWOOOO",
-        "MMMWOmYk",
-        "MMMMWOkY",
-        "MMMMWKkY",
-        "MMMWOKkY",
-        "MMW.OKmk",
-        "MW..OKmk",
-        "W.f.OmmY",
-        "..f.OKkk",
-        ".....OOO",
+        "........",
+        "WWW.....",
+        "MMWW....",
+        "MMMWW...",
+        "fMMMWOOO",
+        "WfMMWOYY",
+        ".WfMMOkY",
+        ".fWfMOkY",
+        "..fWfOkk",
+        "..f.fOYY",
+        "...f.Oky",
+        ".....Okk",
+        "......OO",
         "........",
         "........",
         "........",
@@ -671,29 +672,29 @@ def queen_winged_bodice():
 
 
 def queen_robe():
-    """Her robe: a dark belt, then the tabard's deep blue over her legs, frost creeping up its edges, a ragged hem."""
+    """Her robe: a vanilla leggings' shape, a dark belt, the tabard's blue down each leg, frost at its edges and hem."""
     return mirrored_icon([
+        "........",
         "........",
         "..OOOOOO",
         "..OKKKKK",
-        "..ONnnnn",
-        "..ONnNnn",
+        "..OYNnnn",
         "..OFNnnn",
-        "..OyNnnn",
-        "..OFNnnn",
-        ".OyNnNnO",
-        ".OFNnnnO",
-        ".OFNnnnO",
-        "OyNnnNnO",
-        "OFfNnnnO",
-        "OfFfFnnO",
-        ".O.OO.O.",
+        "..OFNnnO",
+        "..ONnnO.",
+        "..OFNnO.",
+        "..ONnnO.",
+        "..OFNnO.",
+        "..ONnnO.",
+        "..OFfnO.",
+        "..OfFfO.",
+        "..OOOOO.",
         "........",
     ])
 
 
 def queen_greaves():
-    """Her greaves: dark steel banded cyan, steel toe caps."""
+    """Her greaves: a vanilla boots' shape, dark steel banded cyan, steel toes."""
     return mirrored_icon([
         "........",
         "........",
@@ -701,15 +702,15 @@ def queen_greaves():
         "........",
         "........",
         "........",
-        "..OOOOO.",
-        "..OkkmO.",
-        "..OYYYO.",
-        "..OkkkO.",
-        "..OkkmO.",
-        "OOOkkkO.",
-        "OmmkkkO.",
-        "OgggggO.",
-        "OOOOOOO.",
+        "...OOOO.",
+        "...OkkO.",
+        "...OYYO.",
+        "...OkkO.",
+        "...OkmO.",
+        ".OOOkkO.",
+        ".OgmkkO.",
+        ".OgggmO.",
+        ".OOOOOO.",
         "........",
     ])
 

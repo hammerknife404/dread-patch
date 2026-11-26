@@ -68,11 +68,12 @@ public final class RegaliaWingsModel extends Model {
 
         float breathe = Mth.sin(time * 0.1F);
         // Each state: the root's x, y, z turns and the hand's fold (a y turn).
-        float[] idle = {-0.1F + 0.04F * breathe, 0.3F, 0.2F + 0.03F * breathe, -0.25F};
+        float[] idle = {-0.1F + 0.04F * breathe, 0.25F, 0.05F + 0.03F * breathe, -0.2F};
         float bob = Mth.sin(limbSwing * 0.6662F) * Math.min(1.0F, limbSwingAmount);
         float[] walk = {0.18F + 0.06F * bob, 0.8F - 0.3F * state.sprint, -0.05F + 0.25F * state.sprint, -0.75F + 0.3F * state.sprint};
         float[] fall = {-0.2F, 0.3F, 0.35F + 0.06F * Mth.sin(time * 1.1F), -0.15F + 0.12F * Mth.sin(time * 1.3F)};
-        float[] glide = {0.0F, 0.1F, -0.35F + 0.03F * Mth.sin(time * 0.15F), 0.1F};
+        // Tilted up into a shallow V (0.82.1: seen edge-on from behind, only the bones showed).
+        float[] glide = {0.6F, 0.1F, -0.35F + 0.03F * Mth.sin(time * 0.15F), 0.1F};
         float phase = time * (Mth.TWO_PI / 22.0F);
         float[] beat = {0.0F, 0.2F, -0.3F + 0.7F * Mth.sin(phase), 0.3F * Mth.sin(phase - 0.8F)};
         float[] pose = new float[4];

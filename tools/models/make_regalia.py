@@ -201,9 +201,12 @@ SWORD_DISPLAY = {
     "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.4, 0.4, 0.4]},
     "fixed": {"rotation": [0, 0, -45], "translation": [0, 0, 0], "scale": [0.55, 0.55, 0.55]},
 }
+# 0.82.1 (the owner's screenshot: held pointing forward, its crystal low): held upright, the crystal up, the grip in the
+# hand (a z turn of -90 stands the model's +y up off a hanging arm; display z lifts it so the grip, 11.5 under the
+# model's middle, is in the hand).
 STAFF_DISPLAY = {
-    "thirdperson_righthand": {"rotation": [0, -90, 0], "translation": [0, 2.5, 0.5], "scale": [0.65, 0.65, 0.65]},
-    "thirdperson_lefthand": {"rotation": [0, 90, 0], "translation": [0, 2.5, 0.5], "scale": [0.65, 0.65, 0.65]},
+    "thirdperson_righthand": {"rotation": [0, -90, -90], "translation": [0, 1.0, 7.5], "scale": [0.65, 0.65, 0.65]},
+    "thirdperson_lefthand": {"rotation": [0, 90, 90], "translation": [0, 1.0, 7.5], "scale": [0.65, 0.65, 0.65]},
     "firstperson_righthand": {"rotation": [0, -90, 15], "translation": [1.13, 1.0, 1.13], "scale": [0.6, 0.6, 0.6]},
     "firstperson_lefthand": {"rotation": [0, 90, -15], "translation": [1.13, 1.0, 1.13], "scale": [0.6, 0.6, 0.6]},
     "gui": {"rotation": [0, 0, -45], "translation": [0, 0, 0], "scale": [0.36, 0.36, 0.36]},
@@ -416,8 +419,8 @@ def wing_pose(root, fold):
 
 # Its states (0.82.0), at their middle: idle partly folded behind; walking swept back; falling pushed up and trailing;
 # gliding spread wide and level.
-WING_STATES = {"idle": wing_pose((-0.1, 0.3, 0.2), -0.25), "walk": wing_pose((0.18, 0.8, -0.05), -0.75),
-               "fall": wing_pose((-0.2, 0.3, 0.35), -0.15), "glide": wing_pose((0.0, 0.1, -0.35), 0.1)}
+WING_STATES = {"idle": wing_pose((-0.1, 0.25, 0.05), -0.2), "walk": wing_pose((0.18, 0.8, -0.05), -0.75),
+               "fall": wing_pose((-0.2, 0.3, 0.35), -0.15), "glide": wing_pose((0.6, 0.1, -0.35), 0.1)}
 
 
 def sheet():

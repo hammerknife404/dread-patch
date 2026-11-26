@@ -190,12 +190,14 @@ def paint(skin, boxes, wings_image=None):
                 fill(im, f[s], steel)
             # The front (0.82.0, the owner's videos): a closed helm, a T-shaped visor (an eye slit across, a slot down
             # its middle) open onto the face, cyan-edged; a cyan brow over it.
+            # 0.82.1 (the owner: "the helmet covers the default player eye location"): the eye slit on row 4, where a
+            # player's eyes are, the slot down from it to the mouth.
             def front(i, j, w, h):
-                if j == 3 and 1 <= i <= 6 or 3 <= i <= 4 and 4 <= j <= 6:
+                if j == 4 and 1 <= i <= 6 or 3 <= i <= 4 and 5 <= j <= 7:
                     return (0, 0, 0, 0)
-                if j == 2 and 1 <= i <= 6:
+                if j == 3 and 1 <= i <= 6:
                     return CYAN
-                if (j == 4 and i in (1, 2, 5, 6)) or (i in (2, 5) and 5 <= j <= 6):
+                if (j == 5 and i in (1, 2, 5, 6)) or (i in (2, 5) and 6 <= j <= 7):
                     return STEEL_LIGHT
                 return steel(i, j, w, h)
             fill(im, f["front"], front)

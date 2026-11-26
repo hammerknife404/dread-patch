@@ -22,34 +22,34 @@ final class RegaliaWingsGeometry {
     static LayerDefinition create() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
-        PartDefinition rightwing = root.addOrReplaceChild("right_wing", CubeListBuilder.create().texOffs(92, 30).addBox(-1.0F, -1.0F, -1.0F, 2.0F, 2.0F, 2.0F),
+        PartDefinition rightwing = root.addOrReplaceChild("right_wing", CubeListBuilder.create().texOffs(92, 26).addBox(-1.0F, -1.0F, -1.0F, 2.0F, 2.0F, 2.0F),
                 PartPose.offsetAndRotation(-2.5F, 1.5F, 2.6F, 0.0F, 0.0F, 0.0F));
-        PartDefinition rightwingarm = rightwing.addOrReplaceChild("right_wing_arm", CubeListBuilder.create().texOffs(0, 30).addBox(-10.0F, -1.1F, -1.1F, 10.0F, 2.2F, 2.2F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.05F));
-        PartDefinition rightwinghand = rightwingarm.addOrReplaceChild("right_wing_hand", CubeListBuilder.create().texOffs(26, 30).addBox(-1.2F, -1.2F, -1.2F, 2.4F, 2.4F, 2.4F).texOffs(76, 30).addBox(-1.1F, -4.5F, -0.5F, 1.0F, 3.5F, 1.0F).texOffs(100, 30).addBox(0.30000000000000004F, -3.2F, -0.4F, 0.8F, 2.2F, 0.8F).texOffs(102, 48).addBox(-2.3F, -2.6F, -0.4F, 0.8F, 1.6F, 0.8F).texOffs(0, 0).addBox(-19.0F, -7.0F, 0.0F, 29.0F, 30.0F, 0.0F),
-                PartPose.offsetAndRotation(-10.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.05F));
-        PartDefinition rightwingfinger0 = rightwinghand.addOrReplaceChild("right_wing_finger0", CubeListBuilder.create().texOffs(0, 36).addBox(-17.867568385205637F, -0.7F, -0.7F, 17.867568385205637F, 1.4F, 1.4F).texOffs(106, 48).addBox(-3.5F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(40, 36).addBox(-6.5F, 0.5F, -0.4F, 0.8F, 3.0F, 0.8F).texOffs(110, 48).addBox(-9.5F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(80, 30).addBox(-12.5F, 0.5F, -0.4F, 0.8F, 4.0F, 0.8F).texOffs(114, 48).addBox(-15.5F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.3129012278803845F));
-        PartDefinition rightwingfinger1 = rightwinghand.addOrReplaceChild("right_wing_finger1", CubeListBuilder.create().texOffs(44, 36).addBox(-19.448650338776723F, -0.7F, -0.7F, 19.448650338776723F, 1.4F, 1.4F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -0.31362065221669827F));
-        PartDefinition rightwingfinger2 = rightwinghand.addOrReplaceChild("right_wing_finger2", CubeListBuilder.create().texOffs(0, 40).addBox(-20.303940504246953F, -0.7F, -0.7F, 20.303940504246953F, 1.4F, 1.4F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -0.9075933340888034F));
-        PartDefinition rightwingfinger3 = rightwinghand.addOrReplaceChild("right_wing_finger3", CubeListBuilder.create().texOffs(46, 40).addBox(-25.243811122728676F, -0.7F, -0.7F, 25.243811122728676F, 1.4F, 1.4F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.4317003853128254F));
-        PartDefinition leftwing = root.addOrReplaceChild("left_wing", CubeListBuilder.create().texOffs(102, 40).addBox(-1.0F, -1.0F, -1.0F, 2.0F, 2.0F, 2.0F),
+        PartDefinition rightwingarm = rightwing.addOrReplaceChild("right_wing_arm", CubeListBuilder.create().texOffs(0, 26).addBox(-10.0F, -1.1F, -1.1F, 10.0F, 2.2F, 2.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F));
+        PartDefinition rightwinghand = rightwingarm.addOrReplaceChild("right_wing_hand", CubeListBuilder.create().texOffs(26, 26).addBox(-1.2F, -1.2F, -1.2F, 2.4F, 2.4F, 2.4F).texOffs(76, 26).addBox(-1.1F, -4.5F, -0.5F, 1.0F, 3.5F, 1.0F).texOffs(100, 26).addBox(0.30000000000000004F, -3.2F, -0.4F, 0.8F, 2.2F, 0.8F).texOffs(98, 44).addBox(-2.3F, -2.6F, -0.4F, 0.8F, 1.6F, 0.8F).texOffs(0, 0).addBox(-19.0F, -2.0F, 0.0F, 29.0F, 26.0F, 0.0F),
+                PartPose.offsetAndRotation(-10.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F));
+        PartDefinition rightwingfinger0 = rightwinghand.addOrReplaceChild("right_wing_finger0", CubeListBuilder.create().texOffs(0, 32).addBox(-18.062391868188442F, -0.6F, -0.6F, 18.062391868188442F, 1.2F, 1.2F).texOffs(102, 44).addBox(-3.5F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(42, 32).addBox(-6.5F, 0.5F, -0.4F, 0.8F, 3.0F, 0.8F).texOffs(106, 44).addBox(-9.5F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(80, 26).addBox(-12.5F, 0.5F, -0.4F, 0.8F, 4.0F, 0.8F).texOffs(110, 44).addBox(-15.5F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -0.08314123188844123F));
+        PartDefinition rightwingfinger1 = rightwinghand.addOrReplaceChild("right_wing_finger1", CubeListBuilder.create().texOffs(46, 32).addBox(-18.7949461292125F, -0.6F, -0.6F, 18.7949461292125F, 1.2F, 1.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -0.4993467216801301F));
+        PartDefinition rightwingfinger2 = rightwinghand.addOrReplaceChild("right_wing_finger2", CubeListBuilder.create().texOffs(0, 36).addBox(-19.13765920900464F, -0.6F, -0.6F, 19.13765920900464F, 1.2F, 1.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -0.9900399732272263F));
+        PartDefinition rightwingfinger3 = rightwinghand.addOrReplaceChild("right_wing_finger3", CubeListBuilder.create().texOffs(44, 36).addBox(-24.12985702402731F, -0.6F, -0.6F, 24.12985702402731F, 1.2F, 1.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.467003986337854F));
+        PartDefinition leftwing = root.addOrReplaceChild("left_wing", CubeListBuilder.create().texOffs(98, 36).addBox(-1.0F, -1.0F, -1.0F, 2.0F, 2.0F, 2.0F),
                 PartPose.offsetAndRotation(2.5F, 1.5F, 2.6F, 0.0F, 0.0F, 0.0F));
-        PartDefinition leftwingarm = leftwing.addOrReplaceChild("left_wing_arm", CubeListBuilder.create().texOffs(38, 30).addBox(0.0F, -1.1F, -1.1F, 10.0F, 2.2F, 2.2F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.05F));
-        PartDefinition leftwinghand = leftwingarm.addOrReplaceChild("left_wing_hand", CubeListBuilder.create().texOffs(64, 30).addBox(-1.2F, -1.2F, -1.2F, 2.4F, 2.4F, 2.4F).texOffs(84, 30).addBox(0.09999999999999998F, -4.5F, -0.5F, 1.0F, 3.5F, 1.0F).texOffs(110, 40).addBox(-1.3F, -3.2F, -0.4F, 0.8F, 2.2F, 0.8F).texOffs(118, 48).addBox(1.3F, -2.6F, -0.4F, 0.8F, 1.6F, 0.8F).texOffs(58, 0).addBox(-10.0F, -7.0F, 0.0F, 29.0F, 30.0F, 0.0F),
-                PartPose.offsetAndRotation(10.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.05F));
-        PartDefinition leftwingfinger0 = leftwinghand.addOrReplaceChild("left_wing_finger0", CubeListBuilder.create().texOffs(0, 44).addBox(-0.0F, -0.7F, -0.7F, 17.867568385205637F, 1.4F, 1.4F).texOffs(122, 48).addBox(2.7F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(40, 44).addBox(5.7F, 0.5F, -0.4F, 0.8F, 3.0F, 0.8F).texOffs(0, 52).addBox(8.7F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(88, 30).addBox(11.7F, 0.5F, -0.4F, 0.8F, 4.0F, 0.8F).texOffs(4, 52).addBox(14.7F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -0.3129012278803845F));
-        PartDefinition leftwingfinger1 = leftwinghand.addOrReplaceChild("left_wing_finger1", CubeListBuilder.create().texOffs(44, 44).addBox(-0.0F, -0.7F, -0.7F, 19.448650338776723F, 1.4F, 1.4F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.31362065221669827F));
-        PartDefinition leftwingfinger2 = leftwinghand.addOrReplaceChild("left_wing_finger2", CubeListBuilder.create().texOffs(0, 48).addBox(-0.0F, -0.7F, -0.7F, 20.303940504246953F, 1.4F, 1.4F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.9075933340888034F));
-        PartDefinition leftwingfinger3 = leftwinghand.addOrReplaceChild("left_wing_finger3", CubeListBuilder.create().texOffs(46, 48).addBox(-0.0F, -0.7F, -0.7F, 25.243811122728676F, 1.4F, 1.4F),
-                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.4317003853128254F));
+        PartDefinition leftwingarm = leftwing.addOrReplaceChild("left_wing_arm", CubeListBuilder.create().texOffs(38, 26).addBox(0.0F, -1.1F, -1.1F, 10.0F, 2.2F, 2.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F));
+        PartDefinition leftwinghand = leftwingarm.addOrReplaceChild("left_wing_hand", CubeListBuilder.create().texOffs(64, 26).addBox(-1.2F, -1.2F, -1.2F, 2.4F, 2.4F, 2.4F).texOffs(84, 26).addBox(0.09999999999999998F, -4.5F, -0.5F, 1.0F, 3.5F, 1.0F).texOffs(106, 36).addBox(-1.3F, -3.2F, -0.4F, 0.8F, 2.2F, 0.8F).texOffs(114, 44).addBox(1.3F, -2.6F, -0.4F, 0.8F, 1.6F, 0.8F).texOffs(58, 0).addBox(-10.0F, -2.0F, 0.0F, 29.0F, 26.0F, 0.0F),
+                PartPose.offsetAndRotation(10.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F));
+        PartDefinition leftwingfinger0 = leftwinghand.addOrReplaceChild("left_wing_finger0", CubeListBuilder.create().texOffs(0, 40).addBox(-0.0F, -0.6F, -0.6F, 18.062391868188442F, 1.2F, 1.2F).texOffs(118, 44).addBox(2.7F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(42, 40).addBox(5.7F, 0.5F, -0.4F, 0.8F, 3.0F, 0.8F).texOffs(122, 44).addBox(8.7F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F).texOffs(88, 26).addBox(11.7F, 0.5F, -0.4F, 0.8F, 4.0F, 0.8F).texOffs(0, 48).addBox(14.7F, 0.5F, -0.4F, 0.8F, 2.0F, 0.8F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.08314123188844123F));
+        PartDefinition leftwingfinger1 = leftwinghand.addOrReplaceChild("left_wing_finger1", CubeListBuilder.create().texOffs(46, 40).addBox(-0.0F, -0.6F, -0.6F, 18.7949461292125F, 1.2F, 1.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.4993467216801301F));
+        PartDefinition leftwingfinger2 = leftwinghand.addOrReplaceChild("left_wing_finger2", CubeListBuilder.create().texOffs(0, 44).addBox(-0.0F, -0.6F, -0.6F, 19.13765920900464F, 1.2F, 1.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.9900399732272263F));
+        PartDefinition leftwingfinger3 = leftwinghand.addOrReplaceChild("left_wing_finger3", CubeListBuilder.create().texOffs(44, 44).addBox(-0.0F, -0.6F, -0.6F, 24.12985702402731F, 1.2F, 1.2F),
+                PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.467003986337854F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 }
