@@ -126,7 +126,7 @@ def staff_boxes():
     """The staff: a dark shaft twisting as it rises, ice along it, claws of ice round a glowing crystal at its head,
     an ice tip at its foot. Built from 0 (its foot) up, about 46 tall."""
     boxes = []
-    shaft_top = 34
+    shaft_top = 32  # 34 put the staff past the item model's bounds (-16 to 32), and the game refused it (0.81.1)
     for y in range(0, shaft_top):
         # It twists: its two-wide core drifts a pixel either way, slowly.
         dx = round(0.8 * math.sin(y * 0.45))
@@ -168,6 +168,11 @@ def shift(boxes, dy):
 
 
 def item_model(boxes, display):
+    # Vanilla refuses a whole model with an element past -16..32 on any axis (it bit the staff in 0.81.0).
+    for f, t, mat in boxes:
+        for v in (*f, *t):
+            if not -16 <= v <= 32:
+                raise SystemExit(f"an element past the item model's bounds (-16 to 32): {f} to {t}")
     elements = []
     for f, t, mat in boxes:
         uv = palette_uv(mat)
@@ -485,7 +490,7 @@ def coloured(boxes):
 def main():
     write_palette()
     sword = shift(sword_boxes(), -7)  # its grip about the model's middle height
-    staff = shift(staff_boxes(), -15)
+    staff = shift(staff_boxes(), -13)
     models = ASSETS / "models/item"
     models.mkdir(parents=True, exist_ok=True)
     (models / "dread_queen_sword_regalia.json").write_text(json.dumps(item_model(sword, SWORD_DISPLAY), indent=1) + "\n")
