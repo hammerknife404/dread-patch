@@ -1274,6 +1274,22 @@ def main():
     time.sleep(0.5)
     check("a golem killed in her storm stays dead",
           "execute positioned 13.5 200 6.5 if entity @e[distance=..2.5,type=!minecraft:item,type=!minecraft:experience_orb]", "Test failed")
+    # Her storm's places (0.79.0, the owner: "about 50-100% its current cap ... converting more of them at lower stats is
+    # ok"; asked, "Small dead count half"): 12 places, a small one half. So far a cow, villager, creeper and guard (whole)
+    # and a bat, parrot and cod (half): 11 half-places of 24. Of 20 chickens killed along its south edge, 13 rise (8
+    # places before 0.79.0 would have let one through).
+    for i in range(20):
+        x = 2.5 + (i % 10) * 1.2
+        z = 13.5 + (i // 10)
+        rcon.run(f'summon minecraft:chicken {x:.1f} 200 {z} {{NoAI:1b,Tags:["smoke_dead"]}}')
+        rcon.run("kill @e[tag=smoke_dead]")
+        time.sleep(0.15)
+    time.sleep(0.5)
+    # Counted by whom they answer to, wherever they've wandered (a box round them missed one): hers, less the cow's.
+    m = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=iceandfire:dread_beast,nbt={CommanderUUID:[I;9,9,9,9]}]"))
+    chicks = (int(m.group(1)) if m else 0) - 1
+    record("her storm raises 12 places, the small dead half a place: 13 of 20 chickens after 11 half-places", chicks == 13, f"{chicks} risen")
+    rcon.run("kill @e[type=minecraft:chicken]")
     rcon.run("kill @e[type=dreadpatch:dread_queen]")
     time.sleep(4.0)
     check("her storm clears when she falls", storms, "Test failed")
@@ -1573,20 +1589,29 @@ def main():
     # The deeps flooded (0.77.0, the owner: "Water should fill most of the open air spaces just above the worlds bedrock
     # layers"): over 3 x 3 chunks there, from just over bedrock's bottom to y -52, water and no open air. Counted by
     # swapping to glass and back: not sponge, which soaks up the water round it (the first run counted its own damage).
-    rcon.run(dl + f"run forceload add {sx - 16} {sz - 16} {sx + 31} {sz + 31}")
-    time.sleep(6.0)
-    deep = f"{sx - 16} -63 {sz - 16} {sx + 31} -52 {sz + 31}"
+    # A spot can be solid rock that deep (0.79.0's run found one), so up to three spots 3 x 3 chunks, 200 blocks apart:
+    # no open air in any, water in at least one.
+    deep_water, deep_air, looked = 0, 0, []
 
-    def deep_count(block):
+    def deep_count(deep, block):
         filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {deep} minecraft:glass replace {block}"))
         if filled and int(filled.group(1)):
             rcon.run(dl + f"run fill {deep} {block} replace minecraft:glass")
             return int(filled.group(1))
         return 0
-    deep_water, deep_air = deep_count("minecraft:water"), deep_count("minecraft:air")
+    for k in range(3):
+        bx, bz = sx + 200 * k, sz
+        rcon.run(dl + f"run forceload add {bx - 16} {bz - 16} {bx + 31} {bz + 31}")
+        time.sleep(6.0)
+        deep = f"{bx - 16} -63 {bz - 16} {bx + 31} -52 {bz + 31}"
+        deep_water += deep_count(deep, "minecraft:water")
+        deep_air += deep_count(deep, "minecraft:air")
+        looked.append(deep)
+        rcon.run(dl + "run forceload remove all")
+        if deep_water > 0:
+            break
     record("the deeps are flooded: water over bedrock, no open air to y -52", deep_water > 0 and deep_air == 0,
-           f"{deep_water} water, {deep_air} air in {deep}")
-    rcon.run(dl + "run forceload remove all")
+           f"{deep_water} water, {deep_air} air in {looked}")
     # The Rime Chasma's floor (0.68.0, the owner's pictures): far out on new ground, its middle found on a coarse grid
     # (80 apart round where locate puts its edge; 32 before 0.77.0), then every 2 blocks over 64 x 64 there. Most of it is the flat
     # floor (top block 30), its plates' ridges a block or two over it in snow, its cracks at least 6 deep (fall
@@ -1597,9 +1622,11 @@ def main():
         rcon.run("kill @e[tag=smoke_probe]")
         return int(float(pos.group(1))) - 1 if pos else None
 
-    cfx, cfz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
-    m = re.search(r"at \[(-?\d+), \S+, (-?\d+)\]", rcon.run(dl + f"positioned {cfx} 0 {cfz} run locate biome dreadpatch:rime_chasma"))
-    if m:
+    def chasma_floor(cfx, cfz):
+        """Round where locate finds a chasma from (cfx, cfz): its flattest floor point, or None; and its locate point."""
+        m = re.search(r"at \[(-?\d+), \S+, (-?\d+)\]", rcon.run(dl + f"positioned {cfx} 0 {cfz} run locate biome dreadpatch:rime_chasma"))
+        if not m:
+            return None, None, None
         lx, lz = int(m.group(1)), int(m.group(2))
         # 64 apart since 0.77.0: a chasma is 2.3 times as wide, its slopes too.
         # 9 x 9, a pause after each: each lone chunk needs its neighbours generated, and 121 of them queued at once held
@@ -1629,7 +1656,18 @@ def main():
             rcon.run(dl + "run forceload remove all")
             if flat > flattest:
                 mid, flattest = (cx, cz), flat
-        record("the Rime Chasma has a floor near where it's found", mid is not None, f"none of {len(grid)} points at 29-32 round {lx} {lz}")
+        return mid, lx, lz
+
+    # Some chasmas never quite flatten (the biome reaches past where the floor's mask saturates): up to three tried.
+    m = mid = None
+    for _ in range(3):
+        cfx, cfz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
+        mid, lx, lz = chasma_floor(cfx, cfz)
+        m = lx is not None
+        if mid:
+            break
+    if m:
+        record("the Rime Chasma has a floor near where it's found", mid is not None, f"no floor at 29-32 round three chasmas (the last at {lx} {lz})")
         if mid:
             mx, mz = mid
             rcon.run(dl + f"run forceload add {mx - 32} {mz - 32} {mx + 32} {mz + 32}")

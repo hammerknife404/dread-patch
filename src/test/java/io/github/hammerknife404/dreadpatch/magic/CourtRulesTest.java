@@ -67,4 +67,12 @@ class CourtRulesTest {
         assertFalse(CourtRules.mayFight(CourtRules.Stance.CASTERS_SIDE, true, everything), "never its own side");
         assertFalse(CourtRules.mayFight(CourtRules.Stance.DREAD, true, everything), "never the Dread");
     }
+
+    @Test
+    void herCourtGrowsWithDifficulty() {
+        assertEquals(4, CourtRules.courtLimit(1));
+        assertEquals(6, CourtRules.courtLimit(2));
+        assertEquals(8, CourtRules.courtLimit(3));
+        assertEquals(4, CourtRules.courtLimit(0));
+    }
 }

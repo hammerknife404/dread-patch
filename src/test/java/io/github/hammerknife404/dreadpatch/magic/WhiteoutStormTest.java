@@ -138,4 +138,26 @@ class WhiteoutStormTest {
         assertEquals(1.0F, WhiteoutStorm.strength(300, 360));
         assertEquals(0.5F, WhiteoutStorm.strength(330, 360), 1.0E-6F);
     }
+
+    @Test
+    void herStormRaisesTwelvePlacesTheSmallTakingHalf() {
+        // A chicken, a bat, a cod and a baby take half a place; a zombie, a cow, a spider a whole one.
+        assertEquals(1, WhiteoutStorm.halves(0.4F, 0.7F, false));
+        assertEquals(1, WhiteoutStorm.halves(0.5F, 0.9F, false));
+        assertEquals(1, WhiteoutStorm.halves(0.5F, 0.3F, false));
+        assertEquals(1, WhiteoutStorm.halves(0.3F, 0.98F, true));
+        assertEquals(2, WhiteoutStorm.halves(0.6F, 1.95F, false));
+        assertEquals(2, WhiteoutStorm.halves(0.9F, 1.4F, false));
+        assertEquals(2, WhiteoutStorm.halves(1.4F, 0.9F, false));
+        int big = 0;
+        for (int used = 0; WhiteoutStorm.hasRoom(used, 2); used += 2) {
+            big++;
+        }
+        int small = 0;
+        for (int used = 0; WhiteoutStorm.hasRoom(used, 1); used++) {
+            small++;
+        }
+        assertEquals(12, big, "12 places (8 before 0.79.0)");
+        assertEquals(24, small, "the small dead twice as many");
+    }
 }

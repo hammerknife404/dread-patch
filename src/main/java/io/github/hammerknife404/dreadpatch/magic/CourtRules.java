@@ -42,6 +42,15 @@ public final class CourtRules {
         throw new AssertionError("weights don't sum to TOTAL_WEIGHT");
     }
 
+    /**
+     * Her court's limit by difficulty (0.79.0, asked whether her storm's risen should keep counting against her court's 6:
+     * "scale it to difficulty?"; ours: they still count, and the limit is 4 on Easy (and Peaceful), 6 on Normal as before,
+     * 8 on Hard). {@code difficulty} is the difficulty's id, 0 to 3.
+     */
+    public static int courtLimit(int difficulty) {
+        return difficulty >= 3 ? 8 : difficulty == 2 ? 6 : 4;
+    }
+
     /** How many to raise: a wave, but never past the court's limit. */
     public static int toRaise(int current, int max, int wave) {
         return Math.max(0, Math.min(wave, max - current));
