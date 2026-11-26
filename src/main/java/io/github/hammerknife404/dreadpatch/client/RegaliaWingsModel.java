@@ -96,12 +96,15 @@ public final class RegaliaWingsModel extends Model {
         state.flapPhase += (time - state.flapTime) * (0.3F + 0.25F * flap);
         state.flapTime = time;
         float beatGlide = flap * Mth.sin(state.flapPhase);
-        float[] glide = {0.6F - 0.25F * dive - 0.25F * open, 0.1F + 0.7F * sweep * (1.0F - open) + 0.4F * dive - 0.4F * open,
-                -0.35F + 0.25F * open + 0.6F * beatGlide + 0.03F * Mth.sin(time * 0.15F),
+        // The stroke (0.82.4, the owner: "less up and down to the grownd but to the players body", asked: both): it sweeps
+        // the wings back toward the wearer's back and out again (a y turn on the body), a little lift with it; all of it
+        // on the body, so it pitches and rolls with the wearer.
+        float[] glide = {0.6F - 0.25F * dive - 0.25F * open, 0.1F + 0.7F * sweep * (1.0F - open) + 0.4F * dive - 0.4F * open + 0.55F * beatGlide,
+                -0.35F + 0.25F * open + 0.15F * beatGlide + 0.03F * Mth.sin(time * 0.15F),
                 0.1F - 0.6F * sweep * (1.0F - open) - 0.5F * dive + 0.5F * open + 0.3F * flap * Mth.sin(state.flapPhase - 0.9F)};
         float flutter = 0.05F * Math.min(1.0F, state.speed) * Mth.sin(time * 2.3F) * state.glide;
         float phase = time * (Mth.TWO_PI / 22.0F);
-        float[] beat = {0.0F, 0.2F, -0.3F + 0.7F * Mth.sin(phase), 0.3F * Mth.sin(phase - 0.8F)};
+        float[] beat = {0.0F, 0.35F + 0.7F * Mth.sin(phase), -0.3F + 0.15F * Mth.sin(phase), 0.3F * Mth.sin(phase - 0.8F)};
         float[] pose = new float[4];
         for (int k = 0; k < 4; k++) {
             float v = Mth.lerp(state.walk, idle[k], walk[k]);
