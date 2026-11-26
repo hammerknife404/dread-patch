@@ -33,7 +33,9 @@
   "carvers": {},
   "features": [
     [],
-    [],
+    [
+      "dreadpatch:deep_water"
+    ],
     [
       "dreadpatch:chasma_pocket"
     ],

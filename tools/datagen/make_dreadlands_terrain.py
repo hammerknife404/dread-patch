@@ -25,8 +25,15 @@ import pathlib
 REPO = pathlib.Path(__file__).resolve().parents[2]
 DATA = REPO / "src/main/resources/data/dreadpatch"
 
-SURFACE_Y = 72
-SHELF = -0.92        # the basins' fall: 22 blocks
+SURFACE_Y = 80       # the plains' ground (72 before 0.77.0)
+SHELF = -1.5         # the basins' fall: 36 blocks (22 before 0.77.0)
+# 0.77.0, the owner: "expand the three dreadlands biomes in size and verticality"; asked, "About 2x", "2.3 x+ is ok", and
+# all four kinds of height. The large-scale noises (the biomes', the shores', the dune fields') are sampled this much
+# slower, so each biome is about 2.3 times as wide; the chasma's plates and cracks keep their size.
+SPREAD = 1.0 / 2.3
+HILLS = 2.2          # the plains' hills and ridgelines at their most: about 50 blocks over the plains (to about y 120-130)
+DUNES = 1.3          # the wastes' dune ridges (0.7 before 0.77.0): about ±17 blocks
+CRAG = 1.4           # a crag's spike at its most: about 34 blocks
 FLOOR_Y = 31          # the chasma's floor: its top block at 30 (the owner: "Mostly #1", about y 30)
 ICE_SHEET = 16        # how deep its ice goes
 CELL = 80.0           # a trench cell's size (blocks)
@@ -37,8 +44,17 @@ CRACK_MIN = 6         # every crack at least this deep
 BEDROCK_TOP = -59     # a crack to bedrock stops here (bedrock fades in from -64 to -60)
 
 
-def noise(name, y_scale=0.0):
-    return {"type": "minecraft:noise", "noise": name, "xz_scale": 1.0, "y_scale": y_scale}
+def noise(name, y_scale=0.0, xz_scale=1.0):
+    return {"type": "minecraft:noise", "noise": name, "xz_scale": xz_scale, "y_scale": y_scale}
+
+
+def wide(name):
+    """A large-scale noise, spread out (0.77.0)."""
+    return noise(name, 0.0, SPREAD)
+
+
+def absolute(x):
+    return {"type": "minecraft:abs", "argument": x}
 
 
 def add(a, b):
@@ -111,15 +127,15 @@ def chasma_surface():
 
 def main():
     # Scaled so the basins (past 0.14) cover about a third of the land, the chasma a smaller share within them.
-    basins = mul(1.6, noise("dreadpatch:dreadlands_basins"))
-    shores = noise("dreadpatch:dreadlands_shores")
-    chasma = mul(1.5, noise("dreadpatch:dreadlands_chasma"))  # widened (0.68.0), so a chasma is mostly its floor
+    basins = mul(1.6, wide("dreadpatch:dreadlands_basins"))
+    shores = wide("dreadpatch:dreadlands_shores")
+    chasma = mul(1.5, wide("dreadpatch:dreadlands_chasma"))  # widened (0.68.0), so a chasma is mostly its floor
     # Ground at SURFACE_Y: vanilla's gradient over the world's height, shifted.
     base = grad(-64, 320, 5.666666666666667 + (SURFACE_Y - 72) / 24.0, -10.333333333333334 + (SURFACE_Y - 72) / 24.0)
     rolling = mul(0.42, noise("dreadpatch:dreadlands_rolling"))
     hummocks = mul(0.06, noise("dreadpatch:dreadlands_hummocks"))
     ridge = add(0.55, mul(-1.1, {"type": "minecraft:abs", "argument": noise("dreadpatch:dreadlands_drifts")}))
-    fields = clamp(mul(4.0, add(-0.15, noise("dreadpatch:dreadlands_dune_fields"))), 0.0, 1.0)
+    fields = clamp(mul(4.0, add(-0.15, wide("dreadpatch:dreadlands_dune_fields"))), 0.0, 1.0)
     # The shore: a sharp bluff where the shores noise is low, a long shelf where it's high.
     shelf = {"type": "minecraft:spline", "spline": spline(shores, [
         (-1.0, spline(basins, [(0.10, 0.0), (0.14, SHELF)])),
@@ -132,16 +148,29 @@ def main():
     # which on a long shore is still part-way where the chasma starts).
     chasma_mask = {"type": "minecraft:cache_2d", "argument": mul(clamp(mul(10.0, add(-0.12, basins)), 0.0, 1.0),
                                                                  clamp(mul(6.0, add(-0.38, chasma)), 0.0, 1.0))}
+    plains = add(1.0, mul(-1.0, sunk))
+    # The plains' hills (0.77.0): broad swells and frozen ridgelines (sharp crests where the ridgelines noise crosses
+    # 0), their height by the highlands noise, so some stretches are hill country and some stay low and open.
+    highland = clamp(add(0.5, mul(1.5, wide("dreadpatch:dreadlands_highlands"))), 0.2, 1.0)
+    swells = clamp(noise("dreadpatch:dreadlands_swells"), 0.0, 1.0)
+    crests = clamp(add(1.0, mul(-2.5, absolute(noise("dreadpatch:dreadlands_ridgelines")))), 0.0, 1.0)
+    hills = mul(HILLS, mul(highland, add(mul(0.55, swells), mul(0.6, crests))))
+    # Crags (0.77.0): rare outcrops of jagged spikes, in any land but the chasma (masked off it below with the rest).
+    crag_mask = clamp(mul(5.0, add(-0.3, noise("dreadpatch:dreadlands_crags"))), 0.0, 1.0)
+    spikes = clamp(add(0.1, noise("dreadpatch:dreadlands_spikes")), 0.0, 1.0)
+    crags = mul(crag_mask, mul(CRAG, spikes))
     land = total(
-        base, rolling, hummocks, shelf,
-        mul(add(1.0, mul(-1.0, sunk)), mul(0.32, mul(fields, ridge))),  # the plains' occasional drifts
-        mul(sunk, add(mul(0.7, ridge), mul(0.25, noise("dreadpatch:dreadlands_rolling")))),  # sastrugi: tall dunes
+        base, rolling, hummocks, shelf, crags,
+        mul(plains, add(hills, mul(0.32, mul(fields, ridge)))),  # the plains' hills, and their occasional drifts
+        mul(sunk, add(mul(DUNES, ridge), mul(0.35, noise("dreadpatch:dreadlands_rolling")))),  # sastrugi: tall dunes
     )
     # Eased toward a level floor: on it, exactly FLOOR_Y (a straight gradient interpolates exactly). Twice the land's
     # steepness, so the way down stays gentle but the floor holds its height.
     # Zero half a block under FLOOR_Y: at FLOOR_Y itself, rounding made it solid.
     level_floor = grad(-64, 320, (FLOOR_Y - 0.5 + 64) / 12.0, (FLOOR_Y - 0.5 - 320) / 12.0)
     terrain = add(land, mul(chasma_mask, add(level_floor, mul(-1.0, land))))
+    # The crags' faces broken up in three dimensions: ledges and overhangs, not smooth cones.
+    terrain = add(terrain, mul(mul(crag_mask, add(1.0, mul(-1.0, chasma_mask))), mul(0.45, noise("dreadpatch:dreadlands_crag_faces", 1.0))))
     # Vanilla's noodle caves carry their own interpolation, so they go outside ours, as in vanilla's own overworld
     # (nested inside, they left the first six columns of every chunk air, bedrock and all).
     caves = minimum(
@@ -199,6 +228,12 @@ def main():
     # The chasma's ice (0.68.0): its own rules, before the rest (which still makes its cracks' bottoms and the stone).
     rules = [r for r in settings["surface_rule"]["sequence"] if r.get("if_true", {}).get("type") != "minecraft:biome"]
     rules.insert(1, chasma_surface())
+    # Steep ground (0.77.0: the crags, the bluffs, the hills' steeper sides) bare dreadstone and packed ice, not snow.
+    rules = [r for r in rules if r.get("if_true", {}).get("type") != "minecraft:steep"]
+    rules.insert(2, when({"type": "minecraft:steep"}, when(depth(0), {"type": "minecraft:sequence", "sequence": [
+        when({"type": "minecraft:noise_threshold", "noise": "minecraft:packed_ice", "min_threshold": 0.0, "max_threshold": 10.0},
+             block("minecraft:packed_ice")),
+        block("iceandfire:dread_stone")]})))
     settings["surface_rule"]["sequence"] = rules
     router = settings["noise_router"]
     router.update({"continents": basins, "erosion": shores, "ridges": chasma, "temperature": 0.0, "vegetation": 0.0, "depth": 0.0,
@@ -215,6 +250,13 @@ def main():
         "dreadlands_crack_depths": (-6, [1.0, 0.5]),
         "dreadlands_ridges": (-4, [1.0]),
         "dreadlands_clear_ice": (-5, [1.0, 0.5]),
+        # 0.77.0: the plains' hills, and the crags.
+        "dreadlands_highlands": (-9, [1.0, 0.5]),
+        "dreadlands_swells": (-8, [1.0, 0.5, 0.25]),
+        "dreadlands_ridgelines": (-8, [1.0, 0.35]),
+        "dreadlands_crags": (-7, [1.0]),
+        "dreadlands_spikes": (-4, [1.0, 0.6, 0.3]),
+        "dreadlands_crag_faces": (-4, [1.0, 0.5]),
     }
     for name, (octave, amplitudes) in noises.items():
         (DATA / f"worldgen/noise/{name}.json").write_text(json.dumps({"firstOctave": octave, "amplitudes": amplitudes}, indent=2) + "\n")
@@ -230,11 +272,11 @@ def main():
     dimension.write_text(json.dumps(dim, indent=2) + "\n")
 
     # Underground: blobs of dreadstone and packed ice in the stone, and now and then a crusted lava pocket.
-    for name, block, size, count in (("dreadstone_blobs", "iceandfire:dread_stone", 33, 8), ("packed_ice_blobs", "minecraft:packed_ice", 33, 6)):
+    for name, ore, size, count in (("dreadstone_blobs", "iceandfire:dread_stone", 33, 8), ("packed_ice_blobs", "minecraft:packed_ice", 33, 6)):
         (DATA / f"worldgen/configured_feature/{name}.json").parent.mkdir(parents=True, exist_ok=True)
         (DATA / f"worldgen/configured_feature/{name}.json").write_text(json.dumps({"type": "minecraft:ore", "config": {
             "size": size, "discard_chance_on_air_exposure": 0.0, "targets": [
-                {"target": {"predicate_type": "minecraft:block_match", "block": "minecraft:stone"}, "state": {"Name": block}}]}}, indent=2) + "\n")
+                {"target": {"predicate_type": "minecraft:block_match", "block": "minecraft:stone"}, "state": {"Name": ore}}]}}, indent=2) + "\n")
         (DATA / f"worldgen/placed_feature/{name}.json").parent.mkdir(parents=True, exist_ok=True)
         (DATA / f"worldgen/placed_feature/{name}.json").write_text(json.dumps({"feature": f"dreadpatch:{name}", "placement": [
             {"type": "minecraft:count", "count": count}, {"type": "minecraft:in_square"},
@@ -253,6 +295,9 @@ def main():
             {"type": "minecraft:count", "count": count}, {"type": "minecraft:in_square"},
             {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
 
+    # The deeps flooded (0.77.0): once a chunk, the feature covers the chunk itself.
+    (DATA / "worldgen/configured_feature/deep_water.json").write_text(json.dumps({"type": "dreadpatch:deep_water", "config": {}}, indent=2) + "\n")
+    (DATA / "worldgen/placed_feature/deep_water.json").write_text(json.dumps({"feature": "dreadpatch:deep_water", "placement": []}, indent=2) + "\n")
     # The plains' grave patches (0.67.0): graveyard soil, wither roses, now and then a dead dreadwood tree.
     (DATA / "worldgen/configured_feature/grave_patch.json").write_text(json.dumps({"type": "dreadpatch:grave_patch", "config": {}}, indent=2) + "\n")
     (DATA / "worldgen/placed_feature/grave_patch.json").write_text(json.dumps({"feature": "dreadpatch:grave_patch", "placement": [
@@ -269,6 +314,10 @@ def main():
         steps[6] = [f for f in steps[6] if f not in underground] + underground
         while len(steps) < 10:
             steps.append([])
+        # Step 1, lakes: the deeps flooded (0.77.0), every biome.
+        steps[1] = [f for f in steps[1] if f != "dreadpatch:deep_water"] + ["dreadpatch:deep_water"]
+        # Step 4, surface structures: an ice dragon's bones now and then (0.76.0), every biome.
+        steps[4] = [f for f in steps[4] if f != "dreadpatch:dragon_skeleton"] + ["dreadpatch:dragon_skeleton"]
         # Step 9: vegetal decoration; the plains only.
         steps[9] = [f for f in steps[9] if f != "dreadpatch:grave_patch"] + (["dreadpatch:grave_patch"] if name == "dreadlands" else [])
         if name == "rime_chasma":

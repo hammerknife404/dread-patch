@@ -31,6 +31,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <li>{@link ChasmaPocket} ({@code dreadpatch:chasma_pocket}) and {@link HeavedSlabs} ({@code dreadpatch:heaved_slabs}):
  * the Rime Chasma's water sealed in its ice, and slabs heaved up at its cracks' lips (0.68.0).</li>
  * <li>{@link DragonSkeleton} ({@code dreadpatch:dragon_skeleton}): an ice dragon's bones lying out (0.76.0).</li>
+ * <li>{@link DeepWater} ({@code dreadpatch:deep_water}): the open air just over bedrock flooded (0.77.0).</li>
  * </ul>
  */
 public final class DreadTerrain {
@@ -45,6 +46,7 @@ public final class DreadTerrain {
     public static final DeferredHolder<Feature<?>, ChasmaPocket> CHASMA_POCKET = FEATURES.register("chasma_pocket", ChasmaPocket::new);
     public static final DeferredHolder<Feature<?>, HeavedSlabs> HEAVED_SLABS = FEATURES.register("heaved_slabs", HeavedSlabs::new);
     public static final DeferredHolder<Feature<?>, DragonSkeleton> DRAGON_SKELETON = FEATURES.register("dragon_skeleton", DragonSkeleton::new);
+    public static final DeferredHolder<Feature<?>, DeepWater> DEEP_WATER = FEATURES.register("deep_water", DeepWater::new);
 
     private DreadTerrain() {
     }
@@ -135,6 +137,41 @@ public final class DreadTerrain {
             dragon.setVariant(colours.get(random.nextInt(colours.size())).getName());
             level.addFreshEntity(dragon);
             return true;
+        }
+    }
+
+    /**
+     * The deeps flooded (0.77.0, the owner: "Water should fill most of the open air spaces just above the worlds bedrock
+     * layers"): in each chunk, every air block from the world's floor up to {@link TerrainRules#DEEP_WATER_TOP} turned to
+     * still water, so the caves and cracks that reach the bottom end in black water, level across the chunk and the next.
+     * Vanilla's own flooding (sea level, aquifers) can't do it: the disabled aquifer puts lava under y −54.
+     */
+    public static final class DeepWater extends Feature<NoneFeatureConfiguration> {
+        DeepWater() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            BlockPos corner = context.origin();
+            BlockState water = Blocks.WATER.defaultBlockState();
+            BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+            boolean placed = false;
+            int x0 = corner.getX() & ~15;
+            int z0 = corner.getZ() & ~15;
+            for (int x = x0; x < x0 + 16; x++) {
+                for (int z = z0; z < z0 + 16; z++) {
+                    for (int y = level.getMinBuildHeight() + 1; y <= TerrainRules.DEEP_WATER_TOP; y++) {
+                        at.set(x, y, z);
+                        if (level.getBlockState(at).isAir()) {
+                            level.setBlock(at, water, Block.UPDATE_CLIENTS);
+                            placed = true;
+                        }
+                    }
+                }
+            }
+            return placed;
         }
     }
 
