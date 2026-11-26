@@ -975,6 +975,8 @@ def main():
     record("ashore, it makes for water", back, rcon.run("data get entity @e[tag=smoke_eel_ashore,limit=1] Pos").strip())
     rcon.run("kill @e[tag=smoke_eel_ashore]")
     rcon.run("kill @e[type=item]")
+    # Only one in six has its lantern (0.76.0), and only that one pulses: this one's given it.
+    rcon.run(f"data merge entity {eel} {{Lantern:1b,Frenzy:0}}")
     rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:resistance 120 4 true")
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:fire_resistance 120 0 true")
@@ -992,7 +994,35 @@ def main():
     record("and lights it up (0.75.1): Glowing on the zombie, none on the eel",
            pulsed and has_effect(prey, "minecraft:glowing") and not has_effect(eel, "minecraft:glowing"), "glowing wrong")
     rcon.run("kill @e[tag=smoke_eel_prey]")
+    # Without its lantern (0.76.0, asked: "No pulse without it") it never pulses; but Glowing prey (the owner:
+    # "Highlighted creatures also send rime eels into frenzies") sends it into a Frenzy all the same.
+    rcon.run(f"data merge entity {eel} {{Lantern:0b,Frenzy:0}}")
+    rcon.run("effect clear " + eel)
+    rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
+    rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:resistance 120 4 true")
+    rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:fire_resistance 120 0 true")
+    rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:glowing 120 0 true")
+    glow_frenzy = False
+    for _ in range(24):
+        time.sleep(0.25)
+        m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {eel} Frenzy"))
+        if m and int(m.group(1)) > 0:
+            glow_frenzy = True
+            break
+    record("Glowing prey sends it into a Frenzy (0.76.0)", glow_frenzy, rcon.run(f"data get entity {eel} Frenzy").strip())
+    time.sleep(6.0)
+    record("without its lantern it never pulses (8 s)", not has_effect(prey, "dreadpatch:rimefrost") and not has_effect(prey, "dreadpatch:whiteout"),
+           "the zombie took the pulse")
+    rcon.run("kill @e[tag=smoke_eel_prey]")
     rcon.run("kill @e[type=item]")
+    # One spawn in six has its lantern (0.76.0, the owner: "Only about 10-25% spawn with the lantern"): of 36 summoned
+    # without data (so each rolls), some have it and most don't. (All or none would be a 1 in 700 fluke.)
+    for _ in range(36):
+        rcon.run("summon dreadpatch:rime_eel 44.5 202 44.5")
+    lanterned = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:rime_eel,nbt={Lantern:1b},x=44.5,y=202,z=44.5,distance=..4]"))
+    lanterned = int(lanterned.group(1)) if lanterned else 0
+    record("about one in six spawns with its lantern", 0 < lanterned < 18, f"{lanterned} of 36")
+    rcon.run("kill @e[type=dreadpatch:rime_eel,x=44.5,y=202,z=44.5,distance=..4]")
     for _ in range(10):
         rcon.run("loot spawn 44.5 201 44.5 loot dreadpatch:entities/rime_eel")
     time.sleep(0.2)
@@ -1508,6 +1538,8 @@ def main():
             break
         time.sleep(2.0)
     record("it lays snow round its foot", snow > 0, "no snow within 4 of it in 44 s")
+    # It lets the Dread out now and then (0.76.0) on its panes' random ticks; but random ticks run only in chunks near a
+    # player (forceloaded or not), so that's for the client (its odds are GateTimingTest's).
     # Broken, it collapses; a frame with a gap opens nothing.
     rcon.run("setblock 3 201 2 minecraft:air")
     time.sleep(0.5)
@@ -1527,6 +1559,18 @@ def main():
     # Its three biomes (0.66.0): the plains, the sunken Sastrugi Wastes, the Rime Chasma's trenches.
     check("the Sastrugi Wastes exist", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:sastrugi_wastes", "is at")
     check("the Rime Chasma exists", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:rime_chasma", "is at")
+    # An ice dragon's skeleton lying out (0.76.0, the owner: "ice dragon skeleton corpses spawn in the dreadlands"), one
+    # chunk in 100: placed by hand on new ground (its rarity aside), it's Ice and Fire's ice dragon, dead, down to bones.
+    sx, sz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
+    rcon.run(dl + f"run forceload add {sx} {sz}")
+    time.sleep(4.0)
+    placed = rcon.run(dl + f"positioned {sx + 8} 0 {sz + 8} positioned over ocean_floor run place feature dreadpatch:dragon_skeleton ~ ~ ~")
+    time.sleep(0.5)
+    bones = dl + f"if entity @e[type=iceandfire:ice_dragon,x={sx - 8},y=-64,z={sz - 8},dx=32,dy=400,dz=32,nbt={{ModelDead:1b}}]"
+    record("an ice dragon's skeleton lies in the Dreadlands", "Test passed" in rcon.run(bones)
+           and "Test failed" in rcon.run(bones[:-1] + ",nbt={DeathStage:0}]"), f"place said: {placed.strip()}")
+    rcon.run(dl + f"run kill @e[type=iceandfire:ice_dragon,x={sx - 8},y=-64,z={sz - 8},dx=32,dy=400,dz=32]")
+    rcon.run(dl + "run forceload remove all")
     # The Rime Chasma's floor (0.68.0, the owner's pictures): far out on new ground, its middle found on a coarse grid
     # (32 apart round where locate puts its edge), then every 2 blocks over 64 x 64 there. Most of it is the flat
     # floor (top block 30), its plates' ridges a block or two over it in snow, its cracks at least 6 deep (fall

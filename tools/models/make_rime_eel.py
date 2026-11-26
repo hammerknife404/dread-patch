@@ -19,14 +19,14 @@ from PIL import Image, ImageDraw
 REPO = pathlib.Path(__file__).resolve().parents[2]
 TEXTURES = REPO / "src/main/resources/assets/dreadpatch/textures/entity"
 JAVA = REPO / "src/main/java/io/github/hammerknife404/dreadpatch/client/RimeEelGeometry.java"
-TEX_W, TEX_H = 128, 64
+TEX_W, TEX_H = 128, 128
 
-# Bone-pale, frost-shadowed, from the picture.
-LIGHT = (0xEE, 0xF2, 0xF6)
-PALE = (0xD4, 0xDC, 0xE6)
-MID = (0xB2, 0xBE, 0xCC)
-DIM = (0x86, 0x94, 0xA8)
-DARK = (0x4E, 0x58, 0x6C)
+# Bone-pale with a cold cyan cast, frost-shadowed, from the picture.
+LIGHT = (0xE6, 0xF5, 0xF3)
+PALE = (0xCB, 0xE4, 0xE2)
+MID = (0xAC, 0xCB, 0xCB)
+DIM = (0x86, 0xA6, 0xAA)
+DARK = (0x50, 0x68, 0x70)
 SOOT = (0x10, 0x12, 0x18)
 MOUTH = (0x16, 0x14, 0x1C)
 GUM = (0x3A, 0x30, 0x3E)
@@ -36,6 +36,7 @@ GLASS = (0x2E, 0x5E, 0x6E)
 CYAN = (0x00, 0xCB, 0xFF)
 BRIGHT = (0x6C, 0xE8, 0xFF)
 CORE = (0xE6, 0xFD, 0xFF)
+GLINT = (0xC8, 0xE6, 0xEA)
 
 
 class Box:
@@ -57,50 +58,97 @@ def B(*args):
     return Box(*args)
 
 
+# The body's segments: (width/height, length, its turn from the one before), front to tail. At rest they lie
+# flat on the water and curl round in a ring, nearly closing on the head, as the picture's does.
+SEGMENTS = [(8, 6, 0.15), (8, 6, 0.45), (7, 6, 0.7), (7, 6, 0.62), (6, 6, 0.75), (5, 6, 0.75), (4, 5, 0.75), (3, 5, 0.7)]
+
+
+def body_parts():
+    parts = []
+    parent = "head"
+    pivot = (0.0, -3.0, -0.5)
+    for i, (size, length, turn) in enumerate(SEGMENTS):
+        name = f"body{i + 1}"
+        half = size / 2
+        boxes = [B(-half, -half, 0, size, size, length, "segment"), B(-half - 0.5, -half - 0.5, 0.5, size + 1, size + 1, 1, "ring")]
+        if i == 0:
+            # The dorsal fin's jagged spikes, just behind the head.
+            boxes.append(B(0, -half - 6, 0, 0, 6, 7, "dorsal"))
+        elif size >= 5:
+            boxes.append(B(0, -half - 2, 1, 0, 2, length - 1, "spines"))
+        # The first dips a little from the raised head to the water; the second levels out again.
+        rot = (0.2 if i == 0 else -0.2 if i == 1 else 0.0, turn, 0.0)
+        parts.append(Part(name, parent, pivot, rot, boxes))
+        parent, pivot = name, (0.0, 0.0, float(length))
+    parts.append(Part("tail_fin", parent, (0.0, 0.0, pivot[2] - 0.5), (0.0, 0.0, 0.0), [B(0, -4, 0, 0, 8, 6, "tail")]))
+    return parts
+
+
 PARTS = [
-    # The head, the root (set off to one side and back, so the curled eel's middle is the entity's): a skull 8 wide, 6 tall, 9 long, its upper fangs under it, an eye each side.
-    Part("head", None, (-6.0, 15.0, -1.0), (0.0, 0.0, 0.0), [
-        B(-4, -5, -9, 8, 6, 9, "skull"),
-        B(-3.5, 1, -8.5, 7, 2, 8, "fangs_up"),
-        B(-3.5, 0.5, -3, 7, 3, 3, "mouth"),
-        B(-4.6, -3.5, -7.5, 1, 2, 2, "eye"),
-        B(3.6, -3.5, -7.5, 1, 2, 2, "eye"),
+    # The head, the root (set off to one side and back, so the curled eel's middle is the entity's): a skull 9 wide,
+    # 6 tall, 10 long, long fangs hanging under its lip, a black eye each side with a pale glint, a dark mouth behind.
+    Part("head", None, (-9.0, 16.0, -2.0), (0.0, 0.0, 0.0), [
+        B(-4.5, -6, -10, 9, 6, 10, "skull"),
+        B(-4, 0, -9.5, 8, 3, 9, "fangs_up"),
+        B(-4, 0, -4, 8, 3, 4, "mouth"),
+        B(-4.7, -4.5, -8, 1, 2, 2, "eye"),
+        B(3.7, -4.5, -8, 1, 2, 2, "eye"),
     ]),
     # Its jaw, hanging open (a positive x turn drops its front), fangs up from it.
-    Part("jaw", "head", (0.0, 1.0, -0.5), (0.6, 0.0, 0.0), [
-        B(-3.5, 0, -9.5, 7, 3, 9, "jaw"),
-        B(-3, -2, -9, 6, 2, 8, "fangs_down"),
+    Part("jaw", "head", (0.0, 1.0, -1.0), (0.42, 0.0, 0.0), [
+        B(-4, 0, -9.5, 8, 2, 9.5, "jaw"),
+        B(-3.5, -2, -9, 7, 2, 8.5, "fangs_down"),
     ]),
-    # A jagged crest down its skull.
-    Part("crest", "head", (0.0, -5.0, -8.0), (-0.08, 0.0, 0.0), [B(0, -4, 0, 0, 4, 10, "crest")]),
-    # The lure: a stalk up from the brow, leaning back; an arm arching forward over the snout; a hook; the lantern.
-    Part("stalk", "head", (0.0, -5.0, -4.0), (-0.12, 0.0, 0.0), [B(-0.5, -9, -0.5, 1, 9, 1, "stalk")]),
-    Part("stalk_arm", "stalk", (0.0, -9.0, 0.0), (0.3, 0.0, 0.0), [B(-0.5, -0.5, -9, 1, 1, 9, "stalk")]),
-    Part("stalk_hook", "stalk_arm", (0.0, 0.0, -9.0), (-0.18, 0.0, 0.0), [B(-0.5, 0, -0.5, 1, 2, 1, "stalk")]),
-    Part("lantern", "stalk_hook", (0.0, 2.0, 0.0), (0.0, 0.0, 0.0), [
-        B(-2, 0, -2, 4, 1, 4, "iron"),
-        B(-1.5, 1, -1.5, 3, 4, 3, "lantern"),
-        B(-2, 5, -2, 4, 1, 4, "iron"),
+    # The lure: a stalk up from the top of its head, leaning back; an arm reaching forward and a little down over the
+    # snout; a short hook; the lantern (a vanilla lantern's shape: a nub, a cap, the glass, a base).
+    Part("stalk", "head", (0.0, -6.0, -4.5), (-0.3, 0.0, 0.0), [B(-1, -12, -1, 2, 12, 2, "stalk")]),
+    Part("stalk_arm", "stalk", (0.0, -12.0, 0.0), (0.75, 0.0, 0.0), [B(-1, -1, -15, 2, 2, 15, "stalk")]),
+    Part("stalk_hook", "stalk_arm", (0.0, 0.0, -14.5), (0.0, 0.0, 0.0), [B(-0.5, 0, -0.5, 1, 2, 1, "stalk")]),
+    # Hanging plumb at rest: its x turn undoes its parents' (-0.3 + 0.75).
+    Part("lantern", "stalk_hook", (0.0, 2.0, 0.0), (-0.45, 0.0, 0.0), [
+        B(-1, 0, -1, 2, 1, 2, "iron"),
+        B(-2.5, 1, -2.5, 5, 1, 5, "iron"),
+        B(-2, 2, -2, 4, 4, 4, "lantern"),
+        B(-2.5, 6, -2.5, 5, 1, 5, "iron"),
     ]),
-    # Fanned fins behind the head, swept back and out.
-    Part("right_fin", "head", (-4.0, -0.5, -1.5), (0.15, -0.75, 0.25), [B(0, -6, 0, 0, 10, 9, "fin")]),
-    Part("left_fin", "head", (4.0, -0.5, -1.5), (0.15, 0.75, -0.25), [B(0, -6, 0, 0, 10, 9, "fin")]),
-    # The body: seven ribbed segments tapering to the tail fin, the first dipping into the water, the rest curling round.
-    Part("body1", "head", (0.0, -0.5, -0.5), (-0.45, 0.0, 0.0), [
-        B(-3.5, -3.5, 0, 7, 7, 5, "segment"), B(-4, -4, 0.5, 8, 8, 1, "ring"), B(0, -7, 1, 0, 3, 4, "spines")]),
-    Part("body2", "body1", (0.0, 0.0, 5.0), (0.45, 0.35, 0.0), [
-        B(-3, -3, 0, 6, 6, 5, "segment"), B(-3.5, -3.5, 0.5, 7, 7, 1, "ring"), B(0, -6, 1, 0, 3, 4, "spines")]),
-    Part("body3", "body2", (0.0, 0.0, 5.0), (0.0, 0.45, 0.0), [
-        B(-3, -3, 0, 6, 6, 5, "segment"), B(-3.5, -3.5, 0.5, 7, 7, 1, "ring"), B(0, -6, 1, 0, 3, 4, "spines")]),
-    Part("body4", "body3", (0.0, 0.0, 5.0), (0.0, 0.5, 0.0), [
-        B(-2.5, -2.5, 0, 5, 5, 5, "segment"), B(-3, -3, 0.5, 6, 6, 1, "ring"), B(0, -5, 1, 0, 3, 4, "spines")]),
-    Part("body5", "body4", (0.0, 0.0, 5.0), (0.0, 0.5, 0.0), [
-        B(-2, -2, 0, 4, 4, 5, "segment"), B(-2.5, -2.5, 0.5, 5, 5, 1, "ring"), B(0, -4, 1, 0, 2, 4, "spines")]),
-    Part("body6", "body5", (0.0, 0.0, 5.0), (0.0, 0.45, 0.0), [
-        B(-1.5, -1.5, 0, 3, 3, 4, "segment"), B(-2, -2, 0.5, 4, 4, 1, "ring")]),
-    Part("body7", "body6", (0.0, 0.0, 4.0), (0.0, 0.4, 0.0), [B(-1, -1, 0, 2, 2, 4, "segment")]),
-    Part("tail_fin", "body7", (0.0, 0.0, 3.5), (0.0, 0.0, 0.0), [B(0, -4, 0, 0, 8, 6, "tail")]),
-]
+    # Fanned pectoral fins behind the jaw: long bony rays, swept back, out and down, torn between.
+    Part("right_fin", "head", (-4.5, -1.0, -2.0), (0.35, -0.95, 0.45), [B(0, -4, 0, 0, 9, 12, "fin")]),
+    Part("left_fin", "head", (4.5, -1.0, -2.0), (0.35, 0.95, -0.45), [B(0, -4, 0, 0, 9, 12, "fin")]),
+] + body_parts()
+
+
+# Its lure drawn in, idle (RimeEelModel's RETRACT_*: added to the stalk's and arm's x turns, all of it when idle; the
+# geometry above is the lure reaching out, searching). The lantern hangs plumb either way (the model undoes its parents'
+# x turns), so it's drawn so here too.
+RETRACT = {"stalk": (-0.6, 0.0, 0.0), "stalk_arm": (-0.1, 0.0, 0.0)}
+# The glass's middle, in the lantern part's own space.
+LANTERN_MIDDLE = (0.0, 4.0, 0.0)
+
+
+def plumb(extra=None):
+    """The extra x turn on the lantern that undoes its own and its parents' (head, stalk, arm, hook) past plumb."""
+    extra = dict(extra or {})
+    by_name = {p.name: p for p in PARTS}
+    if "lantern" not in by_name:
+        return extra
+    total, name = 0.0, "lantern"
+    while name:
+        p = by_name[name]
+        total += p.rot[0] + extra.get(name, (0, 0, 0))[0]
+        name = p.parent
+    extra["lantern"] = (-total, 0.0, 0.0)
+    return extra
+
+
+def part_point(name, point, extra_rot=None):
+    """A point in a part's own space, in model space at rest (with extra_rot added to some parts' turns)."""
+    by_name = {p.name: p for p in PARTS}
+
+    def mat(p):
+        base = mat(by_name[p.parent]) if p.parent else [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+        r = p.rot if not extra_rot or p.name not in extra_rot else tuple(a + b for a, b in zip(p.rot, extra_rot[p.name]))
+        return matmul(base, matmul(translate(*p.pivot), rot_zyx(*r)))
+    return apply(mat(by_name[name]), point)
 
 
 def pack():
@@ -197,9 +245,14 @@ def paint(skin, eyes, lure):
                 side = "right" if b.x < 0 else "left"
                 x0, y0, w, h = f[side]
                 front_col = x0 + w - 1 if side == "right" else x0
-                px(skin, front_col, y0, CYAN)
-                px(eyes, front_col, y0, BRIGHT)
-                px(eyes, front_col, y0 + 1, (*CYAN, 200))
+                # The Dread's cyan: a pupil burning in the black, a pale glint over it.
+                px(skin, front_col, y0, GLINT)
+                px(eyes, front_col, y0, (*GLINT, 160))
+                px(skin, front_col, y0 + 1, CYAN)
+                px(eyes, front_col, y0 + 1, BRIGHT)
+                back_col = front_col - 1 if side == "right" else front_col + 1
+                px(skin, back_col, y0 + 1, CYAN)
+                px(eyes, back_col, y0 + 1, (*CYAN, 200))
             if m == "mouth":
                 for s in faces(b):
                     fill(skin, f[s], lambda i, j, w, h: GUM if j == 0 else MOUTH)
@@ -219,7 +272,7 @@ def paint(skin, eyes, lure):
                         return GLASS
                     fill(skin, f[s], glass)
                     fill(lure, f[s], lambda i, j, w, h, s=s: glass(i, j, w, h, True, s))
-            if m in ("crest", "spines"):
+            if m in ("crest", "spines", "dorsal"):
                 # A flat box: its two sides side by side, d wide each, h tall; sawtooth spines up from the base row.
                 x0, y0 = b.u, b.v + int(b.d)
                 d, h = int(b.d), int(b.h)
@@ -248,9 +301,9 @@ def paint(skin, eyes, lure):
                             ray = (a + 1) / 2 * (rays - 1)
                             on_ray = abs(ray - round(ray)) < 0.22 + 0.2 * (1 - t)
                             if on_ray:
-                                c = LIGHT
-                            elif t > 0.4 and rnd.random() < (t - 0.3) * 1.3:
-                                continue  # torn between the rays toward the edge
+                                c = LIGHT if rnd.random() < 0.7 else PALE
+                            elif t > 0.3 and (m == "fin" or rnd.random() < (t - 0.2) * 1.3):
+                                continue  # bare bony rays past the root (the picture's), the tail's torn toward its edge
                             else:
                                 c = (*(MID if rnd.random() < 0.5 else DIM), 255)
                             px(skin, x0 + side * d + i, y0 + j, c)
@@ -328,11 +381,11 @@ def world_quads(textures, extra_rot=None):
     return quads
 
 
-def render(path, yaw, pitch, scale=12, size=(720, 560)):
+def render(path, yaw, pitch, scale=12, size=(720, 560), extra_rot=None):
     skin = Image.open(TEXTURES / "rime_eel.png").convert("RGBA")
     lure = Image.open(TEXTURES / "rime_eel_lure.png").convert("RGBA")
     eyes = Image.open(TEXTURES / "rime_eel_eyes.png").convert("RGBA")
-    quads = world_quads([skin, lure, eyes])
+    quads = world_quads([skin, lure, eyes], plumb(extra_rot))
     im = Image.new("RGBA", size, (0x1C, 0x24, 0x34, 255))
     draw = ImageDraw.Draw(im)
     cy_, sy_, cp, sp = math.cos(yaw), math.sin(yaw), math.cos(pitch), math.sin(pitch)
@@ -430,12 +483,17 @@ def main():
     for axis, name in ((0, "x"), (1, "y"), (2, "z")):
         lo, hi = min(p[axis] for p in pts), max(p[axis] for p in pts)
         print(f"{name}: {lo:.1f} to {hi:.1f} ({(hi - lo) / 16:.2f} blocks)")
+    # Where its lantern's glass hangs, reaching out and drawn in (RimeEelRules.LANTERN_OUT / LANTERN_IN; model pixels).
+    for name, extra in (("out", None), ("in", RETRACT)):
+        x, y, z = part_point("lantern", LANTERN_MIDDLE, plumb(extra))
+        print(f"lantern {name}: {x:.1f}, {y:.1f}, {z:.1f}")
     if "--preview" in sys.argv:
         out = pathlib.Path(sys.argv[sys.argv.index("--preview") + 1])
         out.mkdir(parents=True, exist_ok=True)
         for name, yaw, pitch in (("front_quarter", math.radians(215), math.radians(25)), ("side", math.radians(270), math.radians(5)),
                                  ("top", math.radians(180), math.radians(80)), ("back_quarter", math.radians(40), math.radians(30))):
             render(out / f"rime_eel_{name}.png", yaw, pitch)
+        render(out / "rime_eel_lure_in.png", math.radians(40), math.radians(28), extra_rot=RETRACT)
         print("previews in", out)
 
 

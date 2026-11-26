@@ -83,4 +83,30 @@ class RimeEelRulesTest {
         assertEquals(6, RimeEelRules.light(2, 15));
         assertEquals(3, RimeEelRules.light(3, 0));
     }
+
+    @Test
+    void aboutOneInSixHasItsLantern() {
+        int with = 0;
+        for (int roll = 0; roll < RimeEelRules.LANTERN_ONE_IN; roll++) {
+            with += RimeEelRules.spawnsWithLantern(roll) ? 1 : 0;
+        }
+        double share = (double) with / RimeEelRules.LANTERN_ONE_IN;
+        assertTrue(share >= 0.10 && share <= 0.25, "the owner's 10-25%: " + share);
+    }
+
+    @Test
+    void itsLureReachesOutSearchingAndDrawsInStill() {
+        float reach = 0.0F;
+        for (int i = 0; i < 40; i++) {
+            reach = RimeEelRules.reachToward(reach, true);
+        }
+        assertEquals(1.0F, reach);
+        for (int i = 0; i < 40; i++) {
+            reach = RimeEelRules.reachToward(reach, false);
+        }
+        assertEquals(0.0F, reach);
+        // Drawn in, the lantern sits nearer the head (higher and less far forward) than reaching out.
+        assertTrue(RimeEelRules.LANTERN_IN[1] > RimeEelRules.LANTERN_OUT[1]);
+        assertTrue(RimeEelRules.LANTERN_IN[2] > RimeEelRules.LANTERN_OUT[2]);
+    }
 }

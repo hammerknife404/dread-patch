@@ -11,6 +11,9 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -94,6 +97,11 @@ public class RimeEel extends Monster implements IDreadMob {
     private int lungeCooldown;
     /** On a client: the tick it last pulsed. */
     private int flaredAt = -1000;
+    /** Whether it has its lantern (0.76.0): most don't. Saved as {@code Lantern}; an eel from before had one. */
+    private static final EntityDataAccessor<Boolean> LANTERN = SynchedEntityData.defineId(RimeEel.class, EntityDataSerializers.BOOLEAN);
+    /** How far its lure reaches out (0 drawn in, 1 out), this tick and last; on both sides, for {@link #lantern}. */
+    private float reach;
+    private float reachO;
 
     public RimeEel(EntityType<? extends RimeEel> type, Level level) {
         super(type, level);
@@ -101,6 +109,25 @@ public class RimeEel extends Monster implements IDreadMob {
         this.setPathfindingMalus(PathType.WATER, 0.0F);
         this.moveControl = new SmoothSwimmingMoveControl(this, 85, 10, RimeEelRules.WATER_SPEED, RimeEelRules.LAND_SPEED, true);
         this.lookControl = new SmoothSwimmingLookControl(this, 10);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(LANTERN, true);
+    }
+
+    public boolean hasLantern() {
+        return this.entityData.get(LANTERN);
+    }
+
+    public void setLantern(boolean lantern) {
+        this.entityData.set(LANTERN, lantern);
+    }
+
+    /** Its lure's reach, between last tick's and this one's. */
+    public float reach(float partialTick) {
+        return Mth.lerp(partialTick, this.reachO, this.reach);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -148,6 +175,7 @@ public class RimeEel extends Monster implements IDreadMob {
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData data) {
         this.setSize(RimeEelRules.scale(this.random.nextDouble(), this.random.nextInt(RimeEelRules.ALPHA_ONE_IN)));
+        this.setLantern(RimeEelRules.spawnsWithLantern(this.random.nextInt(RimeEelRules.LANTERN_ONE_IN)));
         return super.finalizeSpawn(level, difficulty, spawnType, data);
     }
 
@@ -208,6 +236,9 @@ public class RimeEel extends Monster implements IDreadMob {
     @Override
     public void aiStep() {
         super.aiStep();
+        // Its lure reaches out while it hunts or swims about, and draws in while it's still.
+        this.reachO = this.reach;
+        this.reach = RimeEelRules.reachToward(this.reach, this.isAggressive() || this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4);
         if (this.level().isClientSide()) {
             if (this.lureLit() && this.random.nextFloat() < 0.35F) {
                 Vec3 lantern = this.lantern();
@@ -229,7 +260,12 @@ public class RimeEel extends Monster implements IDreadMob {
             this.auraCooldown = Math.max(this.auraCooldown, RimeEelRules.AURA_MIN_TICKS / 2);
             return;
         }
-        if (--this.auraCooldown <= 0) {
+        // A Glowing target sends it into a Frenzy (0.76.0): a lantern eel's pulse lights its prey for the rest.
+        if (target.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING)) {
+            this.frenzy = Math.max(this.frenzy, RimeEelRules.GLOW_FRENZY_TICKS);
+        }
+        // Only its lantern pulses (0.76.0).
+        if (this.hasLantern() && --this.auraCooldown <= 0) {
             this.auraCooldown = RimeEelRules.auraTicks(this.random.nextDouble());
             this.pulse();
         }
@@ -296,22 +332,27 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /**
-     * Where its lantern hangs, at rest: in model pixels (-6, 1, -14) from its feet (client/RimeEelModel), drawn as
-     * vanilla draws a living thing's model (turned by its body, flipped in x and y) and scaled with it.
+     * Where its lantern's glass hangs: between {@link RimeEelRules#LANTERN_IN} and {@code LANTERN_OUT} by its reach (model
+     * pixels from its feet, client/RimeEelModel), drawn as vanilla draws a living thing's model (turned by its body) and
+     * scaled with it.
      */
     public Vec3 lantern() {
         double scale = this.getScale() / 16.0;
-        double x = 6.0 * scale;
-        double z = -14.0 * scale;
+        double[] in = RimeEelRules.LANTERN_IN;
+        double[] out = RimeEelRules.LANTERN_OUT;
+        double x = Mth.lerp(this.reach, in[0], out[0]) * scale;
+        double y = Mth.lerp(this.reach, in[1], out[1]) * scale;
+        double z = Mth.lerp(this.reach, in[2], out[2]) * scale;
         double turn = Math.toRadians(180.0F - this.yBodyRot);
         double wx = x * Math.cos(turn) + z * Math.sin(turn);
         double wz = -x * Math.sin(turn) + z * Math.cos(turn);
-        return this.position().add(wx, 23.0 * scale, wz);
+        return this.position().add(wx, y, wz);
     }
 
     /** On a client: whether its lure burns now (its flicker, or just after a pulse). */
     public boolean lureLit() {
-        return this.tickCount - this.flaredAt < RimeEelRules.FLARE_TICKS || RimeEelRules.lureLit(this.getUUID().hashCode(), this.tickCount);
+        return this.hasLantern() && (this.tickCount - this.flaredAt < RimeEelRules.FLARE_TICKS
+                || RimeEelRules.lureLit(this.getUUID().hashCode(), this.tickCount));
     }
 
     /** A bite: its own damage, then a chance of Withering Rime (laid by it, so the queen's siphon passes it by). */
@@ -353,12 +394,14 @@ public class RimeEel extends Monster implements IDreadMob {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("Frenzy", this.frenzy);
+        tag.putBoolean("Lantern", this.hasLantern());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.frenzy = tag.getInt("Frenzy");
+        this.setLantern(!tag.contains("Lantern") || tag.getBoolean("Lantern"));
     }
 
     @Override
