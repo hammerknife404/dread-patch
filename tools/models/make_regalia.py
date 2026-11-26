@@ -394,7 +394,21 @@ def render_quads(path, quads, yaw, pitch, scale, size=(720, 720), centre=(0, 8, 
 
 
 # Posed as the pictures: arms raised out holding the weapons, wings spread.
-POSE = {"right_arm": (-0.35, 0, 0.55), "left_arm": (-0.35, 0, -0.55), "right_wing": (0, -0.35, 0.3), "left_wing": (0, 0.35, -0.3)}
+POSE = {"right_arm": (-0.35, 0, 0.55), "left_arm": (-0.35, 0, -0.55)}
+
+
+def wing_pose(root, mid, tip):
+    """The right wing's segments' turns (x, y, z), the left's mirrored (y and z negated), as client/QueenArmorModels sets them."""
+    pose = {}
+    for name, r in (("right_wing", root), ("right_wing_mid", mid), ("right_wing_tip", tip)):
+        pose[name] = r
+        pose[name.replace("right", "left")] = (r[0], -r[1], -r[2])
+    return pose
+
+
+# QueenArmorModels' poses at their middle: folded at rest (an accordion behind the back), spread gliding.
+FOLDED = wing_pose((-0.1, 1.1, -0.2), (0.0, -2.1, 0.0), (0.0, 1.9, 0.0))
+SPREAD = wing_pose((0.52, 0.15, 0.0), (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
 
 
 def sheet():
@@ -409,7 +423,12 @@ def sheet():
 
 def figure(out, sword, staff, parts, image):
     textures = {"head": image, "chest": image, "legs": image, "feet": image, "wings": image}
-    mats = part_matrices(parts, POSE)
+    for wings, label in ((SPREAD, ""), (FOLDED, "folded_")):
+        figure_posed(out, sword, staff, parts, textures, {**POSE, **wings}, label)
+
+
+def figure_posed(out, sword, staff, parts, textures, pose, label):
+    mats = part_matrices(parts, pose)
     quads = textured_quads(parts, mats, textures) + body_quads(mats)
     # The hands: each arm's foot, a little in.
     right_hand = apply(mats["right_arm"], (-1, 10, -1))
@@ -418,7 +437,7 @@ def figure(out, sword, staff, parts, image):
     quads += weapon_quads(staff, (8, -5.5, 8), left_hand, 0.25)
     for name, yaw, pitch in (("front", 0.0, -0.08), ("back", math.pi, -0.08), ("left_side", -math.pi / 2, -0.05),
                              ("right_side", math.pi / 2, -0.05), ("top", 0.0, -1.25), ("under", 0.0, 0.9)):
-        render_quads(out / f"figure_{name}.png", quads, yaw, pitch, 9.0, label=name.replace("_", " ").upper())
+        render_quads(out / f"figure_{label}{name}.png", quads, yaw, pitch, 9.0, label=(label + name).replace("_", " ").upper())
 
 
 # The armour layer's base parts (vanilla's humanoid needs all of them), and which of ours hang on which.
@@ -448,7 +467,9 @@ def java(parts):
             if p.slot not in slots:
                 continue
             if p.slot == "wings":
-                lines.append(f"        body.addOrReplaceChild(\"{p.name}\", {cubes(p.boxes)},")
+                # Each segment hangs off the one before (the root off the body), so each is its own variable.
+                var = p.name.replace("_", "")
+                lines.append(f"        PartDefinition {var} = {p.parent.replace('_', '')}.addOrReplaceChild(\"{p.name}\", {cubes(p.boxes)},")
                 lines.append(f"                PartPose.offsetAndRotation({', '.join(f(n) for n in p.pivot)}, {', '.join(f(n) for n in p.rot)}));")
                 continue
             base = p.name.replace("_legs", "").replace("_feet", "")

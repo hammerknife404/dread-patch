@@ -39,7 +39,10 @@ public final class RegaliaWeapons {
     private static void swap(ModelEvent.ModifyBakingResult event, String item, ModelResourceLocation ours) {
         BakedModel model = event.getModels().get(ours);
         ModelResourceLocation theirs = ModelResourceLocation.inventory(ResourceLocation.fromNamespaceAndPath("iceandfire", item));
-        if (model == null || !event.getModels().containsKey(theirs)) {
+        // A model that failed to load bakes as the missing model: keep Ice and Fire's then (0.81.0's staff was drawn
+        // as the purple-and-black missing model).
+        if (model == null || model == event.getModels().get(net.minecraft.client.resources.model.ModelBakery.MISSING_MODEL_VARIANT)
+                || !event.getModels().containsKey(theirs)) {
             LOGGER.warn("Couldn't put the regalia's {} in place of Ice and Fire's", item);
             return;
         }

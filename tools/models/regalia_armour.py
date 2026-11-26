@@ -84,14 +84,32 @@ def pauldron(side):
     return boxes
 
 
-def wing_boxes(side):
-    """One wing: its membrane a flat sheet (painted, cut out), its leading bone a box along the top, reaching out from
-    its root at x 0: along -x for the right wing (side -1), +x for the left."""
-    x = -30 if side < 0 else 0
-    bone = Box(-29 if side < 0 else 0, -14.5, -0.75, 29, 1.5, 1.5, "wing_bone")
-    sheet = Box(x, -14, 0, 30, 28, 0, "membrane")
+# A wing is three segments hinged end to end (0.81.2, after Cataclysm: Spellbooks' winged Cursium set, at the owner's
+# word): its root, its middle and its tip, each a third of its span, so it can fold like an accordion and flex.
+WING_SEGMENT = 10
+WING_SEGMENTS = ("", "_mid", "_tip")
+
+
+def wing_boxes(side, segment):
+    """One segment of a wing: its piece of the membrane (a flat sheet, painted, cut out) and its leading bone along the
+    top, reaching out from its own hinge at x 0: along -x for the right wing (side -1), +x for the left."""
+    n = WING_SEGMENT
+    x = -n if side < 0 else 0
+    bone = Box(x, -14.5, -0.75, n, 1.5, 1.5, "wing_bone")
+    sheet = Box(x, -14, 0, n, 28, 0, "membrane")
     sheet.side = side
+    sheet.segment = segment
     return [sheet, bone]
+
+
+def wing_parts(side):
+    name = "right_wing" if side < 0 else "left_wing"
+    parts = []
+    parent, pivot = "body", (2.0 * side, 2.5, 3.2)
+    for i, suffix in enumerate(WING_SEGMENTS):
+        parts.append(Part(name + suffix, parent, pivot, (0, 0, 0), wing_boxes(side, i), "wings"))
+        parent, pivot = name + suffix, (WING_SEGMENT * side, 0.0, 0.0)
+    return parts
 
 
 def parts(winged=True):
@@ -120,8 +138,7 @@ def parts(winged=True):
             Box(-2.6, 10.2, -3.8, 5.2, 1.8, 1.4, "toe"),
         ], "feet"))
     if winged:
-        p.append(Part("right_wing", "body", (-2.0, 2.5, 3.2), (0, 0, 0), wing_boxes(-1), "wings"))
-        p.append(Part("left_wing", "body", (2.0, 2.5, 3.2), (0, 0, 0), wing_boxes(1), "wings"))
+        p += wing_parts(-1) + wing_parts(1)
     return p
 
 
@@ -255,8 +272,9 @@ def paint(skin, boxes, wings_image=None):
                 fill(im, f[s], lambda i, j, w, h: BONE if rnd.random() < 0.7 else BONE_SHADE)
         elif m == "membrane":
             right = getattr(b, "side", -1) < 0
-            paint_membrane(im, f["front"], mirrored=not right, rnd=rnd)
-            paint_membrane(im, f["back"], mirrored=right, rnd=rnd)
+            seg = getattr(b, "segment", 0)
+            paint_membrane(im, f["front"], mirrored=not right, rnd=rnd, segment=seg)
+            paint_membrane(im, f["back"], mirrored=right, rnd=rnd, segment=seg)
 
 
 def membrane_at(s, t):
@@ -294,12 +312,15 @@ def membrane_at(s, t):
     return "membrane"
 
 
-def paint_membrane(im, rect, mirrored, rnd):
+def paint_membrane(im, rect, mirrored, rnd, segment=0):
     x0, y0, w, h = rect
+    span = w * len(WING_SEGMENTS)
     for j in range(h):
         for i in range(w):
-            # The root is at the face's right end on the front (the wing reaches out along -x), its left on the back.
-            s = (w - 1 - i) / (w - 1) if not mirrored else i / (w - 1)
+            # The root is at the face's right end on the front (the wing reaches out along -x), its left on the back;
+            # s runs over the whole wing, this segment its third of it.
+            k = (w - 1 - i) if not mirrored else i
+            s = (segment * w + k) / (span - 1)
             t = j / (h - 1)
             kind = membrane_at(s, t)
             if kind is None:

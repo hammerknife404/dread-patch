@@ -23,7 +23,8 @@ class QueenArmorModelsTest {
             "head", new String[]{"head/head_regalia"},
             "chest", new String[]{"body/body_regalia", "right_arm/right_arm_regalia", "left_arm/left_arm_regalia"},
             "chest_winged", new String[]{"body/body_regalia", "right_arm/right_arm_regalia", "left_arm/left_arm_regalia",
-                    "body/right_wing", "body/left_wing"},
+                    "body/right_wing", "body/left_wing", "body/right_wing/right_wing_mid", "body/right_wing/right_wing_mid/right_wing_tip",
+                    "body/left_wing/left_wing_mid/left_wing_tip"},
             "legs", new String[]{"right_leg/right_leg_regalia", "left_leg/left_leg_regalia"},
             "feet", new String[]{"right_leg/right_leg_regalia", "left_leg/left_leg_regalia"});
 
