@@ -97,7 +97,11 @@ public class RimeEelModel extends EntityModel<RimeEel> {
         this.head.xRot += (water ? headPitch * Mth.DEG_TO_RAD * 0.5F : 0.0F) + 0.03F * Mth.sin(ageInTicks * 0.1F);
         // Its jaw hangs open, breathing a little, and gapes to bite.
         float bite = Mth.sin(this.attackTime * Mth.PI);
-        this.jaw.xRot += 0.06F * Mth.sin(ageInTicks * 0.08F) + 0.5F * bite;
+        // An alpha's wind-up (0.80.0): rearing back, head up, its jaw gaping wide, before the snap; plain to read.
+        float rear = eel.rear(ageInTicks - eel.tickCount);
+        this.head.xRot -= 0.45F * rear;
+        this.head.y -= 2.0F * rear;
+        this.jaw.xRot += 0.06F * Mth.sin(ageInTicks * 0.08F) + 0.5F * bite + 0.75F * rear;
         // Its lure (0.76.0): none at all without its lantern; reaching out as it hunts or swims about, drawn in over its
         // head while still; swaying. Its lantern hangs plumb under it, whatever the rest is doing, swinging a little
         // and trailing back as it moves.

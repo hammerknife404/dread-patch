@@ -11,6 +11,8 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -99,6 +101,13 @@ public class RimeEel extends Monster implements IDreadMob {
     private int flaredAt = -1000;
     /** Whether it has its lantern (0.76.0): most don't. Saved as {@code Lantern}; an eel from before had one. */
     private static final EntityDataAccessor<Boolean> LANTERN = SynchedEntityData.defineId(RimeEel.class, EntityDataSerializers.BOOLEAN);
+    /** An alpha rearing back to bite (0.80.0), for its clients to draw. */
+    private static final EntityDataAccessor<Boolean> WINDING = SynchedEntityData.defineId(RimeEel.class, EntityDataSerializers.BOOLEAN);
+    /** How far it has reared back (0 to 1), this tick and last; on a client. */
+    private float rear;
+    private float rearO;
+    /** Ticks left of an alpha's wind-up; 0 when it isn't winding. */
+    int windup;
     /** How far its lure reaches out (0 drawn in, 1 out), this tick and last; on both sides, for {@link #lantern}. */
     private float reach;
     private float reachO;
@@ -115,6 +124,7 @@ public class RimeEel extends Monster implements IDreadMob {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(LANTERN, true);
+        builder.define(WINDING, false);
     }
 
     public boolean hasLantern() {
@@ -182,8 +192,43 @@ public class RimeEel extends Monster implements IDreadMob {
     public void setSize(double scale) {
         set(this.getAttribute(Attributes.SCALE), scale);
         set(this.getAttribute(Attributes.MAX_HEALTH), RimeEelRules.health(scale));
-        set(this.getAttribute(Attributes.ATTACK_DAMAGE), RimeEelRules.bite(scale));
+        this.build(scale);
         this.setHealth(this.getMaxHealth());
+    }
+
+    /** Its bite, and an alpha's hide, weight and knockback (0.80.0), for its size; health aside. */
+    private void build(double scale) {
+        boolean alpha = RimeEelRules.alpha(scale);
+        set(this.getAttribute(Attributes.ATTACK_DAMAGE), RimeEelRules.fullBite(scale));
+        // An alpha's heavy hide and weight, and its knockback (0.80.0).
+        set(this.getAttribute(Attributes.ARMOR), alpha ? RimeEelRules.ALPHA_ARMOR : RimeEelRules.ARMOR);
+        set(this.getAttribute(Attributes.ARMOR_TOUGHNESS), alpha ? RimeEelRules.ALPHA_TOUGHNESS : 0.0);
+        set(this.getAttribute(Attributes.KNOCKBACK_RESISTANCE), alpha ? RimeEelRules.ALPHA_KNOCKBACK_RESISTANCE : 0.0);
+        set(this.getAttribute(Attributes.ATTACK_KNOCKBACK), alpha ? RimeEelRules.ALPHA_KNOCKBACK : 0.0);
+    }
+
+    /** Whether it's an alpha or matron (by its size). */
+    public boolean isAlpha() {
+        return RimeEelRules.alpha(this.getScale());
+    }
+
+    /** An alpha or matron is a Rime Wyrm by name (0.80.0, the owner: "Yes", to naming them so); its id stays the eel's. */
+    @Override
+    protected Component getTypeName() {
+        return this.isAlpha() ? Component.translatable("entity.dreadpatch.rime_wyrm") : super.getTypeName();
+    }
+
+    /** Whether it's rearing back to bite (an alpha's wind-up), and how far, this tick and last, for drawing. */
+    public boolean winding() {
+        return this.entityData.get(WINDING);
+    }
+
+    void setWinding(boolean winding) {
+        this.entityData.set(WINDING, winding);
+    }
+
+    public float rear(float partialTick) {
+        return Mth.lerp(partialTick, this.rearO, this.rear);
     }
 
     private static void set(@Nullable AttributeInstance attribute, double value) {
@@ -239,6 +284,8 @@ public class RimeEel extends Monster implements IDreadMob {
         // Its lure reaches out while it hunts or swims about, and draws in while it's still.
         this.reachO = this.reach;
         this.reach = RimeEelRules.reachToward(this.reach, this.isAggressive() || this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4);
+        this.rearO = this.rear;
+        this.rear = this.winding() ? Math.min(1.0F, this.rear + 1.0F / 6.0F) : Math.max(0.0F, this.rear - 0.34F);
         if (this.level().isClientSide()) {
             if (this.lureLit() && this.random.nextFloat() < 0.35F) {
                 Vec3 lantern = this.lantern();
@@ -270,7 +317,7 @@ public class RimeEel extends Monster implements IDreadMob {
             this.pulse();
         }
         if (RimeEelRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
-            this.lungeCooldown = RimeEelRules.LUNGE_TICKS;
+            this.lungeCooldown = this.isAlpha() ? RimeEelRules.ALPHA_LUNGE_TICKS : RimeEelRules.LUNGE_TICKS;
             Vec3 toward = target.position().subtract(this.position()).multiply(1.0, 0.0, 1.0).normalize();
             this.setDeltaMovement(toward.x * RimeEelRules.LUNGE_SPEED, RimeEelRules.LUNGE_LIFT, toward.z * RimeEelRules.LUNGE_SPEED);
             this.playSound(ModRegistries.RIME_EEL_LUNGE.get(), 1.0F, this.getVoicePitch());
@@ -402,6 +449,8 @@ public class RimeEel extends Monster implements IDreadMob {
         super.readAdditionalSaveData(tag);
         this.frenzy = tag.getInt("Frenzy");
         this.setLantern(!tag.contains("Lantern") || tag.getBoolean("Lantern"));
+        // An alpha saved before 0.80.0 kept its old bite and hide: its build for its size again.
+        this.build(this.getScale());
     }
 
     @Override
@@ -450,8 +499,49 @@ public class RimeEel extends Monster implements IDreadMob {
 
         @Override
         protected boolean isTimeToAttack() {
-            int wait = this.eel.frenzied() ? RimeEelRules.FRENZY_BITE_TICKS : RimeEelRules.BITE_TICKS;
+            boolean alpha = this.eel.isAlpha();
+            int wait = this.eel.frenzied() ? (alpha ? RimeEelRules.ALPHA_FRENZY_BITE_TICKS : RimeEelRules.FRENZY_BITE_TICKS)
+                    : (alpha ? RimeEelRules.ALPHA_BITE_TICKS : RimeEelRules.BITE_TICKS);
             return this.eel.tickCount - this.lastBite >= wait;
+        }
+
+        /**
+         * An alpha winds up before it bites (0.80.0): in reach and ready, it stops, rears back and gapes, with a roar;
+         * {@link RimeEelRules#ALPHA_WINDUP_TICKS} later it snaps, hitting if its target's still in reach. The rest bite
+         * as vanilla's melee does.
+         */
+        @Override
+        protected void checkAndPerformAttack(LivingEntity target) {
+            if (!this.eel.isAlpha()) {
+                super.checkAndPerformAttack(target);
+                return;
+            }
+            if (this.eel.windup > 0) {
+                this.eel.getNavigation().stop();
+                this.eel.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                if (--this.eel.windup == 0) {
+                    this.eel.setWinding(false);
+                    this.eel.swing(InteractionHand.MAIN_HAND);
+                    if (this.eel.isWithinMeleeAttackRange(target)) {
+                        this.eel.doHurtTarget(target);
+                    }
+                    this.resetAttackCooldown();
+                }
+                return;
+            }
+            if (this.canPerformAttack(target)) {
+                this.eel.windup = RimeEelRules.ALPHA_WINDUP_TICKS;
+                this.eel.setWinding(true);
+                this.eel.getNavigation().stop();
+                this.eel.playSound(SoundEvents.RAVAGER_ROAR, 0.7F, 1.5F);
+            }
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            this.eel.windup = 0;
+            this.eel.setWinding(false);
         }
 
         @Override

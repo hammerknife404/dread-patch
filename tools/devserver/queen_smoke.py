@@ -1023,6 +1023,28 @@ def main():
     lanterned = int(lanterned.group(1)) if lanterned else 0
     record("about one in six spawns with its lantern", 0 < lanterned < 18, f"{lanterned} of 36")
     rcon.run("kill @e[type=dreadpatch:rime_eel,x=44.5,y=202,z=44.5,distance=..4]")
+    # An alpha (0.80.0, the owner: "A mix of heavy natural armor and slow easy to read attacks. Hit hrd and with
+    # knockback."): summoned at an alpha's size (its build set as it loads), it has 14 armour, 4 toughness, knockback
+    # 1.5, a bite 1.75 times its size's; and against a zombie it still lands its slow, wound-up bite.
+    rcon.run('summon dreadpatch:rime_eel 43.5 197.5 43.5 {Tags:["smoke_alpha"],attributes:[{id:"minecraft:generic.scale",base:1.6d}]}')
+    alpha = "@e[tag=smoke_alpha,limit=1]"
+    attrs = {a: re.search(r"is ([0-9.]+)", rcon.run(f"attribute {alpha} minecraft:generic.{a} get")) for a in ("armor", "armor_toughness", "attack_knockback")}
+    attrs = {a: float(m.group(1)) if m else -1.0 for a, m in attrs.items()}
+    record("an alpha's heavy hide and knockback", attrs == {"armor": 14.0, "armor_toughness": 4.0, "attack_knockback": 1.5}, str(attrs))
+    rcon.run('summon minecraft:zombie 44.5 199 45.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_alpha_prey"]}')
+    rcon.run("effect give @e[tag=smoke_alpha_prey,limit=1] minecraft:fire_resistance 60 0 true")
+    rcon.run("damage @e[tag=smoke_alpha,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_alpha_prey,limit=1]")
+    prey_hp = health("@e[tag=smoke_alpha_prey,limit=1]")
+    bitten = False
+    for _ in range(40):
+        time.sleep(0.25)
+        if 0 <= health("@e[tag=smoke_alpha_prey,limit=1]") < prey_hp:
+            bitten = True
+            break
+    record("an alpha's wound-up bite lands", bitten, f"the zombie at {health('@e[tag=smoke_alpha_prey,limit=1]')} of {prey_hp} 10 s on")
+    # Named a Rime Wyrm (0.80.0); /kill says whom it killed.
+    check("an alpha is a Rime Wyrm", "kill @e[tag=smoke_alpha]", "Rime Wyrm")
+    rcon.run("kill @e[tag=smoke_alpha_prey]")
     for _ in range(10):
         rcon.run("loot spawn 44.5 201 44.5 loot dreadpatch:entities/rime_eel")
     time.sleep(0.2)

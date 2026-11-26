@@ -109,4 +109,17 @@ class RimeEelRulesTest {
         assertTrue(RimeEelRules.LANTERN_IN[1] > RimeEelRules.LANTERN_OUT[1]);
         assertTrue(RimeEelRules.LANTERN_IN[2] > RimeEelRules.LANTERN_OUT[2]);
     }
+
+    @Test
+    void anAlphaHitsHardSlowlyAndPlainly() {
+        double small = RimeEelRules.scale(0.5);
+        double alpha = RimeEelRules.scale(0.5, 0);
+        assertFalse(RimeEelRules.alpha(small));
+        assertTrue(RimeEelRules.alpha(alpha));
+        assertEquals(RimeEelRules.bite(small), RimeEelRules.fullBite(small), "an ordinary eel's bite unchanged");
+        assertTrue(RimeEelRules.fullBite(alpha) >= 1.7 * RimeEelRules.bite(alpha), "an alpha's three-quarters harder: " + RimeEelRules.fullBite(alpha));
+        assertTrue(RimeEelRules.ALPHA_BITE_TICKS > 2 * RimeEelRules.BITE_TICKS, "slow");
+        assertTrue(RimeEelRules.ALPHA_WINDUP_TICKS >= 10, "a wind-up long enough to see coming");
+        assertTrue(RimeEelRules.ALPHA_ARMOR >= 3 * RimeEelRules.ARMOR, "heavy armour");
+    }
 }

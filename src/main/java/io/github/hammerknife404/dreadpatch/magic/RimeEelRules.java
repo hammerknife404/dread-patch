@@ -118,6 +118,23 @@ public final class RimeEelRules {
     }
 
     /** Whether one this size is an alpha or matron: past the usual most. */
+    /**
+     * An alpha's or matron's way of fighting (0.80.0, the owner: "A mix of heavy natural armor and slow easy to read
+     * attacks. Hit hrd and with knockback."): heavy armour and toughness, a heavy body hard to shove; a bite every
+     * {@link #ALPHA_BITE_TICKS} (a Frenzy's {@link #ALPHA_FRENZY_BITE_TICKS}), each after a wind-up of
+     * {@link #ALPHA_WINDUP_TICKS} rearing back, its jaw gaping (in reach as it starts, and still in reach as it ends, or it
+     * snaps on air); its bite {@link #ALPHA_BITE_FACTOR} times a size's, with knockback; its lunges half as often.
+     */
+    public static final double ALPHA_ARMOR = 14.0;
+    public static final double ALPHA_TOUGHNESS = 4.0;
+    public static final double ALPHA_KNOCKBACK_RESISTANCE = 0.6;
+    public static final double ALPHA_KNOCKBACK = 1.5;
+    public static final double ALPHA_BITE_FACTOR = 1.75;
+    public static final int ALPHA_BITE_TICKS = 50;
+    public static final int ALPHA_FRENZY_BITE_TICKS = 30;
+    public static final int ALPHA_WINDUP_TICKS = 16;
+    public static final int ALPHA_LUNGE_TICKS = 80;
+
     public static boolean alpha(double scale) {
         return scale * MODEL_LENGTH > LENGTH_MAX + 1e-9;
     }
@@ -131,6 +148,12 @@ public final class RimeEelRules {
     /** Its health at {@code scale}, to the half heart: 10 to 18, an alpha's up to 24.5. */
     public static double health(double scale) {
         return Math.round(2.0 * (HEALTH_MIN + (HEALTH_MAX - HEALTH_MIN) * growth(scale))) / 2.0;
+    }
+
+    /** An eel's bite at its size: an alpha's {@link #ALPHA_BITE_FACTOR} times what the size's line gives, to the half. */
+    public static double fullBite(double scale) {
+        double bite = bite(scale);
+        return alpha(scale) ? Math.round(2.0 * bite * ALPHA_BITE_FACTOR) / 2.0 : bite;
     }
 
     public static double bite(double scale) {
