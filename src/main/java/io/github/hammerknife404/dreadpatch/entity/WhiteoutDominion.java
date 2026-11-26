@@ -88,6 +88,7 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
     private Entity cachedOwner;
     /** Hers: whatever dies inside rises in her court. */
     private boolean raisesDead;
+    /** Half-places used by the dead it has raised ({@link WhiteoutStorm#halves}). */
     private int raised;
     /** The water it froze (server side), so it thaws that and only that. */
     private final LongOpenHashSet frozen = new LongOpenHashSet();
@@ -296,11 +297,16 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
             return;
         }
         for (WhiteoutDominion storm : level.getEntitiesOfClass(WhiteoutDominion.class, victim.getBoundingBox().inflate(SEARCH, WhiteoutStorm.HEIGHT + WhiteoutStorm.DEPTH, SEARCH),
-                s -> s.raisesDead && s.raised < WhiteoutStorm.MAX_RAISED && s.holds(victim))) {
+                s -> s.raisesDead && WhiteoutStorm.hasRoom(s.raised, halves(victim)) && s.holds(victim))) {
             if (storm.getOwner() instanceof DreadQueen queen && queen.isAlive() && storm.raise(level, victim, queen)) {
                 return;
             }
         }
+    }
+
+    /** The half-places the dead takes in a storm's count. */
+    static int halves(LivingEntity victim) {
+        return WhiteoutStorm.halves(victim.getBbWidth(), victim.getBbHeight(), victim.isBaby());
     }
 
     /**
@@ -354,7 +360,7 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
         if (!level.addFreshEntity(risen)) {
             return false;
         }
-        this.raised++;
+        this.raised += halves(victim);
         MagicManager.spawnParticles(level, CHARCOAL, victim.getX(), victim.getY() + 0.2, victim.getZ(), 20, 0.4, 0.1, 0.4, 0.02, false);
         MagicManager.spawnParticles(level, ParticleTypes.SOUL, victim.getX(), victim.getY() + 0.5, victim.getZ(), 8, 0.3, 0.3, 0.3, 0.03, false);
         level.playSound(null, victim.getX(), victim.getY(), victim.getZ(), IafSounds.DREAD_LICH_SUMMON.get(), SoundSource.HOSTILE, 1.0F, 0.8F);

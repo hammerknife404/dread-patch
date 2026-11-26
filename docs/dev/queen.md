@@ -71,7 +71,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **Waves:**
   - every 20 s with a target, up to 3 at a time;
   - weighted thrall 3 : ghoul 2 : knight 1 : scuttler 1;
-  - up to 6 standing at once;
+  - up to `CourtRules.courtLimit` standing at once: 4 on Easy (and Peaceful), 6 on Normal, 8 on Hard (0.79.0; 6 always before), her storm's risen counted among them;
   - on solid ground 2–5 blocks off.
 - **Spawning:** through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn. She commands them (`CommanderUUID`).
 - **Targets:** Ice and Fire only syncs targets for a lich's minions, so every second she hands hers her target.
@@ -89,7 +89,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - then every 1,800 ticks;
   - never while one of hers stands (she retries every 20 ticks).
 - **Spawning:** on a court spot, through `EventHooks.finalizeMobSpawn`, with her `CommanderUUID`, so it gets her target.
-- **Not court:** it isn't counted in her court's 6, it's never burnt for the decree, and its minions answer to it, not to her.
+- **Not court:** it isn't counted in her court's places, it's never burnt for the decree, and its minions answer to it, not to her.
 
 **Scuttler climbing** (`entity/ScuttlerClimbing`; 0.41.0)
 - Every `DreadScuttlerEntity` climbs walls as vanilla's spider does, done from outside (Ice and Fire's class):

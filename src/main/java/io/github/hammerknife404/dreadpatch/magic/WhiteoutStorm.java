@@ -18,8 +18,17 @@ public final class WhiteoutStorm {
     public static final float FREEZE_DAMAGE = 1.0F;
     /** Ticks it takes to build up, and to clear, on screen. */
     public static final int BUILD_TICKS = 60;
-    /** The most of the dead a storm of hers raises. */
-    public static final int MAX_RAISED = 8;
+    /**
+     * How many of the dead a storm of hers raises (0.79.0, the owner: "increase the number of minions the dread queen can
+     * control ... about 50-100% its current cap ... converting more of them at lower stats is ok"; asked, "Small dead
+     * count half"): 12 places (8 before), counted in halves; the small dead take half a place ({@link #halves}), so up
+     * to 24 of them.
+     */
+    public static final int PLACES = 12;
+    static final int PLACE_HALVES = 2 * PLACES;
+    /** The small dead: no wider or taller than this (a chicken, rabbit, bat, fish, cat), or any baby. */
+    static final float SMALL_WIDTH = 0.7F;
+    static final float SMALL_HEIGHT = 1.0F;
     /** Ticks its snow takes to cover the ground; it melts as the storm clears ({@link #BUILD_TICKS}). */
     public static final int COVER_TICKS = 200;
     /** A dread beast's size for each block of the dead's width, and the smallest and biggest it rises. */
@@ -93,6 +102,16 @@ public final class WhiteoutStorm {
      * upright (at least a block tall and half again as tall as it's wide: villagers, illagers,
      * witches, creepers, endermen, blazes, wardens) as a thrall; anything else as a dread beast.
      */
+    /** The half-places one of the dead takes: 1 if small ({@link #SMALL_WIDTH}, {@link #SMALL_HEIGHT}) or a baby, else 2. */
+    public static int halves(float width, float height, boolean baby) {
+        return baby || width <= SMALL_WIDTH && height <= SMALL_HEIGHT ? 1 : 2;
+    }
+
+    /** Whether a storm that has used {@code used} half-places has room for one taking {@code halves}. */
+    public static boolean hasRoom(int used, int halves) {
+        return used + halves <= PLACE_HALVES;
+    }
+
     public static boolean risesAsThrall(float width, float height) {
         return height >= 1.0F && height >= 1.5F * width;
     }
