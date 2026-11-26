@@ -989,6 +989,8 @@ def main():
             break
     record("in a fight its lure's pulse lays Rimefrost or Whiteout", pulsed, "the zombie had neither 10 s on")
     record("and sends it into a Frenzy", frenzied, rcon.run(f"data get entity {eel} Frenzy").strip())
+    record("and lights it up (0.75.1): Glowing on the zombie, none on the eel",
+           pulsed and has_effect(prey, "minecraft:glowing") and not has_effect(eel, "minecraft:glowing"), "glowing wrong")
     rcon.run("kill @e[tag=smoke_eel_prey]")
     rcon.run("kill @e[type=item]")
     for _ in range(10):
@@ -2448,6 +2450,11 @@ def main():
     rcon.run("kill 0000004b-0000-004b-0000-004b00000003")
     rcon.run("kill 0000004b-0000-004b-0000-004b00000009")
     rcon.run("fill 100 219 -6 125 224 4 minecraft:air")
+    # - (0.75.1) a scuttler notices what's 24 off and is 10% faster (Ice and Fire's 12 and 0.34);
+    rcon.run('summon iceandfire:dread_scuttler 120.5 219 10.5 {UUID:[I;75,75,75,5],NoAI:1b,PersistenceRequired:1b,Silent:1b}')
+    check("a dread scuttler notices what's 24 blocks off", "attribute 0000004b-0000-004b-0000-004b00000005 minecraft:generic.follow_range get", "is 24.0")
+    check("a dread scuttler is 10% faster", "attribute 0000004b-0000-004b-0000-004b00000005 minecraft:generic.movement_speed get", "is 0.374")
+    rcon.run("kill 0000004b-0000-004b-0000-004b00000005")
     # - a scuttler's web melts after 3 s; its shot, falling onto the floor, leaves one (mobGriefing on).
     rcon.run("setblock 110 219 8 dreadpatch:dread_web")
     placed = "Test passed" in rcon.run("execute if block 110 219 8 dreadpatch:dread_web")

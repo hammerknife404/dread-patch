@@ -13,7 +13,7 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
  * Ice and Fire's dread scuttlers, the Dread's spiders (the owner's ask), spit a weakened Withering
  * Rime-Bolt at what they hunt: {@link #DAMAGE} + {@link #MAX_HEALTH_SHARE} of max health (at most
  * 20) and {@link #RIME_TICKS} of Withering Rime, from {@link #MIN_RANGE} to {@link #MAX_RANGE} blocks
- * (their follow range; closer, they bite), every 3-4 s. Every scuttler, hers or Ice and Fire's own; not
+ * (closer, they bite; since 0.75.1 they notice from 24 and open with webs, ScuttlerWebs), every 3-4 s. Every scuttler, hers or Ice and Fire's own; not
  * while rising out of the ground. The class is Ice and Fire's, so it's done from its tick.
  */
 public final class ScuttlerBolts {
