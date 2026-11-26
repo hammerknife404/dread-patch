@@ -79,7 +79,7 @@ import java.util.Optional;
  * within 4 blocks, and if that catches anything, a Frenzy that halves the time between its bites. A bite may leave
  * Withering Rime. On land it lunges, then waits 2 s.</li>
  * <li>Out of water, seeking water and chasing prey have the same priority: whichever it takes up first it keeps
- * to. With nothing to fight it eats dropped food ({@link #EATS}, any food but {@link #REFUSES}), one item at a
+ * to. With nothing to fight it eats what's dropped ({@link DreadFeeding}: since 0.83.0 most organic things, only food healing), one item at a
  * time, healing 0.25-1 each.</li>
  * </ul>
  * Raised from a water creature in her storm ({@link RisenDread#rise}) it takes its raiser's target, as the risen
@@ -87,10 +87,6 @@ import java.util.Optional;
  * are drawn by {@code client/RimeEelRenderer}.
  */
 public class RimeEel extends Monster implements IDreadMob {
-    /** Not food, but eaten (ink sacs). */
-    public static final TagKey<Item> EATS = TagKey.create(Registries.ITEM, DreadPatch.id("rime_eel_eats"));
-    /** Food, but left (golden apples and carrots). */
-    public static final TagKey<Item> REFUSES = TagKey.create(Registries.ITEM, DreadPatch.id("rime_eel_refuses"));
     /** To its clients: it has pulsed (its lure flares). */
     public static final byte PULSE_EVENT = 101;
 
@@ -160,7 +156,7 @@ public class RimeEel extends Monster implements IDreadMob {
     protected void registerGoals() {
         this.goalSelector.addGoal(2, new BiteGoal(this));
         this.goalSelector.addGoal(2, new SeekWaterGoal(this));
-        this.goalSelector.addGoal(3, new EatFoodGoal(this));
+        this.goalSelector.addGoal(3, new DreadFeeding.EatDroppedGoal(this, RimeEelRules.FOOD_SEARCH));
         this.goalSelector.addGoal(5, new RandomSwimmingGoal(this, 1.0, 30));
         this.goalSelector.addGoal(6, new RandomStrollGoal(this, 1.0) {
             @Override
@@ -416,25 +412,13 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /** Whether it eats {@code stack}: its extras (ink), or any food it doesn't refuse. */
+    /** What it eats: the Dread's list since 0.83.0 ({@link DreadFeeding#eats}). */
     public static boolean eats(ItemStack stack) {
-        return !stack.isEmpty() && (stack.is(EATS) || stack.has(DataComponents.FOOD) && !stack.is(REFUSES));
+        return DreadFeeding.eats(stack);
     }
 
-    /** Eats one of {@code item}'s stack, healing by its food. */
     void eat(ItemEntity item) {
-        ItemStack stack = item.getItem().copy();
-        FoodProperties food = stack.get(DataComponents.FOOD);
-        stack.shrink(1);
-        if (stack.isEmpty()) {
-            item.discard();
-        } else {
-            item.setItem(stack);
-        }
-        this.heal(RimeEelRules.heal(food == null ? 0 : food.nutrition()));
-        this.playSound(SoundEvents.GENERIC_EAT, 0.6F, this.getVoicePitch());
-        if (this.level() instanceof ServerLevel level) {
-            level.sendParticles(ParticleTypes.BUBBLE, item.getX(), item.getY() + 0.1, item.getZ(), 4, 0.1, 0.1, 0.1, 0.02);
-        }
+        DreadFeeding.eat(this, item);
     }
 
     @Override
@@ -622,76 +606,4 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /** With nothing to fight: to the nearest food lying near, and eats it, an item at a time. */
-    static final class EatFoodGoal extends Goal {
-        private final RimeEel eel;
-        private @Nullable ItemEntity food;
-        private int timer;
-
-        EatFoodGoal(RimeEel eel) {
-            this.eel = eel;
-            this.setFlags(EnumSet.of(Flag.MOVE));
-        }
-
-        private boolean wanted(ItemEntity item) {
-            return item.isAlive() && !item.hasPickUpDelay() && eats(item.getItem());
-        }
-
-        @Override
-        public boolean canUse() {
-            if (this.eel.getTarget() != null || this.eel.getRandom().nextInt(5) != 0) {
-                return false;
-            }
-            this.food = this.eel.level().getEntitiesOfClass(ItemEntity.class, this.eel.getBoundingBox().inflate(RimeEelRules.FOOD_SEARCH), this::wanted)
-                    .stream().min(java.util.Comparator.comparingDouble(this.eel::distanceToSqr)).orElse(null);
-            return this.food != null;
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return this.food != null && this.wanted(this.food) && this.eel.getTarget() == null && this.timer < 300
-                    && this.eel.distanceToSqr(this.food) < (RimeEelRules.FOOD_SEARCH + 4) * (RimeEelRules.FOOD_SEARCH + 4);
-        }
-
-        @Override
-        public void start() {
-            this.timer = 0;
-        }
-
-        @Override
-        public void stop() {
-            this.food = null;
-            this.eel.getNavigation().stop();
-        }
-
-        @Override
-        public boolean requiresUpdateEveryTick() {
-            return true;
-        }
-
-        /** Within a block of its snout across, and up to a block and a half over or under it (food floats on water it swims in). */
-        private boolean inReach(ItemEntity item) {
-            double across = this.eel.getBbWidth() / 2.0 + 1.0;
-            double dx = item.getX() - this.eel.getX();
-            double dz = item.getZ() - this.eel.getZ();
-            double dy = item.getY() - this.eel.getY();
-            return dx * dx + dz * dz <= across * across && dy >= -1.5 && dy <= this.eel.getBbHeight() + 1.5;
-        }
-
-        @Override
-        public void tick() {
-            if (this.food == null) {
-                return;
-            }
-            this.timer++;
-            this.eel.getLookControl().setLookAt(this.food);
-            if (this.inReach(this.food)) {
-                this.eel.getNavigation().stop();
-                if (this.timer % RimeEelRules.EAT_TICKS == 0) {
-                    this.eel.eat(this.food);
-                }
-            } else if (this.timer % 10 == 1) {
-                this.eel.getNavigation().moveTo(this.food, 1.0);
-            }
-        }
-    }
 }

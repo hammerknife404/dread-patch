@@ -975,6 +975,37 @@ def main():
     record("ashore, it makes for water", back, rcon.run("data get entity @e[tag=smoke_eel_ashore,limit=1] Pos").strip())
     rcon.run("kill @e[tag=smoke_eel_ashore]")
     rcon.run("kill @e[type=item]")
+    # The Dread eat what's dropped (0.83.0, the owner: "Extend the food eating behavior of the rime eel to the dread beasts
+    # ... most organic dropped items, but only food heals"): a hurt dread beast on a closed pad eats a bone (organic, no
+    # healing) and rotten flesh (food: it heals), and leaves a golden apple.
+    rcon.run("forceload add 60 40 68 48")
+    rcon.run("fill 59 199 39 69 199 49 minecraft:stone")
+    rcon.run("fill 59 200 39 69 203 49 minecraft:air")
+    rcon.run("fill 59 200 39 69 201 39 minecraft:stone")
+    rcon.run("fill 59 200 49 69 201 49 minecraft:stone")
+    rcon.run("fill 59 200 39 59 201 49 minecraft:stone")
+    rcon.run("fill 69 200 39 69 201 49 minecraft:stone")
+    rcon.run('summon iceandfire:dread_beast 64.5 200 44.5 {PersistenceRequired:1b,Tags:["smoke_beast"]}')
+    time.sleep(3.0)  # past its rise
+    beast = "@e[tag=smoke_beast,limit=1]"
+    rcon.run(f"data merge entity {beast} {{Health:4.0f}}")
+    beast_hurt = health(beast)
+    rcon.run('summon item 66.5 200.2 44.5 {Item:{id:"minecraft:bone",count:1},PickupDelay:0s,Tags:["smoke_beast_bone"]}')
+    rcon.run('summon item 62.5 200.2 44.5 {Item:{id:"minecraft:rotten_flesh",count:1},PickupDelay:0s,Tags:["smoke_beast_food"]}')
+    rcon.run('summon item 64.5 200.2 47.5 {Item:{id:"minecraft:golden_apple",count:1},PickupDelay:0s,Tags:["smoke_beast_refused"]}')
+    eaten = False
+    for _ in range(80):
+        time.sleep(0.25)
+        if "Test failed" in rcon.run("execute if entity @e[tag=smoke_beast_bone]") and "Test failed" in rcon.run("execute if entity @e[tag=smoke_beast_food]"):
+            eaten = True
+            break
+    record("a dread beast eats a dropped bone and rotten flesh", eaten, "one was still there 20 s on")
+    record("only the food heals it", health(beast) > beast_hurt and health(beast) <= beast_hurt + 1.0 + 1e-6,
+           f"health {beast_hurt} -> {health(beast)} (rotten flesh heals 1, the bone none)")
+    check("and it leaves a golden apple", "execute if entity @e[tag=smoke_beast_refused]", "Test passed")
+    rcon.run("kill @e[tag=smoke_beast]")
+    rcon.run("kill @e[type=item]")
+    rcon.run("forceload remove 60 40 68 48")
     # Only one in six has its lantern (0.76.0), and only that one pulses: this one's given it.
     rcon.run(f"data merge entity {eel} {{Lantern:1b,Frenzy:0}}")
     rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
@@ -1146,6 +1177,11 @@ def main():
     record("at its age", 1300000 <= age_ticks(raised) < 1300000 + 400, f"AgeTicks {age_ticks(raised)}")
     record("with half its caster's missing health, rounded down", hp_risen == 7.0, f"health {hp_risen} (the caster at 6 of 20)")
     check("raised by its caster", "data get entity " + raised + " RaisedBy", "[I; 5, 5, 5, 5]")
+    # The first raised dragon out of the way before the second corpse lies down (0.83.0: full grown, it stood over where
+    # the second one is summoned, and could shove it or stand across the spell's ray, which stops at the first thing it
+    # meets; it failed now and then). The recast still sends it back, wherever it is.
+    rcon.run("tp " + raised + " 11.5 200 40")
+    time.sleep(0.3)
     ice_corpse(6.5, "blue", "smoke_ice_corpse_2")
     # Looking lower: a corpse lies low, and 6 blocks off a ray at 5 degrees passes just over it.
     rcon.run("tp @e[tag=smoke_caster,limit=1] 0.5 200 7.5 -90 12")
@@ -1291,11 +1327,18 @@ def main():
     rcon.run("kill @e[type=dreadpatch:rime_eel]")
     rcon.run("kill @e[type=minecraft:cod]")
     rcon.run("fill 6 200 12 6 201 12 minecraft:air")
+    # Counted before and after (0.83.0: the chickens' risen beasts now wander over to eat what the dead dropped, and one
+    # stood by the golem): nothing more there once it's dead.
+    # Beasts aside too: they come for its poppy (a golem would rise a thrall, by its shape, if it rose).
+    near_golem = ("execute positioned 13.5 200 6.5 if entity @e[distance=..2.5,type=!minecraft:item,type=!minecraft:experience_orb,"
+                  "type=!minecraft:iron_golem,type=!iceandfire:dread_beast]")
+    before = re.search(r"count: (\d+)", rcon.run(near_golem))
     rcon.run('summon minecraft:iron_golem 13.5 200 6.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
     time.sleep(0.5)
-    check("a golem killed in her storm stays dead",
-          "execute positioned 13.5 200 6.5 if entity @e[distance=..2.5,type=!minecraft:item,type=!minecraft:experience_orb]", "Test failed")
+    after = re.search(r"count: (\d+)", rcon.run(near_golem))
+    record("a golem killed in her storm stays dead", (int(after.group(1)) if after else 0) <= (int(before.group(1)) if before else 0),
+           f"{before.group(1) if before else 0} near it before, {after.group(1) if after else 0} after")
     # Her storm's places (0.79.0, the owner: "about 50-100% its current cap ... converting more of them at lower stats is
     # ok"; asked, "Small dead count half"): 12 places, a small one half. So far a cow, villager, creeper and guard (whole)
     # and a bat, parrot and cod (half): 11 half-places of 24. Of 20 chickens killed along its south edge, 13 rise (8
