@@ -38,7 +38,9 @@
       "dreadpatch:chasma_pocket"
     ],
     [],
-    [],
+    [
+      "dreadpatch:dragon_skeleton"
+    ],
     [],
     [
       "dreadpatch:dreadstone_blobs",

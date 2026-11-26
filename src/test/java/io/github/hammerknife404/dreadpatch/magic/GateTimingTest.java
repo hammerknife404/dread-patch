@@ -48,4 +48,19 @@ class GateTimingTest {
         }
         assertTrue(blinks.get(0) >= 12 && blinks.get(blinks.size() - 1) <= 3, "from slow to fast: " + blinks);
     }
+
+    @Test
+    void lettingTheDreadOutIsTwiceTheNetherPortals() {
+        // Vanilla: a roll under 2,000 below the difficulty's id. Twice that per random tick, and never on Peaceful.
+        for (int difficulty = 0; difficulty <= 3; difficulty++) {
+            int out = 0;
+            for (int roll = 0; roll < GateTiming.SPAWN_ROLL; roll++) {
+                if (GateTiming.spawnsDread(roll, difficulty)) {
+                    out++;
+                }
+            }
+            assertEquals(difficulty, out);
+            assertEquals(2.0 * difficulty / 2000.0, (double) out / GateTiming.SPAWN_ROLL, 1e-9);
+        }
+    }
 }

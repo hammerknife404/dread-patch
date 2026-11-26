@@ -21,7 +21,19 @@ public final class GateTiming {
     static final double FIRST_BLINK = 16.0;
     static final double QUICKENING = 0.86;
 
+    /**
+     * An open gate's panes letting one of the Dread out (0.76.0, the owner: "about double the chance nether portals do
+     * for pigmen"): vanilla's Nether portal, on each pane's random tick, brings one when a roll under 2,000 falls under
+     * the difficulty's id (1-3); ours rolls under half that.
+     */
+    public static final int SPAWN_ROLL = 1000;
+
     private GateTiming() {
+    }
+
+    /** Whether a pane's random tick, rolling {@code roll} in {@code [0, SPAWN_ROLL)}, lets one out at {@code difficulty}'s id (0 Peaceful to 3 Hard). */
+    public static boolean spawnsDread(int roll, int difficulty) {
+        return roll < difficulty;
     }
 
     /**
