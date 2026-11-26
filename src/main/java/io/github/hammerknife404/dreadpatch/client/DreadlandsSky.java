@@ -32,15 +32,19 @@ import java.util.Optional;
  * <li>The sun: while the camera's in the Dreadlands, vanilla's sun texture is swapped for a dim pale cyan copy of
  * itself ({@link #SUN_BRIGHTNESS} of its light; the sun is drawn additively, so darker is dimmer), and put back on
  * leaving or a resource reload.</li>
+ * <li>The moon (0.78.0, the owner: "Need to adjust the moons color and intensity accordingly now"): its phases the same
+ * way, the same pale cyan, a little less dimmed ({@link #MOON_BRIGHTNESS}), since vanilla's moon is fainter to begin with.</li>
  * </ul>
  * Shader packs (Iris) draw their own sky and light, and likely ignore both.
  */
 public final class DreadlandsSky extends DimensionSpecialEffects.OverworldEffects {
     public static final int MAX_SKY = 6;
     static final float SUN_BRIGHTNESS = 0.42F;
+    static final float MOON_BRIGHTNESS = 0.55F;
     /** Pale cyan, as her dread fire is cyan. */
     private static final float[] SUN_TINT = {0.62F, 0.93F, 1.0F};
     private static final ResourceLocation SUN = ResourceLocation.withDefaultNamespace("textures/environment/sun.png");
+    private static final ResourceLocation MOON = ResourceLocation.withDefaultNamespace("textures/environment/moon_phases.png");
     private static final Logger LOGGER = LogUtils.getLogger();
     private static boolean swapped;
 
@@ -67,16 +71,18 @@ public final class DreadlandsSky extends DimensionSpecialEffects.OverworldEffect
         boolean here = minecraft.level != null && Dreadlands.is(minecraft.level);
         if (here && !swapped) {
             swapped = true;
-            dimSun(minecraft);
+            dim(minecraft, SUN, SUN_BRIGHTNESS);
+            dim(minecraft, MOON, MOON_BRIGHTNESS);
         } else if (!here && swapped) {
             swapped = false;
             minecraft.getTextureManager().release(SUN);
+            minecraft.getTextureManager().release(MOON);
         }
     }
 
-    /** Vanilla's sun (or a pack's), each pixel tinted pale cyan and dimmed; registered in its place. */
-    private static void dimSun(Minecraft minecraft) {
-        Optional<Resource> resource = minecraft.getResourceManager().getResource(SUN);
+    /** Vanilla's sun or moon (or a pack's), each pixel tinted pale cyan and dimmed to {@code brightness}; registered in its place. */
+    private static void dim(Minecraft minecraft, ResourceLocation texture, float brightness) {
+        Optional<Resource> resource = minecraft.getResourceManager().getResource(texture);
         if (resource.isEmpty()) {
             return;
         }
@@ -86,16 +92,16 @@ public final class DreadlandsSky extends DimensionSpecialEffects.OverworldEffect
                 for (int x = 0; x < image.getWidth(); x++) {
                     int abgr = image.getPixelRGBA(x, y);
                     int a = abgr >>> 24;
-                    float light = Math.max(abgr & 0xFF, Math.max(abgr >> 8 & 0xFF, abgr >> 16 & 0xFF)) / 255.0F * SUN_BRIGHTNESS;
+                    float light = Math.max(abgr & 0xFF, Math.max(abgr >> 8 & 0xFF, abgr >> 16 & 0xFF)) / 255.0F * brightness;
                     int r = Math.round(255 * light * SUN_TINT[0]);
                     int g = Math.round(255 * light * SUN_TINT[1]);
                     int b = Math.round(255 * light * SUN_TINT[2]);
                     image.setPixelRGBA(x, y, a << 24 | b << 16 | g << 8 | r);
                 }
             }
-            minecraft.getTextureManager().register(SUN, new DynamicTexture(image));
+            minecraft.getTextureManager().register(texture, new DynamicTexture(image));
         } catch (Exception e) {
-            LOGGER.warn("Couldn't dim the Dreadlands' sun: {}", e.toString());
+            LOGGER.warn("Couldn't dim the Dreadlands' {}: {}", texture, e.toString());
         }
     }
 }
