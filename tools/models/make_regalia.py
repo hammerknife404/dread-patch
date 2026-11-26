@@ -201,12 +201,10 @@ SWORD_DISPLAY = {
     "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.4, 0.4, 0.4]},
     "fixed": {"rotation": [0, 0, -45], "translation": [0, 0, 0], "scale": [0.55, 0.55, 0.55]},
 }
-# 0.82.1 (the owner's screenshot: held pointing forward, its crystal low): held upright, the crystal up, the grip in the
-# hand (a z turn of -90 stands the model's +y up off a hanging arm; display z lifts it so the grip, 11.5 under the
-# model's middle, is in the hand).
+# Held as 0.81 held it (0.82.5, the owner: "The way the staff is held needs reverting"; 0.82.1 stood it upright).
 STAFF_DISPLAY = {
-    "thirdperson_righthand": {"rotation": [0, -90, -90], "translation": [0, 1.0, 7.5], "scale": [0.65, 0.65, 0.65]},
-    "thirdperson_lefthand": {"rotation": [0, 90, 90], "translation": [0, 1.0, 7.5], "scale": [0.65, 0.65, 0.65]},
+    "thirdperson_righthand": {"rotation": [0, -90, 0], "translation": [0, 2.5, 0.5], "scale": [0.65, 0.65, 0.65]},
+    "thirdperson_lefthand": {"rotation": [0, 90, 0], "translation": [0, 2.5, 0.5], "scale": [0.65, 0.65, 0.65]},
     "firstperson_righthand": {"rotation": [0, -90, 15], "translation": [1.13, 1.0, 1.13], "scale": [0.6, 0.6, 0.6]},
     "firstperson_lefthand": {"rotation": [0, 90, -15], "translation": [1.13, 1.0, 1.13], "scale": [0.6, 0.6, 0.6]},
     "gui": {"rotation": [0, 0, -45], "translation": [0, 0, 0], "scale": [0.36, 0.36, 0.36]},

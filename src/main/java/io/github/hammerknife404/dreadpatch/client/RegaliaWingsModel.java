@@ -30,6 +30,8 @@ import java.util.WeakHashMap;
  */
 public final class RegaliaWingsModel extends Model {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(DreadPatch.id("regalia_wings"), "main");
+    /** Faster than this (blocks a tick) a glide sweeps the wings back, and trails frost: above a glide's cruise. */
+    public static final float FAST = 1.6F;
     /** How fast it eases toward a state: this share of the way a tick. */
     static final float EASE = 0.15F;
 
@@ -85,8 +87,10 @@ public final class RegaliaWingsModel extends Model {
         float speed = (float) motion.length();
         state.speed += (speed - state.speed) * step;
         state.climb += ((speed > 0.05F ? Mth.clamp((float) motion.y / speed, -1.0F, 1.0F) : 0.0F) - state.climb) * step;
-        float sweep = Mth.clamp((state.speed - 0.5F) / 1.5F, 0.0F, 1.0F);
-        float dive = Mth.clamp(-state.climb * 1.5F, 0.0F, 1.0F);
+        // 0.82.5 (the owner: "the wings still stay folded back at all glide speeds"): a glide cruises at about 1-1.5 blocks
+        // a tick, sinking gently, so the sweep starts past that (a firework's speed) and only a steep dive tucks them.
+        float sweep = Mth.clamp((state.speed - FAST) / 1.0F, 0.0F, 1.0F);
+        float dive = Mth.clamp((-state.climb - 0.4F) * 2.0F, 0.0F, 1.0F);
         float climb = Mth.clamp(state.climb * 3.0F, 0.0F, 1.0F);
         float slow = Mth.clamp(1.0F - state.speed / 1.0F, 0.0F, 1.0F);
         // Cresting up and slowing, they open right out to catch the air (0.82.3, the owner: "spread out and open up more
