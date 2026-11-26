@@ -125,7 +125,10 @@ public final class RegaliaWingsLayer<T extends LivingEntity, M extends HumanoidM
             }
             float yaw = player.yBodyRot * net.minecraft.util.Mth.DEG_TO_RAD;
             double rx = Math.cos(yaw), rz = Math.sin(yaw);
-            if (player.isFallFlying()) {
+            double speed = player.getDeltaMovement().length();
+            // The trail only going fast (0.82.5, with the wings' sweep: RegaliaWingsModel.FAST), more the faster; a few
+            // flakes off them gliding slower.
+            if (player.isFallFlying() && (speed > RegaliaWingsModel.FAST * 0.85 || random.nextInt(6) == 0)) {
                 for (int side = -1; side <= 1; side += 2) {
                     // Off the wingtips: out to either side of the body, a little behind.
                     double x = player.getX() + rx * 1.7 * side, z = player.getZ() + rz * 1.7 * side;
