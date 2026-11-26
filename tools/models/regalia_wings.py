@@ -31,13 +31,15 @@ GLOW = (0x6C, 0xF0, 0xFF)
 # Where the wing hangs on the back, and its chain's rest lengths and angles (the right wing's).
 ROOT = (-2.5, 1.5, 2.6)
 ARM_LENGTH = 10.0
-ARM_RISE = 1.05      # the arm bone's turn up from level: its wrist up by the head
+ARM_RISE = 1.0       # the arm bone's turn up from level: its wrist out beside the head
 # The fingers' tips, in the hand's frame (its origin the wrist, level when the hand undoes the arm's rise).
-FINGERS = [(-17.0, -5.5), (-18.5, 6.0), (-12.5, 16.0), (-3.5, 25.0)]
+# 0.82.1 (the owner's screenshots: a starburst, its leading finger rising past the wrist): every finger fans outward
+# and down from the wrist, the arm bone the wing's top edge, as in the videos.
+FINGERS = [(-18.0, 1.5), (-16.5, 9.0), (-10.5, 16.0), (-2.5, 24.0)]
 # Where the membrane meets each finger: its tip, but for the claw, which hooks on past the membrane.
-WEB = [(-17.0, -5.5), (-18.5, 6.0), (-12.5, 16.0), (-2.8, 20.0)]
+WEB = [(-18.0, 1.5), (-16.5, 9.0), (-10.5, 16.0), (-2.2, 20.0)]
 # The membrane sheet's extent in the hand's frame: out past the tips, in to the body, from over the wrist to the claw.
-SHEET = (-19, -7, 29, 30)   # x, y, width, height
+SHEET = (-19, -2, 29, 26)   # x, y, width, height
 
 
 def finger_parts(side):
@@ -46,7 +48,7 @@ def finger_parts(side):
     for i, (tx, ty) in enumerate(FINGERS):
         length = math.hypot(tx, ty)
         angle = math.atan2(ty, -tx)  # a z turn putting -x on the tip (y down)
-        boxes = [Box(-length, -0.7, -0.7, length, 1.4, 1.4, "spar")]
+        boxes = [Box(-length, -0.6, -0.6, length, 1.2, 1.2, "spar")]
         if i == 0:
             # Icicles hanging off the leading spar.
             for k, (at, h) in enumerate(((3.0, 2), (6.0, 3), (9.0, 2), (12.0, 4), (15.0, 2))):
@@ -96,7 +98,7 @@ def membrane_polygon():
         for k in range(1, 9):
             t = k / 8
             x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
-            bow = 0.28 * math.sin(math.pi * t)
+            bow = 0.14 * math.sin(math.pi * t)
             pts.append((x * (1 - bow), y * (1 - bow)))
     pts += [root, (0.0, -0.6)]
     return pts
@@ -158,7 +160,7 @@ def membrane_texel(x, y, poly):
     else:
         colour = SLATE
     frost = shade
-    alpha = 205 if edge > 1.5 else 175
+    alpha = 228 if edge > 1.5 else 200
     glows = frost > 0.7 and hash01(ix, iy, 31) < 0.05
     return colour, alpha, glows
 
