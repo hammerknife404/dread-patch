@@ -80,6 +80,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **The Dread Gate:** summoned in its frame, which it finds as the key would.
 
 **What it learned**
+- **Item model bounds** (0.81.1): vanilla refuses a whole item model with any element past −16..32 on an axis (`BlockElement` "'from' specifier exceeds the allowed boundaries"), and the item keeps its old model; only a client's log shows it (grep `Unable to load model: 'dreadpatch:`). 0.81.0's staff reached −18. `make_regalia.py` now refuses to write one.
 - **The watchdog** (0.77.0): forceloading many lone chunks far apart, back to back, can hold one tick past 60 s (each waits for its neighbours) and the server shuts itself down; pause between them.
 - **Never count water by swapping it to sponge** (0.77.0): a placed sponge soaks up the water round it, so the count destroys what it counts. The deeps' check swaps to glass.
 - **The server stalls generating** (0.77.0): forceloading 256 new chunks can hold the server thread 10 s or more, past `Rcon`'s 10 s timeout; a survey script raised its socket's timeout.
