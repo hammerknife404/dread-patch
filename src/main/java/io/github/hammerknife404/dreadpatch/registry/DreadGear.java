@@ -74,6 +74,10 @@ public final class DreadGear {
     public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_BODICE = queenArmor("dread_queen_bodice", ArmorItem.Type.CHESTPLATE);
     public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_ROBE = queenArmor("dread_queen_robe", ArmorItem.Type.LEGGINGS);
     public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_GREAVES = queenArmor("dread_queen_greaves", ArmorItem.Type.BOOTS);
+    /** Her bodice with an elytra's wings (0.81.0): made at a smithing table, never dropped. */
+    public static final DeferredItem<DreadArmorItem> DREAD_QUEEN_WINGED_BODICE = ITEMS.register("dread_queen_winged_bodice",
+            () -> new io.github.hammerknife404.dreadpatch.item.WingedBodiceItem(DREAD_QUEEN_MATERIAL,
+                    new Item.Properties().durability(steelDurability(ArmorItem.Type.CHESTPLATE)).rarity(Rarity.EPIC).fireResistant()));
 
     public static final DeferredItem<DreadArmorItem> RIMEFROST_DRAGONSCALE_HELMET = scaleArmor("rimefrost_dragonscale_helmet", ArmorItem.Type.HELMET, 397);
     public static final DeferredItem<DreadArmorItem> RIMEFROST_DRAGONSCALE_CHESTPLATE = scaleArmor("rimefrost_dragonscale_chestplate", ArmorItem.Type.CHESTPLATE, 577);
@@ -126,6 +130,16 @@ public final class DreadGear {
     /** Her regalia, helmet to boots (the order {@code RegaliaDrops} counts pieces in). */
     public static List<DeferredItem<DreadArmorItem>> queenArmor() {
         return List.of(DREAD_QUEEN_CROWN, DREAD_QUEEN_BODICE, DREAD_QUEEN_ROBE, DREAD_QUEEN_GREAVES);
+    }
+
+    /** Every piece of her regalia as an item: her four, and the winged bodice (which takes the bodice's place). */
+    public static List<DeferredItem<DreadArmorItem>> regalia() {
+        return List.of(DREAD_QUEEN_CROWN, DREAD_QUEEN_BODICE, DREAD_QUEEN_WINGED_BODICE, DREAD_QUEEN_ROBE, DREAD_QUEEN_GREAVES);
+    }
+
+    /** Her bodice, with or without wings. */
+    public static boolean isBodice(net.minecraft.world.item.ItemStack stack) {
+        return stack.is(DREAD_QUEEN_BODICE.get()) || stack.is(DREAD_QUEEN_WINGED_BODICE.get());
     }
 
     public static List<DeferredItem<DreadArmorItem>> armor() {

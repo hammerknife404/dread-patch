@@ -15,7 +15,7 @@ Patching in the Dread Queen for my own world.
 
 ## The Dread Queen
 
-A lean sovereign: 300 health behind 20 armor and 12 toughness (a full netherite set's), with a boss bar and her sword and staff. She has her original model from Ice and Fire, given a woman's figure (a bust in her chestplate's armor, as body mods give female player models), and she rises out of the ground when she spawns.
+A lean sovereign: 300 health behind 20 armor and 12 toughness (a full netherite set's), with a boss bar and her sword and staff. She has her original model from Ice and Fire, given a woman's figure, wearing her regalia (below) since 0.81.0, and she rises out of the ground when she spawns.
 
 **Her theme**, "Beneath the Permafrost", plays once for everyone within 96 blocks when she or Syndrigossa spawns, cutting off whatever music was playing. It never starts over or plays twice at once (she spawns with her dragon), and no other music cuts it off. Once it ends, the usual music comes back after the usual wait.
 
@@ -61,7 +61,9 @@ Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she 
 
 ### Her regalia
 
-Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of the Dreaded Queen**. The crown is her ring of ice, the bodice her bodice with its necklace, cloak and silver pauldrons, the robes and greaves the rest, each drawn from her own model and texture.
+Her own armour, to wear, and what she wears herself: the **Crown**, **Bodice**, **Robes** and **Greaves of the Dreaded Queen**. Dark steel with cyan trim and frost: the crown a helm open at the face under a crown of ice spikes; the bodice a breastplate with a cyan collar and buckle, frosted, spiked pauldrons and vambraces; the robes navy leggings under a blue tabard frosted at its edges; the greaves banded cyan.
+
+- **The Winged Bodice of the Dreaded Queen:** her bodice, an elytra and a Rimefrost Dragon Scale (or an ice dragon's scale: blue, white, sapphire or silver) at a smithing table, the scale where a template goes. It's her bodice in every way (its strength, powers and enchantments carry over, it counts toward the set and its advancements), and it glides like an elytra, on bone-white dragon wings with tattered dark membranes and icicles that fold behind you and spread as you glide. Like the rest of her regalia it never breaks, so its flight never wears it. It doesn't take armour trims.
 
 - **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It never breaks.
 - **Each piece:** +150 max mana, 5% off the mana Ice and Rimefrost spells cost, 5% more Rimefrost damage dealt, and 5% less Rimefrost damage taken (Rimefrost spells, the Rimefrost dragons' breath and Shatter-Spine, Whiteout's cold, and Withering Rime's withering, counted as dealt by whoever laid the rime). The whole set: a fifth more dealt, a fifth less taken.
@@ -69,7 +71,7 @@ Her own outfit, to wear: the **Crown**, **Bodice**, **Robes** and **Greaves of t
 - **Her crown's sight:** the Dreadlands' storm fog doesn't close in on whoever wears her crown (snow or heavy snowstorm), and in any whiteout, the weather or a Whiteout Dominion's, they see 75% further, and a Whiteout Dominion's driven snow is that much thinner to them.
 - **Collecting it:** each queen you kill drops a piece you don't have yet, so four kills complete the set. Looting gives a 10% chance a level of a second missing piece. Once you have the set, she drops a random piece one time in four (5% more a Looting level).
 - **Advancements** keep count: one for slaying her, one for each piece you've held, and one for the whole set. A piece counts as yours once it's been in your inventory.
-- **There Must Always Be a Dread Queen:** wear all four pieces with her blade and her staff in your hands.
+- **There Must Always Be a Dread Queen:** wear all four pieces (the winged bodice counts as the bodice) with her blade and her staff in your hands.
 
 **Armour trims** go on her regalia, Rimefrost dragonscale and dread dragonsteel armour at a smithing table, as on vanilla armour. Worn, a trim sits on vanilla armour's shape over the piece.
 
@@ -225,6 +227,8 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 - **JEI:** with JEI installed, its recipes have a page of their own.
 
 ## Her staff and sword
+
+**How they look** (0.81.0): redrawn as models of their own. Her sword is a long dark blade with a frosted edge, a diamond tip, cyan gems, a spiked guard and a gemmed pommel; her staff a slender dark twisted shaft, ice along it, with claws of ice round a glowing cyan crystal at its head. The cyan parts glow. She holds the same.
 
 **Her staff** is an Iron's staff now:
 

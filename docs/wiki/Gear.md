@@ -32,6 +32,8 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 
 ## Her staff and sword
 
+**How they look** (0.81.0): redrawn as models of their own. Her sword is a long dark blade with a frosted edge, a diamond tip, cyan gems, a spiked guard and a gemmed pommel; her staff a slender dark twisted shaft, ice along it, with claws of ice round a glowing cyan crystal at its head. The cyan parts glow. She holds the same.
+
 **Her staff** is an Iron's staff now:
 
 - It carries three of her spells at level 3 (Withering Rime-Bolt, Rimefire Crown and Summon Court), on your spell wheel while you hold it, cast with right-click. Its tooltip lists them a line each; hold Shift for each one's details.

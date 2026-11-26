@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bodice": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "dreadpatch:dread_queen_bodice"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "dreadpatch:dread_queen_winged_bodice"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_bodice",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dreadpatch:dread_queen_winged_bodice"
+    ]
+  }
+}
