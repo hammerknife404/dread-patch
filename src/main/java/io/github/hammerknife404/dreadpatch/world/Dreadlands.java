@@ -49,6 +49,8 @@ public final class Dreadlands {
     /** Its biomes but the plains (0.66.0). */
     public static final ResourceKey<net.minecraft.world.level.biome.Biome> RIME_CHASMA = ResourceKey.create(Registries.BIOME, DreadPatch.id("rime_chasma"));
     public static final ResourceKey<net.minecraft.world.level.biome.Biome> SASTRUGI_WASTES = ResourceKey.create(Registries.BIOME, DreadPatch.id("sastrugi_wastes"));
+    /** The Glacial Plains (0.84.0): the ice sheet up to about y 200, sheer-walled, windswept, the wild Rimefrost dragons' nests on it. */
+    public static final ResourceKey<net.minecraft.world.level.biome.Biome> GLACIAL_PLAINS = ResourceKey.create(Registries.BIOME, DreadPatch.id("glacial_plains"));
     /**
      * Its dread phantoms (the owner: 1-2 at a time, at a low rate, not tied to sleep): every 30 s, a
      * player under open sky has a one-in-8 chance of 1-2 (about one flight every 4 minutes), one in 3

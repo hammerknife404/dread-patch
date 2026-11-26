@@ -2,7 +2,7 @@
 
 ## Rimefrost dragons
 
-The Rimefrost are, in the lore, a subtype of frost dragon: undead dragons of the Dread, risen from Ice and Fire's ice dragons and rotted to the bone (soot-black scales, bone showing through, torn wings) in their own colour, white, sapphire, silver or blue. They're allied with the queen and her court, and they grow, and their health grows, as an ice dragon's does. Spawn one with the **Rimefrost Dragon Spawn Egg** (Spawn Eggs tab) or `/summon dreadpatch:rimefrost_dragon`. Tamed, one can be ridden like any Ice and Fire dragon.
+The Rimefrost are, in the lore, a subtype of frost dragon: undead dragons of the Dread, risen from Ice and Fire's ice dragons and rotted to the bone (soot-black scales, bone showing through, torn wings) in their own colour, white, sapphire, silver or blue. They're allied with the queen and her court, and they grow, and their health grows, as an ice dragon's does. Wild ones nest on top of the Dreadlands' Glacial Plains (The Dreadlands). Spawn one with the **Rimefrost Dragon Spawn Egg** (Spawn Eggs tab) or `/summon dreadpatch:rimefrost_dragon`. Tamed, one can be ridden like any Ice and Fire dragon.
 
 What every Rimefrost dragon has:
 

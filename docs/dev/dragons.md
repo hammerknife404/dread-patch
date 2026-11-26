@@ -5,6 +5,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 ## Rimefrost dragons and Syndrigossa
 
 **The split (0.37.0):** `entity/RimefrostDragon` (`dreadpatch:rimefrost_dragon`) is the subtype; `entity/Syndrigossa` (`dreadpatch:syndrigossa`, its id kept so saved ones load) extends it.
+**Wild ones** (0.84.0): nesting on the Glacial Plains (`world/RimefrostNests`; `dreadlands.md`, The Glacial Plains): stage 2-5 or ancient, aging off, their home the nest; untamed, so Ice and Fire's wild-dragon AI with ours (players hunted, the Dread spared).
 - **Every Rimefrost dragon** (`RimefrostDragon`):
   - the breath, the bite's rime, its own Shatter-Spine, takeoff and air-attack weighting;
   - the player-hunting goal, the Dread corpse (`corpseLoot`/`bonesLoot`/`heartLoot`, `entities/rimefrost_dragon/*`), the tag-made health fix, the animation layers;

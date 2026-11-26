@@ -1,0 +1,7 @@
+{
+  "parent": "iceandfire:block/goldpile_height6",
+  "textures": {
+    "particle": "dreadpatch:block/iron_pile",
+    "texture": "dreadpatch:block/iron_pile"
+  }
+}
