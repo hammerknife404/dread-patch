@@ -87,15 +87,18 @@ public final class RegaliaWingsModel extends Model {
         state.climb += ((speed > 0.05F ? Mth.clamp((float) motion.y / speed, -1.0F, 1.0F) : 0.0F) - state.climb) * step;
         float sweep = Mth.clamp((state.speed - 0.5F) / 1.5F, 0.0F, 1.0F);
         float dive = Mth.clamp(-state.climb * 1.5F, 0.0F, 1.0F);
-        float climb = Mth.clamp(state.climb * 2.0F, 0.0F, 1.0F);
-        float slow = Mth.clamp(1.0F - state.speed / 0.8F, 0.0F, 1.0F);
-        float flap = Math.max(slow, 0.7F * climb) * state.glide;
+        float climb = Mth.clamp(state.climb * 3.0F, 0.0F, 1.0F);
+        float slow = Mth.clamp(1.0F - state.speed / 1.0F, 0.0F, 1.0F);
+        // Cresting up and slowing, they open right out to catch the air (0.82.3, the owner: "spread out and open up more
+        // when gliding and the player is cresting up and slowing down").
+        float open = Math.max(climb, slow);
+        float flap = 0.75F * Math.max(slow, 0.7F * climb) * state.glide;
         state.flapPhase += (time - state.flapTime) * (0.3F + 0.25F * flap);
         state.flapTime = time;
         float beatGlide = flap * Mth.sin(state.flapPhase);
-        float[] glide = {0.6F - 0.25F * dive + 0.2F * climb, 0.1F + 0.7F * sweep + 0.4F * dive,
-                -0.35F + 0.15F * climb + 0.6F * beatGlide + 0.03F * Mth.sin(time * 0.15F),
-                0.1F - 0.6F * sweep - 0.5F * dive + 0.3F * flap * Mth.sin(state.flapPhase - 0.9F)};
+        float[] glide = {0.6F - 0.25F * dive - 0.25F * open, 0.1F + 0.7F * sweep * (1.0F - open) + 0.4F * dive - 0.4F * open,
+                -0.35F + 0.25F * open + 0.6F * beatGlide + 0.03F * Mth.sin(time * 0.15F),
+                0.1F - 0.6F * sweep * (1.0F - open) - 0.5F * dive + 0.5F * open + 0.3F * flap * Mth.sin(state.flapPhase - 0.9F)};
         float flutter = 0.05F * Math.min(1.0F, state.speed) * Mth.sin(time * 2.3F) * state.glide;
         float phase = time * (Mth.TWO_PI / 22.0F);
         float[] beat = {0.0F, 0.2F, -0.3F + 0.7F * Mth.sin(phase), 0.3F * Mth.sin(phase - 0.8F)};
