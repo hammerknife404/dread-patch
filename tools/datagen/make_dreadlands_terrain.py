@@ -34,14 +34,22 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 DATA = REPO / "src/main/resources/data/dreadpatch"
 
 SURFACE_Y = 80       # the plains' ground (72 before 0.77.0)
-SHELF = -1.5         # the basins' fall: 36 blocks (22 before 0.77.0)
+SHELF = -0.33        # the basins' fall: 8 blocks (0.90.0; 36 from 0.77.0, 22 before)
 # 0.77.0, the owner: "expand the three dreadlands biomes in size and verticality"; asked, "About 2x", "2.3 x+ is ok", and
 # all four kinds of height. The large-scale noises (the biomes', the shores', the dune fields') are sampled this much
 # slower, so each biome is about 2.3 times as wide; the chasma's plates and cracks keep their size.
 SPREAD = 1.0 / 2.3
-HILLS = 2.2          # the plains' hills and ridgelines at their most: about 50 blocks over the plains (to about y 120-130)
-DUNES = 1.3          # the wastes' dune ridges (0.7 before 0.77.0): about ±17 blocks
-CRAG = 1.4           # a crag's spike at its most: about 34 blocks
+# 0.90.0 (the owner's Feature_Dump_11-27: "Flatten biome generation so terrain is nearly flat"; asked, "The dreadwaste
+# biome/plains, to about to the dreadlands default and the glacier tops too"): the plains and the wastes nearly flat,
+# a few blocks of swell, at about the plains' height; the chasma as it was. 0.77.0's numbers in brackets.
+HILLS = 0.15         # the plains' hills at their most: about 3 blocks (2.2: about 50)
+DUNES = 0.12         # the wastes' dune ridges: about a block and a half (1.3: about ±17)
+# The wastes' dips (0.90.0, the owner: "The Sastrugi waste can be up to 3-8 blocks deep but the dips must be more spread
+# out"): hollows WASTE_DIP blocks deep where a slow noise is high, so few and far apart.
+WASTE_DIP = (3.0, 8.0)
+CRAG = 0.0           # no crags (1.4: spikes to about 34 blocks)
+ROLLING = 0.08       # the swell's height: about 2 blocks (0.42: about ±10)
+DRIFTS = 0.08        # the plains' drifts (0.32: about 8 blocks crest to trough)
 FLOOR_Y = 31          # the chasma's floor: its top block at 30 (the owner: "Mostly #1", about y 30)
 ICE_SHEET = 16        # how deep its ice goes
 CELL = 80.0           # a trench cell's size (blocks)
@@ -56,8 +64,14 @@ G_STEP = 0.00087
 G_BIOME = 0.066
 G_APRON = G_BIOME + 3 * G_STEP   # the talus' foot: 3 blocks in from the biome's edge
 G_WALL = G_APRON + 8 * G_STEP    # the cliff: 8 more blocks in
-GLACIER_TOP = 198     # the ice sheet's top, on average
-GLACIER_SWELL = 12    # its long slopes: this many blocks up or down
+GLACIER_TOP = 184     # the ice sheet's top, on average (198 until 0.90.0)
+GLACIER_SWELL = 2     # its top's swell: this many blocks up or down (12 until 0.90.0: "the glacier tops too")
+GLACIER_CAP = 187     # nothing of it above this (0.90.0, the owner: "Cap max height at Y=187")
+# Its edge broken (0.90.0, the owner: "add occasional edge break-off chunks (3-5 blocks thick min to 6-13 max; dropping
+# 3-5 blocks down to 11-23 blocks below surface)"): now and then a slab along the cliff, BREAK_THICK blocks in from the
+# edge, slumped BREAK_DROP below the top, a crack behind it.
+BREAK_THICK = (3.0, 13.0)
+BREAK_DROP = (3.0, 23.0)
 GLACIER_ICE_FROM = 26 # ice from here up (the chasma's floor 30)
 
 
@@ -168,7 +182,7 @@ def main():
     chasma = mul(1.5, wide("dreadpatch:dreadlands_chasma"))  # widened (0.68.0), so a chasma is mostly its floor
     # Ground at SURFACE_Y: vanilla's gradient over the world's height, shifted.
     base = grad(-64, 320, 5.666666666666667 + (SURFACE_Y - 72) / 24.0, -10.333333333333334 + (SURFACE_Y - 72) / 24.0)
-    rolling = mul(0.42, noise("dreadpatch:dreadlands_rolling"))
+    rolling = mul(ROLLING, noise("dreadpatch:dreadlands_rolling"))
     hummocks = mul(0.06, noise("dreadpatch:dreadlands_hummocks"))
     ridge = add(0.55, mul(-1.1, {"type": "minecraft:abs", "argument": noise("dreadpatch:dreadlands_drifts")}))
     fields = clamp(mul(4.0, add(-0.15, wide("dreadpatch:dreadlands_dune_fields"))), 0.0, 1.0)
@@ -195,10 +209,13 @@ def main():
     crag_mask = clamp(mul(5.0, add(-0.3, noise("dreadpatch:dreadlands_crags"))), 0.0, 1.0)
     spikes = clamp(add(0.1, noise("dreadpatch:dreadlands_spikes")), 0.0, 1.0)
     crags = mul(crag_mask, mul(CRAG, spikes))
+    dip_shape = clamp(mul(4.0, add(-0.35, noise("dreadpatch:dreadlands_waste_dips"))), 0.0, 1.0)
+    dip_depth = add(WASTE_DIP[0], mul(WASTE_DIP[1] - WASTE_DIP[0], clamp(add(0.5, noise("dreadpatch:dreadlands_waste_dip_depth")), 0.0, 1.0)))
+    dips = mul(-1.0 / 24.0, mul(dip_shape, dip_depth))
     land = total(
         base, rolling, hummocks, shelf, crags,
-        mul(plains, add(hills, mul(0.32, mul(fields, ridge)))),  # the plains' hills, and their occasional drifts
-        mul(sunk, add(mul(DUNES, ridge), mul(0.35, noise("dreadpatch:dreadlands_rolling")))),  # sastrugi: tall dunes
+        mul(plains, add(hills, mul(DRIFTS, mul(fields, ridge)))),  # the plains' swells, and their occasional drifts
+        mul(sunk, total(mul(DUNES, ridge), mul(ROLLING, noise("dreadpatch:dreadlands_rolling")), dips)),  # sastrugi: low dunes, far-apart dips
     )
     # Eased toward a level floor: on it, exactly FLOOR_Y (a straight gradient interpolates exactly). Twice the land's
     # steepness, so the way down stays gentle but the floor holds its height.
@@ -214,8 +231,18 @@ def main():
     near_top = grad(GLACIER_TOP - 50, GLACIER_TOP - 8, 0.0, 1.0)
     reach = add(inward, mul(flutes, add(6.0, mul(7.0, near_top))))
     top = add(grad(-64, 320, (GLACIER_TOP + 64) / 8.0, (GLACIER_TOP - 320) / 8.0),
-              add(mul(GLACIER_SWELL / 8.0, wide("dreadpatch:dreadlands_glacier_swell")), mul(1.5 / 8.0, noise("dreadpatch:dreadlands_hummocks"))))
-    glacier = minimum(mul(0.25, reach), top)
+              add(mul(GLACIER_SWELL / 8.0, wide("dreadpatch:dreadlands_glacier_swell")), mul(0.5 / 8.0, noise("dreadpatch:dreadlands_hummocks"))))
+    # The broken edge: a slab within `thick` of the cliff line (inward 0 to thick) where the breaks noise is up, its
+    # top lowered by `drop`; and a crack just behind it (thick to thick + 1.5) lowered by more, to part it from the ice.
+    breaks = clamp(mul(5.0, add(-0.45, noise("dreadpatch:dreadlands_glacier_breaks"))), 0.0, 1.0)
+    thick = add(BREAK_THICK[0], mul(BREAK_THICK[1] - BREAK_THICK[0], clamp(add(0.5, noise("dreadpatch:dreadlands_glacier_break_thickness")), 0.0, 1.0)))
+    drop = add(BREAK_DROP[0], mul(BREAK_DROP[1] - BREAK_DROP[0], clamp(add(0.5, noise("dreadpatch:dreadlands_glacier_break_drop")), 0.0, 1.0)))
+    slab = mul(clamp(add(thick, mul(-1.0, inward)), 0.0, 1.0), clamp(add(inward, 1.0), 0.0, 1.0))
+    crack = mul(clamp(add(add(thick, 1.5), mul(-1.0, inward)), 0.0, 1.0), clamp(add(inward, mul(-1.0, thick)), 0.0, 1.0))
+    slump = mul(breaks, add(mul(slab, mul(drop, 1.0 / 8.0)), mul(crack, mul(add(drop, 8.0), 1.0 / 8.0))))
+    top = add(top, mul(-1.0, slump))
+    cap = grad(-64, 320, (GLACIER_CAP + 0.5 + 64) / 8.0, (GLACIER_CAP + 0.5 - 320) / 8.0)
+    glacier = minimum(minimum(mul(0.25, reach), top), cap)
     # The talus: blocks fallen at the cliff's foot, up to about 10 over the ground, stepped.
     talus = noise("dreadpatch:dreadlands_glacier_talus", 0.3, 1.0)
     apron_in = add(add(mul(1.0 / G_STEP, glacier_noise), -G_APRON / G_STEP), mul(3.0, talus))
@@ -315,6 +342,11 @@ def main():
         "dreadlands_glacier_swell": (-8, [1.0]),
         "dreadlands_glacier_talus": (-3, [1.0]),
         "dreadlands_glacier_veins": (-3, [1.0, 0.5]),
+        "dreadlands_glacier_breaks": (-6, [1.0, 0.5]),
+        "dreadlands_waste_dips": (-8, [1.0]),
+        "dreadlands_waste_dip_depth": (-6, [1.0]),
+        "dreadlands_glacier_break_thickness": (-4, [1.0]),
+        "dreadlands_glacier_break_drop": (-4, [1.0]),
     }
     for name, (octave, amplitudes) in noises.items():
         (DATA / f"worldgen/noise/{name}.json").write_text(json.dumps({"firstOctave": octave, "amplitudes": amplitudes}, indent=2) + "\n")
