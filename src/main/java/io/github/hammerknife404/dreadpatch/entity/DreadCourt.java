@@ -26,11 +26,15 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,12 +94,21 @@ final class DreadCourt {
         if (this.lichCooldown > 0) {
             this.lichCooldown--;
         }
-        if (target == null || !(this.queen.level() instanceof ServerLevel level)) {
+        if (!(this.queen.level() instanceof ServerLevel level)) {
+            return;
+        }
+        boolean rally = this.queen.tickCount % 20 == 0;
+        if (target == null) {
+            // Nothing for her to fight: her court still spreads over whatever it found itself, and follows her lazily.
+            if (rally) {
+                List<DreadMobEntity> all = this.members(level);
+                this.spread(level, all.stream().filter(m -> !(m instanceof DreadLichEntity)).toList(), null);
+                this.follow(level, all);
+            }
             return;
         }
         boolean summonReady = this.summonCooldown == 0;
         boolean decreeReady = this.decreeCooldown == 0 && this.queen.tickCount % 10 == 0;
-        boolean rally = this.queen.tickCount % 20 == 0;
         boolean lichReady = this.lichCooldown == 0;
         if (!summonReady && !decreeReady && !rally && !lichReady) {
             return;
@@ -104,11 +117,14 @@ final class DreadCourt {
         // Her lich stands apart: it takes none of her court's places, and isn't burnt for her decree.
         List<DreadMobEntity> court = all.stream().filter(m -> !(m instanceof DreadLichEntity)).toList();
         if (rally) {
+            // Her lich takes her target; her court shares out what's near (0.91.0), her target first.
             for (DreadMobEntity member : all) {
-                if (member.getTarget() != target) {
+                if (member instanceof DreadLichEntity && member.getTarget() != target) {
                     member.setTarget(target);
                 }
             }
+            this.spread(level, court, target);
+            this.follow(level, all);
         }
         if (summonReady) {
             this.raise(level, CourtRules.toRaise(court.size(), CourtRules.courtLimit(level.getDifficulty().getId()), WAVE), target);
@@ -149,6 +165,78 @@ final class DreadCourt {
         this.queen.swing(InteractionHand.OFF_HAND);
         level.playSound(null, this.queen.getX(), this.queen.getY(), this.queen.getZ(), IafSounds.DREAD_LICH_SUMMON.get(), SoundSource.HOSTILE, 2.0F, 0.5F);
         return true;
+    }
+
+    /**
+     * Shares targets out among her court (0.91.0, {@link CourtRules#spread}): no more of them on one mob than
+     * {@link CourtRules#pursuerCap} (any number on a player), her own target first, the rest on whatever else is near.
+     */
+    private void spread(ServerLevel level, List<DreadMobEntity> court, @Nullable LivingEntity preferred) {
+        if (court.isEmpty()) {
+            return;
+        }
+        List<LivingEntity> targets = new ArrayList<>(level.getEntitiesOfClass(LivingEntity.class, this.queen.getBoundingBox().inflate(ROSTER_RANGE),
+                this::prey));
+        for (DreadMobEntity member : court) {
+            LivingEntity own = member.getTarget();
+            if (own != null && !targets.contains(own) && own.isAlive() && member.canAttack(own)) {
+                targets.add(own);
+            }
+        }
+        if (preferred != null && !targets.contains(preferred)) {
+            targets.add(preferred);
+        }
+        if (targets.isEmpty()) {
+            return;
+        }
+        double[][] distance = new double[court.size()][targets.size()];
+        int[] current = new int[court.size()];
+        int[] caps = new int[targets.size()];
+        for (int t = 0; t < targets.size(); t++) {
+            LivingEntity target = targets.get(t);
+            caps[t] = CourtRules.pursuerCap(target.getMaxHealth(), target instanceof Player);
+        }
+        for (int m = 0; m < court.size(); m++) {
+            DreadMobEntity member = court.get(m);
+            current[m] = targets.indexOf(member.getTarget());
+            for (int t = 0; t < targets.size(); t++) {
+                LivingEntity target = targets.get(t);
+                // A fresh target it must see; one it already has, or hers, it may chase out of sight.
+                boolean known = t == current[m] || target == preferred;
+                distance[m][t] = known || member.hasLineOfSight(target) ? member.distanceTo(target) : Double.POSITIVE_INFINITY;
+            }
+        }
+        int[] chosen = CourtRules.spread(distance, current, caps, preferred == null ? -1 : targets.indexOf(preferred));
+        for (int m = 0; m < court.size(); m++) {
+            LivingEntity pick = chosen[m] >= 0 ? targets.get(chosen[m]) : null;
+            if (pick != null && court.get(m).getTarget() != pick) {
+                court.get(m).setTarget(pick);
+            }
+        }
+    }
+
+    /** What her court hunts: the living not of the Dread, nor allied to her, that can be fought. */
+    private boolean prey(LivingEntity entity) {
+        return entity.isAlive() && entity.attackable() && !(entity instanceof ArmorStand) && !RisenDread.dread(entity)
+                && !this.queen.isAlliedTo(entity) && this.queen.canAttack(entity);
+    }
+
+    /**
+     * Her court lazily follows her (0.91.0): one with nothing to fight further than {@link CourtRules#FOLLOW_FROM} walks back
+     * toward her (the ground under her when she rides), unhurried, stopping {@link CourtRules#FOLLOW_TO} off.
+     */
+    private void follow(ServerLevel level, List<DreadMobEntity> all) {
+        Vec3 her = this.queen.isPassenger() ? Utils.moveToRelativeGroundLevel(level, this.queen.position(), 64) : this.queen.position();
+        for (DreadMobEntity member : all) {
+            if (member.getTarget() != null || member.isPassenger() || member.position().distanceTo(her) <= CourtRules.FOLLOW_FROM
+                    || !member.getNavigation().isDone()) {
+                continue;
+            }
+            Path path = member.getNavigation().createPath(BlockPos.containing(her), (int) CourtRules.FOLLOW_TO);
+            if (path != null) {
+                member.getNavigation().moveTo(path, CourtRules.FOLLOW_SPEED);
+            }
+        }
     }
 
     /** Her court: living dread mobs within range that answer to her (her lich among them). */

@@ -41,8 +41,8 @@ public final class DreadFishRules {
     public static final float WITHERING_CHANCE = 0.1F;
     public static final int WITHERING_TICKS = 60;
 
-    /** Its aura (in combat only): this far, every 3-5 s, its effect 4 s; a Frenzy 4 s once it catches anything (ours). */
-    public static final double AURA_RADIUS = 4.0;
+    /** Its aura (in combat only): this far (4, 5 since 0.91.0 at the owner's word), every 3-5 s, its effect 4 s; a Frenzy 4 s once it catches anything (ours). */
+    public static final double AURA_RADIUS = 5.0;
     public static final int AURA_MIN_TICKS = 60;
     public static final int AURA_SPREAD_TICKS = 40;
     public static final int AURA_EFFECT_TICKS = 80;

@@ -75,7 +75,11 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - up to `CourtRules.courtLimit` standing at once: 4 on Easy (and Peaceful), 6 on Normal, 8 on Hard (0.79.0; 6 always before), her storm's risen counted among them;
   - on solid ground 2–5 blocks off.
 - **Spawning:** through `EventHooks.finalizeMobSpawn`, so they get their own rise and gear and other mods see the spawn. She commands them (`CommanderUUID`).
-- **Targets:** Ice and Fire only syncs targets for a lich's minions, so every second she hands hers her target.
+- **Targets:** Ice and Fire only syncs targets for a lich's minions, so every second (`DreadCourt.spread`, 0.91.0) she shares targets out among hers (her lich always takes hers):
+  - candidates: every living thing within 48 of her not of the Dread (`RisenDread.dread`), not allied to her, that she `canAttack`, and not an armour stand; plus members' own targets and hers;
+  - `CourtRules.spread`: at most `pursuerCap` on one (max health / 10, rounded up, at least 1; a player any number). Her target first, nearest members first; then members keep their own uncrowded target, nearest first; the rest take the nearest with room they can see within 16 (`SPREAD_RANGE`), else her target, else what they had. With no target of hers, a member hunting nothing is left be;
+  - until 0.91.0 she handed every member her own target, so the whole court ran down one chicken.
+- **Following** (0.91.0, `DreadCourt.follow`): once a second, a member with no target more than 12 blocks from her (the ground under her when she rides) paths to within 5 of her at 0.8 speed. Ice and Fire gives its dread mobs no follow goal. Before this, her court only strolled.
 - **Ground spot:** Iron's `moveToRelativeGroundLevel` returns a point a hair under the surface (199.996 on a block top at 200). Lift it before checking the block below.
 
 **Beater's Decree** (every 15 s)
