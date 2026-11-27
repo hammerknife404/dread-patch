@@ -18,6 +18,7 @@ What every Rimefrost dragon has:
 
 The unique, named Rimefrost dragon, risen as the queen's mount; still in progress. She has everything above, always in white, and what's hers alone:
 
+- **Her Dread Fish and dread beasts:** a wild Syndrigossa calls 1 or 2 Dread Fish (out of water near her target if there is any) and 1 or 2 dread beasts round her target now and then, each about every 30 seconds, the fish first and spread through the fight, never more than two of a kind at once. Each lasts about 25 seconds.
 - **Sovereign's Eclipse:** every 30 seconds, once she's grown, her own Rimefire Crown round her target, 16 blocks across with dark spires and indigo fire, standing 10 seconds. It doesn't root and doesn't close in, but everyone inside is heavily slowed (Slowness IV) and kept under Withering Rime, and it drinks the fire inside it.
 - **Dread phantoms:** wild, she calls them as the queen does ([Dread phantoms](Dread-Phantoms)).
 - **Her own boss bar,** white beside the queen's blue (none while she's tamed).

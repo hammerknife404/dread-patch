@@ -6,6 +6,8 @@ import com.iafenvoy.iceandfire.registry.IafSounds;
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
 import io.github.hammerknife404.dreadpatch.magic.PhantomRules;
+import io.github.hammerknife404.dreadpatch.magic.SummonRules;
+import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
@@ -14,11 +16,15 @@ import io.redspace.ironsspellbooks.entity.mobs.goals.GenericFollowOwnerGoal;
 import io.redspace.ironsspellbooks.entity.mobs.goals.GenericOwnerHurtByTargetGoal;
 import io.redspace.ironsspellbooks.entity.mobs.goals.GenericOwnerHurtTargetGoal;
 import io.redspace.ironsspellbooks.entity.mobs.goals.GenericProtectOwnerTargetGoal;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -27,6 +33,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -67,6 +74,11 @@ import java.util.UUID;
 public final class SummonedCourt {
     /** Game time when a summoned court member goes. Its presence is what makes a dread mob one. */
     public static final String EXPIRES_KEY = "dreadpatch:court_expires";
+    /**
+     * Set on a mob's summons (0.93.0, Syndrigossa's): bound by no player's terms, they fight all their caster does, players
+     * too, and don't follow it about (she flies).
+     */
+    public static final String UNBOUND_KEY = "dreadpatch:court_unbound";
 
     private static final ParticleOptions CHARCOAL = new DustParticleOptions(new Vector3f(0.078F, 0.086F, 0.114F), 1.6F);
 
@@ -80,18 +92,30 @@ public final class SummonedCourt {
         gameBus.addListener(SummonedCourt::onTick);
     }
 
-    /** Whether {@code entity} is a court member a caster raised: a dread mob of Summon Court's, or a dread phantom of the spell's. */
+    /**
+     * Whether {@code entity} is a court member a caster raised: a dread mob of Summon Court's (or Syndrigossa's), a dread
+     * phantom of the spell's, or a Dread Fish of Summon Dread Fish (or hers; 0.93.0).
+     */
     public static boolean isMember(@Nullable Entity entity) {
-        return (entity instanceof DreadMobEntity || entity instanceof DreadPhantom) && entity.getPersistentData().contains(EXPIRES_KEY);
+        return (entity instanceof DreadMobEntity || entity instanceof DreadPhantom || entity instanceof DreadFish)
+                && entity.getPersistentData().contains(EXPIRES_KEY);
     }
 
-    /** Who a court member answers to: a dread mob's {@code CommanderUUID}, a phantom's {@code Summoner}. */
+    /** Who a court member answers to: a dread mob's {@code CommanderUUID}, a phantom's {@code Summoner}, a fish's raiser. */
     @Nullable
     static UUID commanderId(Entity member) {
         if (member instanceof DreadMobEntity mob) {
             return mob.getCommanderId();
         }
+        if (member instanceof DreadFish fish) {
+            return RisenDread.raiserId(fish);
+        }
         return member instanceof DreadPhantom phantom ? phantom.getSummonerId() : null;
+    }
+
+    /** Whether it's a mob's summons, bound by no player's terms ({@link #UNBOUND_KEY}). */
+    static boolean unbound(Entity member) {
+        return member.getPersistentData().getBoolean(UNBOUND_KEY);
     }
 
     /**
@@ -170,6 +194,80 @@ public final class SummonedCourt {
         return raised;
     }
 
+    /**
+     * Summon Dread Fish (0.93.0): {@link SummonRules#fishCount} fish rise round {@code caster} for
+     * {@link SummonRules#FISH_SPELL_SECONDS}, after dismissing the fish they summoned before. How many rose.
+     */
+    public static int raiseFishSpell(ServerLevel level, LivingEntity caster, int spellLevel) {
+        dismiss(level, caster, DreadFish.class);
+        long expires = level.getGameTime() + SummonRules.FISH_SPELL_SECONDS * 20L;
+        int raised = raiseFish(level, caster, caster.position(), SummonRules.fishCount(spellLevel), expires, false, null);
+        if (raised > 0) {
+            caster.swing(InteractionHand.MAIN_HAND);
+        }
+        return raised;
+    }
+
+    /**
+     * {@code count} Dread Fish rise round {@code center}, {@code caster}'s court until {@code expires}: in water near it if
+     * there's any ({@link #findWater}), else on the ground. Each is sized and given its lantern as a wild one spawning is
+     * (the owner: "Lantern variants and spawn rate are kept the same"). {@code unbound} for a mob's ({@link #UNBOUND_KEY});
+     * set on {@code target} if given. How many rose.
+     */
+    public static int raiseFish(ServerLevel level, LivingEntity caster, Vec3 center, int count, long expires, boolean unbound, @Nullable LivingEntity target) {
+        int raised = 0;
+        for (int i = 0; i < count; i++) {
+            DreadFish fish = ModRegistries.DREAD_FISH.get().create(level);
+            if (fish == null) {
+                continue;
+            }
+            Vec3 spot = findWater(level, center, caster.getRandom(), fish);
+            if (spot == null) {
+                spot = DreadCourt.findSpot(level, center, caster.getRandom(), fish);
+            }
+            if (spot == null) {
+                continue;
+            }
+            fish.moveTo(spot.x, spot.y, spot.z, caster.getRandom().nextFloat() * 360.0F, 0.0F);
+            EventHooks.finalizeMobSpawn(fish, level, level.getCurrentDifficultyAt(fish.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+            fish.getPersistentData().putUUID(RisenDread.RAISED_BY, caster.getUUID());
+            fish.getPersistentData().putLong(EXPIRES_KEY, expires);
+            if (unbound) {
+                fish.getPersistentData().putBoolean(UNBOUND_KEY, true);
+            }
+            fish.setPersistenceRequired();
+            if (target != null) {
+                fish.setTarget(target);
+            }
+            if (level.addFreshEntity(fish)) {
+                MagicManager.spawnParticles(level, ParticleTypes.BUBBLE_COLUMN_UP, spot.x, spot.y + 0.3, spot.z, 20, 0.4, 0.3, 0.4, 0.05, false);
+                MagicManager.spawnParticles(level, ParticleTypes.SOUL, spot.x, spot.y + 0.3, spot.z, 6, 0.3, 0.3, 0.3, 0.02, false);
+                MagicManager.spawnParticles(level, ParticleTypes.SNOWFLAKE, spot.x, spot.y + 0.3, spot.z, 10, 0.5, 0.3, 0.5, 0.02, false);
+                level.playSound(null, spot.x, spot.y, spot.z, SoundEvents.ELDER_GUARDIAN_FLOP, SoundSource.HOSTILE, 1.0F, 0.6F);
+                raised++;
+            }
+        }
+        return raised;
+    }
+
+    /** Water within {@link SummonRules#WATER_REACH} across and {@link SummonRules#WATER_DEPTH} up or down of {@code center} that {@code fish} fits in, or null. */
+    @Nullable
+    static Vec3 findWater(ServerLevel level, Vec3 center, RandomSource random, Mob fish) {
+        for (int attempt = 0; attempt < 24; attempt++) {
+            BlockPos at = BlockPos.containing(center.x + random.nextInt(2 * SummonRules.WATER_REACH + 1) - SummonRules.WATER_REACH,
+                    center.y + random.nextInt(2 * SummonRules.WATER_DEPTH + 1) - SummonRules.WATER_DEPTH,
+                    center.z + random.nextInt(2 * SummonRules.WATER_REACH + 1) - SummonRules.WATER_REACH);
+            if (!level.getFluidState(at).is(FluidTags.WATER)) {
+                continue;
+            }
+            Vec3 spot = Vec3.atBottomCenterOf(at);
+            if (level.noCollision(fish, fish.getType().getSpawnAABB(spot.x, spot.y, spot.z))) {
+                return spot;
+            }
+        }
+        return null;
+    }
+
     /** Sends back every court member of {@code kind} {@code caster} raised in this level. */
     static void dismiss(ServerLevel level, Entity caster, Class<? extends Mob> kind) {
         List<Mob> court = new ArrayList<>();
@@ -207,15 +305,22 @@ public final class SummonedCourt {
             phantom.targetSelector.addGoal(5, new GenericProtectOwnerTargetGoal(phantom, () -> commander(phantom)));
             return;
         }
-        DreadMobEntity member = (DreadMobEntity) event.getEntity();
+        // A dread mob of a court, or a Dread Fish (0.93.0): both pathfinders.
+        PathfinderMob member = (PathfinderMob) event.getEntity();
         member.targetSelector.removeAllGoals(goal -> true);
         member.targetSelector.addGoal(1, new GenericOwnerHurtByTargetGoal(member, () -> commander(member)));
         member.targetSelector.addGoal(2, new GenericOwnerHurtTargetGoal(member, () -> commander(member)));
         member.targetSelector.addGoal(3, new GenericCopyOwnerTargetGoal(member, () -> commander(member)));
         member.targetSelector.addGoal(4, new HurtByTargetGoal(member));
         member.targetSelector.addGoal(5, new GenericProtectOwnerTargetGoal(member, () -> commander(member)));
+        if (unbound(member)) {
+            // A mob's summons stay at the fight they rose to (Syndrigossa flies).
+            return;
+        }
         // Between Ice and Fire's melee (2) and its stroll (5), as Iron's summons follow (15 out, to 5; past 25, a teleport).
-        member.goalSelector.addGoal(4, new GenericFollowOwnerGoal(member, () -> commander(member), 1.0, 15.0F, 5.0F, false, 25.0F));
+        // A fish too (0.93.0), after its leap and bite (1-2), before its breaching (4); never teleported, so it keeps to what it can reach.
+        boolean fish = member instanceof DreadFish;
+        member.goalSelector.addGoal(fish ? 3 : 4, new GenericFollowOwnerGoal(member, () -> commander(member), 1.0, 15.0F, 5.0F, false, fish ? Float.MAX_VALUE : 25.0F));
     }
 
     /**
@@ -265,7 +370,11 @@ public final class SummonedCourt {
     /** Whether court member {@code member} may fight {@code target}, by the server config's terms. */
     public static boolean mayFight(Mob member, Entity target) {
         boolean retaliating = target == member.getLastHurtByMob();
-        return CourtRules.mayFight(stance(commander(member), target), retaliating, DreadPatchConfig.courtTerms());
+        CourtRules.Stance stance = stance(commander(member), target);
+        if (unbound(member)) {
+            return stance != CourtRules.Stance.CASTERS_SIDE && stance != CourtRules.Stance.DREAD;
+        }
+        return CourtRules.mayFight(stance, retaliating, DreadPatchConfig.courtTerms());
     }
 
     private static CourtRules.Stance stance(@Nullable Entity caster, Entity target) {

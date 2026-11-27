@@ -107,6 +107,8 @@ public class DreadFish extends Monster implements IDreadMob {
     /** How far its lure reaches out (0 drawn in, 1 out), this tick and last; on both sides, for {@link #lantern}. */
     private float reach;
     private float reachO;
+    /** Whether its bite goal is running (0.93.0): only then does it lunge on land. */
+    boolean hunting;
     /** How straight its body is (0 curled, 1 straight; {@link DreadFishRules#straightToward}), this tick and last; for drawing. */
     private float straight;
     private float straightO;
@@ -337,7 +339,9 @@ public class DreadFish extends Monster implements IDreadMob {
             this.auraCooldown = DreadFishRules.auraTicks(this.random.nextDouble());
             this.pulse();
         }
-        if (DreadFishRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
+        // Only while it's hunting (0.93.0): heading for water instead, its lunges dragged it back each time, so on land near
+        // water it shuttled to and fro by its prey without biting (the owner: "they curl up or spazz out still").
+        if (this.hunting && DreadFishRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
             this.lungeCooldown = this.isAlpha() ? DreadFishRules.ALPHA_LUNGE_TICKS : DreadFishRules.LUNGE_TICKS;
             // On land too, it leaps as from the water (0.90.1, the owner: "leap like dolphins can at prey ... while on
             // land too"): the same arc, a block over its prey, at most 4.
@@ -737,8 +741,15 @@ public class DreadFish extends Monster implements IDreadMob {
         }
 
         @Override
+        public void start() {
+            super.start();
+            this.fish.hunting = true;
+        }
+
+        @Override
         public void stop() {
             super.stop();
+            this.fish.hunting = false;
             this.fish.windup = 0;
             this.fish.setWinding(false);
         }
@@ -765,7 +776,7 @@ public class DreadFish extends Monster implements IDreadMob {
         @Override
         public boolean canUse() {
             // Now and then, not every check (vanilla checks a goal every other tick, so a tick count's step could miss them all).
-            if (this.fish.isInWater() || this.fish.getRandom().nextInt(5) != 0) {
+            if (this.fish.isInWater() || this.fish.getRandom().nextInt(5) != 0 || this.preyAtHand()) {
                 return false;
             }
             Level level = this.fish.level();
@@ -780,7 +791,16 @@ public class DreadFish extends Monster implements IDreadMob {
 
         @Override
         public boolean canContinueToUse() {
-            return this.water != null && !this.fish.isInWater() && this.timer < 200;
+            return this.water != null && !this.fish.isInWater() && this.timer < 200 && !this.preyAtHand();
+        }
+
+        /**
+         * Its prey within a lunge of it (0.93.0): it turns to fight rather than keep slithering off to water with its back
+         * to it. Water and prey keep their one priority (0.71.0) past that.
+         */
+        private boolean preyAtHand() {
+            LivingEntity target = this.fish.getTarget();
+            return target != null && target.isAlive() && prey(target) && this.fish.distanceTo(target) <= DreadFishRules.LUNGE_MAX;
         }
 
         @Override

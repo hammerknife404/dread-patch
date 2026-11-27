@@ -182,6 +182,13 @@ public final class RisenDread {
         }
     }
 
+    /** Who raised (or summoned) it, if anyone. */
+    @Nullable
+    public static UUID raiserId(Mob mob) {
+        CompoundTag data = mob.getPersistentData();
+        return data.hasUUID(RAISED_BY) ? data.getUUID(RAISED_BY) : null;
+    }
+
     /** Its raiser, if they're alive in this level. */
     @Nullable
     static LivingEntity raiser(Mob mob) {
