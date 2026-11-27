@@ -290,6 +290,9 @@
   "dreadpatch.configuration.dread_weather_cold": "Dread storms over cold biomes",
   "dreadpatch.configuration.dread_weather_anywhere": "Dread storms over any biome",
   "dreadpatch.configuration.dread_weather_one_in": "Rains that are dread storms (one in)",
+  "dreadpatch.configuration.doors": "Doors",
+  "dreadpatch.configuration.dread_break_doors": "The Dread break wooden doors",
+  "dreadpatch.configuration.dread_break_doors_from": "From difficulty",
   "commands.dreadpatch.dreadweather.started": "A dread storm over the overworld (it rains); it reaches only where the dread_weather switches let it",
   "commands.dreadpatch.dreadweather.stopped": "The dread storm is over; its snow melts"
 }

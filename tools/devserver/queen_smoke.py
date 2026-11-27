@@ -817,6 +817,40 @@ def main():
     rcon.run("kill @e[tag=smoke_swarm]")
     rcon.run("kill @e[tag=smoke_prey]")
 
+    # The Dread break wooden doors on Hard (0.96.0): a thrall hit by a villager behind an oak door at the end of a stone
+    # corridor breaks it within 25 s (16 s by hand: vanilla's 12 to break, and the walk); with dread_break_doors off, not.
+    # Built off the pad (x 16-28) and taken down after.
+    difficulty_was = re.search(r"difficulty is (\w+)", rcon.run("difficulty"))
+    for on in (True, False):
+        set_config("dread_break_doors", "true" if on else "false")
+        rcon.run("difficulty hard")
+        rcon.run("fill 16 199 0 28 203 6 minecraft:stone")
+        rcon.run("fill 17 200 3 27 201 3 minecraft:air")
+        rcon.run("setblock 22 200 3 minecraft:oak_door[half=lower,facing=east]")
+        rcon.run("setblock 22 201 3 minecraft:oak_door[half=upper,facing=east]")
+        rcon.run('summon minecraft:villager 26.5 200 3.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_door_v"],'
+                 'active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+        rcon.run('summon iceandfire:dread_thrall 18.5 200 3.5 {PersistenceRequired:1b,Tags:["smoke_door_t"],HandItems:[{id:"iceandfire:dread_sword",count:1},{}]}')
+        time.sleep(1.0)
+        rcon.run("damage @e[tag=smoke_door_t,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_door_v,limit=1]")
+        broke = False
+        for _ in range(50):
+            time.sleep(0.5)
+            if "Test failed" in rcon.run("execute if block 22 200 3 minecraft:oak_door"):
+                broke = True
+                break
+        if on:
+            record("on Hard a dread thrall breaks a wooden door in its way (0.96.0)", broke, "the door stood 25 s")
+        else:
+            record("with dread_break_doors off, it doesn't", not broke, "the door was broken")
+        rcon.run("kill @e[tag=smoke_door_t]")
+        rcon.run("kill @e[tag=smoke_door_v]")
+        rcon.run("fill 16 199 0 28 203 6 minecraft:air")
+        rcon.run("kill @e[type=item]")
+    set_config("dread_break_doors", "true")
+    if difficulty_was:
+        rcon.run("difficulty " + difficulty_was.group(1).lower())
+
     # Potions of Rimefrost and Withering Rime (0.95.0): each splash, its own zombie 10 apart (a splash reaches 4), the
     # strong Rimefrost at II, the long Withering Rime longer than 45 s left; a thrall splashed takes neither.
     for i, (potion, tag) in enumerate((("strong_rimefrost", "smoke_pot_r"), ("long_withering_rime", "smoke_pot_w"))):
