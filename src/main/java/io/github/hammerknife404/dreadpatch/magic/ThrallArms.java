@@ -30,6 +30,12 @@ public final class ThrallArms {
     public static final int CHARGE_TICKS = 25;
     /** Ticks from a shot to the next draw. */
     public static final int BOW_COOLDOWN = 20;
+    /**
+     * One shot in five a tipped arrow (0.95.0, the owner: "arrow variants, and the thralls with bows or crossbows have a
+     * chance of firing either type"): Rimefrost or Withering Rime, even odds, of the plain potions (an eighth of their time
+     * on a hit, as any tipped arrow: 11 s and 3.75 s).
+     */
+    public static final float TIPPED_CHANCE = 0.2F;
     public static final int CROSSBOW_COOLDOWN = 30;
     /** An arrow's speed: a skeleton's from a bow; a crossbow's harder (more damage, as a crossbow bolt is). */
     public static final float BOW_VELOCITY = 1.6F;

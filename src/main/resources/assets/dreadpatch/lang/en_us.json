@@ -1,4 +1,12 @@
 {
+  "item.minecraft.potion.effect.rimefrost": "Potion of Rimefrost",
+  "item.minecraft.splash_potion.effect.rimefrost": "Splash Potion of Rimefrost",
+  "item.minecraft.lingering_potion.effect.rimefrost": "Lingering Potion of Rimefrost",
+  "item.minecraft.tipped_arrow.effect.rimefrost": "Arrow of Rimefrost",
+  "item.minecraft.potion.effect.withering_rime": "Potion of Withering Rime",
+  "item.minecraft.splash_potion.effect.withering_rime": "Splash Potion of Withering Rime",
+  "item.minecraft.lingering_potion.effect.withering_rime": "Lingering Potion of Withering Rime",
+  "item.minecraft.tipped_arrow.effect.withering_rime": "Arrow of Withering Rime",
   "entity.dreadpatch.dread_queen": "Dread Queen",
   "item.dreadpatch.dread_queen_spawn_egg": "Dread Queen Spawn Egg",
   "entity.dreadpatch.withering_rime_bolt": "Withering Rime-Bolt",

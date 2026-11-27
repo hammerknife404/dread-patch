@@ -817,6 +817,23 @@ def main():
     rcon.run("kill @e[tag=smoke_swarm]")
     rcon.run("kill @e[tag=smoke_prey]")
 
+    # Potions of Rimefrost and Withering Rime (0.95.0): each splash, its own zombie 10 apart (a splash reaches 4), the
+    # strong Rimefrost at II, the long Withering Rime longer than 45 s left; a thrall splashed takes neither.
+    for i, (potion, tag) in enumerate((("strong_rimefrost", "smoke_pot_r"), ("long_withering_rime", "smoke_pot_w"))):
+        rcon.run(f'summon minecraft:zombie {2.5 + 10 * i} 200 12.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["{tag}","smoke_pot"]}}')
+        rcon.run(f'summon minecraft:potion {2.5 + 10 * i} 202 12.5 {{Item:{{id:"minecraft:splash_potion",count:1,components:'
+                 f'{{"minecraft:potion_contents":{{potion:"dreadpatch:{potion}"}}}}}},Motion:[0.0,-0.5,0.0]}}')
+    rcon.run('summon iceandfire:dread_thrall 7.5 200 6.5 {NoAI:1b,Tags:["smoke_pot_t","smoke_pot"]}')
+    rcon.run('summon minecraft:potion 7.5 202 6.5 {Item:{id:"minecraft:splash_potion",count:1,components:{"minecraft:potion_contents":{potion:"dreadpatch:withering_rime"}}},Motion:[0.0,-0.5,0.0]}')
+    time.sleep(1.5)
+    rime = rcon.run('execute if entity @e[tag=smoke_pot_r,nbt={active_effects:[{id:"dreadpatch:rimefrost",amplifier:1b}]}]')
+    record("a strong splash potion of Rimefrost lays Rimefrost II", "Test passed" in rime, rime.strip())
+    left = re.search(r"duration: (\d+)", rcon.run("data get entity @e[tag=smoke_pot_w,limit=1] active_effects[0]"))
+    record("a long splash potion of Withering Rime lays it for longer than 45 s", left is not None and int(left.group(1)) > 900,
+           f"{left and left.group(1)} ticks")
+    record("the Dread refuse a potion of it", not has_effect("@e[tag=smoke_pot_t,limit=1]", "dreadpatch:withering_rime"), "the thrall took it")
+    rcon.run("kill @e[tag=smoke_pot]")
+
     # Sovereign's Eclipse, Syndrigossa's 16-block crown (summoned as hers, 3 s long): it slows heavily
     # rather than roots and keeps Withering Rime on a golem inside it, spares a dread thrall inside it,
     # isn't shattered by a Withering Rime-Bolt, and is gone when its time is up.
@@ -997,6 +1014,27 @@ def main():
     rcon.run("fill 40 196 40 48 199 48 minecraft:stone")
     rcon.run("fill 40 200 40 48 204 48 minecraft:air")
     rcon.run("fill 42 197 42 45 199 45 minecraft:water")
+    # Summon Court beside the pool (0.95.0): over five casts at 5, a Dread Fish among the court now and then, marked
+    # court_fish, in the water; a Summon Dread Fish cast's fish outlast a court recast. (Probed by hand first: 0-2 a cast.)
+    rcon.run('summon minecraft:villager 46.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,UUID:[I;61,61,61,61],Tags:["smoke_caster"]}')
+    court_fish = 0
+    for _ in range(5):
+        rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_court 5")
+        time.sleep(0.5)
+        m = re.search(r"count: (\d+)", rcon.run('execute if entity @e[type=dreadpatch:dread_fish,x=41,y=196,z=41,dx=5,dy=4,dz=5,'
+                                                 'nbt={NeoForgeData:{"dreadpatch:court_fish":1b}}]'))
+        court_fish = max(court_fish, int(m.group(1)) if m else 0)
+    record("Summon Court by water raises a Dread Fish in it now and then (0.95.0)", court_fish > 0, "no court fish in the pool over 5 casts")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_dread_fish 2")
+    time.sleep(0.5)
+    all_fish = lambda: int((re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_fish]")) or [0, "0"])[1])
+    court_now = lambda: int((re.search(r"count: (\d+)", rcon.run('execute if entity @e[type=dreadpatch:dread_fish,nbt={NeoForgeData:{"dreadpatch:court_fish":1b}}]')) or [0, "0"])[1])
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_court 5")
+    time.sleep(0.5)
+    record("a court recast leaves the fish spell's fish", all_fish() - court_now() == 2, f"{all_fish()} fish, {court_now()} of the court's")
+    rcon.run("kill @e[tag=smoke_caster]")
+    clear_court()
+    rcon.run("kill @e[type=dreadpatch:dread_fish]")
     rcon.run("summon dreadpatch:dread_fish 43.5 197.5 43.5")
     rcon.run("tag @e[type=dreadpatch:dread_fish,x=43.5,y=198,z=43.5,distance=..3] add smoke_eel")
     fish = "@e[tag=smoke_eel,limit=1]"
@@ -1113,6 +1151,9 @@ def main():
                 shot = True
                 break
         record(f"a dread thrall with a {weapon} shoots at its prey", shot, "no arrow and no hurt cow within 10 s")
+        # 0.95.0: a punched cow passed the check above while Ice and Fire swapped every thrall's bow for a bone.
+        hand = rcon.run("data get entity @e[tag=smoke_thrall,limit=1] HandItems[0].id")
+        record(f"and it still holds its {weapon} (0.95.0)", f"minecraft:{weapon}" in hand, hand.strip())
         rcon.run("kill @e[tag=smoke_thrall]")
         rcon.run("kill @e[tag=smoke_thrall_prey]")
         rcon.run("kill @e[type=arrow]")

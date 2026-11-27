@@ -19,6 +19,8 @@ public final class SummonRules {
     /** Where a summoned fish rises: water this far round (across, and up or down) first, else the ground. */
     public static final int WATER_REACH = 6;
     public static final int WATER_DEPTH = 3;
+    /** Summon Court's Dread Fish (0.95.0): with water in range, each place is one by this weight against the court's kinds' 7 (2 in 9). */
+    public static final int COURT_FISH_WEIGHT = 2;
 
     /** Syndrigossa's summons last 25 s, ... */
     public static final int LIFETIME = 500;

@@ -61,6 +61,7 @@ public final class DreadPatch {
         ModRegistries.register(modBus);
         DreadGear.register(modBus);
         DreadForge.register(modBus);
+        io.github.hammerknife404.dreadpatch.registry.DreadPotions.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Hoard.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
