@@ -25,23 +25,27 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  * <li>its loop, the soul sand valley's (vanilla plays it at 0.85), drifting slowly between 0.80 and 0.92
  * like the wind rising and falling, fading in and out as you come and go;</li>
- * <li>its whispers and shifting sand, vanilla's, at 0.8 of their volume and half as often (0.0055 a tick);</li>
- * <li>ice cracking on the surface round you, 6-20 blocks off, every 30-120 s while you're near the top, half
+ * <li>its whispers and shifting sand, vanilla's, at 0.8 of their volume and a quarter as often (0.00275 a tick);</li>
+ * <li>ice cracking on the surface round you, 6-20 blocks off, every 60-240 s while you're near the top, half
  * the time a burst of two or three back to back ({@link AmbienceRules}; 0.54.1);</li>
- * <li>a deep rumble from below about every 30 s, louder when you're underground.</li>
+ * <li>a deep rumble from below about every minute, louder when you're underground.</li>
  * </ul>
  * Every one plays at its own volume, ±15%. Out in the defeat storm (0.62.0, {@link DefeatStormClient}), its loop
  * and its ice cracking play too, and nothing else of it.
  */
 public final class DreadlandsAmbience {
-    /** Half vanilla's (0.58.0, the owner: "Reduce the ambient soul sounds some and their frequency"). */
-    private static final float ADDITIONS_CHANCE = 0.0055F;
-    /** Syndrigossa, far off (0.58.0): every 3-8 minutes, from somewhere new each time. */
-    private static final int ROAR_MIN = 3600;
-    private static final int ROAR_MAX = 9600;
+    /**
+     * Each of these spaced out twice as far since 0.97.1 (the owner: "further space out ambient sounds in the dreadlands
+     * too"). A quarter of vanilla's (0.58.0, the owner: "Reduce the ambient soul sounds some and their frequency": half).
+     */
+    private static final float ADDITIONS_CHANCE = 0.00275F;
+    /** Syndrigossa, far off (0.58.0): every 6-16 minutes (3-8 before 0.97.1), from somewhere new each time. */
+    private static final int ROAR_MIN = 7200;
+    private static final int ROAR_MAX = 19200;
     private static final double ROAR_DISTANCE = 64.0;
     private static int roarIn = -1;
-    private static final int RUMBLE_ONE_IN = 600;
+    /** A rumble about once a minute (30 s before 0.97.1). */
+    private static final int RUMBLE_ONE_IN = 1200;
     /** Within this far under the ground's top over you, you hear the ice. */
     private static final int NEAR_SURFACE = 6;
     /** Further than this under it, the rumbles are louder. */

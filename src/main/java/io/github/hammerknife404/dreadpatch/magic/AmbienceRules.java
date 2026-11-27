@@ -5,13 +5,16 @@ import java.util.function.IntUnaryOperator;
 /**
  * The Dreadlands' ice cracking, paced (0.54.1, the owner, after 0.54.0's one in 240 a tick: "The cracking
  * loop is too quick. Every 30ish to 120ish, can go in several bursts of two or three back to back"): a crack
- * every 30-120 s, half the time on its own and half the time a burst of two or three, close together.
+ * every 30-120 s (60-240 s since 0.97.1), half the time on its own and half the time a burst of two or three, close together.
  * {@code roll} gives 0 to n − 1 for an n.
  */
 public final class AmbienceRules {
-    /** Ticks from one crack (or burst) to the next: 30 to 120 s. */
-    public static final int CRACK_MIN = 600;
-    public static final int CRACK_MAX = 2400;
+    /**
+     * Ticks from one crack (or burst) to the next: 60 to 240 s since 0.97.1 (the owner: "further space out ambient sounds
+     * in the dreadlands too"; 30 to 120 s before).
+     */
+    public static final int CRACK_MIN = 1200;
+    public static final int CRACK_MAX = 4800;
     /** Ticks between the cracks of a burst. */
     public static final int GAP_MIN = 3;
     public static final int GAP_MAX = 10;
