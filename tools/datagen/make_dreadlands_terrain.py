@@ -358,10 +358,10 @@ def main():
             {"type": "minecraft:height_range", "height": {"type": "minecraft:uniform", "min_inclusive": {"absolute": GLACIER_ICE_FROM},
                                                           "max_inclusive": {"absolute": GLACIER_TOP + GLACIER_SWELL}}},
             {"type": "minecraft:biome"}]}, indent=2) + "\n")
-    # The wild Rimefrost dragons' nests (0.84.0): NestRules.ONE_IN.
+    # The wild Rimefrost dragons' nests (0.84.0): NestRules.ONE_IN (160 until 0.84.2).
     (DATA / "worldgen/configured_feature/rimefrost_nest.json").write_text(json.dumps({"type": "dreadpatch:rimefrost_nest", "config": {}}, indent=2) + "\n")
     (DATA / "worldgen/placed_feature/rimefrost_nest.json").write_text(json.dumps({"feature": "dreadpatch:rimefrost_nest", "placement": [
-        {"type": "minecraft:rarity_filter", "chance": 160}, {"type": "minecraft:in_square"},
+        {"type": "minecraft:rarity_filter", "chance": 400}, {"type": "minecraft:in_square"},
         {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
 
     # The chasma's water pockets and heaved slabs (0.68.0).

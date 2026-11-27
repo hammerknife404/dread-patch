@@ -1,7 +1,0 @@
-{
-  "parent": "iceandfire:block/goldpile_height4",
-  "textures": {
-    "particle": "dreadpatch:block/blacksteel_pile",
-    "texture": "dreadpatch:block/blacksteel_pile"
-  }
-}
