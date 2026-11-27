@@ -263,5 +263,21 @@
   "item.dreadpatch.dragonarmor_dread_dragonsteel_body": "Dread Dragonsteel Dragon Armor",
   "item.dreadpatch.dragonarmor_dread_dragonsteel_tail": "Dread Dragonsteel Dragon Armor",
   "dreadpatch.configuration.compat": "Other mods",
-  "dreadpatch.configuration.infection_mods": "Infection mods the Dread are immune to"
+  "dreadpatch.configuration.infection_mods": "Infection mods the Dread are immune to",
+  "message.dreadpatch.dread_weather.0": "The Dread Queen's shadow falls as the heat fades...",
+  "message.dreadpatch.dread_weather.1": "Syndrigossa's frost approaches; all warmth fades away...",
+  "message.dreadpatch.dread_weather.2": "The Rime Dominion approaches as the desert heat fades...",
+  "message.dreadpatch.dread_weather.3": "A hollow chill descends—the Dread Queen claims the sky...",
+  "message.dreadpatch.dread_weather.4": "Syndrigossa's breath steals the warmth from the air...",
+  "message.dreadpatch.dread_weather.5": "The Pale Scourge approaches; the sun loses its heat...",
+  "message.dreadpatch.dread_weather.6": "The Eternal Frost awakens—all warmth begins to die...",
+  "message.dreadpatch.dread_weather.7": "Rime lightning gathers as the Dread Queen's storm draws near...",
+  "message.dreadpatch.dread_weather.8": "The Whiteout Dominion descends; the heat of the world fades...",
+  "message.dreadpatch.dread_weather.9": "A dead winter approaches on Syndrigossa's wings...",
+  "dreadpatch.configuration.dread_weather": "Dread weather in the overworld",
+  "dreadpatch.configuration.dread_weather_cold": "Dread storms over cold biomes",
+  "dreadpatch.configuration.dread_weather_anywhere": "Dread storms over any biome",
+  "dreadpatch.configuration.dread_weather_one_in": "Rains that are dread storms (one in)",
+  "commands.dreadpatch.dreadweather.started": "A dread storm over the overworld (it rains); it reaches only where the dread_weather switches let it",
+  "commands.dreadpatch.dreadweather.stopped": "The dread storm is over; its snow melts"
 }

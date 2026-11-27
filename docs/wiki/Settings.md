@@ -78,6 +78,16 @@ Any of these can also be read or set with `/dreadpatch config`.
 ---
 *Kept in step with the mod's [README](https://github.com/hammerknife404/dread-patch#readme); edits go in `docs/wiki/` in the repository.*
 
+## `[dread_weather]`
+
+The Dread's weather in the overworld: some of its rains turned dread storms. Both switches are off by default. Never in the Nether or the End.
+
+| Option | Default | What it does |
+|---|---|---|
+| `dread_weather_cold` | `false` | Dread storms over the overworld's cold and snowy biomes. |
+| `dread_weather_anywhere` | `false` | Dread storms over any overworld biome, the hot lands only one storm in three: the cold get the Dread as the Dreadlands do, the rest one or two of the lesser Dread now and then. |
+| `dread_weather_one_in` | `3` | With either on, one overworld rain in this many is a dread storm, for as long as it rains. |
+
 ## `[compat]`
 
 Other mods.

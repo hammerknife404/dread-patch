@@ -40,6 +40,11 @@ public class DreadlandsData extends SavedData {
     private boolean queenFallen;
     private long defeatStormUntil;
     private long lastDefeatStorm;
+    /** The overworld's dread weather (0.89.0): whether this rain is a dread storm, whether it reaches the hot lands. */
+    private boolean dreadWeather;
+    private boolean dreadWeatherHot;
+    /** Snow layers it laid, to melt once it's over. */
+    private final it.unimi.dsi.fastutil.longs.LongArrayList dreadSnow = new it.unimi.dsi.fastutil.longs.LongArrayList();
 
     public static DreadlandsData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(new SavedData.Factory<>(DreadlandsData::new, DreadlandsData::load, null), NAME);
@@ -96,6 +101,25 @@ public class DreadlandsData extends SavedData {
         this.setDirty();
     }
 
+    public boolean dreadWeather() {
+        return this.dreadWeather;
+    }
+
+    public boolean dreadWeatherHot() {
+        return this.dreadWeatherHot;
+    }
+
+    public void setDreadWeather(boolean on, boolean hot) {
+        this.dreadWeather = on;
+        this.dreadWeatherHot = hot;
+        this.setDirty();
+    }
+
+    /** The snow layers the dread weather laid (block positions), still to melt. */
+    public it.unimi.dsi.fastutil.longs.LongArrayList dreadSnow() {
+        return this.dreadSnow;
+    }
+
     public WeatherRules.Storms storms() {
         return this.storms;
     }
@@ -127,6 +151,11 @@ public class DreadlandsData extends SavedData {
         data.queenFallen = escalation.getBoolean("QueenFallen");
         data.defeatStormUntil = escalation.getLong("StormUntil");
         data.lastDefeatStorm = escalation.getLong("LastStorm");
+        data.dreadWeather = escalation.getBoolean("DreadWeather");
+        data.dreadWeatherHot = escalation.getBoolean("DreadWeatherHot");
+        for (long pos : escalation.getLongArray("DreadSnow")) {
+            data.dreadSnow.add(pos);
+        }
         CompoundTag fading = tag.getCompound("Fading");
         for (String pos : fading.getAllKeys()) {
             try {
@@ -198,6 +227,9 @@ public class DreadlandsData extends SavedData {
         escalation.putBoolean("QueenFallen", this.queenFallen);
         escalation.putLong("StormUntil", this.defeatStormUntil);
         escalation.putLong("LastStorm", this.lastDefeatStorm);
+        escalation.putBoolean("DreadWeather", this.dreadWeather);
+        escalation.putBoolean("DreadWeatherHot", this.dreadWeatherHot);
+        escalation.putLongArray("DreadSnow", this.dreadSnow.toLongArray());
         tag.put("Escalation", escalation);
         return tag;
     }
