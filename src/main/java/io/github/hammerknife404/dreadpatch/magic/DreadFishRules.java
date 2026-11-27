@@ -236,6 +236,25 @@ public final class DreadFishRules {
         return roll == 0;
     }
 
+    /**
+     * How straight its body is drawn (0.92.1, the owner: "they curl up or spazz out still"): 0 curled at rest, 1 straight
+     * out behind. Until then the curl followed vanilla's limb swing, which counts only movement across the ground and
+     * jumps from tick to tick, so a fish swimming up or down, breaching or leaping curled up mid-move, and one swimming
+     * unevenly flicked between curled and straight. Now it's its whole speed (blocks a tick, up and down too): straight
+     * from {@link #STRAIGHT_AT}, curled under {@link #CURL_UNDER}, always straight off the ground and out of water (a
+     * leap, a breach, a fall); quick to straighten, slow to curl back.
+     */
+    public static final double CURL_UNDER = 0.01;
+    public static final double STRAIGHT_AT = 0.05;
+    public static final float STRAIGHTEN_STEP = 0.2F;
+    public static final float CURL_STEP = 0.04F;
+
+    /** Its straightness next tick, from this tick's and how fast it moved ({@link #CURL_UNDER}). */
+    public static float straightToward(float straight, double speed, boolean airborne) {
+        float target = airborne ? 1.0F : (float) Math.max(0.0, Math.min(1.0, (speed - CURL_UNDER) / (STRAIGHT_AT - CURL_UNDER)));
+        return straight + Math.max(-CURL_STEP, Math.min(STRAIGHTEN_STEP, target - straight));
+    }
+
     /** Its lure's reach next tick: a step toward out (searching) or in. */
     public static float reachToward(float reach, boolean searching) {
         return searching ? Math.min(1.0F, reach + REACH_STEP) : Math.max(0.0F, reach - REACH_STEP);

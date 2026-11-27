@@ -73,10 +73,11 @@ public class DreadFishModel extends EntityModel<DreadFish> {
     public void setupAnim(DreadFish fish, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root.getAllParts().forEach(ModelPart::resetPose);
         boolean water = fish.isInWater();
-        float moving = Mth.clamp(limbSwingAmount * (water ? 4.0F : 2.0F), 0.0F, 1.0F);
         // Curled at rest; on the move its body straightens out behind it (0.71.2, the owner: "its tail is stuck in
-        // that pose"), the head drawn forward and over so the straight fish stays on its middle.
-        float curl = 1.0F - Mth.clamp(limbSwingAmount * 6.0F, 0.0F, 1.0F) * STRAIGHTENS;
+        // that pose"), the head drawn forward and over so the straight fish stays on its middle. By its own eased
+        // straightness (0.92.1), not vanilla's limb swing, which left it curling mid-swim and twitching.
+        float moving = fish.straight(ageInTicks - fish.tickCount);
+        float curl = 1.0F - moving * STRAIGHTENS;
         for (ModelPart part : this.body) {
             part.yRot *= curl;
         }
@@ -84,17 +85,19 @@ public class DreadFishModel extends EntityModel<DreadFish> {
         this.body[1].xRot *= curl;
         this.head.x = Mth.lerp(curl, STRAIGHT_X, this.head.getInitialPose().x);
         this.head.z = Mth.lerp(curl, STRAIGHT_Z, this.head.getInitialPose().z);
-        // A wave down its segments, on top of its curl: an fish's in water, a serpent's on land.
-        float rate = water ? 0.2F + 0.2F * moving : 0.3F + 0.4F * moving;
-        float swing = water ? 0.08F + 0.14F * moving : 0.15F + 0.25F * moving;
+        // A wave down its segments, on top of its curl: a fish's in water, a serpent's on land. Calmer since 0.92.1: chained
+        // down eight segments, land's 0.4 a segment at over two beats a second thrashed.
+        float rate = water ? 0.15F + 0.2F * moving : 0.2F + 0.25F * moving;
+        float swing = water ? 0.06F + 0.1F * moving : 0.1F + 0.14F * moving;
         float time = ageInTicks * rate;
         for (int i = 0; i < this.body.length; i++) {
             this.body[i].yRot += swing * (i == 0 ? 0.5F : 1.0F) * Mth.sin(time - i * 0.8F);
         }
         this.tailFin.yRot += swing * 1.2F * Mth.sin(time - this.body.length * 0.8F);
-        // Its head looks where it's going, a little; and bobs.
+        // Its head looks where it's going, a little; and bobs. Pitched as it swims, and in the air too (0.92.1): a breach's
+        // or a leap's arc went flat the moment it left the water, and snapped back as it fell in.
         this.head.yRot += netHeadYaw * Mth.DEG_TO_RAD * 0.3F;
-        this.head.xRot += (water ? headPitch * Mth.DEG_TO_RAD * 0.5F : 0.0F) + 0.03F * Mth.sin(ageInTicks * 0.1F);
+        this.head.xRot += (water || !fish.onGround() ? headPitch * Mth.DEG_TO_RAD * 0.5F : 0.0F) + 0.03F * Mth.sin(ageInTicks * 0.1F);
         // Its jaw hangs open, breathing a little, and gapes to bite.
         float bite = Mth.sin(this.attackTime * Mth.PI);
         // An alpha's wind-up (0.80.0): rearing back, head up, its jaw gaping wide, before the snap; plain to read.
