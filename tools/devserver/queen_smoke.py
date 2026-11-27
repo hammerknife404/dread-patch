@@ -2226,6 +2226,20 @@ def main():
     after = health(out_husk)
     record("it freezes what's out in it", after < before, f"the husk outside went from {before} to {after} in 3.5 s")
     record("and it's still a storm: Rimefrost too", has_effect(out_husk, "dreadpatch:rimefrost"), "no Rimefrost on the husk outside")
+    # A mob its freezing kills rises one time in four, wild Dread (0.92.0): of 20 pigs at 1 health, some rise as dread
+    # beasts (none at all one run in 300), none of them anyone's.
+    for i in range(20):
+        rcon.run(dl + f'run summon minecraft:pig {34.5 + (i % 10)} {pad + 1} {46.5 + 2 * (i // 10)} {{NoAI:1b,Health:1f,Tags:["smoke_whiteout_pig"]}}')
+    time.sleep(4.0)
+    pigs_left = rcon.run(dl + "run execute if entity @e[tag=smoke_whiteout_pig]")
+    risen = rcon.run(dl + f"run execute if entity @e[type=iceandfire:dread_beast,x=30,y={pad - 2},z=42,dx=18,dy=8,dz=10]")
+    owned = rcon.run(dl + f"run data get entity @e[type=iceandfire:dread_beast,x=30,y={pad - 2},z=42,dx=18,dy=8,dz=10,limit=1] CommanderUUID")
+    n = int((re.search(r"count: (\d+)", risen) or [0, "0"])[1])
+    record("a whiteout's freezing kills; some of the dead rise wild (0.92.0)", "Test failed" in pigs_left and 0 < n < 20,
+           f"pigs left: {pigs_left.strip()}; dread beasts risen: {n}")
+    record("and the risen are no one's", n == 0 or "Found no elements" in owned, owned.strip())
+    rcon.run(dl + "run kill @e[type=iceandfire:dread_beast]")
+    rcon.run(dl + "run kill @e[type=item]")
     rcon.run(dl + f'run summon dreadpatch:dread_queen 50.5 {pad + 1} 50.5 {{NoAI:1b,UUID:[I;23,23,23,23],Tags:["smoke_whiteout_queen"]}}')
     # A level counts as thundering once its thunder, rising 0.01 a tick, passes 0.9: 91 ticks on (0.54.0's
     # first run read it at 4.5 s and found none, though the whiteout had lifted).
@@ -2757,6 +2771,20 @@ def main():
         lit = lambda lo, hi: "Test passed" in rcon.run("execute positioned 26 230 12 if predicate "
                                                      f'{{condition:"minecraft:location_check",predicate:{{light:{{light:{{min:{lo},max:{hi}}}}}}}}}')
         record(f"{block.split(':')[1]} lights to {level}, no more than 6", lit(level, level), f"not {level} (more than 6: {lit(7, 15)})")
+    rcon.run("fill 25 229 11 27 231 13 minecraft:air")
+    # The dread lantern on a wall (0.92.0): it hangs on a stone wall's side, lights to 6, and drops when its wall goes.
+    rcon.run("fill 25 229 11 27 231 13 minecraft:stone")
+    rcon.run("setblock 26 230 12 minecraft:air")
+    check("a dread lantern hangs on a wall", "setblock 26 230 12 dreadpatch:dread_wall_lantern[facing=east]", "Changed the block")
+    time.sleep(0.5)
+    record("the wall lantern lights to 6, no more", "Test passed" in rcon.run("execute positioned 26 230 12 if predicate "
+                                                                            '{condition:"minecraft:location_check",predicate:{light:{light:{min:6,max:6}}}}'), "not 6")
+    rcon.run("setblock 25 230 12 minecraft:air destroy")
+    time.sleep(0.3)
+    record("and it falls with its wall, dropping a dread lantern", "Test passed" in rcon.run("execute if block 26 230 12 minecraft:air")
+           and "Test passed" in rcon.run('execute if entity @e[type=item,x=24,y=228,z=10,dx=4,dy=4,dz=4,nbt={Item:{id:"dreadpatch:dread_lantern"}}]'),
+           rcon.run("execute if block 26 230 12 dreadpatch:dread_wall_lantern").strip())
+    rcon.run("kill @e[type=item]")
     rcon.run("fill 25 229 11 27 231 13 minecraft:air")
     # Her storm puts out her fire, as everyone's (0.64.0, the owner: she burned on in her own).
     rcon.run('summon dreadpatch:dread_queen 20.5 230 3.5 {NoAI:1b,UUID:[I;24,24,24,24],Tags:["smoke_burning"]}')

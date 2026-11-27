@@ -271,7 +271,12 @@ public final class ModRegistries {
     public static final DeferredBlock<net.minecraft.world.level.block.LanternBlock> DREAD_LANTERN = BLOCKS.register("dread_lantern",
             () -> new net.minecraft.world.level.block.LanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)
                     .lightLevel(state -> DreadLights.LIGHT)));
-    public static final DeferredItem<net.minecraft.world.item.BlockItem> DREAD_LANTERN_ITEM = ITEMS.registerSimpleBlockItem("dread_lantern", DREAD_LANTERN);
+    /** The dread lantern on a wall (0.92.0), on its bracket; placed by the lantern's item, dropping it. */
+    public static final DeferredBlock<io.github.hammerknife404.dreadpatch.block.DreadWallLanternBlock> DREAD_WALL_LANTERN = BLOCKS.register("dread_wall_lantern",
+            () -> new io.github.hammerknife404.dreadpatch.block.DreadWallLanternBlock(BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SOUL_LANTERN)
+                    .lightLevel(state -> DreadLights.LIGHT)));
+    public static final DeferredItem<net.minecraft.world.item.BlockItem> DREAD_LANTERN_ITEM = ITEMS.register("dread_lantern",
+            () -> new io.github.hammerknife404.dreadpatch.item.DreadLanternItem(DREAD_LANTERN.get(), DREAD_WALL_LANTERN.get(), new Item.Properties()));
 
     /** Syndrigossa's Rimefire Crown: as wide as its ring, like the crown. */
     public static final DeferredHolder<EntityType<?>, EntityType<SovereignsEclipse>> SOVEREIGNS_ECLIPSE = ENTITY_TYPES.register("sovereigns_eclipse",

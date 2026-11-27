@@ -3,6 +3,7 @@ package io.github.hammerknife404.dreadpatch.world;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
+import io.github.hammerknife404.dreadpatch.entity.WhiteoutDominion;
 import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.server.MinecraftServer;
@@ -10,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
@@ -19,8 +21,10 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
  * one in six ({@link WeatherRules}; the server config's {@code whiteout_storms}) is a whiteout, never two in
  * a row and never while a Dread Queen is alive there. While it lasts, everything under the open sky but the
  * Dread gets Whiteout (fog to 10, slowed, as in her storm; the storm's Rimefrost still settles too,
- * {@link DreadlandsStorms}) and a point of freezing damage every 3 s, unless it can't freeze. It doesn't
- * raise the dead or lay a snow cover: those are her storm's. A queen coming into the Dreadlands (her fight
+ * {@link DreadlandsStorms}) and a point of freezing damage every 3 s, unless it can't freeze. A mob (not a
+ * player) that damage kills rises one time in four (0.92.0, the owner: "mobs dying to whiteout storm damage only in
+ * the dreadlands have a 25% of turning into a dread mob"), as in her storm but wild: no one's. It lays no snow
+ * cover: that's her storm's. A queen coming into the Dreadlands (her fight
  * starting) breaks it into a thunderstorm, the overworld's, since the two share their weather.
  */
 public final class DreadlandsWhiteout {
@@ -55,8 +59,11 @@ public final class DreadlandsWhiteout {
             if (entity instanceof LivingEntity living && living.isAlive() && !(living instanceof IDreadMob) && !living.isSpectator()
                     && DreadlandsStorms.exposed(level, living)) {
                 living.addEffect(new MobEffectInstance(ModRegistries.WHITEOUT, WeatherRules.EFFECT_TICKS, 0, true, true));
-                if (freeze && living.canFreeze()) {
-                    living.hurt(level.damageSources().freeze(), WeatherRules.FREEZE_DAMAGE);
+                if (freeze && living.canFreeze() && living.hurt(level.damageSources().freeze(), WeatherRules.FREEZE_DAMAGE)
+                        && living.isDeadOrDying() && !(living instanceof Player) && WhiteoutDominion.canRise(living)
+                        && level.getRandom().nextFloat() < WeatherRules.RISE_CHANCE) {
+                    // A mob it kills may rise, wild Dread (0.92.0).
+                    WhiteoutDominion.raiseDead(level, living, null);
                 }
             }
         }
