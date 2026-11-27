@@ -1687,15 +1687,18 @@ def main():
     glacial_tops = []
     if m:
         lx, lz = int(m.group(1)), int(m.group(2))
-        for j in range(-3, 4):
-            for i in range(-3, 4):
-                x, z = lx + 80 * i, lz + 80 * j
-                rcon.run(dl + f"run forceload add {x} {z}")
-                time.sleep(0.6)
-                if "Test passed" in rcon.run(dl + f"positioned {x} 100 {z} if biome ~ ~ ~ dreadpatch:glacial_plains"):
-                    y = surface_y(x, z)
-                    if y is not None:
-                        glacial_tops.append((x, y, z))
+        # All loaded first, then measured once they're done (0.84.1: a lone chunk measured at once had its heightmap
+        # 1-6 blocks over its finished top, so the "top" was air).
+        points = [(lx + 80 * i, lz + 80 * j) for j in range(-3, 4) for i in range(-3, 4)]
+        for x, z in points:
+            rcon.run(dl + f"run forceload add {x} {z}")
+            time.sleep(0.6)
+        time.sleep(8.0)
+        for x, z in points:
+            if "Test passed" in rcon.run(dl + f"positioned {x} 100 {z} if biome ~ ~ ~ dreadpatch:glacial_plains"):
+                y = surface_y(x, z)
+                if y is not None:
+                    glacial_tops.append((x, y, z))
     high = [t for t in glacial_tops if t[1] >= 170]
     record("the Glacial Plains stand up to about y 200", len(glacial_tops) >= 6 and len(high) >= len(glacial_tops) // 2
            and all(t[1] <= 235 for t in glacial_tops), f"tops {[(t[0], t[1], t[2]) for t in glacial_tops]} from {m and m.group(0)}")
@@ -1713,7 +1716,9 @@ def main():
     record("the glacier's top is snow and ice, its body ice", len(high) > 0 and len(on_top) >= 0.8 * len(high) and len(body) == len(high),
            f"top {len(on_top)}/{len(high)}, 30 under {len(body)}/{len(high)} at {high}")
     # A wild Rimefrost dragon's nest (0.84.0), one glacier chunk in 160: placed by hand up on the glacier (somewhere flat
-    # enough), a bowl of hoard piles and its dragon, wild, stage 2 or more, its home the nest.
+    # enough), a bowl of hoard piles and its dragon, wild, stage 2 or more, its home the nest. Its piles stay (0.84.1:
+    # with Ice and Fire's griefing on, as in the dev runs, a big dragon broke the piles it stood in; hoards are now in
+    # its dragon_block_break_blacklist).
     nest = None
     for t in high[:6]:
         placed = rcon.run(dl + f"positioned {t[0]} 0 {t[2]} positioned over world_surface run place feature dreadpatch:rimefrost_nest ~ ~ ~")
@@ -1816,7 +1821,8 @@ def main():
         # each looked at closer (5 x 5, 8 apart), and the flattest kept.
         # Only a point with some flat floor round it (0.84.0: the Glacial Plains cover 40% of the land, so fewer of the
         # grid's points are in a chasma, and a slope's point was kept with no floor at all).
-        mid, flattest = None, 0
+        # At least 10 of its 25 (0.84.0's next run kept one with a few, the glacier over the rest).
+        mid, flattest = None, 9
         for cx, cz in ranked[:3]:
             rcon.run(dl + f"run forceload add {cx - 16} {cz - 16} {cx + 16} {cz + 16}")
             time.sleep(4.0)
@@ -1841,7 +1847,8 @@ def main():
             rcon.run(dl + f"run forceload add {mx - 32} {mz - 32} {mx + 32} {mz + 32}")
             time.sleep(8.0)
             tops = [top_block(x, z) for x in range(mx - 32, mx + 32, 2) for z in range(mz - 32, mz + 32, 2)]
-            tops = [t for t in tops if t is not None]
+            # The glacier's columns (0.84.0) are another biome over the chasma: left out.
+            tops = [t for t in tops if t is not None and t < 120]
             chasma_share = lambda test: sum(1 for t in tops if test(t)) / max(1, len(tops))
             record("most of the Rime Chasma is its flat floor at 30", chasma_share(lambda t: t == 30) >= 0.4,
                    f"{chasma_share(lambda t: t == 30):.0%} at 30; at {mx} {mz}")

@@ -45,7 +45,9 @@ import java.util.Random;
  * In the Dreadlands (0.71.0) their water holds Rime Eels instead ({@link RimeEel}): the underground water roll and
  * the chasma's give one, as does a further one-in-{@code dreadlands_rime_eels} in any dark water near
  * ({@link #darkWater}); each only in water two deep at light 6 or less ({@link #eelWater}), never past
- * {@link RimeEelRules#CAP} eels near. The risen cap doesn't count them.
+ * {@link RimeEelRules#CAP} eels near. The risen cap doesn't count them. And (0.84.1) in the Rime Chasma a further
+ * one-in-{@code chasma_surface_eels}: dark water near if there's any, else out on the chasma's floor ({@link #chasmaFloor}),
+ * from where it makes for water (its own {@code SeekWaterGoal}).
  */
 public final class RisenSpawns {
     private RisenSpawns() {
@@ -73,7 +75,9 @@ public final class RisenSpawns {
             boolean pocket = dreadlands && level.getBiome(player.blockPosition()).is(Dreadlands.RIME_CHASMA)
                     && DreadlandsSpawning.comesUp(DreadPatchConfig.chasmaWaterOneIn(), roll);
             boolean dark = dreadlands && DreadlandsSpawning.comesUp(DreadPatchConfig.darkWaterEelOneIn(), roll);
-            if (!phantom && !water && !pocket && !dark) {
+            boolean surface = dreadlands && level.getBiome(player.blockPosition()).is(Dreadlands.RIME_CHASMA)
+                    && DreadlandsSpawning.comesUp(DreadPatchConfig.chasmaSurfaceEelOneIn(), roll);
+            if (!phantom && !water && !pocket && !dark && !surface) {
                 continue;
             }
             AABB near = player.getBoundingBox().inflate(DreadlandsSpawning.CAP_RANGE);
@@ -103,8 +107,11 @@ public final class RisenSpawns {
             if (spot == null && pocket) {
                 spot = pocket(level, player, random);
             }
-            if (spot == null && dark) {
+            if (spot == null && (dark || surface)) {
                 spot = darkWater(level, player, random);
+            }
+            if (spot == null && surface) {
+                spot = chasmaFloor(level, player, random);
             }
             RimeEel eel = spot == null ? null : ModRegistries.RIME_EEL.get().create(level);
             if (eel != null) {
@@ -140,6 +147,30 @@ public final class RisenSpawns {
                 if (eelWater(level, pos)) {
                     return pos;
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Open floor in the Rime Chasma near the player for a Rime Eel (0.84.1): its top, solid, two clear blocks over it, in
+     * the chasma, at light 6 or less, 8-32 off; null if none's found.
+     */
+    @Nullable
+    static BlockPos chasmaFloor(ServerLevel level, ServerPlayer player, RandomSource random) {
+        for (int attempt = 0; attempt < 16; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            double distance = RimeEelRules.SEARCH_MIN + random.nextDouble() * (RimeEelRules.SEARCH_MAX - RimeEelRules.SEARCH_MIN);
+            int x = Mth.floor(player.getX() + Math.cos(angle) * distance);
+            int z = Mth.floor(player.getZ() + Math.sin(angle) * distance);
+            if (!level.hasChunk(x >> 4, z >> 4)) {
+                continue;
+            }
+            BlockPos pos = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z);
+            if (level.getBiome(pos).is(Dreadlands.RIME_CHASMA) && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), net.minecraft.core.Direction.UP)
+                    && level.isEmptyBlock(pos) && level.isEmptyBlock(pos.above())
+                    && RimeEelRules.darkEnough(level.getBrightness(LightLayer.BLOCK, pos), level.getBrightness(LightLayer.SKY, pos))) {
+                return pos;
             }
         }
         return null;
