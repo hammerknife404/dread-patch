@@ -113,9 +113,12 @@ public final class RimefrostNests {
                         for (int y = Math.max(top, bed + 1); y > bed; y--) {
                             level.setBlock(at.set(x, y, z), Blocks.AIR.defaultBlockState(), 2);
                         }
+                        // Its bed, under the piles, blue ice or packed snow: Ice and Fire's pile won't stay on ice or packed
+                        // ice, as snow won't (until 0.84.4 most of a hoard lay on packed ice and fell away as it was laid).
                         for (int y = bed; y > Math.min(top, bed) - 1 && y > bed - 4; y--) {
-                            level.setBlock(at.set(x, y, z), y == bed && random.nextInt(4) == 0 ? Blocks.BLUE_ICE.defaultBlockState()
-                                    : Blocks.PACKED_ICE.defaultBlockState(), 2);
+                            BlockState under = y < bed ? Blocks.PACKED_ICE.defaultBlockState()
+                                    : random.nextInt(3) == 0 ? Blocks.BLUE_ICE.defaultBlockState() : Blocks.SNOW_BLOCK.defaultBlockState();
+                            level.setBlock(at.set(x, y, z), under, 2);
                         }
                         Block pile = pile(NestRules.metal(random.nextDouble()));
                         level.setBlock(at.set(x, bed + 1, z), pile.defaultBlockState()

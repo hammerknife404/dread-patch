@@ -5,13 +5,13 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 ## Rimefrost dragons and Syndrigossa
 
 **The split (0.37.0):** `entity/RimefrostDragon` (`dreadpatch:rimefrost_dragon`) is the subtype; `entity/Syndrigossa` (`dreadpatch:syndrigossa`, its id kept so saved ones load) extends it.
-**Wild ones** (0.84.0): nesting on the Glacial Plains (`world/RimefrostNests`; `dreadlands.md`, The Glacial Plains): stage 2-5 or ancient, aging off, their home the nest; untamed, so Ice and Fire's wild-dragon AI with ours (players hunted, the Dread spared).
+**Wild ones** (0.84.0): nesting on the Glacial Plains (`world/RimefrostNests`; `dreadlands.md`, The Glacial Plains): stage 2-5 or ancient, aging off, their home the nest; untamed, so Ice and Fire's wild-dragon AI with ours: since 0.84.4 every living thing but the Dread hunted, hungry or not, as Ice and Fire's dread mobs hunt (`RimefrostDragon.dreadPrey`: `DragonUtils.canHostilesTarget` and `isAlive`, not `IDreadMob`, never a spectator), where an ice dragon hunts only players (without `neutralToPlayer`) and, when hungry, its prey tag and villagers. Any untamed Rimefrost dragon, the nests' and a summoned one alike.
 - **Every Rimefrost dragon** (`RimefrostDragon`):
   - the breath, the bite's rime, its own Shatter-Spine, takeoff and air-attack weighting;
   - the player-hunting goal, the Dread corpse (`corpseLoot`/`bonesLoot`/`heartLoot`, `entities/rimefrost_dragon/*`), the tag-made health fix, the animation layers;
   - Ice and Fire's health for its age (config `dragon.maxHealth`), its own `Variant` (Ice and Fire's random ice colour, or a summon's), `getCommander` null.
   - `aiStep` (server, alive): drop a bad target, `beforeAttacks()` (a hook), take off, Shatter-Spine. `carriesOthers()` is any passenger.
-- **Only Syndrigossa** (`Syndrigossa`): white (`getVariant`), Sovereign's Eclipse, the boss bar, health by difficulty, ancient spawns, the queen's seat and tether (`positionRider`, `carriesOthers` not counting her queen, `isAllowedToTriggerFlight`, `bringQueenDown` and `followDifficulty` in `beforeAttacks`), her own tables (`entities/syndrigossa/*`, her heart with her egg).
+- **Only Syndrigossa** (`Syndrigossa`): never drowned or choked in a wall (0.84.4, `isInvulnerableTo` refuses `DROWN` and `IN_WALL`; the owner's, with the queen's; Ice and Fire's `hurt` already drops `IN_WALL` for its dragons, and every Rimefrost dragon breathes under water by the tag), white (`getVariant`), Sovereign's Eclipse, the boss bar, health by difficulty, ancient spawns, the queen's seat and tether (`positionRider`, `carriesOthers` not counting her queen, `isAllowedToTriggerFlight`, `bringQueenDown` and `followDifficulty` in `beforeAttacks`), her own tables (`entities/syndrigossa/*`, her heart with her egg).
 - **Shared code** names `RimefrostDragon`: `SyndrigossaEvents` (breath events, charges, siphon, bite, Wither), `ShatterSpineCore.launch`, `ShatterSpineShard`. Tags: the four entity type tags list both.
 
 **`entity/RimefrostDragon`**

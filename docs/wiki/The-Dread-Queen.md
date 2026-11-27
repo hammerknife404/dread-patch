@@ -7,7 +7,7 @@
 
 ## The Dread Queen
 
-A lean sovereign: 300 health behind 20 armor and 12 toughness (a full netherite set's), with a boss bar and her sword and staff. She has her original model from Ice and Fire, given a woman's figure, wearing her regalia (below) since 0.81.0, and she rises out of the ground when she spawns.
+A lean sovereign: 300 health behind 20 armor and 12 toughness (a full netherite set's), with a boss bar and her sword and staff. She has her original model from Ice and Fire, given a woman's figure, wearing her regalia (below) since 0.81.0, and she rises out of the ground when she spawns. She and Syndrigossa never drown or choke inside blocks: they've survived being buried.
 
 **Her theme**, "Beneath the Permafrost", plays once for everyone within 96 blocks when she or Syndrigossa spawns, cutting off whatever music was playing. It never starts over or plays twice at once (she spawns with her dragon), and no other music cuts it off. Once it ends, the usual music comes back after the usual wait.
 

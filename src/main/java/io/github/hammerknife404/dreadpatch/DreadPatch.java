@@ -62,6 +62,7 @@ public final class DreadPatch {
         DreadGear.register(modBus);
         DreadForge.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Hoard.register(modBus);
+        io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
         io.github.hammerknife404.dreadpatch.world.DreadTerrain.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, DreadPatchConfig.SPEC);
@@ -95,6 +96,7 @@ public final class DreadPatch {
         DreadPatrols.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.RimefrostNests.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.DreadFeeding.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.ThrallWeapons.register(NeoForge.EVENT_BUS);
         DevKit.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadlandsMusic.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.BossMusic.register(modBus, NeoForge.EVENT_BUS);
@@ -154,6 +156,7 @@ public final class DreadPatch {
             event.accept(DreadForge.SCALE_BLOCK_ITEM.get());
             io.github.hammerknife404.dreadpatch.registry.Dreadwood.items().forEach(item -> event.accept(item.get()));
             event.accept(io.github.hammerknife404.dreadpatch.registry.Hoard.IRON_PILE_ITEM.get());
+            event.accept(io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.DREAD_DRAGONSTEEL_BLOCK_ITEM.get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
             event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());
@@ -164,6 +167,7 @@ public final class DreadPatch {
             DreadGear.regalia().forEach(item -> event.accept(item.get()));
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SWORD.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
+            io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.ARMOR.forEach(item -> event.accept(item.get()));
         } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_PICKAXE.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());

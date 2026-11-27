@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "dreadpatch:dread_dragonsteel_block"
+    }
+  ],
+  "result": {
+    "id": "dreadpatch:dread_dragonsteel_ingot",
+    "count": 9
+  }
+}
