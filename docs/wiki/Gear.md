@@ -13,6 +13,13 @@ Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon g
 - **Against dragon breath,** each piece of either armour takes off as much as Ice and Fire's dragon armour does (10% helmet and boots, 30% chestplate, 20% leggings: 70% for a full set), against Ice and Fire's dragons and Rimefrost dragons alike. Ice and Fire's own dragonscale and dragonsteel armour now guards against Rimefrost breath too.
 - **Against webs,** each piece of dread armour (Rimefrost dragonscale, dread dragonsteel or her regalia) takes an eighth of a web's hold off, half for a full set: cobwebs and the scuttlers' webs still slow you, just less. Powder snow and berry bushes hold as ever.
 
+## Potions
+
+- **Potion of Rimefrost:** brewed from an awkward potion and a Rimefrost Dragon Scale: Rimefrost for 1:30, slowing a little; redstone makes it last 4:00, glowstone makes it Rimefrost II, slowing heavily, for 0:45.
+- **Potion of Withering Rime:** brewed from an awkward potion and a dread shard: Withering Rime for 0:30, nothing healing through it; redstone makes it last 1:00, glowstone makes it Withering Rime II, withering twice as fast, for 0:15.
+- **Splash, lingering and tipped arrows** of both are made as any potion's are. The Dread can't be harmed by either.
+- **Dread thralls** with bows or crossbows fire an Arrow of Rimefrost or of Withering Rime one shot in five.
+
 ## The Rimefrost dragonforge
 
 Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice and Fire's ice dragonforge no longer makes Rimefrost dragon blood or dread dragonsteel. It's Ice and Fire's ice dragonforge made Dread, built and worked the same way:

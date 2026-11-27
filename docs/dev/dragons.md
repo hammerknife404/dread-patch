@@ -103,6 +103,12 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - Each shard hits everyone within 1.5 blocks of its landing, measured to the nearest point of their box (a shard on a golem's head is 2.7 blocks from its feet).
 - **Drawing:** `client/ShatterSpineRenderer`, with block-atlas `IceSpike`s.
 
+**Her Dread Fish and dread beasts** (`entity/SyndrigossaSummons`, `magic/SummonRules`; 0.93.0)
+- **The owner:** "Syndragossa can also summon 1-2 dread fish and 1-2 dread beasts. Each has a roughly 30 second cooldown and despawns after about 25 seconds, to hopefully avoid over crowding. She should prefer spreading their usage throughout a fight."
+- **When:** while she's wild, alive, has AI and a target within 48 (ticked from `aiStep`). A fight's first fish come 8-15 s in, its first beasts 18-25 s; then each kind every 25-35 s; never two of her summons within 8 s (the later waits); 1 or 2 by a coin, never past 2 of a kind of hers about (within 128). Not saved: a fight after a reload starts afresh.
+- **Where:** round her target: fish in water near it if any, else the ground (`SummonedCourt.raiseFish`), beasts on the ground (`DreadCourt.findSpot`), through `finalizeMobSpawn` (the beast's size, the fish's size and lantern as wild ones'). Set on her target.
+- **Whose:** a summoned court's, hers, for 25 s (`court_expires`), and `dreadpatch:court_unbound`: no player's terms (`SummonedCourt.mayFight` lets them fight all but her side and the Dread), and no following her (she flies). Her breath and Shatter-Spine spare them (`RimefireCrown.canHarm`: the Dread, and her court). Her probe on the dev server (2026-11-27): fish at 11-13.5 s, beasts at 20.5-21.5 s; a fish gone at 25 s.
+
 **Sovereign's Eclipse** (`entity/SovereignsEclipse`)
 - **What it is:** a `RimefireCrown` subclass, radius 8, lasting 200 ticks.
 - **Effects:** Slowness IV and Withering Rime, not Rimebound. `shatterAround` doesn't break it.

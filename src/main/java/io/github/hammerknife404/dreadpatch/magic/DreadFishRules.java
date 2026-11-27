@@ -41,8 +41,8 @@ public final class DreadFishRules {
     public static final float WITHERING_CHANCE = 0.1F;
     public static final int WITHERING_TICKS = 60;
 
-    /** Its aura (in combat only): this far, every 3-5 s, its effect 4 s; a Frenzy 4 s once it catches anything (ours). */
-    public static final double AURA_RADIUS = 4.0;
+    /** Its aura (in combat only): this far (4, 5 since 0.91.0 at the owner's word), every 3-5 s, its effect 4 s; a Frenzy 4 s once it catches anything (ours). */
+    public static final double AURA_RADIUS = 5.0;
     public static final int AURA_MIN_TICKS = 60;
     public static final int AURA_SPREAD_TICKS = 40;
     public static final int AURA_EFFECT_TICKS = 80;
@@ -234,6 +234,25 @@ public final class DreadFishRules {
     /** Whether a spawn, rolling {@code roll} in {@code [0, LANTERN_ONE_IN)}, has its lantern. */
     public static boolean spawnsWithLantern(int roll) {
         return roll == 0;
+    }
+
+    /**
+     * How straight its body is drawn (0.92.1, the owner: "they curl up or spazz out still"): 0 curled at rest, 1 straight
+     * out behind. Until then the curl followed vanilla's limb swing, which counts only movement across the ground and
+     * jumps from tick to tick, so a fish swimming up or down, breaching or leaping curled up mid-move, and one swimming
+     * unevenly flicked between curled and straight. Now it's its whole speed (blocks a tick, up and down too): straight
+     * from {@link #STRAIGHT_AT}, curled under {@link #CURL_UNDER}, always straight off the ground and out of water (a
+     * leap, a breach, a fall); quick to straighten, slow to curl back.
+     */
+    public static final double CURL_UNDER = 0.01;
+    public static final double STRAIGHT_AT = 0.05;
+    public static final float STRAIGHTEN_STEP = 0.2F;
+    public static final float CURL_STEP = 0.04F;
+
+    /** Its straightness next tick, from this tick's and how fast it moved ({@link #CURL_UNDER}). */
+    public static float straightToward(float straight, double speed, boolean airborne) {
+        float target = airborne ? 1.0F : (float) Math.max(0.0, Math.min(1.0, (speed - CURL_UNDER) / (STRAIGHT_AT - CURL_UNDER)));
+        return straight + Math.max(-CURL_STEP, Math.min(STRAIGHTEN_STEP, target - straight));
     }
 
     /** Its lure's reach next tick: a step toward out (searching) or in. */

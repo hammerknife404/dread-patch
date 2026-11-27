@@ -41,6 +41,8 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.BooleanValue DEFEAT_STORM_COLD_ONLY;
     private static final ModConfigSpec.BooleanValue DREAD_WEATHER_COLD;
     private static final ModConfigSpec.BooleanValue DREAD_WEATHER_ANYWHERE;
+    private static final ModConfigSpec.BooleanValue BREAK_DOORS;
+    private static final ModConfigSpec.EnumValue<net.minecraft.world.Difficulty> BREAK_DOORS_FROM;
     private static final ModConfigSpec.IntValue DREAD_WEATHER_ONE_IN;
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
@@ -151,6 +153,13 @@ public final class DreadPatchConfig {
         REGALIA_EASES_WEATHER = builder.comment("Whether her full regalia eases the Dreadlands' weather slow a step: a heavy snowstorm slows as plain snow,",
                 "and plain snow not at all.").define("regalia_eases_weather", true);
         builder.pop();
+        builder.comment("The Dread breaking wooden doors, as zombies do.").push("doors");
+        BREAK_DOORS = builder.comment("Whether Ice and Fire's walking Dread (thralls, ghouls, knights, beasts, scuttlers; not liches) break wooden",
+                "doors in their way, as zombies do, where mob griefing is on. Off: they never do, and don't path through doors.")
+                .define("dread_break_doors", true);
+        BREAK_DOORS_FROM = builder.comment("The least difficulty they break doors at: HARD as zombies, NORMAL or EASY for more.")
+                .defineEnum("dread_break_doors_from", net.minecraft.world.Difficulty.HARD);
+        builder.pop();
         builder.comment("Other mods.").push("compat");
         INFECTION_MODS = builder.comment("Mods whose effects the Dread (and the Rimefrost dragons, the queen and the risen) never take, by mod id:",
                         "infection and body-conversion mods, which convert what they infect. Their effects simply don't land.")
@@ -225,6 +234,13 @@ public final class DreadPatchConfig {
 
     public static boolean dreadWeatherCold() {
         return SPEC.isLoaded() && DREAD_WEATHER_COLD.get();
+    }
+
+    /** Whether the Dread break wooden doors at {@code difficulty} (0.96.0). */
+    public static boolean dreadBreakDoors(net.minecraft.world.Difficulty difficulty) {
+        boolean on = !SPEC.isLoaded() || BREAK_DOORS.get();
+        net.minecraft.world.Difficulty from = SPEC.isLoaded() ? BREAK_DOORS_FROM.get() : net.minecraft.world.Difficulty.HARD;
+        return on && difficulty != net.minecraft.world.Difficulty.PEACEFUL && difficulty.getId() >= from.getId();
     }
 
     public static boolean dreadWeatherAnywhere() {
@@ -329,6 +345,17 @@ public final class DreadPatchConfig {
                 parsed = Integer.parseInt(text);
             } else if (current instanceof Double) {
                 parsed = Double.parseDouble(text);
+            } else if (current instanceof Enum<?> value) {
+                // A name of its kind, any case (0.96.0: the doors' difficulty).
+                parsed = null;
+                for (Object constant : value.getDeclaringClass().getEnumConstants()) {
+                    if (((Enum<?>) constant).name().equalsIgnoreCase(text)) {
+                        parsed = constant;
+                    }
+                }
+                if (parsed == null) {
+                    return false;
+                }
             } else {
                 return false;
             }

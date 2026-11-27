@@ -56,7 +56,8 @@ public final class DreadCold extends SavedData {
     }
 
     public static boolean isDreadLight(BlockState state) {
-        return state.is(IafBlocks.DREAD_TORCH.get()) || state.is(IafBlocks.DREAD_TORCH_WALL.get()) || state.is(ModRegistries.DREAD_LANTERN.get());
+        return state.is(IafBlocks.DREAD_TORCH.get()) || state.is(IafBlocks.DREAD_TORCH_WALL.get()) || state.is(ModRegistries.DREAD_LANTERN.get())
+                || state.is(ModRegistries.DREAD_WALL_LANTERN.get());
     }
 
     /** A dread light at {@code pos} now (placed, or a flame turned to one). */

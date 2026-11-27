@@ -39,7 +39,7 @@
     },
     {
       "rolls": 1,
-      "conditions": [{"condition": "minecraft:random_chance", "chance": 0.2}],
+      "conditions": [{"condition": "minecraft:random_chance", "chance": 0.5}],
       "entries": [
         {
           "type": "minecraft:item",
@@ -54,6 +54,7 @@
                   "dreadpatch:rimefire_crown",
                   "dreadpatch:barrow_step",
                   "dreadpatch:summon_dread_phantoms",
+                  "dreadpatch:summon_dread_fish",
                   "dreadpatch:rimefire_blast",
                   "dreadpatch:sublimate"
                 ],

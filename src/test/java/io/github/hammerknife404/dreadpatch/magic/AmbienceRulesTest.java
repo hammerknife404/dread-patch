@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AmbienceRulesTest {
     @Test
-    void aCrackEveryThirtyToAHundredAndTwentySeconds() {
+    void aCrackEverySixtyToTwoHundredAndFortySeconds() {
         Random random = new Random(1);
         int least = Integer.MAX_VALUE;
         int most = 0;
@@ -18,8 +18,8 @@ class AmbienceRulesTest {
             least = Math.min(least, delay);
             most = Math.max(most, delay);
         }
-        assertEquals(30 * 20, least);
-        assertEquals(120 * 20, most);
+        assertEquals(60 * 20, least);
+        assertEquals(240 * 20, most);
     }
 
     @Test

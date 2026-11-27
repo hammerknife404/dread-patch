@@ -61,6 +61,7 @@ public final class DreadPatch {
         ModRegistries.register(modBus);
         DreadGear.register(modBus);
         DreadForge.register(modBus);
+        io.github.hammerknife404.dreadpatch.registry.DreadPotions.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Hoard.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
@@ -92,12 +93,17 @@ public final class DreadPatch {
         DreadlandsStorms.register(NeoForge.EVENT_BUS);
         DreadlandsSpawns.register(NeoForge.EVENT_BUS);
         DreadlandsWhiteout.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadSwarm.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.command.DreadCommands.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadFlames.register(NeoForge.EVENT_BUS);
         DreadPatrols.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.RimefrostNests.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.DreadFeeding.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.ThrallWeapons.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.DreadDoors.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.Rimewalk.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.VillagerFear.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.DreadLeaps.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.BeastVoices.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.PhantomHits.register(NeoForge.EVENT_BUS);
         DevKit.register(NeoForge.EVENT_BUS);

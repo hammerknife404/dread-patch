@@ -107,6 +107,11 @@ public class DreadFish extends Monster implements IDreadMob {
     /** How far its lure reaches out (0 drawn in, 1 out), this tick and last; on both sides, for {@link #lantern}. */
     private float reach;
     private float reachO;
+    /** Whether its bite goal is running (0.93.0): only then does it lunge on land. */
+    boolean hunting;
+    /** How straight its body is (0 curled, 1 straight; {@link DreadFishRules#straightToward}), this tick and last; for drawing. */
+    private float straight;
+    private float straightO;
 
     public DreadFish(EntityType<? extends DreadFish> type, Level level) {
         super(type, level);
@@ -134,6 +139,11 @@ public class DreadFish extends Monster implements IDreadMob {
     /** Its lure's reach, between last tick's and this one's. */
     public float reach(float partialTick) {
         return Mth.lerp(partialTick, this.reachO, this.reach);
+    }
+
+    /** How straight its body is drawn, between last tick's and this one's. */
+    public float straight(float partialTick) {
+        return Mth.lerp(partialTick, this.straightO, this.straight);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -291,6 +301,12 @@ public class DreadFish extends Monster implements IDreadMob {
         // Its lure reaches out while it hunts or swims about, and draws in while it's still.
         this.reachO = this.reach;
         this.reach = DreadFishRules.reachToward(this.reach, this.isAggressive() || this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4);
+        // Its body by how fast it really went this tick, up and down too (on a client, where it was drawn).
+        this.straightO = this.straight;
+        double dx = this.getX() - this.xo;
+        double dy = this.getY() - this.yo;
+        double dz = this.getZ() - this.zo;
+        this.straight = DreadFishRules.straightToward(this.straight, Math.sqrt(dx * dx + dy * dy + dz * dz), !this.onGround() && !this.isInWater());
         this.rearO = this.rear;
         this.rear = this.winding() ? Math.min(1.0F, this.rear + 1.0F / 6.0F) : Math.max(0.0F, this.rear - 0.34F);
         if (this.level().isClientSide()) {
@@ -323,7 +339,9 @@ public class DreadFish extends Monster implements IDreadMob {
             this.auraCooldown = DreadFishRules.auraTicks(this.random.nextDouble());
             this.pulse();
         }
-        if (DreadFishRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
+        // Only while it's hunting (0.93.0): heading for water instead, its lunges dragged it back each time, so on land near
+        // water it shuttled to and fro by its prey without biting (the owner: "they curl up or spazz out still").
+        if (this.hunting && DreadFishRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
             this.lungeCooldown = this.isAlpha() ? DreadFishRules.ALPHA_LUNGE_TICKS : DreadFishRules.LUNGE_TICKS;
             // On land too, it leaps as from the water (0.90.1, the owner: "leap like dolphins can at prey ... while on
             // land too"): the same arc, a block over its prey, at most 4.
@@ -636,12 +654,23 @@ public class DreadFish extends Monster implements IDreadMob {
             return true;
         }
 
+        /** Level again as it comes down (0.92.1). */
+        @Override
+        public void stop() {
+            this.fish.setXRot(0.0F);
+        }
+
         @Override
         public void tick() {
             this.airborne++;
             Entity aim = this.aim;
             if (aim != null) {
                 this.fish.getLookControl().setLookAt(aim, 30.0F, 30.0F);
+            }
+            // Nose along its arc, as its breach is (0.92.1): its pitch had stayed whatever it was swimming at.
+            Vec3 motion = this.fish.getDeltaMovement();
+            if (motion.lengthSqr() > 1.0E-6) {
+                this.fish.setXRot(Mth.rotLerp(0.5F, this.fish.getXRot(), (float) (Math.atan2(-motion.y, motion.horizontalDistance()) * Mth.RAD_TO_DEG)));
             }
             if (this.landed || aim == null || !aim.isAlive() || !this.fish.getBoundingBox().inflate(0.4).intersects(aim.getBoundingBox())) {
                 return;
@@ -712,8 +741,15 @@ public class DreadFish extends Monster implements IDreadMob {
         }
 
         @Override
+        public void start() {
+            super.start();
+            this.fish.hunting = true;
+        }
+
+        @Override
         public void stop() {
             super.stop();
+            this.fish.hunting = false;
             this.fish.windup = 0;
             this.fish.setWinding(false);
         }
@@ -740,7 +776,7 @@ public class DreadFish extends Monster implements IDreadMob {
         @Override
         public boolean canUse() {
             // Now and then, not every check (vanilla checks a goal every other tick, so a tick count's step could miss them all).
-            if (this.fish.isInWater() || this.fish.getRandom().nextInt(5) != 0) {
+            if (this.fish.isInWater() || this.fish.getRandom().nextInt(5) != 0 || this.preyAtHand()) {
                 return false;
             }
             Level level = this.fish.level();
@@ -755,7 +791,16 @@ public class DreadFish extends Monster implements IDreadMob {
 
         @Override
         public boolean canContinueToUse() {
-            return this.water != null && !this.fish.isInWater() && this.timer < 200;
+            return this.water != null && !this.fish.isInWater() && this.timer < 200 && !this.preyAtHand();
+        }
+
+        /**
+         * Its prey within a lunge of it (0.93.0): it turns to fight rather than keep slithering off to water with its back
+         * to it. Water and prey keep their one priority (0.71.0) past that.
+         */
+        private boolean preyAtHand() {
+            LivingEntity target = this.fish.getTarget();
+            return target != null && target.isAlive() && prey(target) && this.fish.distanceTo(target) <= DreadFishRules.LUNGE_MAX;
         }
 
         @Override

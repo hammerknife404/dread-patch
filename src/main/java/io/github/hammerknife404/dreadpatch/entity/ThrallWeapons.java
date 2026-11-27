@@ -68,6 +68,8 @@ public final class ThrallWeapons {
         gameBus.addListener(ThrallWeapons::onIncoming);
         gameBus.addListener(ThrallWeapons::onHit);
         gameBus.addListener(ThrallWeapons::onTick);
+        gameBus.addListener(ThrallWeapons::keepBow);
+        gameBus.addListener(ThrallWeapons::giveBowBack);
         gameBus.addListener(ThrallWeapons::onImpact);
     }
 
@@ -112,6 +114,29 @@ public final class ThrallWeapons {
             SECOND.put(thrall, new Slash(event.getEntity().getId(), thrall.level().getGameTime() + ThrallArms.SECOND_SLASH_TICKS));
         }
     }
+
+    /**
+     * Its bow kept (0.95.0): Ice and Fire's thrall puts a bone in its hand in place of a bow every tick
+     * ({@code DreadThrallEntity.aiStep}), so the bows 0.84.4 gave thralls never shot (only crossbows did). Its bow is noted
+     * before its tick and handed back after: its goals (in {@code aiStep}, before the swap) see the bow, and its equipment
+     * is sent at the start of a tick, so the bone is never seen or saved.
+     */
+    private static void keepBow(EntityTickEvent.Pre event) {
+        if (event.getEntity() instanceof DreadThrallEntity thrall && !thrall.level().isClientSide && thrall.getMainHandItem().is(Items.BOW)) {
+            BOWS.put(thrall, thrall.getMainHandItem().copy());
+        }
+    }
+
+    private static void giveBowBack(EntityTickEvent.Post event) {
+        if (event.getEntity() instanceof DreadThrallEntity thrall && !thrall.level().isClientSide) {
+            ItemStack bow = BOWS.remove(thrall);
+            if (bow != null && thrall.getMainHandItem().is(Items.BONE)) {
+                thrall.setItemSlot(EquipmentSlot.MAINHAND, bow);
+            }
+        }
+    }
+
+    private static final Map<DreadThrallEntity, ItemStack> BOWS = new WeakHashMap<>();
 
     private static void onTick(EntityTickEvent.Post event) {
         if (!(event.getEntity() instanceof DreadThrallEntity thrall) || thrall.level().isClientSide) {
@@ -219,6 +244,11 @@ public final class ThrallWeapons {
         private void shoot(LivingEntity target, ItemStack weapon, boolean crossbow) {
             float velocity = crossbow ? ThrallArms.CROSSBOW_VELOCITY : ThrallArms.BOW_VELOCITY;
             ItemStack arrowStack = new ItemStack(Items.ARROW);
+            if (this.thrall.getRandom().nextFloat() < ThrallArms.TIPPED_CHANCE) {
+                arrowStack = net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.TIPPED_ARROW,
+                        this.thrall.getRandom().nextBoolean() ? io.github.hammerknife404.dreadpatch.registry.DreadPotions.RIMEFROST
+                                : io.github.hammerknife404.dreadpatch.registry.DreadPotions.WITHERING_RIME);
+            }
             AbstractArrow arrow = ProjectileUtil.getMobArrow(this.thrall, arrowStack, 1.0F, weapon);
             if (weapon.getItem() instanceof BowItem bow) {
                 arrow = bow.customArrow(arrow, arrowStack, weapon);

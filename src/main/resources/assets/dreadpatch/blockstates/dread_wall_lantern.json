@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=east": {"model": "dreadpatch:block/dread_wall_lantern"},
+    "facing=south": {"model": "dreadpatch:block/dread_wall_lantern", "y": 90},
+    "facing=west": {"model": "dreadpatch:block/dread_wall_lantern", "y": 180},
+    "facing=north": {"model": "dreadpatch:block/dread_wall_lantern", "y": 270}
+  }
+}

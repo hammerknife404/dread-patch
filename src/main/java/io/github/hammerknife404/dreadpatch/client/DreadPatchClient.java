@@ -50,7 +50,7 @@ public final class DreadPatchClient {
         modBus.addListener(EntityRenderersEvent.AddLayers.class, ThrallArmorLayer::onAddLayers);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(RenderLivingEvent.Pre.class, SaddleLayer::onRenderLiving);
-        NeoForge.EVENT_BUS.addListener(RenderLivingEvent.Pre.class, DreadRecolors::dragonArmor);
+        NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.client.event.ClientTickEvent.Post.class, DreadRecolors::dragonArmor);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
         StaffTooltip.register(NeoForge.EVENT_BUS);
         // The server config in the mods list's Config button (0.50.0): NeoForge's own screen; every value is read

@@ -313,7 +313,7 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
      * Mobs and players: not armor stands or her husks; not the Dread (her court stays dead), dragons
      * (as Ice and Fire's own necromancy spares them), bosses, or golems (the owner's call).
      */
-    static boolean canRise(LivingEntity victim) {
+    public static boolean canRise(LivingEntity victim) {
         return (victim instanceof Mob || victim instanceof Player) && !RisenDread.dread(victim) && !(victim instanceof DragonBaseEntity)
                 && !victim.getType().is(Tags.EntityTypes.BOSSES) && !isGolem(victim);
     }
@@ -334,11 +334,23 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
      * never drop theirs.
      */
     private boolean raise(ServerLevel level, LivingEntity victim, DreadQueen queen) {
+        if (!raiseDead(level, victim, queen)) {
+            return false;
+        }
+        this.raised += halves(victim);
+        return true;
+    }
+
+    /**
+     * {@code victim} rising where it fell, as {@link #raise} tells: {@code raiser}'s (her court, taking her target),
+     * or with no raiser, wild Dread (0.92.0, the Dreadlands' whiteout). False if nothing rose.
+     */
+    public static boolean raiseDead(ServerLevel level, LivingEntity victim, @Nullable LivingEntity raiser) {
         // A bat or parrot rises a miniature dread phantom, a water creature as itself, Dread (0.63.0).
         boolean ours = RisenDread.risesAs(victim);
-        Entity risen = ours ? RisenDread.rise(level, victim, queen) : DreadMobEntity.necromancyEntity(victim);
+        Entity risen = ours ? RisenDread.rise(level, victim, raiser) : DreadMobEntity.necromancyEntity(victim);
         if (risen == null && !ours) {
-            risen = WhiteoutStorm.risesAsThrall(victim.getBbWidth(), victim.getBbHeight()) ? this.thrall(level, victim) : this.beast(level, victim);
+            risen = WhiteoutStorm.risesAsThrall(victim.getBbWidth(), victim.getBbHeight()) ? thrall(level, victim) : beast(level, victim);
         }
         if (risen == null) {
             return false;
@@ -351,16 +363,15 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
                 mob.setDropChance(slot, 0.0F);
             }
         }
-        if (risen instanceof DreadMobEntity dread) {
-            dread.setCommanderId(queen.getUUID());
+        if (risen instanceof DreadMobEntity dread && raiser != null) {
+            dread.setCommanderId(raiser.getUUID());
         }
-        if (risen instanceof Mob mob && queen.getTarget() != null && queen.getTarget().isAlive()) {
-            mob.setTarget(queen.getTarget());
+        if (risen instanceof Mob mob && raiser instanceof Mob commander && commander.getTarget() != null && commander.getTarget().isAlive()) {
+            mob.setTarget(commander.getTarget());
         }
         if (!level.addFreshEntity(risen)) {
             return false;
         }
-        this.raised += halves(victim);
         MagicManager.spawnParticles(level, CHARCOAL, victim.getX(), victim.getY() + 0.2, victim.getZ(), 20, 0.4, 0.1, 0.4, 0.02, false);
         MagicManager.spawnParticles(level, ParticleTypes.SOUL, victim.getX(), victim.getY() + 0.5, victim.getZ(), 8, 0.3, 0.3, 0.3, 0.03, false);
         level.playSound(null, victim.getX(), victim.getY(), victim.getZ(), IafSounds.DREAD_LICH_SUMMON.get(), SoundSource.HOSTILE, 1.0F, 0.8F);
@@ -369,7 +380,7 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
 
     /** A dread beast the dead's size, as Ice and Fire raises an animal. */
     @Nullable
-    private DreadBeastEntity beast(ServerLevel level, LivingEntity victim) {
+    private static DreadBeastEntity beast(ServerLevel level, LivingEntity victim) {
         DreadBeastEntity beast = IafEntities.DREAD_BEAST.get().create(level);
         if (beast == null) {
             return null;
@@ -382,7 +393,7 @@ public class WhiteoutDominion extends Entity implements TraceableEntity {
 
     /** A thrall in the dead's gear, as Ice and Fire raises a player or the undead. */
     @Nullable
-    private DreadThrallEntity thrall(ServerLevel level, LivingEntity victim) {
+    private static DreadThrallEntity thrall(ServerLevel level, LivingEntity victim) {
         DreadThrallEntity thrall = IafEntities.DREAD_THRALL.get().create(level);
         if (thrall == null) {
             return null;
