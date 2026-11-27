@@ -931,29 +931,32 @@ def main():
     time.sleep(0.3)
     rcon.run("kill @e[type=item]")
 
-    # The Rime Eel (0.71.0), in a pool of its own off the platforms: sized as it spawns (0.6-1.4 long, 10-18
+    # The Dread Fish (0.71.0), in a pool of its own off the platforms: sized as it spawns (0.6-1.4 long, 10-18
     # health with it), 4 armour, undead and aquatic, of the Dread; it eats dropped food; in a fight its lure's
     # pulse lays Rimefrost or Whiteout on what's near and sends it into a Frenzy; its loot.
     rcon.run("forceload add 40 40 48 48")
     rcon.run("fill 40 196 40 48 199 48 minecraft:stone")
     rcon.run("fill 40 200 40 48 204 48 minecraft:air")
     rcon.run("fill 42 197 42 45 199 45 minecraft:water")
-    rcon.run("summon dreadpatch:rime_eel 43.5 197.5 43.5")
-    rcon.run("tag @e[type=dreadpatch:rime_eel,x=43.5,y=198,z=43.5,distance=..3] add smoke_eel")
-    eel = "@e[tag=smoke_eel,limit=1]"
-    check("a Rime Eel summons", "execute if entity " + eel, "Test passed, count: 1")
-    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.scale base get"))
+    rcon.run("summon dreadpatch:dread_fish 43.5 197.5 43.5")
+    rcon.run("tag @e[type=dreadpatch:dread_fish,x=43.5,y=198,z=43.5,distance=..3] add smoke_eel")
+    fish = "@e[tag=smoke_eel,limit=1]"
+    check("a Dread Fish summons", "execute if entity " + fish, "Test passed, count: 1")
+    # Renamed from the Rime Eel (0.86.0), its id too: the old id is an alias, so old ones (and commands) still load.
+    check("the old Rime Eel id still summons a Dread Fish", "summon dreadpatch:rime_eel 46.5 201 46.5 {Tags:[\"smoke_old_eel\"]}", "Summoned new Dread Fish")
+    rcon.run("kill @e[tag=smoke_old_eel]")
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {fish} minecraft:generic.scale base get"))
     scale = float(m.group(1)) if m else -1.0
     record("sized 0.6-4 blocks across", 0.6 - 1e-6 <= scale * 2.0 <= 4.0 + 1e-6, f"scale {scale}")
     expected = math.floor(2 * (10 + 8 * (max(0.6, min(4.0, scale * 2.0)) - 0.6) / 1.9) + 0.5) / 2  # Java's Math.round
-    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.max_health get"))
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {fish} minecraft:generic.max_health get"))
     record("its health with its size, 10-24.5", m is not None and abs(float(m.group(1)) - expected) < 0.01,
            f"{m.group(0) if m else 'none'}, expected {expected}")
-    check("4 armour", f"attribute {eel} minecraft:generic.armor get", "is 4.0")
+    check("4 armour", f"attribute {fish} minecraft:generic.armor get", "is 4.0")
     for tag in ("#minecraft:undead", "#minecraft:aquatic"):
-        check("the eel in " + tag, f"execute if entity @e[tag=smoke_eel,type={tag}]", "Test passed")
-    rcon.run(f"data merge entity {eel} {{Health:4.0f}}")
-    hurt = health(eel)
+        check("the fish in " + tag, f"execute if entity @e[tag=smoke_eel,type={tag}]", "Test passed")
+    rcon.run(f"data merge entity {fish} {{Health:4.0f}}")
+    hurt = health(fish)
     rcon.run('summon item 43.5 199.2 43.5 {Item:{id:"minecraft:rotten_flesh",count:3},PickupDelay:0s,Tags:["smoke_food"]}')
     rcon.run('summon item 40.5 201 40.5 {Item:{id:"minecraft:golden_apple",count:1},PickupDelay:0s,Tags:["smoke_food_refused"]}')
     ate = False
@@ -963,9 +966,9 @@ def main():
             ate = True
             break
     record("it eats dropped rotten flesh", ate, rcon.run("data get entity @e[tag=smoke_food,limit=1] Item.count").strip())
-    record("healing by it", health(eel) > hurt, f"health {hurt} -> {health(eel)}")
+    record("healing by it", health(fish) > hurt, f"health {hurt} -> {health(fish)}")
     check("but leaves a golden apple", "execute if entity @e[tag=smoke_food_refused]", "Test passed")
-    rcon.run('summon dreadpatch:rime_eel 47.5 200 47.5 {Tags:["smoke_eel_ashore"]}')
+    rcon.run('summon dreadpatch:dread_fish 47.5 200 47.5 {Tags:["smoke_eel_ashore"]}')
     back = False
     for _ in range(30):
         time.sleep(0.5)
@@ -975,7 +978,7 @@ def main():
     record("ashore, it makes for water", back, rcon.run("data get entity @e[tag=smoke_eel_ashore,limit=1] Pos").strip())
     rcon.run("kill @e[tag=smoke_eel_ashore]")
     rcon.run("kill @e[type=item]")
-    # The Dread eat what's dropped (0.83.0, the owner: "Extend the food eating behavior of the rime eel to the dread beasts
+    # The Dread eat what's dropped (0.83.0, the owner: "Extend the food eating behavior of the dread fish to the dread beasts
     # ... most organic dropped items, but only food heals"): a hurt dread beast on a closed pad eats a bone (organic, no
     # healing) and rotten flesh (food: it heals), and leaves a golden apple.
     rcon.run("forceload add 60 40 68 48")
@@ -1125,7 +1128,7 @@ def main():
     rcon.run("kill @e[type=item]")
     rcon.run("forceload remove 400 400 416 416")
     # Only one in six has its lantern (0.76.0), and only that one pulses: this one's given it.
-    rcon.run(f"data merge entity {eel} {{Lantern:1b,Frenzy:0}}")
+    rcon.run(f"data merge entity {fish} {{Lantern:1b,Frenzy:0}}")
     rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:resistance 120 4 true")
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:fire_resistance 120 0 true")
@@ -1135,18 +1138,18 @@ def main():
         time.sleep(0.25)
         if has_effect(prey, "dreadpatch:rimefrost") or has_effect(prey, "dreadpatch:whiteout"):
             pulsed = True
-            m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {eel} Frenzy"))
+            m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {fish} Frenzy"))
             frenzied = m is not None and int(m.group(1)) > 0
             break
     record("in a fight its lure's pulse lays Rimefrost or Whiteout", pulsed, "the zombie had neither 10 s on")
-    record("and sends it into a Frenzy", frenzied, rcon.run(f"data get entity {eel} Frenzy").strip())
-    record("and lights it up (0.75.1): Glowing on the zombie, none on the eel",
-           pulsed and has_effect(prey, "minecraft:glowing") and not has_effect(eel, "minecraft:glowing"), "glowing wrong")
+    record("and sends it into a Frenzy", frenzied, rcon.run(f"data get entity {fish} Frenzy").strip())
+    record("and lights it up (0.75.1): Glowing on the zombie, none on the fish",
+           pulsed and has_effect(prey, "minecraft:glowing") and not has_effect(fish, "minecraft:glowing"), "glowing wrong")
     rcon.run("kill @e[tag=smoke_eel_prey]")
     # Without its lantern (0.76.0, asked: "No pulse without it") it never pulses; but Glowing prey (the owner:
-    # "Highlighted creatures also send rime eels into frenzies") sends it into a Frenzy all the same.
-    rcon.run(f"data merge entity {eel} {{Lantern:0b,Frenzy:0}}")
-    rcon.run("effect clear " + eel)
+    # "Highlighted creatures also send dread fish into frenzies") sends it into a Frenzy all the same.
+    rcon.run(f"data merge entity {fish} {{Lantern:0b,Frenzy:0}}")
+    rcon.run("effect clear " + fish)
     rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:resistance 120 4 true")
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:fire_resistance 120 0 true")
@@ -1154,11 +1157,11 @@ def main():
     glow_frenzy = False
     for _ in range(24):
         time.sleep(0.25)
-        m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {eel} Frenzy"))
+        m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {fish} Frenzy"))
         if m and int(m.group(1)) > 0:
             glow_frenzy = True
             break
-    record("Glowing prey sends it into a Frenzy (0.76.0)", glow_frenzy, rcon.run(f"data get entity {eel} Frenzy").strip())
+    record("Glowing prey sends it into a Frenzy (0.76.0)", glow_frenzy, rcon.run(f"data get entity {fish} Frenzy").strip())
     time.sleep(6.0)
     record("without its lantern it never pulses (8 s)", not has_effect(prey, "dreadpatch:rimefrost") and not has_effect(prey, "dreadpatch:whiteout"),
            "the zombie took the pulse")
@@ -1167,15 +1170,15 @@ def main():
     # One spawn in six has its lantern (0.76.0, the owner: "Only about 10-25% spawn with the lantern"): of 36 summoned
     # without data (so each rolls), some have it and most don't. (All or none would be a 1 in 700 fluke.)
     for _ in range(36):
-        rcon.run("summon dreadpatch:rime_eel 44.5 202 44.5")
-    lanterned = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:rime_eel,nbt={Lantern:1b},x=44.5,y=202,z=44.5,distance=..4]"))
+        rcon.run("summon dreadpatch:dread_fish 44.5 202 44.5")
+    lanterned = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_fish,nbt={Lantern:1b},x=44.5,y=202,z=44.5,distance=..4]"))
     lanterned = int(lanterned.group(1)) if lanterned else 0
     record("about one in six spawns with its lantern", 0 < lanterned < 18, f"{lanterned} of 36")
-    rcon.run("kill @e[type=dreadpatch:rime_eel,x=44.5,y=202,z=44.5,distance=..4]")
+    rcon.run("kill @e[type=dreadpatch:dread_fish,x=44.5,y=202,z=44.5,distance=..4]")
     # An alpha (0.80.0, the owner: "A mix of heavy natural armor and slow easy to read attacks. Hit hrd and with
     # knockback."): summoned at an alpha's size (its build set as it loads), it has 14 armour, 4 toughness, knockback
     # 1.5, a bite 1.75 times its size's; and against a zombie it still lands its slow, wound-up bite.
-    rcon.run('summon dreadpatch:rime_eel 43.5 197.5 43.5 {Tags:["smoke_alpha"],attributes:[{id:"minecraft:generic.scale",base:1.6d}]}')
+    rcon.run('summon dreadpatch:dread_fish 43.5 197.5 43.5 {Tags:["smoke_alpha"],attributes:[{id:"minecraft:generic.scale",base:1.6d}]}')
     alpha = "@e[tag=smoke_alpha,limit=1]"
     attrs = {a: re.search(r"is ([0-9.]+)", rcon.run(f"attribute {alpha} minecraft:generic.{a} get")) for a in ("armor", "armor_toughness", "attack_knockback")}
     attrs = {a: float(m.group(1)) if m else -1.0 for a, m in attrs.items()}
@@ -1195,11 +1198,11 @@ def main():
     check("an alpha is a Rime Wyrm", "kill @e[tag=smoke_alpha]", "Rime Wyrm")
     rcon.run("kill @e[tag=smoke_alpha_prey]")
     for _ in range(10):
-        rcon.run("loot spawn 44.5 201 44.5 loot dreadpatch:entities/rime_eel")
+        rcon.run("loot spawn 44.5 201 44.5 loot dreadpatch:entities/dread_fish")
     time.sleep(0.2)
     record("its loot: bones and dread shards", count("minecraft:bone") > 0 and count("iceandfire:dread_shard") > 0,
            f"{count('minecraft:bone')} bones, {count('iceandfire:dread_shard')} dread shards over 10 rolls")
-    rcon.run("kill @e[type=dreadpatch:rime_eel]")
+    rcon.run("kill @e[type=dreadpatch:dread_fish]")
     rcon.run("kill @e[type=item]")
     rcon.run("fill 40 196 40 48 204 48 minecraft:air")
     rcon.run("forceload remove 40 40 48 48")
@@ -1420,7 +1423,7 @@ def main():
                        ("HandItems[1].id", "shield")):
         check(f"the risen guard wears its {item.replace('_', ' ')}", f"data get entity {guard_thrall} {path}", f'"minecraft:{item}"')
     check("and won't drop it", f"data get entity {guard_thrall} ArmorDropChances[2]", "0.0f")
-    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water a Rime Eel
+    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water a Dread Fish
     # of hers (0.71.0), refusing Withering Rime.
     for kind, at in (("bat", "5.5 200 4.5"), ("parrot", "7.5 200 4.5")):
         rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
@@ -1434,15 +1437,15 @@ def main():
     rcon.run('summon minecraft:cod 6.5 200 12.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
     time.sleep(0.5)
-    # 0.71.0: a water creature rises a Rime Eel of hers (0.63.0-0.70.0: itself, Dread).
-    eel = '@e[type=dreadpatch:rime_eel,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
-    check("a cod killed in her storm rises a Rime Eel", "execute if entity " + eel, "Test passed")
-    check("hers", "data get entity " + eel + ' NeoForgeData."dreadpatch:risen_by"', "[I; 9, 9, 9, 9]")
+    # 0.71.0: a water creature rises a Dread Fish of hers (0.63.0-0.70.0: itself, Dread).
+    fish = '@e[type=dreadpatch:dread_fish,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
+    check("a cod killed in her storm rises a Dread Fish", "execute if entity " + fish, "Test passed")
+    check("hers", "data get entity " + fish + ' NeoForgeData."dreadpatch:risen_by"', "[I; 9, 9, 9, 9]")
     check("and no Dread cod", "execute if entity @e[type=minecraft:cod,x=6.5,y=200,z=12.5,distance=..3]", "Test failed")
-    rcon.run(f"effect give {eel} dreadpatch:withering_rime 10")
+    rcon.run(f"effect give {fish} dreadpatch:withering_rime 10")
     time.sleep(0.1)
-    record("the eel refuses Withering Rime, as the Dread do", not has_effect(eel, "dreadpatch:withering_rime"), "it took it")
-    rcon.run("kill @e[type=dreadpatch:rime_eel]")
+    record("the fish refuses Withering Rime, as the Dread do", not has_effect(fish, "dreadpatch:withering_rime"), "it took it")
+    rcon.run("kill @e[type=dreadpatch:dread_fish]")
     rcon.run("kill @e[type=minecraft:cod]")
     rcon.run("fill 6 200 12 6 201 12 minecraft:air")
     # Counted before and after (0.83.0: the chickens' risen beasts now wander over to eat what the dead dropped, and one

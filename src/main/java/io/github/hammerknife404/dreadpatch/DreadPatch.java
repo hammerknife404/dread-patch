@@ -127,7 +127,7 @@ public final class DreadPatch {
         event.put(ModRegistries.RIMEFROST_DRAGON.get(), DragonBaseEntity.bakeAttributes().add(IafAttributes.DRAGON_FORGE_SPEED).build());
         event.put(ModRegistries.DREAD_PHANTOM.get(), DreadPhantom.createAttributes().build());
         event.put(ModRegistries.MINIATURE_DREAD_PHANTOM.get(), io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom.createAttributes().build());
-        event.put(ModRegistries.RIME_EEL.get(), io.github.hammerknife404.dreadpatch.entity.RimeEel.createAttributes().build());
+        event.put(ModRegistries.DREAD_FISH.get(), io.github.hammerknife404.dreadpatch.entity.DreadFish.createAttributes().build());
     }
 
     /** Rimefrost's spell power and resistance on everything living (0.51.0), as Iron's gives its schools'. */
@@ -150,7 +150,7 @@ public final class DreadPatch {
             event.accept(ModRegistries.RIMEFROST_DRAGON_SPAWN_EGG.get());
             event.accept(ModRegistries.DREAD_PHANTOM_SPAWN_EGG.get());
             event.accept(ModRegistries.MINIATURE_DREAD_PHANTOM_SPAWN_EGG.get());
-            event.accept(ModRegistries.RIME_EEL_SPAWN_EGG.get());
+            event.accept(ModRegistries.DREAD_FISH_SPAWN_EGG.get());
         } else if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(ModRegistries.DREAD_LANTERN_ITEM.get());
             DreadForge.forgeItems().forEach(item -> event.accept(item.get()));

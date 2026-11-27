@@ -51,7 +51,7 @@ import java.util.UUID;
  * water and aquatic life"). Where the Dread raise the dead (her storm, so far):
  * <ul>
  * <li>a bat or parrot ({@link #AS_PHANTOMS}) rises as a {@link MiniatureDreadPhantom}, hers;</li>
- * <li>a water creature ({@code #minecraft:aquatic}, or any {@link WaterAnimal}) rises as a {@link RimeEel}, hers
+ * <li>a water creature ({@code #minecraft:aquatic}, or any {@link WaterAnimal}) rises as a {@link DreadFish}, hers
  * (0.71.0; from 0.63.0 to 0.70.0 it rose as itself made Dread).</li>
  * </ul>
  * In the overworld's underground water a water creature still stirs now and then as itself made Dread
@@ -61,7 +61,7 @@ import java.util.UUID;
  * told by {@link Marked}).
  * They're of the Dread to this mod ({@link #dread}): they refuse its rime and storms, and the Dread's magic
  * spares them. (Ice and Fire's own dread mobs still take them for prey: its tests know only its own.) Now and
- * then they also stir on their own, in caves and underground water, and Rime Eels in the Dreadlands' dark water
+ * then they also stir on their own, in caves and underground water, and Dread Fish in the Dreadlands' dark water
  * ({@code world/RisenSpawns}).
  */
 public final class RisenDread {
@@ -112,7 +112,7 @@ public final class RisenDread {
         return entity.getType().is(EntityTypeTags.AQUATIC) || entity instanceof WaterAnimal;
     }
 
-    /** What {@code dead} rises as (a miniature dread phantom or a Rime Eel), raised by {@code raiser}, not yet added; null if it rises as something else. */
+    /** What {@code dead} rises as (a miniature dread phantom or a Dread Fish), raised by {@code raiser}, not yet added; null if it rises as something else. */
     @Nullable
     public static Mob rise(ServerLevel level, LivingEntity dead, @Nullable LivingEntity raiser) {
         if (dead.getType().is(AS_PHANTOMS)) {
@@ -127,21 +127,21 @@ public final class RisenDread {
             }
             return phantom;
         }
-        // A water creature rises a Rime Eel (0.71.0, the owner's spec: "any aquatic-type creature slain during the Dread
-        // Queen's Whiteout Dominion becomes a Rime Eel"), its raiser's.
+        // A water creature rises a Dread Fish (0.71.0, the owner's spec: "any aquatic-type creature slain during the Dread
+        // Queen's Whiteout Dominion becomes a Dread Fish"), its raiser's.
         if (!(dead instanceof Mob) || !aquatic(dead)) {
             return null;
         }
-        RimeEel eel = ModRegistries.RIME_EEL.get().create(level);
-        if (eel == null) {
+        DreadFish fish = ModRegistries.DREAD_FISH.get().create(level);
+        if (fish == null) {
             return null;
         }
-        eel.moveTo(dead.getX(), dead.getY(), dead.getZ(), dead.getYRot(), 0.0F);
-        EventHooks.finalizeMobSpawn(eel, level, level.getCurrentDifficultyAt(dead.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+        fish.moveTo(dead.getX(), dead.getY(), dead.getZ(), dead.getYRot(), 0.0F);
+        EventHooks.finalizeMobSpawn(fish, level, level.getCurrentDifficultyAt(dead.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
         if (raiser != null) {
-            eel.getPersistentData().putUUID(RAISED_BY, raiser.getUUID());
+            fish.getPersistentData().putUUID(RAISED_BY, raiser.getUUID());
         }
-        return eel;
+        return fish;
     }
 
     /** Makes {@code mob} risen Dread: marked, its health doubled and whole, much faster. Before it's added. */

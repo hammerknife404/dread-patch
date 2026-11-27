@@ -4,7 +4,7 @@ import com.iafenvoy.iceandfire.entity.DragonBaseEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import io.github.hammerknife404.dreadpatch.effect.RimefrostEffect;
-import io.github.hammerknife404.dreadpatch.magic.RimeEelRules;
+import io.github.hammerknife404.dreadpatch.magic.DreadFishRules;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -68,7 +68,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The Rime Eel (0.71.0, the owner's spec; numbers in {@link RimeEelRules}): a serpentine dread anglerfish of the
+ * The Dread Fish (0.71.0, the owner's spec; numbers in {@link DreadFishRules}): a serpentine dread anglerfish of the
  * Dreadlands' dark water, 0.6 to 2.5 blocks across, now and then an alpha or matron to 4 (its {@code generic.scale},
  * rolled as it spawns), its health and bite growing with it, 4 armour. Of the Dread ({@link IDreadMob}: Ice and Fire's dread mobs take it for one of theirs, and
  * the Dread's rime and storms don't touch it).
@@ -84,21 +84,21 @@ import java.util.Optional;
  * </ul>
  * Raised from a water creature in her storm ({@link RisenDread#rise}) it takes its raiser's target, as the risen
  * do; it stirs on its own in the Dreadlands' dark water ({@code world/RisenSpawns}). Its lure's flicker and flare
- * are drawn by {@code client/RimeEelRenderer}.
+ * are drawn by {@code client/DreadFishRenderer}.
  */
-public class RimeEel extends Monster implements IDreadMob {
+public class DreadFish extends Monster implements IDreadMob {
     /** To its clients: it has pulsed (its lure flares). */
     public static final byte PULSE_EVENT = 101;
 
-    private int auraCooldown = RimeEelRules.AURA_MIN_TICKS;
+    private int auraCooldown = DreadFishRules.AURA_MIN_TICKS;
     private int frenzy;
     private int lungeCooldown;
     /** On a client: the tick it last pulsed. */
     private int flaredAt = -1000;
-    /** Whether it has its lantern (0.76.0): most don't. Saved as {@code Lantern}; an eel from before had one. */
-    private static final EntityDataAccessor<Boolean> LANTERN = SynchedEntityData.defineId(RimeEel.class, EntityDataSerializers.BOOLEAN);
+    /** Whether it has its lantern (0.76.0): most don't. Saved as {@code Lantern}; an fish from before had one. */
+    private static final EntityDataAccessor<Boolean> LANTERN = SynchedEntityData.defineId(DreadFish.class, EntityDataSerializers.BOOLEAN);
     /** An alpha rearing back to bite (0.80.0), for its clients to draw. */
-    private static final EntityDataAccessor<Boolean> WINDING = SynchedEntityData.defineId(RimeEel.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> WINDING = SynchedEntityData.defineId(DreadFish.class, EntityDataSerializers.BOOLEAN);
     /** How far it has reared back (0 to 1), this tick and last; on a client. */
     private float rear;
     private float rearO;
@@ -108,11 +108,11 @@ public class RimeEel extends Monster implements IDreadMob {
     private float reach;
     private float reachO;
 
-    public RimeEel(EntityType<? extends RimeEel> type, Level level) {
+    public DreadFish(EntityType<? extends DreadFish> type, Level level) {
         super(type, level);
         this.xpReward = 5;
         this.setPathfindingMalus(PathType.WATER, 0.0F);
-        this.moveControl = new SmoothSwimmingMoveControl(this, 85, 10, RimeEelRules.WATER_SPEED, RimeEelRules.LAND_SPEED, true);
+        this.moveControl = new SmoothSwimmingMoveControl(this, 85, 10, DreadFishRules.WATER_SPEED, DreadFishRules.LAND_SPEED, true);
         this.lookControl = new SmoothSwimmingLookControl(this, 10);
     }
 
@@ -139,11 +139,11 @@ public class RimeEel extends Monster implements IDreadMob {
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 // A middling one's, until it's sized as it spawns (a summon with data isn't).
-                .add(Attributes.SCALE, RimeEelRules.scale(0.5))
-                .add(Attributes.MAX_HEALTH, RimeEelRules.health(RimeEelRules.scale(0.5)))
-                .add(Attributes.ARMOR, RimeEelRules.ARMOR)
-                .add(Attributes.ATTACK_DAMAGE, RimeEelRules.bite(RimeEelRules.scale(0.5)))
-                .add(Attributes.MOVEMENT_SPEED, RimeEelRules.SPEED)
+                .add(Attributes.SCALE, DreadFishRules.scale(0.5))
+                .add(Attributes.MAX_HEALTH, DreadFishRules.health(DreadFishRules.scale(0.5)))
+                .add(Attributes.ARMOR, DreadFishRules.ARMOR)
+                .add(Attributes.ATTACK_DAMAGE, DreadFishRules.bite(DreadFishRules.scale(0.5)))
+                .add(Attributes.MOVEMENT_SPEED, DreadFishRules.SPEED)
                 .add(Attributes.STEP_HEIGHT, 1.0);
     }
 
@@ -154,10 +154,11 @@ public class RimeEel extends Monster implements IDreadMob {
 
     @Override
     protected void registerGoals() {
+        this.goalSelector.addGoal(1, new LeapGoal(this));
         this.goalSelector.addGoal(2, new BiteGoal(this));
         this.goalSelector.addGoal(2, new SeekWaterGoal(this));
-        this.goalSelector.addGoal(3, new DreadFeeding.EatDroppedGoal(this, RimeEelRules.FOOD_SEARCH));
-        this.goalSelector.addGoal(5, new RandomSwimmingGoal(this, 1.0, 30));
+        this.goalSelector.addGoal(3, new DreadFeeding.EatDroppedGoal(this, DreadFishRules.FOOD_SEARCH));
+        this.goalSelector.addGoal(5, new CruiseGoal(this));
         this.goalSelector.addGoal(6, new RandomStrollGoal(this, 1.0) {
             @Override
             public boolean canUse() {
@@ -168,7 +169,15 @@ public class RimeEel extends Monster implements IDreadMob {
         this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new RisenDread.RaiserTargetGoal(this));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, RimeEel::prey));
+        // A Glowing target first, from twice as far (0.86.0); then any prey.
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false,
+                entity -> prey(entity) && entity.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING)) {
+            @Override
+            protected double getFollowDistance() {
+                return super.getFollowDistance() * DreadFishRules.GLOW_RANGE_FACTOR;
+            }
+        });
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, DreadFish::prey));
     }
 
     /** What it hunts: players and mobs not of the Dread; not dragons, bosses or armour stands. */
@@ -180,35 +189,35 @@ public class RimeEel extends Monster implements IDreadMob {
     /** Its size, rolled as it spawns: its scale, and its health and bite with it. */
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData data) {
-        this.setSize(RimeEelRules.scale(this.random.nextDouble(), this.random.nextInt(RimeEelRules.ALPHA_ONE_IN)));
-        this.setLantern(RimeEelRules.spawnsWithLantern(this.random.nextInt(RimeEelRules.LANTERN_ONE_IN)));
+        this.setSize(DreadFishRules.scale(this.random.nextDouble(), this.random.nextInt(DreadFishRules.ALPHA_ONE_IN)));
+        this.setLantern(DreadFishRules.spawnsWithLantern(this.random.nextInt(DreadFishRules.LANTERN_ONE_IN)));
         return super.finalizeSpawn(level, difficulty, spawnType, data);
     }
 
     public void setSize(double scale) {
         set(this.getAttribute(Attributes.SCALE), scale);
-        set(this.getAttribute(Attributes.MAX_HEALTH), RimeEelRules.health(scale));
+        set(this.getAttribute(Attributes.MAX_HEALTH), DreadFishRules.health(scale));
         this.build(scale);
         this.setHealth(this.getMaxHealth());
     }
 
     /** Its bite, and an alpha's hide, weight and knockback (0.80.0), for its size; health aside. */
     private void build(double scale) {
-        boolean alpha = RimeEelRules.alpha(scale);
-        set(this.getAttribute(Attributes.ATTACK_DAMAGE), RimeEelRules.fullBite(scale));
+        boolean alpha = DreadFishRules.alpha(scale);
+        set(this.getAttribute(Attributes.ATTACK_DAMAGE), DreadFishRules.fullBite(scale));
         // An alpha's heavy hide and weight, and its knockback (0.80.0).
-        set(this.getAttribute(Attributes.ARMOR), alpha ? RimeEelRules.ALPHA_ARMOR : RimeEelRules.ARMOR);
-        set(this.getAttribute(Attributes.ARMOR_TOUGHNESS), alpha ? RimeEelRules.ALPHA_TOUGHNESS : 0.0);
-        set(this.getAttribute(Attributes.KNOCKBACK_RESISTANCE), alpha ? RimeEelRules.ALPHA_KNOCKBACK_RESISTANCE : 0.0);
-        set(this.getAttribute(Attributes.ATTACK_KNOCKBACK), alpha ? RimeEelRules.ALPHA_KNOCKBACK : 0.0);
+        set(this.getAttribute(Attributes.ARMOR), alpha ? DreadFishRules.ALPHA_ARMOR : DreadFishRules.ARMOR);
+        set(this.getAttribute(Attributes.ARMOR_TOUGHNESS), alpha ? DreadFishRules.ALPHA_TOUGHNESS : 0.0);
+        set(this.getAttribute(Attributes.KNOCKBACK_RESISTANCE), alpha ? DreadFishRules.ALPHA_KNOCKBACK_RESISTANCE : 0.0);
+        set(this.getAttribute(Attributes.ATTACK_KNOCKBACK), alpha ? DreadFishRules.ALPHA_KNOCKBACK : 0.0);
     }
 
     /** Whether it's an alpha or matron (by its size). */
     public boolean isAlpha() {
-        return RimeEelRules.alpha(this.getScale());
+        return DreadFishRules.alpha(this.getScale());
     }
 
-    /** An alpha or matron is a Rime Wyrm by name (0.80.0, the owner: "Yes", to naming them so); its id stays the eel's. */
+    /** An alpha or matron is a Rime Wyrm by name (0.80.0, the owner: "Yes", to naming them so); its id stays the fish's. */
     @Override
     protected Component getTypeName() {
         return this.isAlpha() ? Component.translatable("entity.dreadpatch.rime_wyrm") : super.getTypeName();
@@ -279,7 +288,7 @@ public class RimeEel extends Monster implements IDreadMob {
         super.aiStep();
         // Its lure reaches out while it hunts or swims about, and draws in while it's still.
         this.reachO = this.reach;
-        this.reach = RimeEelRules.reachToward(this.reach, this.isAggressive() || this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4);
+        this.reach = DreadFishRules.reachToward(this.reach, this.isAggressive() || this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4);
         this.rearO = this.rear;
         this.rear = this.winding() ? Math.min(1.0F, this.rear + 1.0F / 6.0F) : Math.max(0.0F, this.rear - 0.34F);
         if (this.level().isClientSide()) {
@@ -300,55 +309,55 @@ public class RimeEel extends Monster implements IDreadMob {
         LivingEntity target = this.getTarget();
         boolean fighting = target != null && target.isAlive() && prey(target);
         if (!fighting) {
-            this.auraCooldown = Math.max(this.auraCooldown, RimeEelRules.AURA_MIN_TICKS / 2);
+            this.auraCooldown = Math.max(this.auraCooldown, DreadFishRules.AURA_MIN_TICKS / 2);
             return;
         }
-        // A Glowing target sends it into a Frenzy (0.76.0): a lantern eel's pulse lights its prey for the rest.
+        // A Glowing target sends it into a Frenzy (0.76.0): a lantern fish's pulse lights its prey for the rest.
         if (target.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING)) {
-            this.frenzy = Math.max(this.frenzy, RimeEelRules.GLOW_FRENZY_TICKS);
+            this.frenzy = Math.max(this.frenzy, DreadFishRules.GLOW_FRENZY_TICKS);
         }
         // Only its lantern pulses (0.76.0).
         if (this.hasLantern() && --this.auraCooldown <= 0) {
-            this.auraCooldown = RimeEelRules.auraTicks(this.random.nextDouble());
+            this.auraCooldown = DreadFishRules.auraTicks(this.random.nextDouble());
             this.pulse();
         }
-        if (RimeEelRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
-            this.lungeCooldown = this.isAlpha() ? RimeEelRules.ALPHA_LUNGE_TICKS : RimeEelRules.LUNGE_TICKS;
+        if (DreadFishRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
+            this.lungeCooldown = this.isAlpha() ? DreadFishRules.ALPHA_LUNGE_TICKS : DreadFishRules.LUNGE_TICKS;
             Vec3 toward = target.position().subtract(this.position()).multiply(1.0, 0.0, 1.0).normalize();
-            this.setDeltaMovement(toward.x * RimeEelRules.LUNGE_SPEED, RimeEelRules.LUNGE_LIFT, toward.z * RimeEelRules.LUNGE_SPEED);
-            this.playSound(ModRegistries.RIME_EEL_LUNGE.get(), 1.0F, this.getVoicePitch());
+            this.setDeltaMovement(toward.x * DreadFishRules.LUNGE_SPEED, DreadFishRules.LUNGE_LIFT, toward.z * DreadFishRules.LUNGE_SPEED);
+            this.playSound(ModRegistries.DREAD_FISH_LUNGE.get(), 1.0F, this.getVoicePitch());
         }
     }
 
     /**
      * Its lure's pulse: Rimefrost (heavy) or Whiteout, by a coin, on each living thing not of the Dread within
-     * {@link RimeEelRules#AURA_RADIUS} (players in creative or spectating aside); if it takes on anything, a Frenzy.
-     * And (0.75.1) Glowing on every living thing in it but Rime Eels, the Dread too.
+     * {@link DreadFishRules#AURA_RADIUS} (players in creative or spectating aside); if it takes on anything, a Frenzy.
+     * And (0.75.1) Glowing on every living thing in it but Dread Fish, the Dread too.
      */
     void pulse() {
         if (!(this.level() instanceof ServerLevel level)) {
             return;
         }
-        double radius = RimeEelRules.AURA_RADIUS;
+        double radius = DreadFishRules.AURA_RADIUS;
         boolean caught = false;
         List<LivingEntity> near = level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(radius),
                 entity -> entity != this && entity.isAlive() && !RisenDread.dread(entity) && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity)
                         && entity.distanceToSqr(this) <= radius * radius);
         for (LivingEntity entity : near) {
             MobEffectInstance effect = this.random.nextBoolean()
-                    ? new MobEffectInstance(ModRegistries.RIMEFROST, RimeEelRules.AURA_EFFECT_TICKS, RimefrostEffect.HEAVY)
-                    : new MobEffectInstance(ModRegistries.WHITEOUT, RimeEelRules.AURA_EFFECT_TICKS);
+                    ? new MobEffectInstance(ModRegistries.RIMEFROST, DreadFishRules.AURA_EFFECT_TICKS, RimefrostEffect.HEAVY)
+                    : new MobEffectInstance(ModRegistries.WHITEOUT, DreadFishRules.AURA_EFFECT_TICKS);
             caught |= entity.addEffect(effect, this);
         }
         if (caught) {
-            this.frenzy = RimeEelRules.FRENZY_TICKS;
+            this.frenzy = DreadFishRules.FRENZY_TICKS;
         }
         // Its lure lights up everything it reaches (0.75.1, the owner): Glowing on every other living thing in
-        // the pulse, the Dread too, but no Rime Eel.
+        // the pulse, the Dread too, but no Dread Fish.
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(radius),
-                entity -> !(entity instanceof RimeEel) && entity.isAlive() && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity)
+                entity -> !(entity instanceof DreadFish) && entity.isAlive() && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity)
                         && entity.distanceToSqr(this) <= radius * radius)) {
-            entity.addEffect(new MobEffectInstance(net.minecraft.world.effect.MobEffects.GLOWING, RimeEelRules.AURA_EFFECT_TICKS), this);
+            entity.addEffect(new MobEffectInstance(net.minecraft.world.effect.MobEffects.GLOWING, DreadFishRules.AURA_EFFECT_TICKS), this);
         }
         level.broadcastEntityEvent(this, PULSE_EVENT);
         Vec3 lure = this.lantern();
@@ -358,7 +367,7 @@ public class RimeEel extends Monster implements IDreadMob {
             level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX() + Math.cos(angle) * radius * 0.6, lure.y - 0.2, this.getZ() + Math.sin(angle) * radius * 0.6,
                     1, 0.0, 0.0, 0.0, 0.0);
         }
-        this.playSound(ModRegistries.RIME_EEL_PULSE.get(), 1.0F, this.getVoicePitch());
+        this.playSound(ModRegistries.DREAD_FISH_PULSE.get(), 1.0F, this.getVoicePitch());
     }
 
     public boolean frenzied() {
@@ -375,14 +384,14 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /**
-     * Where its lantern's glass hangs: between {@link RimeEelRules#LANTERN_IN} and {@code LANTERN_OUT} by its reach (model
-     * pixels from its feet, client/RimeEelModel), drawn as vanilla draws a living thing's model (turned by its body) and
+     * Where its lantern's glass hangs: between {@link DreadFishRules#LANTERN_IN} and {@code LANTERN_OUT} by its reach (model
+     * pixels from its feet, client/DreadFishModel), drawn as vanilla draws a living thing's model (turned by its body) and
      * scaled with it.
      */
     public Vec3 lantern() {
         double scale = this.getScale() / 16.0;
-        double[] in = RimeEelRules.LANTERN_IN;
-        double[] out = RimeEelRules.LANTERN_OUT;
+        double[] in = DreadFishRules.LANTERN_IN;
+        double[] out = DreadFishRules.LANTERN_OUT;
         double x = Mth.lerp(this.reach, in[0], out[0]) * scale;
         double y = Mth.lerp(this.reach, in[1], out[1]) * scale;
         double z = Mth.lerp(this.reach, in[2], out[2]) * scale;
@@ -394,8 +403,8 @@ public class RimeEel extends Monster implements IDreadMob {
 
     /** On a client: whether its lure burns now (its flicker, or just after a pulse). */
     public boolean lureLit() {
-        return this.hasLantern() && (this.tickCount - this.flaredAt < RimeEelRules.FLARE_TICKS
-                || RimeEelRules.lureLit(this.getUUID().hashCode(), this.tickCount));
+        return this.hasLantern() && (this.tickCount - this.flaredAt < DreadFishRules.FLARE_TICKS
+                || DreadFishRules.lureLit(this.getUUID().hashCode(), this.tickCount));
     }
 
     /** A bite: its own damage, then a chance of Withering Rime (laid by it, so the queen's siphon passes it by). */
@@ -403,9 +412,9 @@ public class RimeEel extends Monster implements IDreadMob {
     public boolean doHurtTarget(Entity target) {
         boolean hit = super.doHurtTarget(target);
         if (hit) {
-            this.playSound(ModRegistries.RIME_EEL_BITE.get(), 1.0F, this.getVoicePitch());
-            if (target instanceof LivingEntity living && this.random.nextFloat() < RimeEelRules.WITHERING_CHANCE) {
-                living.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, RimeEelRules.WITHERING_TICKS), this);
+            this.playSound(ModRegistries.DREAD_FISH_BITE.get(), 1.0F, this.getVoicePitch());
+            if (target instanceof LivingEntity living && this.random.nextFloat() < DreadFishRules.WITHERING_CHANCE) {
+                living.addEffect(new MobEffectInstance(ModRegistries.WITHERING_RIME, DreadFishRules.WITHERING_TICKS), this);
             }
         }
         return hit;
@@ -439,17 +448,17 @@ public class RimeEel extends Monster implements IDreadMob {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.isInWater() ? ModRegistries.RIME_EEL_AMBIENT.get() : ModRegistries.RIME_EEL_FLOP.get();
+        return this.isInWater() ? ModRegistries.DREAD_FISH_AMBIENT.get() : ModRegistries.DREAD_FISH_FLOP.get();
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        return ModRegistries.RIME_EEL_HURT.get();
+        return ModRegistries.DREAD_FISH_HURT.get();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return ModRegistries.RIME_EEL_DEATH.get();
+        return ModRegistries.DREAD_FISH_DEATH.get();
     }
 
     @Override
@@ -466,71 +475,229 @@ public class RimeEel extends Monster implements IDreadMob {
     }
 
     /** Swims and walks at its target and bites: every second, twice as often in a Frenzy. */
+    /**
+     * Idle in water (0.86.0), it cruises: slowly, one heading for a while, swimming straight on it, turning when it
+     * meets something or its time on that heading runs out, and keeping off the bottom and the surface.
+     */
+    static final class CruiseGoal extends Goal {
+        private final DreadFish fish;
+        private Vec3 heading = Vec3.ZERO;
+        private int left;
+
+        CruiseGoal(DreadFish fish) {
+            this.fish = fish;
+            this.setFlags(EnumSet.of(Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            return this.fish.isInWater() && this.fish.getTarget() == null;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return this.canUse();
+        }
+
+        @Override
+        public void start() {
+            this.turn();
+        }
+
+        @Override
+        public void stop() {
+            this.fish.getNavigation().stop();
+        }
+
+        private void turn() {
+            double angle = this.fish.getRandom().nextDouble() * Math.PI * 2.0;
+            this.heading = new Vec3(Math.cos(angle), (this.fish.getRandom().nextDouble() - 0.5) * 0.2, Math.sin(angle)).normalize();
+            this.left = DreadFishRules.CRUISE_MIN_TICKS + this.fish.getRandom().nextInt(DreadFishRules.CRUISE_MAX_TICKS - DreadFishRules.CRUISE_MIN_TICKS + 1);
+        }
+
+        @Override
+        public void tick() {
+            if (--this.left <= 0 || this.fish.horizontalCollision) {
+                this.turn();
+            }
+            Vec3 ahead = this.fish.position().add(this.heading.scale(3.0));
+            BlockPos at = BlockPos.containing(ahead);
+            if (!this.fish.level().getFluidState(at).is(net.minecraft.tags.FluidTags.WATER)) {
+                // Water ends that way (the bank, the bottom, the surface): another heading.
+                this.turn();
+                return;
+            }
+            this.fish.getMoveControl().setWantedPosition(ahead.x, ahead.y, ahead.z, DreadFishRules.CRUISE_SPEED);
+        }
+    }
+
+    /**
+     * A Sea Serpent's leap (0.86.0): from just under the surface, at its target, or at food it eats lying by the water,
+     * within {@link DreadFishRules#inLeapReach}, it leaps out, up to a few blocks, biting (or eating) what it touches on
+     * the way; then {@link DreadFishRules#leapCooldown} before the next.
+     */
+    static final class LeapGoal extends Goal {
+        private final DreadFish fish;
+        private int ready;
+        private @Nullable Entity aim;
+        private boolean landed;
+        private int airborne;
+
+        LeapGoal(DreadFish fish) {
+            this.fish = fish;
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.JUMP, Flag.LOOK));
+        }
+
+        private boolean nearSurface() {
+            if (!this.fish.isInWater()) {
+                return false;
+            }
+            BlockPos at = this.fish.blockPosition();
+            for (int up = 1; up <= DreadFishRules.LEAP_DEPTH + 1; up++) {
+                if (this.fish.level().getBlockState(at.above(up)).isAir()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean reachable(Entity entity) {
+            double dx = Math.sqrt(Mth.square(entity.getX() - this.fish.getX()) + Mth.square(entity.getZ() - this.fish.getZ()));
+            double dy = entity.getY() - this.fish.getY();
+            return !entity.isInWater() && DreadFishRules.inLeapReach(dx, dy) && this.fish.getSensing().hasLineOfSight(entity);
+        }
+
+        @Override
+        public boolean canUse() {
+            if (this.fish.tickCount < this.ready || !this.nearSurface()) {
+                return false;
+            }
+            LivingEntity target = this.fish.getTarget();
+            if (target != null && target.isAlive() && this.reachable(target)) {
+                this.aim = target;
+                return true;
+            }
+            this.aim = this.fish.level().getEntitiesOfClass(ItemEntity.class, this.fish.getBoundingBox().inflate(DreadFishRules.LEAP_REACH),
+                            item -> item.isAlive() && !item.hasPickUpDelay() && DreadFeeding.eats(item.getItem()) && this.reachable(item))
+                    .stream().findFirst().orElse(null);
+            return this.aim != null && this.fish.getRandom().nextInt(4) == 0;
+        }
+
+        @Override
+        public void start() {
+            Entity aim = this.aim;
+            if (aim == null) {
+                return;
+            }
+            double dx = aim.getX() - this.fish.getX();
+            double dz = aim.getZ() - this.fish.getZ();
+            double across = Math.sqrt(dx * dx + dz * dz);
+            double[] launch = DreadFishRules.leap(across, aim.getY() - this.fish.getY() + 1.0);
+            Vec3 way = across < 1e-3 ? Vec3.ZERO : new Vec3(dx / across, 0.0, dz / across);
+            this.fish.setDeltaMovement(way.x * launch[1], launch[0], way.z * launch[1]);
+            this.fish.getNavigation().stop();
+            this.fish.playSound(SoundEvents.DOLPHIN_JUMP, 1.0F, 0.7F);
+            this.landed = false;
+            this.airborne = 0;
+            this.ready = this.fish.tickCount + DreadFishRules.leapCooldown(this.fish.getRandom().nextDouble());
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            // Until it's back in the water, or down on land, or a few seconds on at most.
+            return this.airborne < 60 && (this.airborne < 3 || !this.fish.isInWater() && !this.fish.onGround());
+        }
+
+        @Override
+        public boolean requiresUpdateEveryTick() {
+            return true;
+        }
+
+        @Override
+        public void tick() {
+            this.airborne++;
+            Entity aim = this.aim;
+            if (aim != null) {
+                this.fish.getLookControl().setLookAt(aim, 30.0F, 30.0F);
+            }
+            if (this.landed || aim == null || !aim.isAlive() || !this.fish.getBoundingBox().inflate(0.4).intersects(aim.getBoundingBox())) {
+                return;
+            }
+            this.landed = true;
+            if (aim instanceof ItemEntity item) {
+                DreadFeeding.eat(this.fish, item);
+            } else {
+                this.fish.swing(InteractionHand.MAIN_HAND);
+                this.fish.doHurtTarget(aim);
+            }
+        }
+    }
+
     static final class BiteGoal extends MeleeAttackGoal {
-        private final RimeEel eel;
+        private final DreadFish fish;
         private int lastBite = -1000;
 
-        BiteGoal(RimeEel eel) {
-            super(eel, 1.0, true);
-            this.eel = eel;
+        BiteGoal(DreadFish fish) {
+            super(fish, 1.0, true);
+            this.fish = fish;
         }
 
         @Override
         protected void resetAttackCooldown() {
             super.resetAttackCooldown();
-            this.lastBite = this.eel.tickCount;
+            this.lastBite = this.fish.tickCount;
         }
 
         @Override
         protected boolean isTimeToAttack() {
-            boolean alpha = this.eel.isAlpha();
-            int wait = this.eel.frenzied() ? (alpha ? RimeEelRules.ALPHA_FRENZY_BITE_TICKS : RimeEelRules.FRENZY_BITE_TICKS)
-                    : (alpha ? RimeEelRules.ALPHA_BITE_TICKS : RimeEelRules.BITE_TICKS);
-            return this.eel.tickCount - this.lastBite >= wait;
+            boolean alpha = this.fish.isAlpha();
+            int wait = this.fish.frenzied() ? (alpha ? DreadFishRules.ALPHA_FRENZY_BITE_TICKS : DreadFishRules.FRENZY_BITE_TICKS)
+                    : (alpha ? DreadFishRules.ALPHA_BITE_TICKS : DreadFishRules.BITE_TICKS);
+            return this.fish.tickCount - this.lastBite >= wait;
         }
 
         /**
          * An alpha winds up before it bites (0.80.0): in reach and ready, it stops, rears back and gapes, with a roar;
-         * {@link RimeEelRules#ALPHA_WINDUP_TICKS} later it snaps, hitting if its target's still in reach. The rest bite
+         * {@link DreadFishRules#ALPHA_WINDUP_TICKS} later it snaps, hitting if its target's still in reach. The rest bite
          * as vanilla's melee does.
          */
         @Override
         protected void checkAndPerformAttack(LivingEntity target) {
-            if (!this.eel.isAlpha()) {
+            if (!this.fish.isAlpha()) {
                 super.checkAndPerformAttack(target);
                 return;
             }
-            if (this.eel.windup > 0) {
-                this.eel.getNavigation().stop();
-                this.eel.getLookControl().setLookAt(target, 30.0F, 30.0F);
-                if (--this.eel.windup == 0) {
-                    this.eel.setWinding(false);
-                    this.eel.swing(InteractionHand.MAIN_HAND);
-                    if (this.eel.isWithinMeleeAttackRange(target)) {
-                        this.eel.doHurtTarget(target);
+            if (this.fish.windup > 0) {
+                this.fish.getNavigation().stop();
+                this.fish.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                if (--this.fish.windup == 0) {
+                    this.fish.setWinding(false);
+                    this.fish.swing(InteractionHand.MAIN_HAND);
+                    if (this.fish.isWithinMeleeAttackRange(target)) {
+                        this.fish.doHurtTarget(target);
                     }
                     this.resetAttackCooldown();
                 }
                 return;
             }
             if (this.canPerformAttack(target)) {
-                this.eel.windup = RimeEelRules.ALPHA_WINDUP_TICKS;
-                this.eel.setWinding(true);
-                this.eel.getNavigation().stop();
-                this.eel.playSound(SoundEvents.RAVAGER_ROAR, 0.7F, 1.5F);
+                this.fish.windup = DreadFishRules.ALPHA_WINDUP_TICKS;
+                this.fish.setWinding(true);
+                this.fish.getNavigation().stop();
+                this.fish.playSound(SoundEvents.RAVAGER_ROAR, 0.7F, 1.5F);
             }
         }
 
         @Override
         public void stop() {
             super.stop();
-            this.eel.windup = 0;
-            this.eel.setWinding(false);
+            this.fish.windup = 0;
+            this.fish.setWinding(false);
         }
 
         @Override
         public boolean canUse() {
-            return super.canUse() && prey(this.eel.getTarget());
+            return super.canUse() && prey(this.fish.getTarget());
         }
     }
 
@@ -539,24 +706,24 @@ public class RimeEel extends Monster implements IDreadMob {
      * priority as a fight; whichever starts, it keeps to.
      */
     static final class SeekWaterGoal extends Goal {
-        private final RimeEel eel;
+        private final DreadFish fish;
         private @Nullable BlockPos water;
 
-        SeekWaterGoal(RimeEel eel) {
-            this.eel = eel;
+        SeekWaterGoal(DreadFish fish) {
+            this.fish = fish;
             this.setFlags(EnumSet.of(Flag.MOVE));
         }
 
         @Override
         public boolean canUse() {
             // Now and then, not every check (vanilla checks a goal every other tick, so a tick count's step could miss them all).
-            if (this.eel.isInWater() || this.eel.getRandom().nextInt(5) != 0) {
+            if (this.fish.isInWater() || this.fish.getRandom().nextInt(5) != 0) {
                 return false;
             }
-            Level level = this.eel.level();
-            Optional<BlockPos> found = BlockPos.findClosestMatch(this.eel.blockPosition(), RimeEelRules.WATER_SEARCH, RimeEelRules.WATER_SEARCH_DEPTH,
-                    pos -> level.getFluidState(pos).is(FluidTags.WATER) && level.noCollision(this.eel,
-                            this.eel.getDimensions(this.eel.getPose()).makeBoundingBox(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)));
+            Level level = this.fish.level();
+            Optional<BlockPos> found = BlockPos.findClosestMatch(this.fish.blockPosition(), DreadFishRules.WATER_SEARCH, DreadFishRules.WATER_SEARCH_DEPTH,
+                    pos -> level.getFluidState(pos).is(FluidTags.WATER) && level.noCollision(this.fish,
+                            this.fish.getDimensions(this.fish.getPose()).makeBoundingBox(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)));
             this.water = found.orElse(null);
             return this.water != null;
         }
@@ -565,14 +732,14 @@ public class RimeEel extends Monster implements IDreadMob {
 
         @Override
         public boolean canContinueToUse() {
-            return this.water != null && !this.eel.isInWater() && this.timer < 200;
+            return this.water != null && !this.fish.isInWater() && this.timer < 200;
         }
 
         @Override
         public void start() {
             this.timer = 0;
             if (this.water != null) {
-                this.eel.getNavigation().moveTo(this.water.getX() + 0.5, this.water.getY(), this.water.getZ() + 0.5, 1.0);
+                this.fish.getNavigation().moveTo(this.water.getX() + 0.5, this.water.getY(), this.water.getZ() + 0.5, 1.0);
             }
         }
 
@@ -583,25 +750,25 @@ public class RimeEel extends Monster implements IDreadMob {
         @Override
         public void tick() {
             this.timer++;
-            if (this.water == null || !this.eel.getNavigation().isDone()) {
+            if (this.water == null || !this.fish.getNavigation().isDone()) {
                 return;
             }
-            Vec3 to = new Vec3(this.water.getX() + 0.5 - this.eel.getX(), 0.0, this.water.getZ() + 0.5 - this.eel.getZ());
+            Vec3 to = new Vec3(this.water.getX() + 0.5 - this.fish.getX(), 0.0, this.water.getZ() + 0.5 - this.fish.getZ());
             if (to.lengthSqr() < 1.0E-4) {
                 return;
             }
             Vec3 way = to.normalize();
-            this.eel.setYRot((float) (Mth.atan2(way.z, way.x) * Mth.RAD_TO_DEG) - 90.0F);
-            this.eel.yBodyRot = this.eel.getYRot();
-            Vec3 motion = this.eel.getDeltaMovement();
-            double push = RimeEelRules.LAND_SPEED * 0.5;
-            this.eel.setDeltaMovement(way.x * push, motion.y, way.z * push);
+            this.fish.setYRot((float) (Mth.atan2(way.z, way.x) * Mth.RAD_TO_DEG) - 90.0F);
+            this.fish.yBodyRot = this.fish.getYRot();
+            Vec3 motion = this.fish.getDeltaMovement();
+            double push = DreadFishRules.LAND_SPEED * 0.5;
+            this.fish.setDeltaMovement(way.x * push, motion.y, way.z * push);
         }
 
         @Override
         public void stop() {
             this.water = null;
-            this.eel.getNavigation().stop();
+            this.fish.getNavigation().stop();
         }
     }
 

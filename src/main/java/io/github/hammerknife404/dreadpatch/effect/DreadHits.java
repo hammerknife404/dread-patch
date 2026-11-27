@@ -4,7 +4,7 @@ import com.iafenvoy.iceandfire.entity.DreadKnightEntity;
 import com.iafenvoy.iceandfire.entity.DreadScuttlerEntity;
 import io.github.hammerknife404.dreadpatch.entity.DreadPhantom;
 import io.github.hammerknife404.dreadpatch.entity.DreadQueen;
-import io.github.hammerknife404.dreadpatch.entity.RimeEel;
+import io.github.hammerknife404.dreadpatch.entity.DreadFish;
 import io.github.hammerknife404.dreadpatch.entity.RimefrostDragon;
 import io.github.hammerknife404.dreadpatch.entity.RisenDread;
 import io.github.hammerknife404.dreadpatch.magic.DreadDebuffs;
@@ -69,7 +69,7 @@ public final class DreadHits {
     /** Which of the Dread's rules this attacker's melee hits follow, or null if its own. */
     static DreadDebuffs.Kind kind(Entity attacker) {
         if (!RisenDread.dread(attacker) || attacker instanceof DreadQueen || attacker instanceof RimefrostDragon
-                || attacker instanceof DreadPhantom || attacker instanceof RimeEel) {
+                || attacker instanceof DreadPhantom || attacker instanceof DreadFish) {
             return null;
         }
         if (attacker instanceof com.iafenvoy.iceandfire.entity.DreadThrallEntity thrall && thrall.getMainHandItem().isEmpty()) {

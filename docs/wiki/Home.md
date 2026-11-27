@@ -15,7 +15,7 @@ Patching in the Dread Queen for my own world.
 - [The Dreadlands](The-Dreadlands): the frozen dimension, its spires, storms, villages and the summit encounter
 - [Rimefrost dragons and Syndrigossa](Rimefrost-Dragons)
 - [Dread phantoms](Dread-Phantoms)
-- [Rime Eels](Rime-Eels)
+- [Dread Fish](Dread-Fish)
 - [Gear](Gear): Rimefrost dragonscale, dread dragonsteel, the Rimefrost dragonforge, her staff and sword
 - [Her spells, as a player](Spells)
 - [Fixes to Ice and Fire](Fixes-to-Ice-and-Fire)

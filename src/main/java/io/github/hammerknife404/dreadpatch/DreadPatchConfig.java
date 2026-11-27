@@ -4,7 +4,7 @@ import io.github.hammerknife404.dreadpatch.magic.ColdRules;
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
 import io.github.hammerknife404.dreadpatch.magic.EscalationRules;
-import io.github.hammerknife404.dreadpatch.magic.RimeEelRules;
+import io.github.hammerknife404.dreadpatch.magic.DreadFishRules;
 import io.github.hammerknife404.dreadpatch.magic.RisenRules;
 import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
 import java.util.List;
@@ -107,22 +107,22 @@ public final class DreadPatchConfig {
         DEFEAT_STORM_COLD_ONLY = builder.comment("Whether it reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky).")
                 .define("defeat_storm_cold_only", true);
         builder.pop();
-        builder.comment("Risen Dread: bats, parrots and water creatures the Dread raise, and those stirring on their own; and Rime Eels.").push("risen");
+        builder.comment("Risen Dread: bats, parrots and water creatures the Dread raise, and those stirring on their own; and Dread Fish.").push("risen");
         CAVE_PHANTOMS = builder.comment("Risen Dread stirring on their own, in the overworld and the Dreadlands: each player has a one-in-this chance",
                 "every 10 s of a miniature dread phantom in dark cave air near them. 0: never.")
                 .defineInRange("cave_dread_phantoms", RisenRules.CAVE_PHANTOM_ONE_IN, 0, 10000);
         CAVE_WATER = builder.comment("The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them;",
-                "in the Dreadlands, a Rime Eel in dark underground water. 0: never.")
+                "in the Dreadlands, a Dread Fish in dark underground water. 0: never.")
                 .defineInRange("cave_dread_water", RisenRules.CAVE_WATER_ONE_IN, 0, 10000);
-        CHASMA_WATER = builder.comment("In the Dreadlands' Rime Chasma, each player's one-in-this chance every 10 s of a Rime Eel in one of",
+        CHASMA_WATER = builder.comment("In the Dreadlands' Rime Chasma, each player's one-in-this chance every 10 s of a Dread Fish in one of",
                 "the pockets of water sealed in its ice near them (on top of the above). 0: never.")
                 .defineInRange("chasma_dread_water", RisenRules.CHASMA_WATER_ONE_IN, 0, 10000);
-        DARK_WATER_EELS = builder.comment("In the Dreadlands, each player's one-in-this chance every 10 s of a Rime Eel in any dark water near them",
-                "(two deep, light 6 or less), on top of the above; never past 4 eels near. 0: never.")
-                .defineInRange("dreadlands_rime_eels", RimeEelRules.DARK_WATER_ONE_IN, 0, 10000);
-        CHASMA_SURFACE_EELS = builder.comment("In the Rime Chasma, each player's one-in-this chance every 10 s of a Rime Eel near them: in dark water",
-                "if there's any near, else out on the chasma's open floor; on top of the above, never past 4 eels near. 0: never.")
-                .defineInRange("chasma_surface_eels", RimeEelRules.CHASMA_SURFACE_ONE_IN, 0, 10000);
+        DARK_WATER_EELS = builder.comment("In the Dreadlands, each player's one-in-this chance every 10 s of a Dread Fish in any dark water near them",
+                "(two deep, light 6 or less), on top of the above; never past 4 fish near. 0: never.")
+                .defineInRange("dreadlands_dread_fish", DreadFishRules.DARK_WATER_ONE_IN, 0, 10000);
+        CHASMA_SURFACE_EELS = builder.comment("In the Rime Chasma, each player's one-in-this chance every 10 s of a Dread Fish near them: in dark water",
+                "if there's any near, else out on the chasma's open floor; on top of the above, never past 4 fish near. 0: never.")
+                .defineInRange("chasma_surface_fish", DreadFishRules.CHASMA_SURFACE_ONE_IN, 0, 10000);
         builder.pop();
         builder.comment("The Dread Queen's siphon: how her Withering Rime heals her when it's on several at once.").push("siphon");
         SIPHON_TARGETS = builder.comment("How many of those she's withering feed her at once, the nearest first. 0: every one.")
@@ -206,8 +206,8 @@ public final class DreadPatchConfig {
         return SPEC.isLoaded() ? CHASMA_WATER.get() : RisenRules.CHASMA_WATER_ONE_IN;
     }
 
-    public static int darkWaterEelOneIn() {
-        return SPEC.isLoaded() ? DARK_WATER_EELS.get() : RimeEelRules.DARK_WATER_ONE_IN;
+    public static int darkWaterFishOneIn() {
+        return SPEC.isLoaded() ? DARK_WATER_EELS.get() : DreadFishRules.DARK_WATER_ONE_IN;
     }
 
     /** The mods (by id) whose effects the Dread refuse: infection mods. */
@@ -215,8 +215,8 @@ public final class DreadPatchConfig {
         return SPEC.isLoaded() ? INFECTION_MODS.get() : List.of("spore", "flesh_that_hates");
     }
 
-    public static int chasmaSurfaceEelOneIn() {
-        return SPEC.isLoaded() ? CHASMA_SURFACE_EELS.get() : RimeEelRules.CHASMA_SURFACE_ONE_IN;
+    public static int chasmaSurfaceFishOneIn() {
+        return SPEC.isLoaded() ? CHASMA_SURFACE_EELS.get() : DreadFishRules.CHASMA_SURFACE_ONE_IN;
     }
 
     public static int patrolOneIn() {
