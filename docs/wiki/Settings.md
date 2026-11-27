@@ -88,6 +88,15 @@ The Dread's weather in the overworld: some of its rains turned dread storms. Bot
 | `dread_weather_anywhere` | `false` | Dread storms over any overworld biome, the hot lands only one storm in three: the cold get the Dread as the Dreadlands do, the rest one or two of the lesser Dread now and then. |
 | `dread_weather_one_in` | `3` | With either on, one overworld rain in this many is a dread storm, for as long as it rains. |
 
+## `[doors]`
+
+The Dread breaking wooden doors, as zombies do.
+
+| Option | Default | What it does |
+|---|---|---|
+| `dread_break_doors` | `true` | Whether Ice and Fire's walking Dread (thralls, ghouls, knights, beasts, scuttlers; not liches) break wooden doors in their way, as zombies do, where mob griefing is on. Off: they never do, and don't path through doors. |
+| `dread_break_doors_from` | `HARD` | The least difficulty they break doors at: `HARD` as zombies, `NORMAL` or `EASY` for more. |
+
 ## `[compat]`
 
 Other mods.
