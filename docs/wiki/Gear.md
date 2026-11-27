@@ -41,6 +41,8 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 - It gives +15% Ice Spell Power, +5% Rimefrost Spell Power and +10% Cooldown Reduction in the main hand.
 - **Permafrost Conduit:** Ice spells cost 20% less mana while you stand on snow or ice.
 
+**Ice and Fire's lich staff** (a Dread Lich's) carries a little of the Dread's magic too: Whiteout Dominion and Summon Dread Phantoms at level 1, on your spell wheel while it's in either hand, cast with Iron's cast key (right-click still looses its lich skull), and +5% Ice Spell Power, Rimefrost Spell Power and Summon Damage in the main hand.
+
 **Her sword** is unbreakable, with 11.5 attack damage at 1.6 speed and half a block more reach. She swings the same sword, so her own strikes leave Withering Rime and shatter too.
 
 - **Thermodynamic Theft:** every strike leaves 4.5 seconds of Withering Rime.

@@ -71,6 +71,7 @@ public final class DreadPatch {
         modBus.addListener(DreadPatch::onCreativeTabs);
         DreadEvents.register(NeoForge.EVENT_BUS);
         DreadQueenStaff.register(modBus, NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.item.DreadLichStaff.register(modBus);
         DreadQueenSword.register(modBus, NeoForge.EVENT_BUS);
         DreadRegalia.register(modBus, NeoForge.EVENT_BUS);
         SyndrigossaEvents.register(NeoForge.EVENT_BUS);

@@ -72,6 +72,11 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **Made** as Ice and Fire's ice dragonsteel dragon armour, in its patterns, from blocks of dread dragonsteel: head 5, neck 5, body 8, tail 3. **The block** (`dread_dragonsteel_block`): nine ingots, back to nine; strength 10, resistance 1000, a diamond pickaxe's (`needs_diamond_tool`); drops itself.
 - **Its look:** the items' and the block's sprites are Ice and Fire's ice dragonsteel's through `dread_recolor` (atlas). On a dragon, Ice and Fire draws `iceandfire:textures/entity/dragon_armor/armor_<part>_<material name>.png`: the first time any dragon is drawn (`RenderLivingEvent.Pre`), `dragonArmor` registers a `DynamicTexture` under each of those names, its `armor_<part>_dragon_steel_ice.png` recoloured; released and remade on a resource reload. (0.84.0's blacksteel dragon armour, taken out in 0.84.2, was done the same way.)
 
+## Ice and Fire's lich staff (`item/DreadLichStaff`; 0.87.0)
+
+- **The owner:** "Grant modest related spell buffs plus Level 1 Whiteout and Level 1 Dread Phantom spells/summons"; asked, Ice and Fire's own `iceandfire:lich_staff` (its `LichStaffItem`, a bare `Item` with 100 durability whose `use` looses a `DreadLichSkullEntity`).
+- **Default components** (`ModifyDefaultComponentsEvent`, as her staff's): an Iron's spell container (2 slots, spell wheel, not must-equip) with Whiteout Dominion and Summon Dread Phantoms at level 1, locked; attribute modifiers (it had none) +5% `ADD_MULTIPLIED_BASE` Ice Spell Power, Rimefrost Spell Power and Iron's Summon Damage, main hand. Not a `CASTING_IMPLEMENT`, so its right-click skull stays and the spells go off with Iron's cast key.
+
 ## Armour trims (`client/TrimmedArmorModel`; 0.44.0)
 
 - **The owner:** "Enable trim support for the dread queens armor, dread scale and dread dragon steel armors." Ice and Fire's own armour isn't trimmable (no tag), so this is ours only.
