@@ -71,7 +71,7 @@ public final class DreadFishRules {
 
     /** On land, in combat: a lunge at a target 1.5-5 blocks off, then 2 s before the next (ours). */
     public static final double LUNGE_MIN = 1.5;
-    public static final double LUNGE_MAX = 5.0;
+    public static final double LUNGE_MAX = 7.0;  // 5 until 0.90.1, when its lunge became the leap
     public static final double LUNGE_SPEED = 0.7;
     public static final double LUNGE_LIFT = 0.3;
     public static final int LUNGE_TICKS = 40;
@@ -110,15 +110,18 @@ public final class DreadFishRules {
     /**
      * 0.86.0 (the owner: "Double aggro range on glowing/highlighted targets, swim slowly in a straight line while idle,
      * and add a Sea Serpent-style water leap attack/feed (few blocks high, 3–8s cooldown)"): a Glowing target is noticed
-     * {@link #GLOW_RANGE_FACTOR} times as far off; idle, it cruises at {@link #CRUISE_SPEED} on one heading for
-     * {@link #CRUISE_MIN_TICKS} to {@link #CRUISE_MAX_TICKS}; and from just under the surface (within
+     * {@link #GLOW_RANGE_FACTOR} times as far off; idle, it cruised slowly in straight lines until 0.90.1 (now it swims
+     * as a dolphin, below); and from just under the surface (within
      * {@link #LEAP_DEPTH}) it leaps at prey or food up to {@link #LEAP_MAX_HEIGHT} over the water and {@link #LEAP_REACH}
      * off, every {@link #LEAP_MIN_COOLDOWN} to {@link #LEAP_MAX_COOLDOWN} ticks at most.
      */
     public static final double GLOW_RANGE_FACTOR = 2.0;
-    public static final double CRUISE_SPEED = 0.5;
-    public static final int CRUISE_MIN_TICKS = 80;
-    public static final int CRUISE_MAX_TICKS = 220;
+    /** Idle, it swims as a dolphin does (0.90.1, the owner: "dread fish need to swim and mimic dolphins in the water"):
+     * at its full pace (0.5 until then, which crept), a new way every {@link #SWIM_INTERVAL} ticks or so, breaching now
+     * and then near the surface (one chance in {@link #BREACH_INTERVAL} a tick). */
+    public static final double CRUISE_SPEED = 1.0;
+    public static final int SWIM_INTERVAL = 10;
+    public static final int BREACH_INTERVAL = 40;
     public static final double LEAP_REACH = 7.0;
     public static final double LEAP_MAX_HEIGHT = 4.0;
     public static final double LEAP_DEPTH = 2.0;

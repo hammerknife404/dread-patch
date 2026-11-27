@@ -158,7 +158,9 @@ public class DreadFish extends Monster implements IDreadMob {
         this.goalSelector.addGoal(2, new BiteGoal(this));
         this.goalSelector.addGoal(2, new SeekWaterGoal(this));
         this.goalSelector.addGoal(3, new DreadFeeding.EatDroppedGoal(this, DreadFishRules.FOOD_SEARCH));
-        this.goalSelector.addGoal(5, new CruiseGoal(this));
+        // As a dolphin (0.90.1): swimming about at its pace, and breaching near the surface.
+        this.goalSelector.addGoal(4, new BreachGoal(this));
+        this.goalSelector.addGoal(5, new RandomSwimmingGoal(this, DreadFishRules.CRUISE_SPEED, DreadFishRules.SWIM_INTERVAL));
         this.goalSelector.addGoal(6, new RandomStrollGoal(this, 1.0) {
             @Override
             public boolean canUse() {
@@ -323,8 +325,12 @@ public class DreadFish extends Monster implements IDreadMob {
         }
         if (DreadFishRules.lunges(this.isInWater(), this.onGround(), this.distanceTo(target), this.getSensing().hasLineOfSight(target), this.lungeCooldown)) {
             this.lungeCooldown = this.isAlpha() ? DreadFishRules.ALPHA_LUNGE_TICKS : DreadFishRules.LUNGE_TICKS;
-            Vec3 toward = target.position().subtract(this.position()).multiply(1.0, 0.0, 1.0).normalize();
-            this.setDeltaMovement(toward.x * DreadFishRules.LUNGE_SPEED, DreadFishRules.LUNGE_LIFT, toward.z * DreadFishRules.LUNGE_SPEED);
+            // On land too, it leaps as from the water (0.90.1, the owner: "leap like dolphins can at prey ... while on
+            // land too"): the same arc, a block over its prey, at most 4.
+            Vec3 flat = target.position().subtract(this.position()).multiply(1.0, 0.0, 1.0);
+            Vec3 toward = flat.lengthSqr() < 1e-6 ? Vec3.ZERO : flat.normalize();
+            double[] launch = DreadFishRules.leap(flat.length(), target.getY() - this.getY() + 1.0);
+            this.setDeltaMovement(toward.x * launch[1], launch[0], toward.z * launch[1]);
             this.playSound(ModRegistries.DREAD_FISH_LUNGE.get(), 1.0F, this.getVoicePitch());
         }
     }
@@ -476,58 +482,75 @@ public class DreadFish extends Monster implements IDreadMob {
 
     /** Swims and walks at its target and bites: every second, twice as often in a Frenzy. */
     /**
-     * Idle in water (0.86.0), it cruises: slowly, one heading for a while, swimming straight on it, turning when it
-     * meets something or its time on that heading runs out, and keeping off the bottom and the surface.
+     * A dolphin's breach (0.90.1; vanilla's {@code DolphinJumpGoal}, which takes only a dolphin): swimming near the
+     * surface, now and then, with open water ahead and air over it, it leaps out along its way and dives back in.
      */
-    static final class CruiseGoal extends Goal {
+    static final class BreachGoal extends Goal {
         private final DreadFish fish;
-        private Vec3 heading = Vec3.ZERO;
-        private int left;
+        private boolean out;
 
-        CruiseGoal(DreadFish fish) {
+        BreachGoal(DreadFish fish) {
             this.fish = fish;
-            this.setFlags(EnumSet.of(Flag.MOVE));
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.JUMP));
         }
 
         @Override
         public boolean canUse() {
-            return this.fish.isInWater() && this.fish.getTarget() == null;
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return this.canUse();
+            if (this.fish.getRandom().nextInt(DreadFishRules.BREACH_INTERVAL) != 0 || !this.fish.isInWater() || this.fish.getTarget() != null) {
+                return false;
+            }
+            Vec3 motion = this.fish.getDeltaMovement().multiply(1.0, 0.0, 1.0);
+            if (motion.lengthSqr() < 0.0025) {
+                return false;
+            }
+            Vec3 way = motion.normalize();
+            BlockPos at = this.fish.blockPosition();
+            BlockPos ahead = BlockPos.containing(this.fish.position().add(way.scale(3.0)));
+            return this.fish.level().getFluidState(at.above()).is(net.minecraft.tags.FluidTags.WATER)
+                    && this.fish.level().getBlockState(at.above(2)).isAir()
+                    && this.fish.level().getFluidState(ahead).is(net.minecraft.tags.FluidTags.WATER)
+                    && this.fish.level().getBlockState(ahead.above(2)).isAir();
         }
 
         @Override
         public void start() {
-            this.turn();
+            Vec3 way = this.fish.getDeltaMovement().multiply(1.0, 0.0, 1.0).normalize();
+            this.fish.setDeltaMovement(way.x * 0.6, 0.7, way.z * 0.6);
+            this.fish.getNavigation().stop();
+            this.out = false;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            Vec3 motion = this.fish.getDeltaMovement();
+            return !(motion.y * motion.y < 0.03 && this.fish.getXRot() != 0.0F && Math.abs(this.fish.getXRot()) < 10.0F && this.fish.isInWater())
+                    && !this.fish.onGround();
+        }
+
+        @Override
+        public boolean isInterruptable() {
+            return false;
         }
 
         @Override
         public void stop() {
-            this.fish.getNavigation().stop();
-        }
-
-        private void turn() {
-            double angle = this.fish.getRandom().nextDouble() * Math.PI * 2.0;
-            this.heading = new Vec3(Math.cos(angle), (this.fish.getRandom().nextDouble() - 0.5) * 0.2, Math.sin(angle)).normalize();
-            this.left = DreadFishRules.CRUISE_MIN_TICKS + this.fish.getRandom().nextInt(DreadFishRules.CRUISE_MAX_TICKS - DreadFishRules.CRUISE_MIN_TICKS + 1);
+            this.fish.setXRot(0.0F);
         }
 
         @Override
         public void tick() {
-            if (--this.left <= 0 || this.fish.horizontalCollision) {
-                this.turn();
+            boolean wet = this.fish.isInWater();
+            if (this.out != !wet) {
+                this.out = !wet;
+                this.fish.playSound(SoundEvents.DOLPHIN_JUMP, 1.0F, 0.7F);
             }
-            Vec3 ahead = this.fish.position().add(this.heading.scale(3.0));
-            BlockPos at = BlockPos.containing(ahead);
-            if (!this.fish.level().getFluidState(at).is(net.minecraft.tags.FluidTags.WATER)) {
-                // Water ends that way (the bank, the bottom, the surface): another heading.
-                this.turn();
-                return;
+            Vec3 motion = this.fish.getDeltaMovement();
+            if (motion.y * motion.y < 0.03 && this.fish.getXRot() != 0.0F) {
+                this.fish.setXRot(Mth.rotLerp(0.2F, this.fish.getXRot(), 0.0F));
+            } else if (motion.length() > 1e-5) {
+                double flat = motion.horizontalDistance();
+                this.fish.setXRot((float) (Math.atan2(-motion.y, flat) * Mth.RAD_TO_DEG));
             }
-            this.fish.getMoveControl().setWantedPosition(ahead.x, ahead.y, ahead.z, DreadFishRules.CRUISE_SPEED);
         }
     }
 
