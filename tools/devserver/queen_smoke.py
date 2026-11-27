@@ -784,6 +784,39 @@ def main():
     clear_court()
     rcon.run("kill @e[type=item]")
 
+    # The wild Dread swarm (0.94.0): a wild thrall fighting a 100-health pig calls in two idle ones 13 and 18 off behind a
+    # wall (they can't see it), not one 28 off (the pad stretched to x 30 for it, inside the forceloaded chunks); three wild thralls all on one pig (10 health: room for one) with two more
+    # pigs near split one to each. (Probed by hand on the dev server first: both, within 2.5 s and 0.5 s.)
+    def swarm_target(tag):
+        m = re.search(r"\[I; (-?\d+)", rcon.run(f"execute as @e[tag={tag},limit=1] on target run data get entity @s UUID"))
+        return m.group(1) if m else None
+
+    tough = 'NoAI:1b,PersistenceRequired:1b,active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]'
+    rcon.run("fill 16 199 1 30 199 14 minecraft:stone")
+    rcon.run("fill 8 200 1 8 205 14 minecraft:stone")
+    rcon.run(f'summon minecraft:pig 2.5 200 2.5 {{{tough},Health:100f,attributes:[{{id:"minecraft:generic.max_health",base:100}}],UUID:[I;41,41,41,41],Tags:["smoke_prey"]}}')
+    for tag, x, z in (("smoke_swarm_a", 4.5, 2.5), ("smoke_swarm_b", 17.5, 2.5), ("smoke_swarm_c", 22.5, 2.5), ("smoke_swarm_far", 30.5, 13.5)):
+        rcon.run(f'summon iceandfire:dread_thrall {x} 200 {z} {{PersistenceRequired:1b,Tags:["{tag}","smoke_swarm"]}}')
+    rcon.run("damage @e[tag=smoke_swarm_a,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_prey,limit=1]")
+    time.sleep(3.0)
+    called = [swarm_target(t) for t in ("smoke_swarm_b", "smoke_swarm_c")]
+    record("the wild Dread near a fight join it, even out of sight of it (0.94.0)", called == ["41", "41"], f"their targets: {called}")
+    record("but not one far off", swarm_target("smoke_swarm_far") is None, f"its target: {swarm_target('smoke_swarm_far')}")
+    rcon.run("kill @e[tag=smoke_swarm]")
+    rcon.run("kill @e[tag=smoke_prey]")
+    rcon.run("fill 8 200 1 8 205 14 minecraft:air")
+    rcon.run("fill 16 199 1 30 199 14 minecraft:air")
+    for i, (x, z) in enumerate([(2.5, 2.5), (2.5, 8.5), (8.5, 2.5)]):
+        rcon.run(f'summon minecraft:pig {x} 200 {z} {{{tough},UUID:[I;{51 + i},{51 + i},{51 + i},{51 + i}],Tags:["smoke_prey"]}}')
+    for i in range(3):
+        rcon.run(f'summon iceandfire:dread_thrall 4.5 200 4.5 {{PersistenceRequired:1b,Tags:["smoke_swarm_{i}","smoke_swarm"]}}')
+        rcon.run(f"damage @e[tag=smoke_swarm_{i},limit=1] 1 minecraft:mob_attack by @e[tag=smoke_prey,limit=1]")
+    time.sleep(2.5)
+    split = sorted(str(swarm_target(f"smoke_swarm_{i}")) for i in range(3))
+    record("three on one pig with room for one split over the three pigs", split == ["51", "52", "53"], f"their targets: {split}")
+    rcon.run("kill @e[tag=smoke_swarm]")
+    rcon.run("kill @e[tag=smoke_prey]")
+
     # Sovereign's Eclipse, Syndrigossa's 16-block crown (summoned as hers, 3 s long): it slows heavily
     # rather than roots and keeps Withering Rime on a golem inside it, spares a dread thrall inside it,
     # isn't shattered by a Withering Rime-Bolt, and is gone when its time is up.
