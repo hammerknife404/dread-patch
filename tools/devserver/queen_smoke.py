@@ -758,6 +758,32 @@ def main():
     clear_court()
     rcon.run("kill @e[type=item]")
 
+    # Her court spreads out (0.91.0): four thralls of hers among five chickens (Resistance V, so none dies) go for
+    # at least three of them, not all for one (at most one each, a chicken having 4 health).
+    rcon.run('summon dreadpatch:dread_queen 8.5 200 13.5 {UUID:[I;9,9,9,9],Tags:["smoke_queen"]}')
+    for i in range(5):
+        rcon.run(f'summon minecraft:chicken {2.5 + i * 2.5} 200 3.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_prey"],'
+                 'active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+    for i in range(4):
+        rcon.run(f'summon iceandfire:dread_thrall {6.5 + i} 200 7.5 {{CommanderUUID:[I;9,9,9,9],Tags:["smoke_court"]}}')
+    time.sleep(5.0)
+    rcon.run("execute as @e[tag=smoke_court] on target run tag @s add smoke_hunted")
+    hunted = re.search(r"count: (\d+)", rcon.run("execute if entity @e[tag=smoke_hunted]"))
+    record("her court spreads over the chickens, not all on one", hunted is not None and int(hunted.group(1)) >= 3,
+           f"{hunted and hunted.group(1)} chickens hunted by her 4 thralls")
+    for tag in ("smoke_queen", "smoke_prey", "smoke_court"):
+        rcon.run(f"kill @e[tag={tag}]")
+    # With nothing to fight, one of her court more than 12 blocks off walks lazily back toward her.
+    rcon.run('summon dreadpatch:dread_queen 1.5 200 7.5 {UUID:[I;9,9,9,9],Tags:["smoke_queen"]}')
+    rcon.run('summon iceandfire:dread_thrall 14.5 200 7.5 {CommanderUUID:[I;9,9,9,9],Tags:["smoke_court"]}')
+    time.sleep(5.0)
+    x = re.search(r"([0-9.]+)d", rcon.run("data get entity @e[tag=smoke_court,limit=1] Pos[0]"))
+    record("her idle court follows her back", x is not None and float(x.group(1)) < 12.0, f"thrall at x {x and x.group(1)}, from 14.5 (her at 1.5)")
+    for tag in ("smoke_queen", "smoke_court"):
+        rcon.run(f"kill @e[tag={tag}]")
+    clear_court()
+    rcon.run("kill @e[type=item]")
+
     # Sovereign's Eclipse, Syndrigossa's 16-block crown (summoned as hers, 3 s long): it slows heavily
     # rather than roots and keeps Withering Rime on a golem inside it, spares a dread thrall inside it,
     # isn't shattered by a Withering Rime-Bolt, and is gone when its time is up.
