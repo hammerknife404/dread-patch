@@ -21,6 +21,12 @@ Her spells (levels 1–5; Create Rimefrost Dragon and Summon Dread Phantoms have
 - **Dread Liches:** a NeoForge `add_table` loot modifier (`loot_modifiers/dread_lich_sublimate`, listed in `data/neoforge/loot_modifiers/global_loot_modifiers.json`) on `iceandfire:entities/dread_lich`, when killed by a player, rolls `entities/dread_lich_sublimate`: a scroll of it at 10%, quality 0.2-0.7. Liches don't cast it (Ice and Fire's AI); left for later.
 - Icon: `make_icons.py`'s `sublimate()`. Death message `death.attack.dreadpatch.sublimate` (and `.item`); tooltip line `ui.dreadpatch.rimefrost_seconds`.
 
+**Summon Dread Fish** (`spell/SummonDreadFishSpell`, `magic/SummonRules`, `SummonedCourt.raiseFishSpell`; 0.93.0)
+- **The owner:** "create a summon dread fish/alpha scroll & spell. Craftable, summons 1 - 5 pending rank. Lantern variants and spawn rate are kapt the same."
+- **The spell:** instant, levels 1-5, one fish a level, 60 s cooldown, mana 30 + 10/level, lasting a minute (`SummonRules.FISH_SPELL_SECONDS`). `setMinRarity(COMMON)` and `setAllowCrafting(true)`: Iron's Scroll Forge makes it (dread shard focus, from common ink); `allowLooting()` false; in her loot's and the summit chest's lists. Icon from `make_icons.py` (`summon_dread_fish`).
+- **The fish:** each rises (`SummonedCourt.raiseFish`) in water within 6 across and 3 up or down of the caster if a random probe finds some it fits (`findWater`, 24 tries), else on the ground as a court does (`DreadCourt.findSpot`); through `EventHooks.finalizeMobSpawn`, so `DreadFish.finalizeSpawn` rolls its size (alphas, Rime Wyrms) and lantern as a wild one's. Marked `dreadpatch:risen_by` (the caster) and `court_expires`, kept till then. A recast dismisses the caster's last ones.
+- **A summoned court's** (`SummonedCourt.isMember` counts a Dread Fish since 0.93.0, its commander its `risen_by`): the court's terms, protection and expiry; on joining, its own targeting replaced by Iron's owner goals (what hurts its caster, what its caster hurts, its caster's target, revenge, protection) and Iron's follow goal (at 3, 15 out to 5, never teleported).
+
 **Death messages:** a spell's damage source (`getDamageSource`) dies as `death.attack.<spell id>` (Iron's `SpellDamageSource`: victim, then caster). The bolt's (also used by Beater's Decree) and the crown's (its shards) are in our lang, from 0.33.1; until then a death showed the raw key.
 
 **Withering Rime-Bolt** (`entity/WitheringRimeBolt`, `spell/WitheringRimeBoltSpell`)

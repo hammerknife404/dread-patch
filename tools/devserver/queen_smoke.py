@@ -94,7 +94,7 @@ def main():
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
                   "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms",
-                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate"}
+                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate", "dreadpatch:summon_dread_fish"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -1315,6 +1315,43 @@ def main():
     time.sleep(1.5)
     n = phantoms_of_caster()
     record("their time up, they go", n == 0, f"{n} still standing")
+
+    # Summon Dread Fish (0.93.0), cast by the same villager: one a level, answering to it (risen_by), a summoned court's;
+    # its caster can't hurt one; a husk that hurts the caster they bite; a recast at 5 replaces them with 5; their time
+    # up, they go.
+    def fish_of_caster():
+        m = re.search(r"count: (\d+)", rcon.run('execute if entity @e[type=dreadpatch:dread_fish,nbt={NeoForgeData:{"dreadpatch:risen_by":[I;7,7,7,7]}}]'))
+        return int(m.group(1)) if m else 0
+
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_dread_fish 3")
+    time.sleep(0.5)
+    n = fish_of_caster()
+    record("Summon Dread Fish at 3 summons 3, answering to its caster (0.93.0)", n == 3, f"{n} summoned")
+    marked = "Test passed" in rcon.run('execute as @e[type=dreadpatch:dread_fish,nbt={NeoForgeData:{"dreadpatch:risen_by":[I;7,7,7,7]}},limit=1] '
+                                      'if data entity @s NeoForgeData."dreadpatch:court_expires"')
+    record("they're a summoned court's, with a time to go", marked, "no court_expires on them")
+    rcon.run('tag @e[type=dreadpatch:dread_fish,nbt={NeoForgeData:{"dreadpatch:risen_by":[I;7,7,7,7]}},limit=1] add smoke_member_fish')
+    out = rcon.run("damage @e[tag=smoke_member_fish,limit=1] 4 minecraft:mob_attack by @e[tag=smoke_caster,limit=1]")
+    record("its caster can't hurt one", "Applied" not in out, out.strip())
+    rcon.run('summon minecraft:husk 9.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_zombie"]}')
+    rcon.run("damage @e[tag=smoke_caster,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_zombie,limit=1]")
+    bitten = False
+    for _ in range(40):
+        time.sleep(0.5)
+        if health("@e[tag=smoke_zombie,limit=1]") < 20.0:
+            bitten = True
+            break
+    record("they bite a hostile mob that hurts their caster", bitten, "the husk was untouched 20 s after it hit the caster")
+    rcon.run("kill @e[tag=smoke_zombie]")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_dread_fish 5")
+    time.sleep(0.5)
+    n = fish_of_caster()
+    record("a new cast at 5 replaces the last with 5", n == 5, f"{n} standing")
+    rcon.run('execute as @e[type=dreadpatch:dread_fish,nbt={NeoForgeData:{"dreadpatch:risen_by":[I;7,7,7,7]}}] run data merge entity @s {NeoForgeData:{"dreadpatch:court_expires":0L}}')
+    time.sleep(1.5)
+    n = fish_of_caster()
+    record("their time up, the fish go", n == 0, f"{n} still standing")
+    rcon.run("kill @e[type=item]")
     rcon.run("kill @e[tag=smoke_caster]")
 
     # A Dread Lich calls them too (its countdown set short): 1-2, answering to it, at the golem it fights.

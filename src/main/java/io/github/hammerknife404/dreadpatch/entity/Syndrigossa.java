@@ -51,6 +51,8 @@ public class Syndrigossa extends RimefrostDragon {
     static final int ECLIPSE_MIN_STAGE = 3;
 
     private int eclipseCooldown = 200;
+    /** Her Dread Fish and dread beasts (0.93.0). */
+    private final SyndrigossaSummons summons = new SyndrigossaSummons(this);
 
     /** Saved, and what makes a summon or a spawn egg's entity data ancient ({@code Ancient:1b}). */
     public static final String ANCIENT_KEY = "Ancient";
@@ -342,6 +344,9 @@ public class Syndrigossa extends RimefrostDragon {
         }
         if (this.level().isClientSide || !this.isAlive() || this.isModelDead()) {
             return;
+        }
+        if (!this.isTame() && !this.isNoAi() && this.level() instanceof ServerLevel server) {
+            this.summons.tick(server, this.getTarget());
         }
         if (this.eclipseCooldown > 0) {
             this.eclipseCooldown--;
