@@ -270,22 +270,25 @@ public final class SummonedCourt {
         return raised;
     }
 
-    /** Water within {@link SummonRules#WATER_REACH} across and {@link SummonRules#WATER_DEPTH} up or down of {@code center} that {@code fish} fits in, or null. */
+    /**
+     * Water within {@link SummonRules#WATER_REACH} across and {@link SummonRules#WATER_DEPTH} up or down of {@code center} that
+     * {@code fish} fits in, a random one of them, or null. Every block in reach is looked at (13 × 7 × 13): until the smoke
+     * test of 0.97.4, 24 random tries, which missed a small pool more often than not.
+     */
     @Nullable
     static Vec3 findWater(ServerLevel level, Vec3 center, RandomSource random, Mob fish) {
-        for (int attempt = 0; attempt < 24; attempt++) {
-            BlockPos at = BlockPos.containing(center.x + random.nextInt(2 * SummonRules.WATER_REACH + 1) - SummonRules.WATER_REACH,
-                    center.y + random.nextInt(2 * SummonRules.WATER_DEPTH + 1) - SummonRules.WATER_DEPTH,
-                    center.z + random.nextInt(2 * SummonRules.WATER_REACH + 1) - SummonRules.WATER_REACH);
-            if (!level.getFluidState(at).is(FluidTags.WATER)) {
-                continue;
-            }
-            Vec3 spot = Vec3.atBottomCenterOf(at);
-            if (level.noCollision(fish, fish.getType().getSpawnAABB(spot.x, spot.y, spot.z))) {
-                return spot;
+        List<Vec3> spots = new ArrayList<>();
+        BlockPos middle = BlockPos.containing(center);
+        for (BlockPos at : BlockPos.betweenClosed(middle.offset(-SummonRules.WATER_REACH, -SummonRules.WATER_DEPTH, -SummonRules.WATER_REACH),
+                middle.offset(SummonRules.WATER_REACH, SummonRules.WATER_DEPTH, SummonRules.WATER_REACH))) {
+            if (level.getFluidState(at).is(FluidTags.WATER)) {
+                Vec3 spot = Vec3.atBottomCenterOf(at);
+                if (level.noCollision(fish, fish.getType().getSpawnAABB(spot.x, spot.y, spot.z))) {
+                    spots.add(spot);
+                }
             }
         }
-        return null;
+        return spots.isEmpty() ? null : spots.get(random.nextInt(spots.size()));
     }
 
     /** Sends back every court member of {@code kind} {@code caster} raised in this level. */
