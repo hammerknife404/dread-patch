@@ -1085,6 +1085,14 @@ def main():
           "execute if items entity @e[tag=smoke_lich_staff,limit=1] weapon.mainhand iceandfire:lich_staff[irons_spellbooks:spell_container]",
           "Test passed")
     rcon.run("kill @e[tag=smoke_lich_staff]")
+    # 0.89.0: the overworld's dread weather starts and stops by command (it reaches only where its switches let it; with
+    # no player near, its snow, cold and rising aren't seen here).
+    rcon.run("dreadpatch config dread_weather_anywhere true")
+    check("a dread storm starts over the overworld", "dreadpatch dreadweather start", "dread storm over the overworld")
+    time.sleep(3.0)
+    check("and stops", "dreadpatch dreadweather stop", "dread storm is over")
+    rcon.run("dreadpatch config dread_weather_anywhere false")
+    rcon.run("weather clear")
     # 0.88.0: the Dreadlands' village chests (Lootr's too) hold a dread key a fifth of the time; the overworld's don't.
     # One roll at a time: @e reaches every dimension, and dropped items merge.
     def key_rolls(dim, n):

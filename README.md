@@ -80,6 +80,18 @@ Her own armour, to wear, and what she wears herself: the **Crown**, **Bodice**, 
 - **Round the Mausoleums:** once a Dread Queen has been defeated in a world (her death by anything but `/kill`, wherever she falls), the Dread rise for good round Ice and Fire's Mausoleums as they do in the Dreadlands on a clear day, and patrols cross there: within 128 blocks of one, in cold and snowy biomes, on snow, ice or dreadstone, never in a village. Everyone is told the first time. Off with `mausoleum_dread` at 0.
 - **The defeat storm:** each defeat brings a dry storm over the cold lands for 30 to 60 seconds, then none for 6 real hours (`defeat_storm_hours`), whoever defeats her: out under the sky in a cold or snowy biome (or anywhere, with `defeat_storm_cold_only` off), an ash-grey fog closes in to about 48 blocks, rime blows along the ground, the Dreadlands' wind moans and its ice cracks, and a mild Rimefrost (10% slower) settles on you. No snow falls, nothing is hurt, frozen or raised, and sleeping doesn't end it. Get under a roof and it lifts; her full regalia keeps the Rimefrost off, and her crown the fog.
 
+
+### Dread weather in the overworld
+
+Off by default: two settings turn it on (`dread_weather_cold` for the cold and snowy biomes, `dread_weather_anywhere` for any). Then one overworld rain in three (`dread_weather_one_in`) is a dread storm, for as long as it rains:
+
+- **It looks like the Dreadlands' snow:** the fog closes in (thicker in thunder), snow blows along the ground, and in thunder Rime Lightning strikes and leaves rimefire.
+- **It chills:** Rimefrost I under the open sky, II in thunder, eased a step by her full regalia. It never hurts, as her Whiteout Dominion does.
+- **It snows:** snow layers settle round you, and melt away once it's over.
+- **The Dread come with it:** in the cold as in the Dreadlands; elsewhere one or two of the lesser Dread now and then (thralls, ghouls, scuttlers, beasts).
+- **The hot lands** (deserts, savannas, badlands, jungles) see only one dread storm in three.
+- **As it reaches you,** one of ten warnings fades in and out in rimefrost colours: "The Dread Queen's shadow falls as the heat fades...", "A dead winter approaches on Syndrigossa's wings..." and others.
+- **The Nether and the End** are never touched. `/dreadpatch dreadweather start` and `stop` call one up or end it.
 ## The Dread Gate and the Gravemaster's Key
 
 1. Build a frame of Ice and Fire's dreadstone (any of its stone, bricks, tiles or chiseled skulls) round an opening 2 to 21 blocks wide and 3 to 21 tall, as a Nether portal's can be. The corners can be left out.
@@ -283,6 +295,7 @@ For operators and the server console, under `/dreadpatch`:
 | `/dreadpatch dreadlands home [players]` | Sends players in the Dreadlands home again. |
 | `/dreadpatch dreadlands arrival [x z]` | Where a gate there (or where you stand) would set someone down in the Dreadlands, and how far that is from the nearest spire. Arrivals are random, so each try may differ. |
 | `/dreadpatch escalation [storm [seconds] \| reset]` | Whether a Dread Queen has been defeated in this world (so the Dread stir round the Mausoleums) and the defeat storm: on, waiting, or due; `storm` brings one now (30-60 s, or the seconds given), whatever the wait; `reset` forgets every defeat and the storm. |
+| `/dreadpatch dreadweather start\|stop` | A dread storm over the overworld now (it starts the rain), or its end. It reaches only where the `dread_weather` settings let it. |
 | `/dreadpatch config [setting [value]]` | Lists every Dread Patch setting, shows one, or sets one (saved to `config/dreadpatch-server.toml`, applied at once). |
 | `/dreadpatch patrol [pos]` | Raises a Dread patrol there (a dread knight leading 2 to 4 more). |
 | `/dreadpatch rise [count] [pos]` | Raises 1 to 8 of the Dread there (3 by default). |

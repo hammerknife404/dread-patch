@@ -88,6 +88,9 @@ public final class DreadCommands {
                                 .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 3600))
                                         .executes(context -> defeatStorm(context, IntegerArgumentType.getInteger(context, "seconds")))))
                         .then(Commands.literal("reset").executes(DreadCommands::resetEscalation)))
+                .then(Commands.literal("dreadweather")
+                        .then(Commands.literal("start").executes(context -> dreadWeather(context, true)))
+                        .then(Commands.literal("stop").executes(context -> dreadWeather(context, false))))
                 .then(Commands.literal("config")
                         .executes(DreadCommands::listConfig)
                         .then(Commands.argument("setting", StringArgumentType.word())
@@ -297,5 +300,23 @@ public final class DreadCommands {
             context.getSource().sendSuccess(() -> Component.translatable("commands.dreadpatch.rise.done", raised), true);
         }
         return raised;
+    }
+
+    /**
+     * The overworld's dread weather (0.89.0), started or stopped now; starting sets it raining (as {@code /weather rain})
+     * and works whatever the config's switches, though it only reaches where they let it.
+     */
+    private static int dreadWeather(com.mojang.brigadier.context.CommandContext<CommandSourceStack> context, boolean start) {
+        net.minecraft.server.level.ServerLevel overworld = context.getSource().getServer().overworld();
+        if (start) {
+            overworld.setWeatherParameters(0, 6000, true, false);
+            io.github.hammerknife404.dreadpatch.world.DreadWeather.start(overworld,
+                    io.github.hammerknife404.dreadpatch.world.DreadlandsData.get(context.getSource().getServer()));
+        } else {
+            io.github.hammerknife404.dreadpatch.world.DreadWeather.stop(overworld);
+        }
+        context.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.translatable(
+                start ? "commands.dreadpatch.dreadweather.started" : "commands.dreadpatch.dreadweather.stopped"), true);
+        return 1;
     }
 }

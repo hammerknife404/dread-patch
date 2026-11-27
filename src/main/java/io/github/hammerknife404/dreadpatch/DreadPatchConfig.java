@@ -39,6 +39,9 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.ConfigValue<List<? extends String>> INFECTION_MODS;
     private static final ModConfigSpec.DoubleValue DEFEAT_STORM_HOURS;
     private static final ModConfigSpec.BooleanValue DEFEAT_STORM_COLD_ONLY;
+    private static final ModConfigSpec.BooleanValue DREAD_WEATHER_COLD;
+    private static final ModConfigSpec.BooleanValue DREAD_WEATHER_ANYWHERE;
+    private static final ModConfigSpec.IntValue DREAD_WEATHER_ONE_IN;
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
     private static final ModConfigSpec.IntValue WHITEOUT_STORMS;
@@ -106,6 +109,16 @@ public final class DreadPatchConfig {
                 .defineInRange("defeat_storm_hours", EscalationRules.DEFAULT_STORM_HOURS, 0.0, 8760.0);
         DEFEAT_STORM_COLD_ONLY = builder.comment("Whether it reaches only players in cold and snowy biomes (off: everyone in the overworld under the sky).")
                 .define("defeat_storm_cold_only", true);
+        builder.pop();
+        builder.comment("The Dread's weather in the overworld: some of its rains turned dread storms (the Dreadlands' fog and snow, Rime",
+                "Lightning, snow layers that melt after, the Dread rising; no damage). Never in the Nether or the End.").push("dread_weather");
+        DREAD_WEATHER_COLD = builder.comment("Dread storms over the overworld's cold and snowy biomes.")
+                .define("dread_weather_cold", false);
+        DREAD_WEATHER_ANYWHERE = builder.comment("Dread storms over any overworld biome (the hot lands only one storm in three): the cold get the Dread",
+                "as the Dreadlands do, the rest one or two of the lesser Dread now and then.")
+                .define("dread_weather_anywhere", false);
+        DREAD_WEATHER_ONE_IN = builder.comment("With either on, one overworld rain in this many is a dread storm, for as long as it rains.")
+                .defineInRange("dread_weather_one_in", io.github.hammerknife404.dreadpatch.magic.DreadWeatherRules.STORM_ONE_IN, 1, 1000);
         builder.pop();
         builder.comment("Risen Dread: bats, parrots and water creatures the Dread raise, and those stirring on their own; and Dread Fish.").push("risen");
         CAVE_PHANTOMS = builder.comment("Risen Dread stirring on their own, in the overworld and the Dreadlands: each player has a one-in-this chance",
@@ -208,6 +221,18 @@ public final class DreadPatchConfig {
 
     public static int darkWaterFishOneIn() {
         return SPEC.isLoaded() ? DARK_WATER_EELS.get() : DreadFishRules.DARK_WATER_ONE_IN;
+    }
+
+    public static boolean dreadWeatherCold() {
+        return SPEC.isLoaded() && DREAD_WEATHER_COLD.get();
+    }
+
+    public static boolean dreadWeatherAnywhere() {
+        return SPEC.isLoaded() && DREAD_WEATHER_ANYWHERE.get();
+    }
+
+    public static int dreadWeatherOneIn() {
+        return SPEC.isLoaded() ? DREAD_WEATHER_ONE_IN.get() : io.github.hammerknife404.dreadpatch.magic.DreadWeatherRules.STORM_ONE_IN;
     }
 
     /** The mods (by id) whose effects the Dread refuse: infection mods. */

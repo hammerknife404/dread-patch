@@ -106,6 +106,7 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.world.DreadlandsUndead.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadwoodSaplings.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.Escalation.register(modBus, NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.world.DreadWeather.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.RisenDread.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.RisenSpawns.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadCold.register(NeoForge.EVENT_BUS);

@@ -72,5 +72,17 @@ Her own armour, to wear, and what she wears herself: the **Crown**, **Bodice**, 
 - **Round the Mausoleums:** once a Dread Queen has been defeated in a world (her death by anything but `/kill`, wherever she falls), the Dread rise for good round Ice and Fire's Mausoleums as they do in the Dreadlands on a clear day, and patrols cross there: within 128 blocks of one, in cold and snowy biomes, on snow, ice or dreadstone, never in a village. Everyone is told the first time. Off with `mausoleum_dread` at 0.
 - **The defeat storm:** each defeat brings a dry storm over the cold lands for 30 to 60 seconds, then none for 6 real hours (`defeat_storm_hours`), whoever defeats her: out under the sky in a cold or snowy biome (or anywhere, with `defeat_storm_cold_only` off), an ash-grey fog closes in to about 48 blocks, rime blows along the ground, the Dreadlands' wind moans and its ice cracks, and a mild Rimefrost (10% slower) settles on you. No snow falls, nothing is hurt, frozen or raised, and sleeping doesn't end it. Get under a roof and it lifts; her full regalia keeps the Rimefrost off, and her crown the fog.
 
+## Dread weather in the overworld
+
+Off by default: two settings turn it on (`dread_weather_cold` for the cold and snowy biomes, `dread_weather_anywhere` for any). Then one overworld rain in three (`dread_weather_one_in`) is a dread storm, for as long as it rains:
+
+- **It looks like the Dreadlands' snow:** the fog closes in (thicker in thunder), snow blows along the ground, and in thunder Rime Lightning strikes and leaves rimefire.
+- **It chills:** Rimefrost I under the open sky, II in thunder, eased a step by her full regalia. It never hurts, as her Whiteout Dominion does.
+- **It snows:** snow layers settle round you, and melt away once it's over.
+- **The Dread come with it:** in the cold as in the Dreadlands; elsewhere one or two of the lesser Dread now and then (thralls, ghouls, scuttlers, beasts).
+- **The hot lands** (deserts, savannas, badlands, jungles) see only one dread storm in three.
+- **As it reaches you,** one of ten warnings fades in and out in rimefrost colours: "The Dread Queen's shadow falls as the heat fades...", "A dead winter approaches on Syndrigossa's wings..." and others.
+- **The Nether and the End** are never touched. `/dreadpatch dreadweather start` and `stop` call one up or end it.
+
 ---
 *Kept in step with the mod's [README](https://github.com/hammerknife404/dread-patch#readme); edits go in `docs/wiki/` in the repository.*
