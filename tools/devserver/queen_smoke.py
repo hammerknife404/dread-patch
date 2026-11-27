@@ -1835,8 +1835,10 @@ def main():
                 if y is not None:
                     glacial_tops.append((x, y, z))
     high = [t for t in glacial_tops if t[1] >= 170]
-    record("the Glacial Plains stand up to about y 200", len(glacial_tops) >= 6 and len(high) >= len(glacial_tops) // 2
-           and all(t[1] <= 235 for t in glacial_tops), f"tops {[(t[0], t[1], t[2]) for t in glacial_tops]} from {m and m.group(0)}")
+    # Capped at 187 since 0.90.0 (spires on it reach higher: none past 235).
+    median = sorted(t[1] for t in glacial_tops)[len(glacial_tops) // 2] if glacial_tops else 0
+    record("the Glacial Plains stand up to about y 187", len(glacial_tops) >= 6 and len(high) >= len(glacial_tops) // 2
+           and median <= 188 and all(t[1] <= 235 for t in glacial_tops), f"median {median}, tops {[(t[0], t[1], t[2]) for t in glacial_tops]} from {m and m.group(0)}")
     ice = "#minecraft:ice"
     # A spire stands on the glacier now and then (its bricks, tiles, bones and torches): not the glacier's surface.
     spire = ("iceandfire:dread_stone_bricks", "iceandfire:dread_stone_bricks_cracked", "iceandfire:dread_stone_bricks_chiseled",
