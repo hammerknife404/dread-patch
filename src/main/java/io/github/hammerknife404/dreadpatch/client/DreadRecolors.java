@@ -178,12 +178,16 @@ public final class DreadRecolors {
 
     /**
      * Dread dragonsteel dragon armour on a dragon (0.84.4; 0.84.0's blacksteel armour's way): Ice and Fire draws a
-     * dragon's armour from {@code iceandfire:textures/entity/dragon_armor/armor_<part>_<material>.png}, so ours is made
-     * under that name (from its ice dragonsteel's, recoloured as the rest of the steel) the first time a dragon is drawn,
-     * before its armour layer looks.
+     * dragon's armour from {@code iceandfire:textures/entity/dragon_armor/armor_<part>_<material>.png}, each piece a
+     * second pass of the whole dragon in it (its clear pixels letting the dragon show), so ours is made under that name
+     * (from its ice dragonsteel's, recoloured as the rest of the steel). Made on the first client tick with a world, and
+     * again after a resource reload. Until 0.94.1 it waited for a dragon's {@code RenderLivingEvent}, which Ice and Fire's
+     * GeckoLib renderer never fires: it was never made, and a dragon in it was drawn wholly in the missing texture (the
+     * owner, at a Rimefrost dragon in its screen: "the dread dragonsteel dragon armor breaks the rimefrost dragons
+     * textures").
      */
-    static void dragonArmor(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
-        if (dragonArmorMade || !(event.getEntity() instanceof com.iafenvoy.iceandfire.entity.DragonBaseEntity)) {
+    static void dragonArmor(net.neoforged.neoforge.client.event.ClientTickEvent.Post event) {
+        if (dragonArmorMade || Minecraft.getInstance().level == null) {
             return;
         }
         dragonArmorMade = true;
