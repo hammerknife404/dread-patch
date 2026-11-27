@@ -851,6 +851,48 @@ def main():
     if difficulty_was:
         rcon.run("difficulty " + difficulty_was.group(1).lower())
 
+    # Her Rimewalk ice melts after her, whatever the light (0.97.2, the owner: it "no longer remove[s] itself"): at night
+    # in a thunderstorm (vanilla's frosted ice won't melt then), a queen on a pool freezes it; moved off, within 25 s
+    # it's water again. And villagers fear the Dread (0.97.2): one beside a NoAI thrall runs off. (Both probed by hand:
+    # 44 blocks of ice gone in 14 s; the villager 10 blocks off in 3 s.)
+    time_was = re.search(r"(\d+)", rcon.run("time query daytime"))
+    rcon.run("time set 18000")
+    rcon.run("weather thunder")
+    rcon.run("fill 16 199 0 28 199 12 minecraft:stone")
+    rcon.run("fill 16 200 0 28 206 12 minecraft:air")
+    rcon.run("fill 18 199 2 26 199 10 minecraft:water")
+    rcon.run('summon dreadpatch:dread_queen 22.5 201 6.5 {UUID:[I;71,71,71,71],Tags:["smoke_walk_q"]}')
+    time.sleep(3.0)
+    def pool_ice():
+        filled = re.search(r"filled (\d+)", rcon.run("fill 18 199 2 26 199 10 minecraft:sponge replace minecraft:frosted_ice"))
+        rcon.run("fill 18 199 2 26 199 10 minecraft:frosted_ice replace minecraft:sponge")
+        return int(filled.group(1)) if filled else 0
+    frozen = pool_ice()
+    rcon.run("tp @e[tag=smoke_walk_q] 22.5 230 40.5")
+    rcon.run("kill @e[tag=smoke_walk_q]")
+    left = frozen
+    for _ in range(25):
+        time.sleep(1.0)
+        left = pool_ice()
+        if left == 0:
+            break
+    record("her Rimewalk ice melts after her at night in a storm (0.97.2)", frozen > 0 and left == 0, f"{frozen} frozen, {left} left 25 s on")
+    rcon.run("weather clear")
+    if time_was:
+        rcon.run("time set " + time_was.group(1))
+    rcon.run("fill 16 199 0 28 206 12 minecraft:air")
+    clear_court()
+    rcon.run("fill 16 199 0 30 199 14 minecraft:stone")
+    rcon.run('summon minecraft:villager 22.5 200 7.5 {PersistenceRequired:1b,Tags:["smoke_fear_v"],active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+    time.sleep(1.0)
+    rcon.run('summon iceandfire:dread_thrall 19.5 200 7.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_fear_t"]}')
+    time.sleep(4.0)
+    fled = "Test passed" in rcon.run("execute as @e[tag=smoke_fear_t,limit=1] at @s unless entity @e[tag=smoke_fear_v,distance=..7]")
+    record("a villager runs from the Dread (0.97.2)", fled, "still within 7 of the thrall 4 s on")
+    rcon.run("kill @e[tag=smoke_fear_v]")
+    rcon.run("kill @e[tag=smoke_fear_t]")
+    rcon.run("fill 16 199 0 30 199 14 minecraft:air")
+
     # Potions of Rimefrost and Withering Rime (0.95.0): each splash, its own zombie 10 apart (a splash reaches 4), the
     # strong Rimefrost at II, the long Withering Rime longer than 45 s left; a thrall splashed takes neither.
     for i, (potion, tag) in enumerate((("strong_rimefrost", "smoke_pot_r"), ("long_withering_rime", "smoke_pot_w"))):
