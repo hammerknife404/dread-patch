@@ -40,7 +40,7 @@ class DreadRecolorTest {
 
     @Test
     void metalsKeepAlphaAndBrightnessOrder() {
-        for (DreadRecolor.Palette palette : new DreadRecolor.Palette[]{DreadRecolor.Palette.IRON, DreadRecolor.Palette.BLACKSTEEL}) {
+        for (DreadRecolor.Palette palette : new DreadRecolor.Palette[]{DreadRecolor.Palette.IRON}) {
             assertEquals(0x00123456, DreadRecolor.recolor(0x00123456, palette));
             assertEquals(0x80, DreadRecolor.recolor(0x80A0B0C0, palette) >>> 24);
             int last = -1;
@@ -50,8 +50,6 @@ class DreadRecolorTest {
                 last = light(out);
             }
         }
-        // Blacksteel stays dark: a mid grey comes out darker than iron's.
-        assertTrue(light(DreadRecolor.recolor(0xFF808080, DreadRecolor.Palette.BLACKSTEEL)) < light(DreadRecolor.recolor(0xFF808080, DreadRecolor.Palette.IRON)));
         assertEquals(DreadRecolor.recolor(0xFF6080A0), DreadRecolor.recolor(0xFF6080A0, DreadRecolor.Palette.DREAD));
     }
 }

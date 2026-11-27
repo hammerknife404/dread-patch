@@ -154,7 +154,6 @@ public final class DreadPatch {
             event.accept(DreadForge.SCALE_BLOCK_ITEM.get());
             io.github.hammerknife404.dreadpatch.registry.Dreadwood.items().forEach(item -> event.accept(item.get()));
             event.accept(io.github.hammerknife404.dreadpatch.registry.Hoard.IRON_PILE_ITEM.get());
-            event.accept(io.github.hammerknife404.dreadpatch.registry.Hoard.BLACKSTEEL_PILE_ITEM.get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModRegistries.SYNDRIGOSSA_EGG.get());
             event.accept(DreadGear.RIMEFROST_DRAGON_SCALE.get());
@@ -165,7 +164,6 @@ public final class DreadPatch {
             DreadGear.regalia().forEach(item -> event.accept(item.get()));
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SWORD.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
-            io.github.hammerknife404.dreadpatch.registry.Hoard.BLACKSTEEL_DRAGON_ARMOR.forEach(item -> event.accept(item.get()));
         } else if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_PICKAXE.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());

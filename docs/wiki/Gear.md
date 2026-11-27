@@ -10,7 +10,6 @@ Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon g
 - **Rimefrost dragonscale armour,** crafted from the scales like Ice and Fire's dragonscale armour.
 - **Dread dragonsteel armour, sword, axe, pickaxe, shovel and hoe,** crafted from the ingots (the tools on witherbone handles) like Ice and Fire's dragonsteel. Where ice dragonsteel freezes what it hits, dread dragonsteel leaves 3 seconds of Withering Rime.
 - **Against dragon breath,** each piece of either armour takes off as much as Ice and Fire's dragon armour does (10% helmet and boots, 30% chestplate, 20% leggings: 70% for a full set), against Ice and Fire's dragons and Rimefrost dragons alike. Ice and Fire's own dragonscale and dragonsteel armour now guards against Rimefrost breath too.
-- **Blacksteel dragon armour** (with L_Ender's Cataclysm): head, neck, body and tail pieces for any Ice and Fire dragon, crafted like its diamond dragon armour but from blocks of Cataclysm's blacksteel. It guards better than diamond and less than netherite (6 to their 5 and 7), and it's drawn dark blue-grey. Without Cataclysm it can't be crafted. More blacksteel things may come later.
 - **Against webs,** each piece of dread armour (Rimefrost dragonscale, dread dragonsteel or her regalia) takes an eighth of a web's hold off, half for a full set: cobwebs and the scuttlers' webs still slow you, just less. Powder snow and berry bushes hold as ever.
 
 ## The Rimefrost dragonforge

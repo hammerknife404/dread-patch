@@ -48,14 +48,12 @@ public final class DreadRecolor {
     }
 
     /**
-     * The hoard's metals (0.84.0), recoloured from Ice and Fire's silver pile and netherite dragon armour by brightness:
-     * iron's greys, and blacksteel's (Cataclysm's) near-black blue-greys, its brightness stretched (netherite's art is
-     * dark) so its edges still catch the light.
+     * The hoard's iron (0.84.0), recoloured from Ice and Fire's silver pile by brightness to iron's greys (0.84.0's
+     * blacksteel taken out in 0.84.2).
      */
     public enum Palette {
         DREAD(0, 0, 0, 0, 1.0),
-        IRON(0x3A3A3E, 0x6E6E72, 0xA8A8AC, 0xE6E6E8, 1.0),
-        BLACKSTEEL(0x0E0F14, 0x24262F, 0x454956, 0x7E8494, 1.7);
+        IRON(0x3A3A3E, 0x6E6E72, 0xA8A8AC, 0xE6E6E8, 1.0);
 
         final int[] stops;
         final double stretch;

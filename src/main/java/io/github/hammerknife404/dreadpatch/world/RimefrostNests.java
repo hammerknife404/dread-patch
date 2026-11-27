@@ -9,7 +9,6 @@ import io.github.hammerknife404.dreadpatch.magic.NestRules;
 import io.github.hammerknife404.dreadpatch.registry.Hoard;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
@@ -30,7 +29,7 @@ import java.util.List;
 
 /**
  * Wild Rimefrost dragons' nests on the Glacial Plains (0.84.0, {@link NestRules}): a bowl sunk in the glacier's top,
- * heaped with hoard piles (Ice and Fire's gold, silver and copper; our iron and blacksteel), ringed with ice shards and
+ * heaped with hoard piles (Ice and Fire's gold, silver and copper; our iron), ringed with ice shards and
  * old bones, its dragon on it (undead, it never sleeps: it keeps watch). Its dragon is made Ice and Fire's way with a
  * roost's: its home the nest, never aging, whole; wild, so it hunts players (as every untamed Rimefrost dragon does) and leaves the Dread be. Taking from a hoard
  * sets its dragon on the taker, wherever they are in its reach ({@link #onBreak}).
@@ -60,18 +59,12 @@ public final class RimefrostNests {
         }
     }
 
-    /** Whether there's any blacksteel to heap (Cataclysm's, through our tag). */
-    static boolean blacksteel() {
-        return BuiltInRegistries.ITEM.getTag(Hoard.BLACKSTEEL_NUGGETS).map(tag -> tag.size() > 0).orElse(false);
-    }
-
     static Block pile(NestRules.Metal metal) {
         return switch (metal) {
             case GOLD -> IafBlocks.GOLD_PILE.get();
             case SILVER -> IafBlocks.SILVER_PILE.get();
             case COPPER -> IafBlocks.COPPER_PILE.get();
             case IRON -> Hoard.IRON_PILE.get();
-            case BLACKSTEEL -> Hoard.BLACKSTEEL_PILE.get();
         };
     }
 
@@ -107,7 +100,6 @@ public final class RimefrostNests {
                 return false;  // the glacier's edge, or broken ice
             }
             int floor = origin.getY() - 1;  // the nest's middle's top block, before it's sunk
-            boolean blacksteel = blacksteel();
             BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
             for (int dx = -radius - 2; dx <= radius + 2; dx++) {
                 for (int dz = -radius - 2; dz <= radius + 2; dz++) {
@@ -125,7 +117,7 @@ public final class RimefrostNests {
                             level.setBlock(at.set(x, y, z), y == bed && random.nextInt(4) == 0 ? Blocks.BLUE_ICE.defaultBlockState()
                                     : Blocks.PACKED_ICE.defaultBlockState(), 2);
                         }
-                        Block pile = pile(NestRules.metal(random.nextDouble(), blacksteel));
+                        Block pile = pile(NestRules.metal(random.nextDouble()));
                         level.setBlock(at.set(x, bed + 1, z), pile.defaultBlockState()
                                 .setValue(PileBlock.LAYERS, NestRules.layers(d, radius, random.nextDouble())), 2);
                     } else if (d <= radius + 1.8 && random.nextInt(3) != 0) {

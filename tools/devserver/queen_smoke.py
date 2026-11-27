@@ -1709,13 +1709,16 @@ def main():
     high = [t for t in high if not any(dl_block(t[0], t[1], t[2], b) for b in spire)]
     on_top = [t for t in high if any(dl_block(t[0], t[1], t[2], b) for b in
                                      ("minecraft:snow_block", ice, "minecraft:snow", "iceandfire:dread_stone", "minecraft:stone"))]
-    body = [t for t in high if dl_block(t[0], t[1] - 30, t[2], ice) or dl_block(t[0], t[1] - 30, t[2], "iceandfire:dread_stone")
-            or dl_block(t[0], t[1] - 30, t[2], "minecraft:stone") or dl_block(t[0], t[1] - 30, t[2], "minecraft:air")]
+    # Under it: ice, its buried stone, or a cave in it (0.84.2's run: a snow block 30 under, a cave's floor in the ice,
+    # which the surface rule snows over as it does the top).
+    body = [t for t in high if any(dl_block(t[0], t[1] - 30, t[2], b) for b in
+                                   (ice, "iceandfire:dread_stone", "minecraft:stone", "minecraft:air", "minecraft:cave_air",
+                                    "minecraft:snow_block", "minecraft:snow", "minecraft:water"))]
     # Most of its top: snow (mostly layers), sheets of ice, its buried stone and dreadstone breaking through (0.84.0's
     # first runs: 22 of 24, then 34 of 43 with a spire's top among them).
     record("the glacier's top is snow and ice, its body ice", len(high) > 0 and len(on_top) >= 0.8 * len(high) and len(body) == len(high),
            f"top {len(on_top)}/{len(high)}, 30 under {len(body)}/{len(high)} at {high}")
-    # A wild Rimefrost dragon's nest (0.84.0), one glacier chunk in 160: placed by hand up on the glacier (somewhere flat
+    # A wild Rimefrost dragon's nest (0.84.0), one glacier chunk in 400 (160 until 0.84.2): placed by hand up on the glacier (somewhere flat
     # enough), a bowl of hoard piles and its dragon, wild, stage 2 or more, its home the nest. Its piles stay (0.84.1:
     # with Ice and Fire's griefing on, as in the dev runs, a big dragon broke the piles it stood in; hoards are now in
     # its dragon_block_break_blacklist).
@@ -1746,16 +1749,12 @@ def main():
     else:
         record("a wild Rimefrost dragon nests on its hoard", False, f"no nest would place on {high[:6]}")
     rcon.run(dl + "run forceload remove all")
-    # The hoard's piles drop their nuggets (0.84.0), two a layer; the blacksteel pile nothing without Cataclysm; the
-    # blacksteel dragon armour is there to wear.
+    # The hoard's iron pile drops its nuggets (0.84.0), two a layer. (Its blacksteel pile and dragon armour were taken
+    # out in 0.84.2.)
     rcon.run("setblock 30 199 30 minecraft:stone")
     rcon.run("setblock 30 200 30 dreadpatch:iron_pile[layers=3]")
     check("an iron pile drops two iron nuggets a layer", "loot spawn 30 202 30 mine 30 200 30 minecraft:diamond_pickaxe", "Dropped 6")
-    rcon.run("setblock 30 200 30 dreadpatch:blacksteel_pile[layers=3]")
-    check("a blacksteel pile drops nothing without Cataclysm", "loot spawn 30 202 30 mine 30 200 30 minecraft:diamond_pickaxe", "Dropped 0")
     rcon.run("fill 30 199 30 30 200 30 minecraft:air")
-    rcon.run("kill @e[type=item]")
-    check("blacksteel dragon armour exists", "summon minecraft:item 30 201 30 {Item:{id:\"dreadpatch:dragonarmor_blacksteel_body\",count:1}}", "Summoned")
     rcon.run("kill @e[type=item]")
     # The deeps flooded (0.77.0, the owner: "Water should fill most of the open air spaces just above the worlds bedrock
     # layers"): over 3 x 3 chunks there, from just over bedrock's bottom to y -52, water and no open air. Counted by

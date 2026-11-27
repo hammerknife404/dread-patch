@@ -1,6 +1,0 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "dreadpatch:item/dragonarmor_blacksteel_body"
-  }
-}

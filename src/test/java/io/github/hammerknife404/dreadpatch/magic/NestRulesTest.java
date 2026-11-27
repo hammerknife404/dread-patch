@@ -6,20 +6,18 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NestRulesTest {
     @Test
-    void everyMetalTurnsUpAndBlacksteelOnlyWithIt() {
+    void everyMetalTurnsUp() {
         Map<NestRules.Metal, Integer> seen = new EnumMap<>(NestRules.Metal.class);
         for (int i = 0; i < 1000; i++) {
-            seen.merge(NestRules.metal(i / 1000.0, true), 1, Integer::sum);
-            assertNotEquals(NestRules.Metal.BLACKSTEEL, NestRules.metal(i / 1000.0, false));
+            seen.merge(NestRules.metal(i / 1000.0), 1, Integer::sum);
         }
         assertEquals(NestRules.Metal.values().length, seen.size(), "each of them: " + seen);
-        assertEquals(120, seen.get(NestRules.Metal.BLACKSTEEL), 2);
-        assertEquals(NestRules.Metal.IRON, NestRules.metal(0.9999, false), "without blacksteel the last roll is iron");
+        assertEquals(340, seen.get(NestRules.Metal.GOLD), 2);
+        assertEquals(NestRules.Metal.IRON, NestRules.metal(0.9999));
     }
 
     @Test
