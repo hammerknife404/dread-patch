@@ -34,7 +34,8 @@ import java.util.WeakHashMap;
  * <ul>
  * <li>A Dread mob's melee hit that harms rolls what it leaves by its kind: scuttler, knight, or the
  * rest (Ice and Fire's thralls, ghouls, beasts, liches, and the risen). The queen, the Rimefrost dragons,
- * the phantoms and the Rime Eel keep their own.</li>
+ * the phantoms and the Dread Fish keep their own, but for the phantoms, which lay Rimefrost a third of the time, their
+ * melee hits roll {@link DreadDebuffs#RIMEFROST_FLOOR} for it (0.85.0). An unarmed thrall's claws roll their own (0.85.0).</li>
  * <li>On a player, Withering Rime and Rimefrost are each one source's at a time: another's laying is
  * refused while it lasts (so a pack can't pile it on), the same source may renew it, and the queen and
  * Syndrigossa always may. Laid with no source (the weather), it's anyone's.</li>
@@ -71,6 +72,9 @@ public final class DreadHits {
                 || attacker instanceof DreadPhantom || attacker instanceof RimeEel) {
             return null;
         }
+        if (attacker instanceof com.iafenvoy.iceandfire.entity.DreadThrallEntity thrall && thrall.getMainHandItem().isEmpty()) {
+            return DreadDebuffs.Kind.UNARMED_THRALL;
+        }
         if (attacker instanceof DreadScuttlerEntity) {
             return DreadDebuffs.Kind.SCUTTLER;
         }
@@ -88,6 +92,11 @@ public final class DreadHits {
         }
         DreadDebuffs.Kind kind = kind(dread);
         if (kind == null) {
+            // The queen, a Rimefrost dragon, a Dread Fish: their own, and the floor's Rimefrost (a phantom's own is more).
+            int floor = DreadDebuffs.floor(dread.getRandom().nextFloat());
+            if (RisenDread.dread(dread) && !(dread instanceof DreadPhantom) && floor > 0) {
+                victim.addEffect(new MobEffectInstance(ModRegistries.RIMEFROST, floor, RimefrostEffect.HEAVY), dread);
+            }
             return;
         }
         DreadDebuffs.Hit hit = DreadDebuffs.roll(kind, dread.getRandom().nextFloat(), dread.getRandom().nextFloat());

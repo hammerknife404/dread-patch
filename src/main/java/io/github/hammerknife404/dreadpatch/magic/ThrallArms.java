@@ -5,12 +5,23 @@ package io.github.hammerknife404.dreadpatch.magic;
  * never without a weapon"). Ice and Fire arms three thralls in four with a sword (mostly its dread sword) and leaves the
  * rest empty-handed; an empty-handed one is given one of these ({@link #weapon}), and one holding a bow or crossbow
  * shoots (with {@link #DRAW_TICKS} or {@link #CHARGE_TICKS} to ready it) from up to {@link #RANGE} blocks.
+ * <p>Now and then (0.85.0, the owner: "Add low chance to spawn unarmed; use Ghoul attacks at 50% damage with independent
+ * 30% chances to apply non-stacking Rimefrost and healing Withering Rime") it stays unarmed ({@link Weapon#NONE}, one in
+ * twenty of all thralls): it claws as a ghoul does, twice an attack ({@link #SECOND_SLASH_TICKS} apart) at half a ghoul's
+ * damage ({@link #clawScale}), each slash rolling {@link #CLAW_EFFECT_CHANCE} for Rimefrost and for Withering Rime (which,
+ * as all the Dread's, heals it: {@code effect/RimeSiphon}).
  */
 public final class ThrallArms {
-    public enum Weapon { BOW, CROSSBOW, DREAD_SWORD }
+    public enum Weapon { NONE, BOW, CROSSBOW, DREAD_SWORD }
 
-    /** Weights for an empty-handed thrall's bow, crossbow, dread sword. */
-    static final int[] WEIGHTS = {40, 20, 40};
+    /** Weights for an empty-handed thrall's none, bow, crossbow, dread sword (until 0.85.0 never none: 40, 20, 40). */
+    static final int[] WEIGHTS = {20, 32, 16, 32};
+    /** Ice and Fire's ghoul's attack damage, and its thrall's: a claw is half the ghoul's. */
+    public static final double GHOUL_DAMAGE = 5.0;
+    public static final double THRALL_DAMAGE = 2.0;
+    /** A ghoul's slash lands twice: its animation's ticks 9 and 19. */
+    public static final int SECOND_SLASH_TICKS = 10;
+    public static final float CLAW_EFFECT_CHANCE = 0.3F;
     /** How far it shoots from; it closes in to {@link #CLOSE_TO} when it can't see its target or is further. */
     public static final double RANGE = 16.0;
     public static final double CLOSE_TO = 11.0;
@@ -41,6 +52,11 @@ public final class ThrallArms {
             }
         }
         return Weapon.values()[WEIGHTS.length - 1];
+    }
+
+    /** What an unarmed thrall's hit is multiplied by to be a claw: half a ghoul's damage over a thrall's own. */
+    public static double clawScale() {
+        return GHOUL_DAMAGE * 0.5 / THRALL_DAMAGE;
     }
 
     /** How long a weapon takes to ready. */

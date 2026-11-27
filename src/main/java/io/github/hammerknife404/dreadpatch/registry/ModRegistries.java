@@ -152,21 +152,27 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("barrow_husk").toString()));
 
-    /** The dread phantom (0.45.0): vanilla's phantom's box and tracking. */
+    /**
+     * The dread phantom (0.45.0): vanilla's phantom's tracking; its box (0.85.0, the owner: "audit/fix hitboxes") 1.25
+     * across, vanilla's 0.9 covering only its body, so it reaches out over the wings' roots, where it's drawn widest.
+     */
     public static final DeferredHolder<EntityType<?>, EntityType<DreadPhantom>> DREAD_PHANTOM = ENTITY_TYPES.register("dread_phantom",
             () -> EntityType.Builder.<DreadPhantom>of(DreadPhantom::new, MobCategory.MONSTER)
-                    .sized(0.9F, 0.5F)
+                    .sized(1.25F, 0.5F)
                     .eyeHeight(0.175F)
                     .passengerAttachments(0.3375F)
                     .ridingOffset(-0.125F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("dread_phantom").toString()));
-    /** The miniature dread phantom (0.63.0): the dread phantom's box, which its scale of 0.5 halves. */
+    /**
+     * The miniature dread phantom (0.63.0): the dread phantom's box, which its scale of 0.5 halves; since 0.85.0 a little
+     * deeper (0.7 before its scale, 0.35 after), as halved it was a sliver a quarter of a block thick.
+     */
     public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>> MINIATURE_DREAD_PHANTOM =
             ENTITY_TYPES.register("miniature_dread_phantom",
                     () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>of(
                                     io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom::new, MobCategory.MONSTER)
-                            .sized(0.9F, 0.5F)
+                            .sized(1.25F, 0.7F)
                             .eyeHeight(0.175F)
                             .clientTrackingRange(8)
                             .build(DreadPatch.id("miniature_dread_phantom").toString()));

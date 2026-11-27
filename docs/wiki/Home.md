@@ -19,6 +19,7 @@ Patching in the Dread Queen for my own world.
 - [Gear](Gear): Rimefrost dragonscale, dread dragonsteel, the Rimefrost dragonforge, her staff and sword
 - [Her spells, as a player](Spells)
 - [Fixes to Ice and Fire](Fixes-to-Ice-and-Fire)
+- [Other mods](Other-Mods)
 - [Commands](Commands)
 - [Settings](Settings)
 

@@ -33,8 +33,19 @@ public final class DreadEvents {
     private static void onEffectApplicable(MobEffectEvent.Applicable event) {
         if (io.github.hammerknife404.dreadpatch.entity.RisenDread.dread(event.getEntity())
                 && (event.getEffectInstance().is(ModRegistries.WITHERING_RIME) || event.getEffectInstance().is(ModRegistries.WHITEOUT)
-                || event.getEffectInstance().is(ModRegistries.RIMEFROST))) {
+                || event.getEffectInstance().is(ModRegistries.RIMEFROST) || infection(event.getEffectInstance()))) {
             event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
         }
+    }
+
+    /**
+     * An infection mod's effect (0.85.0, the owner: "Blacklist all Dread and Rimefire mobs from body-conversion/infection
+     * mods (e.g., Spore, The Flesh That Hates)"): one of a mod named in the config's {@code infection_mods}. Both those
+     * mods infect, and convert, through their effects (The Flesh That Hates' {@code flesh_that_hates:flesh_infection}),
+     * so the Dread refusing them is never infected.
+     */
+    static boolean infection(net.minecraft.world.effect.MobEffectInstance effect) {
+        return effect.getEffect().unwrapKey().map(key -> io.github.hammerknife404.dreadpatch.DreadPatchConfig.infectionMods()
+                .contains(key.location().getNamespace())).orElse(false);
     }
 }

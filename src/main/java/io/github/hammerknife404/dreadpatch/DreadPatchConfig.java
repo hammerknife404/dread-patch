@@ -7,6 +7,7 @@ import io.github.hammerknife404.dreadpatch.magic.EscalationRules;
 import io.github.hammerknife404.dreadpatch.magic.RimeEelRules;
 import io.github.hammerknife404.dreadpatch.magic.RisenRules;
 import io.github.hammerknife404.dreadpatch.magic.WeatherRules;
+import java.util.List;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -35,6 +36,7 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue CHASMA_WATER;
     private static final ModConfigSpec.IntValue DARK_WATER_EELS;
     private static final ModConfigSpec.IntValue CHASMA_SURFACE_EELS;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> INFECTION_MODS;
     private static final ModConfigSpec.DoubleValue DEFEAT_STORM_HOURS;
     private static final ModConfigSpec.BooleanValue DEFEAT_STORM_COLD_ONLY;
     private static final ModConfigSpec.IntValue PHANTOMS;
@@ -136,6 +138,12 @@ public final class DreadPatchConfig {
         REGALIA_EASES_WEATHER = builder.comment("Whether her full regalia eases the Dreadlands' weather slow a step: a heavy snowstorm slows as plain snow,",
                 "and plain snow not at all.").define("regalia_eases_weather", true);
         builder.pop();
+        builder.comment("Other mods.").push("compat");
+        INFECTION_MODS = builder.comment("Mods whose effects the Dread (and the Rimefrost dragons, the queen and the risen) never take, by mod id:",
+                        "infection and body-conversion mods, which convert what they infect. Their effects simply don't land.")
+                .defineListAllowEmpty("infection_mods", List.of("spore", "flesh_that_hates"), () -> "modid",
+                        value -> value instanceof String id && !id.isBlank());
+        builder.pop();
         SPEC = builder.build();
     }
 
@@ -200,6 +208,11 @@ public final class DreadPatchConfig {
 
     public static int darkWaterEelOneIn() {
         return SPEC.isLoaded() ? DARK_WATER_EELS.get() : RimeEelRules.DARK_WATER_ONE_IN;
+    }
+
+    /** The mods (by id) whose effects the Dread refuse: infection mods. */
+    public static List<? extends String> infectionMods() {
+        return SPEC.isLoaded() ? INFECTION_MODS.get() : List.of("spore", "flesh_that_hates");
     }
 
     public static int chasmaSurfaceEelOneIn() {

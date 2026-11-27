@@ -1050,6 +1050,32 @@ def main():
         rcon.run("kill @e[tag=smoke_thrall]")
         rcon.run("kill @e[tag=smoke_thrall_prey]")
         rcon.run("kill @e[type=arrow]")
+    # 0.85.0: one whose arming was rolled stays unarmed (its claws); a knight's weapon reaches further under Better Mob
+    # Combat Reimagined (the dev runs load it); a whole dread beast eats too.
+    rcon.run('summon iceandfire:dread_thrall 62.5 200 42.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_claws"],NeoForgeData:{"dreadpatch:armed":1b}}')
+    time.sleep(0.5)
+    claws = rcon.run("data get entity @e[tag=smoke_claws,limit=1] HandItems[0]")
+    record("a dread thrall rolled unarmed stays unarmed", "{}" in claws or "id" not in claws, claws.strip())
+    rcon.run("kill @e[tag=smoke_claws]")
+    rcon.run('summon iceandfire:dread_knight 62.5 200 44.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_reach"],'
+             'HandItems:[{id:"minecraft:iron_sword",count:1},{}]}')
+    time.sleep(0.5)
+    reach = rcon.run("data get entity @e[tag=smoke_reach,limit=1] HandItems[0]")
+    record("a dread knight's weapon reaches further under Better Mob Combat", "knight_reach" in reach, reach.strip()[:300])
+    rcon.run("kill @e[tag=smoke_reach]")
+    rcon.run("kill @e[type=item]")
+    rcon.run('summon iceandfire:dread_beast 64.5 200 44.5 {PersistenceRequired:1b,Tags:["smoke_whole_beast"]}')
+    time.sleep(2.0)
+    rcon.run('summon item 66.5 200.2 44.5 {Item:{id:"minecraft:rotten_flesh",count:1},PickupDelay:0s,Tags:["smoke_whole_food"]}')
+    eaten = False
+    for _ in range(120):
+        time.sleep(0.25)
+        if "Test failed" in rcon.run("execute if entity @e[tag=smoke_whole_food]"):
+            eaten = True
+            break
+    record("a whole dread beast eats what's dropped too", eaten, "the rotten flesh still there 30 s on")
+    rcon.run("kill @e[tag=smoke_whole_beast]")
+    rcon.run("kill @e[type=item]")
     rcon.run("forceload remove 60 40 68 48")
     # A wild Rimefrost dragon hunts what the Dread do (0.84.4, the owner: "Rimefrost dragons are also hostile to the same
     # things the dread mobs do"): a cow by it, hungry or not, but not a thrall.
