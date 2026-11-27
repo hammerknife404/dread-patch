@@ -60,6 +60,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - in water, the layer is the top water block in her column, so the surface freezes round her and she climbs out.
 - **Pathing:** her `PathType.WATER` and `WATER_BORDER` malus are 0. With Ice and Fire's `FloatGoal`, her paths run along the surface, and she walks them on the new ice.
 - **Griefing:** not gated on `mobGriefing` (Frost Walker isn't either).
+- **Its melting** (0.97.2, the owner: "dread queens frost walk ice blocks no longer remove themselves"): vanilla's frosted ice melts only where the light passes 11 less its age, so never at night or in the Dreadlands' snow (the server's sky light is vanilla's; only the client's is dimmed), and hers stood. Since 0.97.2 `Rimewalk` notes each block it freezes (and each of its own it keeps) with the game time, per level, in memory; every 20 ticks a block 60+ ticks past that ages a stage at even odds and past its last thaws to water, whatever the light. Ice not hers (her storm's, a player's Frost Walker's) it keeps whole under her but leaves to its own melting. Not saved: after a restart what's left melts by day, as vanilla's. Probed: 44 blocks gone 14 s after she left, at night in thunder.
 - **Shared:** `Rimewalk.canFreeze` is also used by the storm.
 
 **Frosted ice**, vanilla's:
