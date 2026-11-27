@@ -111,6 +111,36 @@ class DreadFishRulesTest {
     }
 
     @Test
+    void itsBodyStraightensQuicklyAndCurlsSlowly() {
+        // Swimming straight up (no ground covered, which vanilla's limb swing would have read as still): straight in 5 ticks.
+        float straight = 0.0F;
+        for (int i = 0; i < 5; i++) {
+            straight = DreadFishRules.straightToward(straight, 0.08, false);
+        }
+        assertEquals(1.0F, straight, 1.0E-6F);
+        // A moment's pause mid-swim barely curls it; stopping for good curls it in 25 ticks.
+        float paused = straight;
+        for (int i = 0; i < 3; i++) {
+            paused = DreadFishRules.straightToward(paused, 0.0, false);
+        }
+        assertTrue(paused > 0.85F);
+        for (int i = 0; i < 25; i++) {
+            straight = DreadFishRules.straightToward(straight, 0.0, false);
+        }
+        assertEquals(0.0F, straight, 1.0E-6F);
+        // In the air (a leap, a breach), it's straight however slowly it goes; a slow drift is half-curled.
+        assertTrue(DreadFishRules.straightToward(0.9F, 0.0, true) > 0.9F);
+        float drift = 0.5F;
+        for (int i = 0; i < 40; i++) {
+            drift = DreadFishRules.straightToward(drift, 0.03, false);
+        }
+        assertEquals(0.5F, drift, 1.0E-5F);
+        // Never past its ends.
+        assertEquals(1.0F, DreadFishRules.straightToward(1.0F, 1.0, true));
+        assertEquals(0.0F, DreadFishRules.straightToward(0.0F, 0.0, false));
+    }
+
+    @Test
     void anAlphaHitsHardSlowlyAndPlainly() {
         double small = DreadFishRules.scale(0.5);
         double alpha = DreadFishRules.scale(0.5, 0);
