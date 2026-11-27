@@ -1,6 +1,8 @@
 {
   "replace": false,
   "entries": [
-    "dreadpatch:dread_lich_sublimate"
+    "dreadpatch:dread_lich_sublimate",
+    "dreadpatch:dread_village_key",
+    "dreadpatch:dread_lich_key"
   ]
 }

@@ -91,7 +91,7 @@ Her own armour, to wear, and what she wears herself: the **Crown**, **Bodice**, 
 - **In a Mausoleum:** every Mausoleum already has four gates. The arches of the shrine round the ice dragon forge in its far hall are dreadstone frames 3 wide and 6 tall.
 - **Breaking the frame** closes the gate, and the key is lost.
 
-The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now be crafted: three Dread Shards, a Bone and two Gold Ingots in the shape of a key (shards and bone across the top, a shard below, the gold at the bottom right). The recipe unlocks when you pick up a dread shard.
+The Gravemaster's Key still opens a Mausoleum's sealed door too, and it can now be crafted: three Dread Shards, a Bone and two Gold Ingots in the shape of a key (shards and bone across the top, a shard below, the gold at the bottom right). The recipe unlocks when you pick up a dread shard. In the Dreadlands, a way home turns up in an abandoned village's chests a fifth of the time (Lootr's too), and a Dread Lich killed by a player drops one now and then (5%, a little more with Looting).
 
 ## The Dreadlands
 

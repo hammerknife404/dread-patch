@@ -1085,6 +1085,23 @@ def main():
           "execute if items entity @e[tag=smoke_lich_staff,limit=1] weapon.mainhand iceandfire:lich_staff[irons_spellbooks:spell_container]",
           "Test passed")
     rcon.run("kill @e[tag=smoke_lich_staff]")
+    # 0.88.0: the Dreadlands' village chests (Lootr's too) hold a dread key a fifth of the time; the overworld's don't.
+    # One roll at a time: @e reaches every dimension, and dropped items merge.
+    def key_rolls(dim, n):
+        pre = f"execute in {dim} positioned 0.5 250 0.5 run "
+        rcon.run(pre + "forceload add 0 0")
+        hits = 0
+        for _ in range(n):
+            rcon.run(pre + "kill @e[type=item,distance=..8]")
+            rcon.run(pre + "loot spawn ~ ~ ~ loot minecraft:chests/village/village_snowy_house")
+            hits += "Test passed" in rcon.run(pre + 'execute if entity @e[type=item,distance=..8,nbt={Item:{id:"iceandfire:dread_key"}}]')
+        rcon.run(pre + "kill @e[type=item,distance=..8]")
+        rcon.run(pre + "forceload remove 0 0")
+        return hits
+    keys = key_rolls("dreadpatch:dreadlands", 40)
+    record("a Dreadlands village chest now and then holds a dread key", keys > 0, f"{keys} in 40 chests")
+    plain = key_rolls("minecraft:overworld", 40)
+    record("but an overworld village chest never does", plain == 0, f"{plain} in 40 chests")
     rcon.run("forceload remove 60 40 68 48")
     # A wild Rimefrost dragon hunts what the Dread do (0.84.4, the owner: "Rimefrost dragons are also hostile to the same
     # things the dread mobs do"): a cow by it, hungry or not, but not a thrall.
