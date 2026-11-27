@@ -97,6 +97,8 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.world.RimefrostNests.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.DreadFeeding.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.entity.ThrallWeapons.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.BeastVoices.register(NeoForge.EVENT_BUS);
+        io.github.hammerknife404.dreadpatch.entity.PhantomHits.register(NeoForge.EVENT_BUS);
         DevKit.register(NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.DreadlandsMusic.register(modBus, NeoForge.EVENT_BUS);
         io.github.hammerknife404.dreadpatch.world.BossMusic.register(modBus, NeoForge.EVENT_BUS);

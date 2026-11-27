@@ -15,9 +15,21 @@ import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.phys.EntityHitResult;
 
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * A dread thrall's weapon (0.84.4, {@link ThrallArms}; the owner: "make sure dread thralls can spawn with a bow or cross
@@ -29,29 +41,109 @@ import java.util.EnumSet;
  * her storm) gets {@link ShootGoal} over it: it draws or charges, and looses an arrow as a skeleton does. Goals aren't
  * saved, so it's added on every join; it stands aside whenever the thrall holds anything else, and the melee goal
  * runs.</li>
+ * <li>Unarmed now and then (0.85.0, {@link ThrallArms}): its arming is rolled once, on its first join, and remembered
+ * ({@link #ARMED}), so one left unarmed stays so. Unarmed, its hits are a ghoul's claws ({@link #onIncoming},
+ * {@link #onHit}, {@link #onTick}): half a ghoul's damage, twice an attack, the second {@link ThrallArms#SECOND_SLASH_TICKS}
+ * on if its target is still in reach; what they leave is rolled in {@code effect/DreadHits}.</li>
+ * <li>No friendly fire (0.85.0, the owner: "Disable friendly-fire projectile damage from bows/crossbows against Dread and
+ * Rimefrost mobs"): an arrow any of the Dread shot flies through the Dread ({@link #onImpact}).</li>
  * </ul>
  */
 public final class ThrallWeapons {
     private ThrallWeapons() {
     }
 
+    /** Persistent data: its arming is rolled (0.85.0), so an unarmed one isn't armed when it's loaded again. */
+    static final String ARMED = "dreadpatch:armed";
+    /** Server thread only: an unarmed thrall's second slash due, its target and the tick. */
+    private static final Map<DreadThrallEntity, Slash> SECOND = new WeakHashMap<>();
+    /** Set while a second slash lands, so it isn't followed by another. */
+    private static boolean slashing;
+
+    private record Slash(int target, long due) {
+    }
+
     public static void register(IEventBus gameBus) {
         gameBus.addListener(ThrallWeapons::onJoin);
+        gameBus.addListener(ThrallWeapons::onIncoming);
+        gameBus.addListener(ThrallWeapons::onHit);
+        gameBus.addListener(ThrallWeapons::onTick);
+        gameBus.addListener(ThrallWeapons::onImpact);
+    }
+
+    /** Whether it fights with a ghoul's claws: a thrall with nothing in its main hand. */
+    public static boolean unarmed(Entity entity) {
+        return entity instanceof DreadThrallEntity thrall && thrall.getMainHandItem().isEmpty();
     }
 
     private static void onJoin(EntityJoinLevelEvent event) {
         if (event.getLevel().isClientSide() || !(event.getEntity() instanceof DreadThrallEntity thrall)) {
             return;
         }
-        if (thrall.getMainHandItem().isEmpty()) {
-            thrall.setItemSlot(EquipmentSlot.MAINHAND, switch (ThrallArms.weapon(thrall.getRandom().nextDouble())) {
-                case BOW -> new ItemStack(Items.BOW);
-                case CROSSBOW -> new ItemStack(Items.CROSSBOW);
-                case DREAD_SWORD -> new ItemStack(IafItems.DREAD_SWORD.get());
-            });
+        if (!thrall.getPersistentData().getBoolean(ARMED)) {
+            thrall.getPersistentData().putBoolean(ARMED, true);
+            if (thrall.getMainHandItem().isEmpty()) {
+                ItemStack weapon = switch (ThrallArms.weapon(thrall.getRandom().nextDouble())) {
+                    case NONE -> ItemStack.EMPTY;
+                    case BOW -> new ItemStack(Items.BOW);
+                    case CROSSBOW -> new ItemStack(Items.CROSSBOW);
+                    case DREAD_SWORD -> new ItemStack(IafItems.DREAD_SWORD.get());
+                };
+                thrall.setItemSlot(EquipmentSlot.MAINHAND, weapon);
+            }
         }
         // Over its melee goal (2): the same flags, so only one of them runs.
         thrall.goalSelector.addGoal(1, new ShootGoal(thrall));
+    }
+
+    /** An unarmed thrall's hit: a claw, half a ghoul's damage (its own scaled, so difficulty still counts). */
+    private static void onIncoming(LivingIncomingDamageEvent event) {
+        DamageSource source = event.getSource();
+        if (source.getDirectEntity() == source.getEntity() && unarmed(source.getEntity()) && source.is(DamageTypes.MOB_ATTACK)) {
+            event.setAmount((float) (event.getAmount() * ThrallArms.clawScale()));
+        }
+    }
+
+    /** A claw that landed: the second follows, unless this is it. */
+    private static void onHit(LivingDamageEvent.Post event) {
+        DamageSource source = event.getSource();
+        if (!slashing && source.getDirectEntity() == source.getEntity() && source.is(DamageTypes.MOB_ATTACK)
+                && source.getEntity() instanceof DreadThrallEntity thrall && unarmed(thrall) && !thrall.level().isClientSide) {
+            SECOND.put(thrall, new Slash(event.getEntity().getId(), thrall.level().getGameTime() + ThrallArms.SECOND_SLASH_TICKS));
+        }
+    }
+
+    private static void onTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof DreadThrallEntity thrall) || thrall.level().isClientSide) {
+            return;
+        }
+        Slash slash = SECOND.get(thrall);
+        if (slash == null || thrall.level().getGameTime() < slash.due()) {
+            return;
+        }
+        SECOND.remove(thrall);
+        if (thrall.isAlive() && unarmed(thrall) && thrall.level().getEntity(slash.target()) instanceof LivingEntity target && target.isAlive()
+                && thrall.isWithinMeleeAttackRange(target) && thrall.getSensing().hasLineOfSight(target)) {
+            thrall.swing(InteractionHand.MAIN_HAND);
+            slashing = true;
+            try {
+                target.hurt(thrall.damageSources().mobAttack(thrall), (float) thrall.getAttributeValue(Attributes.ATTACK_DAMAGE));
+            } finally {
+                slashing = false;
+            }
+        }
+    }
+
+    /** An arrow of the Dread's flies through the Dread (a dragon's parts count as their dragon). */
+    private static void onImpact(ProjectileImpactEvent event) {
+        if (!(event.getProjectile() instanceof AbstractArrow arrow) || !(event.getRayTraceResult() instanceof EntityHitResult hit)
+                || !RisenDread.dread(arrow.getOwner())) {
+            return;
+        }
+        Entity struck = hit.getEntity() instanceof PartEntity<?> part ? part.getParent() : hit.getEntity();
+        if (RisenDread.dread(struck)) {
+            event.setCanceled(true);
+        }
     }
 
     /** Whether it holds a bow or a crossbow in its main hand. */

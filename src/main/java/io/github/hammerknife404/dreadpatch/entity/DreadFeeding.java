@@ -34,12 +34,18 @@ import java.util.EnumSet;
  * just eaten. Rime Eels (since 0.71.0, their own list until 0.83.0), Ice and Fire's Dread Beasts and (0.84.0, the owner:
  * "extend the beast eating to scuttlers too") its Dread Scuttlers eat, with nothing to fight: the nearest such item in
  * reach of their search, one at a time.
+ * <p>Fed or not (0.85.0, the owner: "Enable eating trait by default even at full health/hunger (lower AI priority if
+ * uninjured)"): a beast or scuttler eats whatever its health, but a hurt one puts eating before wandering
+ * ({@link #HURT_PRIORITY}) and a whole one after it ({@link #WHOLE_PRIORITY}), so it eats only when idle.
  */
 public final class DreadFeeding {
     public static final TagKey<Item> EATS = TagKey.create(Registries.ITEM, DreadPatch.id("dread_eats"));
     public static final TagKey<Item> REFUSES = TagKey.create(Registries.ITEM, DreadPatch.id("dread_refuses"));
     /** How far a beast or a scuttler looks for something to eat. */
     static final double BEAST_SEARCH = 8.0;
+    /** Its eating, hurt: over Ice and Fire's wandering (5); whole, under it (and its looking about, which don't share a flag). */
+    static final int HURT_PRIORITY = 4;
+    static final int WHOLE_PRIORITY = 6;
 
     private DreadFeeding() {
     }
@@ -52,7 +58,8 @@ public final class DreadFeeding {
     private static void onJoin(EntityJoinLevelEvent event) {
         if (!event.getLevel().isClientSide() && (event.getEntity() instanceof DreadBeastEntity || event.getEntity() instanceof DreadScuttlerEntity)) {
             Mob mob = (Mob) event.getEntity();
-            mob.goalSelector.addGoal(4, new EatDroppedGoal(mob, BEAST_SEARCH));
+            mob.goalSelector.addGoal(HURT_PRIORITY, new EatDroppedGoal(mob, BEAST_SEARCH, Boolean.TRUE));
+            mob.goalSelector.addGoal(WHOLE_PRIORITY, new EatDroppedGoal(mob, BEAST_SEARCH, Boolean.FALSE));
         }
     }
 
@@ -99,12 +106,19 @@ public final class DreadFeeding {
     public static final class EatDroppedGoal extends Goal {
         private final Mob mob;
         private final double search;
+        /** Only while hurt (true), only while whole (false), or either (null). */
+        private final @Nullable Boolean hurt;
         private @Nullable ItemEntity food;
         private int timer;
 
         public EatDroppedGoal(Mob mob, double search) {
+            this(mob, search, null);
+        }
+
+        public EatDroppedGoal(Mob mob, double search, @Nullable Boolean hurt) {
             this.mob = mob;
             this.search = search;
+            this.hurt = hurt;
             this.setFlags(EnumSet.of(Flag.MOVE));
         }
 
@@ -114,7 +128,8 @@ public final class DreadFeeding {
 
         @Override
         public boolean canUse() {
-            if (this.mob.getTarget() != null || this.mob.getRandom().nextInt(5) != 0) {
+            if (this.mob.getTarget() != null || this.mob.getRandom().nextInt(5) != 0
+                    || this.hurt != null && this.hurt != this.mob.getHealth() < this.mob.getMaxHealth()) {
                 return false;
             }
             this.food = this.mob.level().getEntitiesOfClass(ItemEntity.class, this.mob.getBoundingBox().inflate(this.search), this::wanted)

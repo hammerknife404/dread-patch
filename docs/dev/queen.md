@@ -44,7 +44,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - builds freezing faster than the body thaws;
   - cancels all healing (`LivingHealEvent`).
 - **Who refuses it:** the Dread (`IDreadMob`), through `MobEffectEvent.Applicable`.
-- **The siphon** (`effect/RimeSiphon`):
+- **The siphon** (`effect/RimeSiphon`; since 0.85.0 every Dread mob's Withering Rime feeds its layer too, 0.25 / 0.5 / 1 a withering tick by difficulty, within 32, while it's hurt; only hers is shared out by `[siphon]`):
   - `MobEffectEvent.Added` records who laid each victim's rime. Every place we apply it passes a source, and the last to lay it owns it.
   - Each withering tick of a `DreadQueen`'s that takes health heals her by difficulty, within 32 blocks.
   - A withering hit inside the victim's `invulnerableTime` after a bigger hit takes nothing and feeds nothing.
@@ -116,6 +116,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **Size and speed** (every `DreadKnightEntity`, as it joins a level; transient modifiers, so old ones grow too): `generic.scale` +50% (`ADD_MULTIPLIED_BASE`: Ice and Fire's 0.6 x 1.8 becomes 0.9 x 2.7, and its model, gear and melee box with it), `movement_speed` +12.5% (0.25 to 0.28125), `step_height` +0.4 (to 1.0: "to match size", read as a full block).
 - **Crouching:** each server tick (standing or crouching, not riding) it crouches (`Pose.CROUCHING`) when its standing box, above its crouched height (1.8), would meet a block where it is or at its path's next node (else 0.6 along its motion), and stands when neither would. `EntityEvent.Size` gives a crouching knight a box 1.8 tall (eyes 0.85 of it). Its navigation (set by reflection, as the scuttlers') plans with a `WalkNodeEvaluator` whose `entityHeight` is its crouched height's (2), so it paths into 2-high passages.
 - **Honest reach:** Ice and Fire's knight uses vanilla's `MeleeAttackGoal`, which strikes only within its (scaled) attack box and with a line of sight from its eyes; crouched, its eyes are lower too.
+- **Reach under Better Mob Combat Reimagined** (0.85.0, the owner: "Verify/add compensated melee attack reach/range"): that mod's swing (`MobCombatMath.attackRange`) reaches 2.5 blocks plus its config's `additionalAttackRange` however large the mob, from its shoulders, unless the weapon carries `entity_interaction_range`, which it adds to 2.5 instead. So with it loaded, a knight's main-hand stack gets `dreadpatch:knight_reach` +1.25 (`KnightRules.reachBonus`, 2.5 × the scale bonus) in its attribute modifiers (on join and on a main-hand change; the old stack's taken off), and `LivingDropsEvent` takes it off its drops. Without that mod nothing is added. A weapon with Better Combat's own `range_bonus` loses it on a knight (that mod reads one or the other).
 - **Drawn crouched** (`client/DreadKnightCrouch`): Ice and Fire's model can't be posed from outside, so a crouched knight leans 25° forward from its feet (about the axis up x its body's facing) and is squashed (`drawnSquash`) to stand 1.8 tall; pushed on `RenderLivingEvent.Pre` (lowest priority), popped on `Post` (only what was pushed).
 - **Seen:** standing in a room, its eyes (2.3 up) are above a 2-high tunnel's roof, so it can't see a target down one: it follows one it already has (the smoke test provokes it) or wanders in.
 

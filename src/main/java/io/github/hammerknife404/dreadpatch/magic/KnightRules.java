@@ -20,6 +20,17 @@ public final class KnightRules {
     /** How it's drawn crouched: leaning forward, squashed, so it fits under what it ducks under. */
     public static final float LEAN_DEGREES = 25.0F;
 
+    /**
+     * Better Mob Combat Reimagined's reach for a mob's swing, before its config's extra: 2.5 blocks however large the
+     * mob (0.85.0, the owner: "Verify/add compensated melee attack reach/range"). A knight's is grown with it.
+     */
+    public static final double BMCR_REACH = 2.5;
+
+    /** What a knight's weapon adds to that reach: the reach grown as the knight is. */
+    public static double reachBonus() {
+        return BMCR_REACH * SCALE_BONUS;
+    }
+
     private KnightRules() {
     }
 

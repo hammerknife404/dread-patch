@@ -261,5 +261,7 @@
   "item.dreadpatch.dragonarmor_dread_dragonsteel_head": "Dread Dragonsteel Dragon Armor",
   "item.dreadpatch.dragonarmor_dread_dragonsteel_neck": "Dread Dragonsteel Dragon Armor",
   "item.dreadpatch.dragonarmor_dread_dragonsteel_body": "Dread Dragonsteel Dragon Armor",
-  "item.dreadpatch.dragonarmor_dread_dragonsteel_tail": "Dread Dragonsteel Dragon Armor"
+  "item.dreadpatch.dragonarmor_dread_dragonsteel_tail": "Dread Dragonsteel Dragon Armor",
+  "dreadpatch.configuration.compat": "Other mods",
+  "dreadpatch.configuration.infection_mods": "Infection mods the Dread are immune to"
 }

@@ -49,4 +49,28 @@ class DreadDebuffsTest {
         assertEquals(1.0F, DreadDebuffs.siphon(2.0F, 1, 6, 2, true));
         assertEquals(2.0F, DreadDebuffs.siphon(2.0F, 0, 0, 0, true));
     }
+
+    @Test
+    void everyDreadHitHasAtLeastTheFloorsRimefrost() {
+        int floored = 0;
+        for (int i = 0; i < 1000; i++) {
+            floored += DreadDebuffs.floor(i / 1000.0F) > 0 ? 1 : 0;
+        }
+        org.junit.jupiter.api.Assertions.assertEquals(50, floored);
+        for (DreadDebuffs.Kind kind : DreadDebuffs.Kind.values()) {
+            int frost = 0;
+            for (int i = 0; i < 1000; i++) {
+                frost += DreadDebuffs.roll(kind, 0.99F, i / 1000.0F).rimefrostTicks() > 0 ? 1 : 0;
+            }
+            org.junit.jupiter.api.Assertions.assertTrue(frost >= 50, kind + ": " + frost);
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(PhantomRules.RIMEFROST_CHANCE >= DreadDebuffs.RIMEFROST_FLOOR);
+    }
+
+    @Test
+    void anUnarmedThrallsClawsRollThirtyPercentEach() {
+        org.junit.jupiter.api.Assertions.assertTrue(DreadDebuffs.roll(DreadDebuffs.Kind.UNARMED_THRALL, 0.29F, 0.29F).witheringTicks() > 0);
+        org.junit.jupiter.api.Assertions.assertTrue(DreadDebuffs.roll(DreadDebuffs.Kind.UNARMED_THRALL, 0.29F, 0.29F).rimefrostTicks() > 0);
+        org.junit.jupiter.api.Assertions.assertEquals(DreadDebuffs.Hit.NONE, DreadDebuffs.roll(DreadDebuffs.Kind.UNARMED_THRALL, 0.31F, 0.31F));
+    }
 }

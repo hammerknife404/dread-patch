@@ -77,3 +77,11 @@ Any of these can also be read or set with `/dreadpatch config`.
 
 ---
 *Kept in step with the mod's [README](https://github.com/hammerknife404/dread-patch#readme); edits go in `docs/wiki/` in the repository.*
+
+## `[compat]`
+
+Other mods.
+
+| Option | Default | What it does |
+|---|---|---|
+| `infection_mods` | `["spore", "flesh_that_hates"]` | Mods (by mod id) whose effects the Dread, the Rimefrost dragons, the queen and the risen never take: infection and body-conversion mods, so they're never infected or converted. |
