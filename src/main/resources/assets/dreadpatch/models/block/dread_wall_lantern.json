@@ -1,0 +1,101 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "dreadpatch:block/dread_lantern",
+    "lantern": "dreadpatch:block/dread_lantern"
+  },
+  "elements": [
+    {
+      "__comment": "The lantern, hanging from the bracket: the wall to the west.",
+      "from": [5, 2, 5],
+      "to": [11, 9, 11],
+      "faces": {
+        "down":  {"uv": [0, 9, 6, 15], "texture": "#lantern"},
+        "up":    {"uv": [0, 9, 6, 15], "texture": "#lantern"},
+        "north": {"uv": [0, 2, 6, 9], "texture": "#lantern"},
+        "south": {"uv": [0, 2, 6, 9], "texture": "#lantern"},
+        "west":  {"uv": [0, 2, 6, 9], "texture": "#lantern"},
+        "east":  {"uv": [0, 2, 6, 9], "texture": "#lantern"}
+      }
+    },
+    {
+      "from": [6, 9, 6],
+      "to": [10, 11, 10],
+      "faces": {
+        "up":    {"uv": [1, 10, 5, 14], "texture": "#lantern"},
+        "north": {"uv": [1, 0, 5, 2], "texture": "#lantern"},
+        "south": {"uv": [1, 0, 5, 2], "texture": "#lantern"},
+        "west":  {"uv": [1, 0, 5, 2], "texture": "#lantern"},
+        "east":  {"uv": [1, 0, 5, 2], "texture": "#lantern"}
+      }
+    },
+    {
+      "__comment": "Its handle, crossed as the hanging lantern's chain is.",
+      "from": [6.5, 11, 8],
+      "to": [9.5, 13, 8],
+      "rotation": {"origin": [8, 8, 8], "axis": "y", "angle": 45},
+      "shade": false,
+      "faces": {
+        "north": {"uv": [14, 1, 11, 3], "texture": "#lantern"},
+        "south": {"uv": [11, 1, 14, 3], "texture": "#lantern"}
+      }
+    },
+    {
+      "from": [8, 11, 6.5],
+      "to": [8, 13, 9.5],
+      "rotation": {"origin": [8, 8, 8], "axis": "y", "angle": 45},
+      "shade": false,
+      "faces": {
+        "west": {"uv": [14, 10, 11, 12], "texture": "#lantern"},
+        "east": {"uv": [11, 10, 14, 12], "texture": "#lantern"}
+      }
+    },
+    {
+      "__comment": "The bracket's arm, out from the wall over the lantern, and its hook down to the handle.",
+      "from": [0, 13, 7.5],
+      "to": [9, 14, 8.5],
+      "faces": {
+        "down":  {"uv": [1, 0, 5, 1], "texture": "#lantern"},
+        "up":    {"uv": [1, 0, 5, 1], "texture": "#lantern"},
+        "north": {"uv": [1, 0, 5, 1], "texture": "#lantern"},
+        "south": {"uv": [1, 0, 5, 1], "texture": "#lantern"},
+        "east":  {"uv": [1, 0, 2, 1], "texture": "#lantern"}
+      }
+    },
+    {
+      "from": [8, 12, 7.5],
+      "to": [9, 13, 8.5],
+      "faces": {
+        "north": {"uv": [1, 0, 2, 1], "texture": "#lantern"},
+        "south": {"uv": [1, 0, 2, 1], "texture": "#lantern"},
+        "west":  {"uv": [1, 0, 2, 1], "texture": "#lantern"},
+        "east":  {"uv": [1, 0, 2, 1], "texture": "#lantern"}
+      }
+    },
+    {
+      "__comment": "Its plate on the wall, and the brace under the arm.",
+      "from": [0, 11, 6.5],
+      "to": [1, 15, 9.5],
+      "faces": {
+        "down":  {"uv": [1, 0, 4, 1], "texture": "#lantern"},
+        "up":    {"uv": [1, 0, 4, 1], "texture": "#lantern"},
+        "north": {"uv": [1, 0, 2, 2], "texture": "#lantern"},
+        "south": {"uv": [1, 0, 2, 2], "texture": "#lantern"},
+        "west":  {"uv": [1, 0, 4, 2], "texture": "#lantern", "cullface": "west"},
+        "east":  {"uv": [1, 0, 4, 2], "texture": "#lantern"}
+      }
+    },
+    {
+      "from": [1, 11.5, 7.5],
+      "to": [4, 12.5, 8.5],
+      "rotation": {"origin": [1, 12, 8], "axis": "z", "angle": 45},
+      "faces": {
+        "down":  {"uv": [1, 0, 4, 1], "texture": "#lantern"},
+        "up":    {"uv": [1, 0, 4, 1], "texture": "#lantern"},
+        "north": {"uv": [1, 0, 4, 1], "texture": "#lantern"},
+        "south": {"uv": [1, 0, 4, 1], "texture": "#lantern"}
+      }
+    }
+  ]
+}

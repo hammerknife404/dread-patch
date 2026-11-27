@@ -17,6 +17,8 @@ public final class WeatherRules {
     /** A point of freezing damage this often under the open sky: Whiteout Dominion's. */
     public static final int FREEZE_EVERY = 60;
     public static final float FREEZE_DAMAGE = 1.0F;
+    /** The chance a mob it kills rises, wild Dread (0.92.0, the owner's 25%). */
+    public static final float RISE_CHANCE = 0.25F;
     /** The thunderstorm her fight turns it into lasts at least this long (or the storm's own time left). */
     public static final int THUNDER_AT_LEAST = 6000;
 
