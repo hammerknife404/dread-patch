@@ -1029,13 +1029,17 @@ def main():
     # can spawn with a bow or cross bow, and never without a weapon"). A summon with NBT skips Ice and Fire's own gear,
     # so each of these joins empty-handed.
     armed = []
+    rcon.run("kill @e[type=item]")  # NoAI mobs still pick up loot: a beast's dropped bones were taken for weapons
     for i in range(6):
-        rcon.run(f'summon iceandfire:dread_thrall {61.5 + i} 200 41.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_thrall","smoke_thrall{i}"]}}')
+        rcon.run(f'summon iceandfire:dread_thrall {61.5 + i} 200 41.5 {{NoAI:1b,CanPickUpLoot:0b,PersistenceRequired:1b,Tags:["smoke_thrall","smoke_thrall{i}"]}}')
     time.sleep(1.0)
     for i in range(6):
         m = re.search(r'"([a-z_]+:[a-z_]+)"', rcon.run(f"data get entity @e[tag=smoke_thrall{i},limit=1] HandItems[0].id"))
         armed.append(m.group(1) if m else None)
-    record("a dread thrall that joins empty-handed is given a weapon", all(armed), f"main hands: {armed}")
+    # One in five stays unarmed (0.85.0); the rest get one of these.
+    record("a dread thrall that joins empty-handed is given a weapon, or (now and then) stays unarmed",
+           all(a in (None, "minecraft:bow", "minecraft:crossbow", "iceandfire:dread_sword") for a in armed) and any(armed),
+           f"main hands: {armed}")
     rcon.run("kill @e[tag=smoke_thrall]")
     for weapon in ("bow", "crossbow"):
         rcon.run("kill @e[type=arrow]")
@@ -1119,6 +1123,7 @@ def main():
     rcon.run('summon minecraft:cow 410.5 200 408.5 {PersistenceRequired:1b,Tags:["smoke_wild_prey"]}')
     rcon.run('summon iceandfire:dread_thrall 406.5 200 412.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_wild_thrall"],'
              'HandItems:[{id:"minecraft:stone_sword",count:1},{}]}')
+    time.sleep(0.5)
     thrall_health = health("@e[tag=smoke_wild_thrall,limit=1]")
     rcon.run('summon dreadpatch:rimefrost_dragon 405.5 200 405.5 {PersistenceRequired:1b,Hunger:100,AgeTicks:600000,Tags:["smoke_wild_dragon"]}')
     hunted = False
@@ -1468,8 +1473,9 @@ def main():
     rcon.run('summon minecraft:cod 6.5 200 12.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
     time.sleep(0.5)
-    # 0.71.0: a water creature rises a Dread Fish of hers (0.63.0-0.70.0: itself, Dread).
-    fish = '@e[type=dreadpatch:dread_fish,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
+    # 0.71.0: a water creature rises a Dread Fish of hers (0.63.0-0.70.0: itself, Dread). It takes her target, and since
+    # 0.86.0 may leap 7 at it out of its hole before it's looked for: anywhere within 10.
+    fish = '@e[type=dreadpatch:dread_fish,limit=1,x=6.5,y=200,z=12.5,distance=..10]'
     check("a cod killed in her storm rises a Dread Fish", "execute if entity " + fish, "Test passed")
     check("hers", "data get entity " + fish + ' NeoForgeData."dreadpatch:risen_by"', "[I; 9, 9, 9, 9]")
     check("and no Dread cod", "execute if entity @e[type=minecraft:cod,x=6.5,y=200,z=12.5,distance=..3]", "Test failed")
@@ -2931,11 +2937,15 @@ def main():
     # counted together, none of either in 80 being 0.03%.) The one-source cap is on players, so it needs one.
     rcon.run('summon minecraft:zombie 24.5 221 12.5 {UUID:[I;73,73,73,9],NoAI:1b,PersistenceRequired:1b,Silent:1b,'
              'attributes:[{id:"minecraft:generic.max_health",base:1000d}],Health:1000f}')
-    dread_kinds = {"scuttler": "iceandfire:dread_scuttler", "knight": "iceandfire:dread_knight", "thrall": "iceandfire:dread_thrall"}
+    dread_kinds = {"scuttler": "iceandfire:dread_scuttler", "knight": "iceandfire:dread_knight", "thrall": "iceandfire:dread_thrall",
+                   "claws": "iceandfire:dread_thrall"}
+    # Since 0.85.0 an empty-handed thrall may stay unarmed and claw (30% each): the armed one holds a dread sword, the
+    # clawing one's arming is marked rolled with nothing in its hands.
+    dread_nbt = {"thrall": ',HandItems:[{id:"iceandfire:dread_sword",count:1},{}]', "claws": ',NeoForgeData:{"dreadpatch:armed":1b}'}
     tallies = {}
     for n, (kind, entity_type) in enumerate(dread_kinds.items()):
         uuid = f"00000049-0000-0049-0000-00490000000{n + 1}"
-        rcon.run(f'summon {entity_type} 28.5 221 12.5 {{UUID:[I;73,73,73,{n + 1}],NoAI:1b,PersistenceRequired:1b,Silent:1b}}')
+        rcon.run(f'summon {entity_type} 28.5 221 12.5 {{UUID:[I;73,73,73,{n + 1}],NoAI:1b,PersistenceRequired:1b,Silent:1b{dread_nbt.get(kind, "")}}}')
         tally = {"wr1": 0, "wr2": 0, "rf": 0, "rf_long": 0}
         for _ in range(80):
             time.sleep(0.55)
@@ -2958,6 +2968,8 @@ def main():
     record("a knight's hits leave Withering Rime now and then, and a 3 s Rimefrost sometimes",
            1 <= k["wr1"] <= 20 and k["wr2"] == 0 and 2 <= k["rf"] <= 26 and k["rf_long"] == k["rf"], str(k))
     record("a thrall's hits leave Withering Rime and Rimefrost rarely", 1 <= t["wr1"] + t["rf"] <= 24 and t["wr1"] <= 14 and t["rf"] <= 14, str(t))
+    c = tallies["claws"]
+    record("an unarmed thrall's claws leave each about a third of the time", 10 <= c["wr1"] <= 40 and 10 <= c["rf"] <= 40 and c["wr2"] == 0, str(c))
     rcon.run("kill 00000049-0000-0049-0000-004900000009")
     rcon.run("kill @e[type=item]")
     rcon.run("setblock 20 220 12 minecraft:jukebox")
