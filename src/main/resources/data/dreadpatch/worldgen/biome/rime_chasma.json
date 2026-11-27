@@ -52,6 +52,7 @@
     [],
     [],
     [
+      "dreadpatch:hex_pool",
       "dreadpatch:heaved_slabs"
     ],
     []
