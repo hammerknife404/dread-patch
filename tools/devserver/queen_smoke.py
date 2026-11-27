@@ -773,12 +773,24 @@ def main():
            f"{hunted and hunted.group(1)} chickens hunted by her 4 thralls")
     for tag in ("smoke_queen", "smoke_prey", "smoke_court"):
         rcon.run(f"kill @e[tag={tag}]")
-    # With nothing to fight, one of her court more than 12 blocks off walks lazily back toward her.
-    rcon.run('summon dreadpatch:dread_queen 1.5 200 7.5 {UUID:[I;9,9,9,9],Tags:["smoke_queen"]}')
-    rcon.run('summon iceandfire:dread_thrall 14.5 200 7.5 {CommanderUUID:[I;9,9,9,9],Tags:["smoke_court"]}')
-    time.sleep(5.0)
-    x = re.search(r"([0-9.]+)d", rcon.run("data get entity @e[tag=smoke_court,limit=1] Pos[0]"))
-    record("her idle court follows her back", x is not None and float(x.group(1)) < 12.0, f"thrall at x {x and x.group(1)}, from 14.5 (her at 1.5)")
+    # With nothing to fight, one of her court more than 12 blocks off walks lazily back toward her. A queen of her own
+    # (0.97.4's run: one summoned as the last was killed, with its UUID, never rose, and the thrall had no one to follow),
+    # and the way between them cleared (the same thrall on a clear pad walked from 14.5 to 10.1 in 5 s; in the run it never
+    # moved, twice).
+    rcon.run("fill 1 200 1 15 206 14 minecraft:air")
+    rcon.run('summon dreadpatch:dread_queen 1.5 200 7.5 {UUID:[I;19,19,19,19],Tags:["smoke_queen"]}')
+    rcon.run('summon iceandfire:dread_thrall 14.5 200 7.5 {CommanderUUID:[I;19,19,19,19],Tags:["smoke_court"]}')
+    # Lazily, so given time: Ice and Fire's own stroll can take its path over now and then (0.97.4's third run caught one
+    # wandering off to 16 in the first 5 s). Within 12 of her by 15 s.
+    x = None
+    for _ in range(30):
+        time.sleep(0.5)
+        x = re.search(r"([0-9.]+)d", rcon.run("data get entity @e[tag=smoke_court,limit=1] Pos[0]"))
+        if x and float(x.group(1)) < 12.0:
+            break
+    queen_there = "Test passed" in rcon.run("execute if entity @e[tag=smoke_queen]")
+    record("her idle court follows her back", x is not None and float(x.group(1)) < 12.0,
+           f"thrall at x {x and x.group(1)}, from 14.5 (her at 1.5; she's there: {queen_there})")
     for tag in ("smoke_queen", "smoke_court"):
         rcon.run(f"kill @e[tag={tag}]")
     clear_court()
@@ -870,12 +882,10 @@ def main():
     frozen = pool_ice()
     rcon.run("tp @e[tag=smoke_walk_q] 22.5 230 40.5")
     rcon.run("kill @e[tag=smoke_walk_q]")
-    left = frozen
-    for _ in range(25):
-        time.sleep(1.0)
-        left = pool_ice()
-        if left == 0:
-            break
+    # Counted once, at the end: counting swaps the ice to sponge and back, fresh (age 0), which held off its melting
+    # (the first run, counting every second, found 38 of 44 left).
+    time.sleep(25.0)
+    left = pool_ice()
     record("her Rimewalk ice melts after her at night in a storm (0.97.2)", frozen > 0 and left == 0, f"{frozen} frozen, {left} left 25 s on")
     rcon.run("weather clear")
     if time_was:
@@ -1304,6 +1314,8 @@ def main():
     def key_rolls(dim, n):
         pre = f"execute in {dim} positioned 0.5 250 0.5 run "
         rcon.run(pre + "forceload add 0 0")
+        # A moment for the chunk to load (0.97.4's second run found none in 40 straight after it).
+        time.sleep(1.5)
         hits = 0
         for _ in range(n):
             rcon.run(pre + "kill @e[type=item,distance=..8]")
@@ -1312,14 +1324,16 @@ def main():
         rcon.run(pre + "kill @e[type=item,distance=..8]")
         rcon.run(pre + "forceload remove 0 0")
         return hits
-    keys = key_rolls("dreadpatch:dreadlands", 40)
-    record("a Dreadlands village chest now and then holds a dread key", keys > 0, f"{keys} in 40 chests")
+    keys = key_rolls("dreadpatch:dreadlands", 60)
+    record("a Dreadlands village chest now and then holds a dread key", keys > 0, f"{keys} in 60 chests")
     plain = key_rolls("minecraft:overworld", 40)
     record("but an overworld village chest never does", plain == 0, f"{plain} in 40 chests")
     rcon.run("forceload remove 60 40 68 48")
     # A wild Rimefrost dragon hunts what the Dread do (0.84.4, the owner: "Rimefrost dragons are also hostile to the same
     # things the dread mobs do"): a cow by it, hungry or not, but not a thrall.
     rcon.run("forceload add 400 400 416 416")
+    # By day: Ice and Fire's dragons sleep at night, and the clock drifts on over a run (0.97.4's run came to it at night).
+    rcon.run("time set 1000")
     rcon.run("fill 400 199 400 416 199 416 minecraft:stone")
     rcon.run("fill 400 200 400 416 210 416 minecraft:air")
     rcon.run('summon minecraft:cow 410.5 200 408.5 {PersistenceRequired:1b,Tags:["smoke_wild_prey"]}')
@@ -1727,8 +1741,9 @@ def main():
     # Counted before and after (0.83.0: the chickens' risen beasts now wander over to eat what the dead dropped, and one
     # stood by the golem): nothing more there once it's dead.
     # Beasts aside too: they come for its poppy (a golem would rise a thrall, by its shape, if it rose).
-    near_golem = ("execute positioned 13.5 200 6.5 if entity @e[distance=..2.5,type=!minecraft:item,type=!minecraft:experience_orb,"
-                  "type=!minecraft:iron_golem,type=!iceandfire:dread_beast]")
+    # A risen golem would rise where it fell, a thrall by its shape: so a thrall within a block (0.97.5: within 2.5 of
+    # anything but beasts, her court, which wanders more since it spreads and follows (0.91.0), strayed in).
+    near_golem = "execute positioned 13.5 200 6.5 if entity @e[distance=..1,type=iceandfire:dread_thrall]"
     before = re.search(r"count: (\d+)", rcon.run(near_golem))
     rcon.run('summon minecraft:iron_golem 13.5 200 6.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
@@ -2446,16 +2461,16 @@ def main():
     after = health(out_husk)
     record("it freezes what's out in it", after < before, f"the husk outside went from {before} to {after} in 3.5 s")
     record("and it's still a storm: Rimefrost too", has_effect(out_husk, "dreadpatch:rimefrost"), "no Rimefrost on the husk outside")
-    # A mob its freezing kills rises one time in four, wild Dread (0.92.0): of 20 pigs at 1 health, some rise as dread
-    # beasts (none at all one run in 300), none of them anyone's.
-    for i in range(20):
+    # A mob its freezing kills rises one time in four, wild Dread (0.92.0): of 40 pigs at 1 health, some rise as dread
+    # beasts, none of them anyone's. (20 until 0.97.5: a few die some other way first, and 0.97.4's fourth run rolled none.)
+    for i in range(40):
         rcon.run(dl + f'run summon minecraft:pig {34.5 + (i % 10)} {pad + 1} {46.5 + 2 * (i // 10)} {{NoAI:1b,Health:1f,Tags:["smoke_whiteout_pig"]}}')
     time.sleep(4.0)
     pigs_left = rcon.run(dl + "run execute if entity @e[tag=smoke_whiteout_pig]")
-    risen = rcon.run(dl + f"run execute if entity @e[type=iceandfire:dread_beast,x=30,y={pad - 2},z=42,dx=18,dy=8,dz=10]")
-    owned = rcon.run(dl + f"run data get entity @e[type=iceandfire:dread_beast,x=30,y={pad - 2},z=42,dx=18,dy=8,dz=10,limit=1] CommanderUUID")
+    risen = rcon.run(dl + f"run execute if entity @e[type=iceandfire:dread_beast,x=30,y={pad - 2},z=42,dx=18,dy=8,dz=16]")
+    owned = rcon.run(dl + f"run data get entity @e[type=iceandfire:dread_beast,x=30,y={pad - 2},z=42,dx=18,dy=8,dz=16,limit=1] CommanderUUID")
     n = int((re.search(r"count: (\d+)", risen) or [0, "0"])[1])
-    record("a whiteout's freezing kills; some of the dead rise wild (0.92.0)", "Test failed" in pigs_left and 0 < n < 20,
+    record("a whiteout's freezing kills; some of the dead rise wild (0.92.0)", "Test failed" in pigs_left and 0 < n < 40,
            f"pigs left: {pigs_left.strip()}; dread beasts risen: {n}")
     record("and the risen are no one's", n == 0 or "Found no elements" in owned, owned.strip())
     rcon.run(dl + "run kill @e[type=iceandfire:dread_beast]")
