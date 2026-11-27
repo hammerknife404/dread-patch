@@ -79,6 +79,8 @@ public final class SummonedCourt {
      * too, and don't follow it about (she flies).
      */
     public static final String UNBOUND_KEY = "dreadpatch:court_unbound";
+    /** A Dread Fish of Summon Court's (0.95.0), not of Summon Dread Fish's: each spell dismisses only its own. */
+    public static final String COURT_FISH_KEY = "dreadpatch:court_fish";
 
     private static final ParticleOptions CHARCOAL = new DustParticleOptions(new Vector3f(0.078F, 0.086F, 0.114F), 1.6F);
 
@@ -144,10 +146,19 @@ public final class SummonedCourt {
      */
     public static int raise(ServerLevel level, LivingEntity caster, int spellLevel) {
         dismiss(level, caster, DreadMobEntity.class);
+        dismiss(level, caster, DreadFish.class, true);
         long expires = level.getGameTime() + CourtRules.summonSeconds(spellLevel) * 20L;
         Vec3 center = caster.position();
         int raised = 0;
+        // With water in range, a Dread Fish may be among them (0.95.0, the owner: "Summon court can now include a dread
+        // fish if water is in range"), each place by its weight against the court's kinds, rising in the water.
+        DreadFish probe = ModRegistries.DREAD_FISH.get().create(level);
+        boolean water = probe != null && findWater(level, center, caster.getRandom(), probe) != null;
         for (int i = 0; i < CourtRules.summonCount(spellLevel); i++) {
+            if (water && caster.getRandom().nextInt(CourtRules.TOTAL_WEIGHT + SummonRules.COURT_FISH_WEIGHT) < SummonRules.COURT_FISH_WEIGHT) {
+                raised += raiseFish(level, caster, center, 1, expires, false, null, true);
+                continue;
+            }
             DreadMobEntity member = DreadCourt.create(level, CourtRules.pick(caster.getRandom().nextInt(CourtRules.TOTAL_WEIGHT)));
             if (member == null) {
                 continue;
@@ -199,7 +210,7 @@ public final class SummonedCourt {
      * {@link SummonRules#FISH_SPELL_SECONDS}, after dismissing the fish they summoned before. How many rose.
      */
     public static int raiseFishSpell(ServerLevel level, LivingEntity caster, int spellLevel) {
-        dismiss(level, caster, DreadFish.class);
+        dismiss(level, caster, DreadFish.class, false);
         long expires = level.getGameTime() + SummonRules.FISH_SPELL_SECONDS * 20L;
         int raised = raiseFish(level, caster, caster.position(), SummonRules.fishCount(spellLevel), expires, false, null);
         if (raised > 0) {
@@ -215,6 +226,12 @@ public final class SummonedCourt {
      * set on {@code target} if given. How many rose.
      */
     public static int raiseFish(ServerLevel level, LivingEntity caster, Vec3 center, int count, long expires, boolean unbound, @Nullable LivingEntity target) {
+        return raiseFish(level, caster, center, count, expires, unbound, target, false);
+    }
+
+    /** As {@link #raiseFish}; a court's ({@code court}, Summon Court's) only in water, and marked {@link #COURT_FISH_KEY}. */
+    static int raiseFish(ServerLevel level, LivingEntity caster, Vec3 center, int count, long expires, boolean unbound, @Nullable LivingEntity target,
+                         boolean court) {
         int raised = 0;
         for (int i = 0; i < count; i++) {
             DreadFish fish = ModRegistries.DREAD_FISH.get().create(level);
@@ -222,11 +239,14 @@ public final class SummonedCourt {
                 continue;
             }
             Vec3 spot = findWater(level, center, caster.getRandom(), fish);
-            if (spot == null) {
+            if (spot == null && !court) {
                 spot = DreadCourt.findSpot(level, center, caster.getRandom(), fish);
             }
             if (spot == null) {
                 continue;
+            }
+            if (court) {
+                fish.getPersistentData().putBoolean(COURT_FISH_KEY, true);
             }
             fish.moveTo(spot.x, spot.y, spot.z, caster.getRandom().nextFloat() * 360.0F, 0.0F);
             EventHooks.finalizeMobSpawn(fish, level, level.getCurrentDifficultyAt(fish.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
@@ -270,13 +290,19 @@ public final class SummonedCourt {
 
     /** Sends back every court member of {@code kind} {@code caster} raised in this level. */
     static void dismiss(ServerLevel level, Entity caster, Class<? extends Mob> kind) {
-        List<Mob> court = new ArrayList<>();
+        dismiss(level, caster, kind, null);
+    }
+
+    /** As {@link #dismiss}, only Summon Court's fish ({@code courtFish} true) or only the others (false); {@code null}, all. */
+    static void dismiss(ServerLevel level, Entity caster, Class<? extends Mob> kind, @Nullable Boolean courtFish) {
+        List<Mob> members = new ArrayList<>();
         for (Entity entity : level.getAllEntities()) {
-            if (kind.isInstance(entity) && serves(entity, caster)) {
-                court.add((Mob) entity);
+            if (kind.isInstance(entity) && serves(entity, caster)
+                    && (courtFish == null || entity.getPersistentData().getBoolean(COURT_FISH_KEY) == courtFish)) {
+                members.add((Mob) entity);
             }
         }
-        court.forEach(SummonedCourt::crumble);
+        members.forEach(SummonedCourt::crumble);
     }
 
     /** Back into the ground (or the air), with whatever dread mount it rode. */
