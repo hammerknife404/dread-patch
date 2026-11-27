@@ -94,6 +94,12 @@ public final class RimeEelRules {
     public static final int SUN_CAP = 6;
     /** Each player's one-in-this chance every 10 s of one in dark water near them (on top of the cave and chasma rolls). */
     public static final int DARK_WATER_ONE_IN = 10;
+    /**
+     * In the Rime Chasma (0.84.1, the owner: "Rime eels can spawn naturally on the surface of chasmas, but prefer water"):
+     * each player's one-in-this chance every 10 s of one more there: in dark water near them if there's any, else out on
+     * the chasma's open floor.
+     */
+    public static final int CHASMA_SURFACE_ONE_IN = 20;
     /** Never past this many within 64 of the player. */
     public static final int CAP = 4;
     /** Where: 8-32 blocks off, within 16 up or down. */

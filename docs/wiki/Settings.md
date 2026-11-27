@@ -54,6 +54,7 @@ Bats, parrots and water creatures risen Dread, stirring on their own; and Rime E
 | `cave_dread_water` | `40` | The same for a Dread water creature (glow squid mostly, squid, cod, salmon) in underground water near them; in the Dreadlands, a Rime Eel in dark underground water. 0 for never. |
 | `chasma_dread_water` | `8` | In the Dreadlands' Rime Chasma, the same for a Rime Eel in one of the pockets of water sealed in its ice near them (on top of the above). 0 for never. |
 | `dreadlands_rime_eels` | `10` | In the Dreadlands, the same for a Rime Eel in any dark water near them (two deep, light 6 or less), on top of the above; never more than 4 eels near. 0 for never. |
+| `chasma_surface_eels` | `20` | In the Rime Chasma, each player's one-in-this chance every 10 seconds of a Rime Eel near them: in dark water if there's any near, else out on the chasma's open floor, from where it makes for water. On top of the above; never more than 4 eels near. 0 for never. |
 
 ## `[siphon]`
 
