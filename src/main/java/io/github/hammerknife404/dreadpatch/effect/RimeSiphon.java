@@ -33,7 +33,10 @@ import java.util.WeakHashMap;
  * lays it (a Rimefrost dragon's bite, a phantom's, an unarmed thrall's claws, any Dread mob's hit) is fed by it too:
  * by difficulty (the owner: "scale it down to .25 .5 1hp per difficulty on withering rime that is not tagged otherwise"):
  * {@link #dreadHeal} each tick it withers, while within {@link #RANGE}. Only the queen's is more, and only hers the
- * config shares out.
+ * config shares out. Only the one who laid it is fed (the owner: "only the mob that applies it is healed from its own
+ * application"), never a partner it's bonded to, and (the owner: "And can only apply 1 stack per target") a Dread mob's
+ * laying on someone already withering only renews it, never deepening it ({@link #onApplicable}; the queen's and
+ * Syndrigossa's own are hers as before).
  */
 public final class RimeSiphon {
     public static final double RANGE = 32.0;
@@ -57,6 +60,22 @@ public final class RimeSiphon {
 
     static void register(IEventBus gameBus) {
         gameBus.addListener(RimeSiphon::onEffectAdded);
+        gameBus.addListener(net.neoforged.bus.api.EventPriority.LOW, RimeSiphon::onApplicable);
+    }
+
+    /** One stack a target: a Dread mob's Withering Rime over one already there renews it at most, never deeper. */
+    private static void onApplicable(MobEffectEvent.Applicable event) {
+        LivingEntity entity = event.getEntity();
+        Entity source = event.getEffectSource();
+        net.minecraft.world.effect.MobEffectInstance existing = entity.getEffect(ModRegistries.WITHERING_RIME);
+        if (entity.level().isClientSide || existing == null || !event.getEffectInstance().is(ModRegistries.WITHERING_RIME)
+                || source == null || !io.github.hammerknife404.dreadpatch.entity.RisenDread.dread(source) || DreadHits.overriding(source)
+                || event.getResult() == MobEffectEvent.Applicable.Result.DO_NOT_APPLY) {
+            return;
+        }
+        if (event.getEffectInstance().getAmplifier() > existing.getAmplifier()) {
+            event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
+        }
     }
 
     private static void onEffectAdded(MobEffectEvent.Added event) {
@@ -110,7 +129,7 @@ public final class RimeSiphon {
             // Any other of the Dread's: it's fed what its victim loses.
             if (level.getEntity(layer.id()) instanceof LivingEntity dread && dread.isAlive() && dread.distanceToSqr(victim) <= RANGE * RANGE
                     && dread.getHealth() < dread.getMaxHealth()) {
-                SoulTether.heal(dread, dreadHeal(level.getDifficulty()));
+                dread.heal(dreadHeal(level.getDifficulty()));
                 level.sendParticles(ParticleTypes.SNOWFLAKE, dread.getX(), dread.getY(0.6), dread.getZ(), 2, 0.3, 0.4, 0.3, 0.01);
             }
             return;

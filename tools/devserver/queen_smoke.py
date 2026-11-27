@@ -1079,6 +1079,12 @@ def main():
     record("a whole dread beast eats what's dropped too", eaten, "the rotten flesh still there 30 s on")
     rcon.run("kill @e[tag=smoke_whole_beast]")
     rcon.run("kill @e[type=item]")
+    # 0.87.0: Ice and Fire's lich staff carries Whiteout Dominion and Summon Dread Phantoms (its default components).
+    rcon.run('summon minecraft:armor_stand 62.5 200 46.5 {NoGravity:1b,Tags:["smoke_lich_staff"],HandItems:[{id:"iceandfire:lich_staff",count:1},{}]}')
+    check("the lich staff carries the Dread's spells",
+          "execute if items entity @e[tag=smoke_lich_staff,limit=1] weapon.mainhand iceandfire:lich_staff[irons_spellbooks:spell_container]",
+          "Test passed")
+    rcon.run("kill @e[tag=smoke_lich_staff]")
     rcon.run("forceload remove 60 40 68 48")
     # A wild Rimefrost dragon hunts what the Dread do (0.84.4, the owner: "Rimefrost dragons are also hostile to the same
     # things the dread mobs do"): a cow by it, hungry or not, but not a thrall.

@@ -44,7 +44,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - builds freezing faster than the body thaws;
   - cancels all healing (`LivingHealEvent`).
 - **Who refuses it:** the Dread (`IDreadMob`), through `MobEffectEvent.Applicable`.
-- **The siphon** (`effect/RimeSiphon`; since 0.85.0 every Dread mob's Withering Rime feeds its layer too, 0.25 / 0.5 / 1 a withering tick by difficulty, within 32, while it's hurt; only hers is shared out by `[siphon]`):
+- **The siphon** (`effect/RimeSiphon`; since 0.85.0 every Dread mob's Withering Rime feeds its layer too, 0.25 / 0.5 / 1 a withering tick by difficulty, within 32, while it's hurt; only hers is shared out by `[siphon]`. Since 0.87.0 the owner's "only the mob that applies it is healed from its own application. And can only apply 1 stack per target": that one alone, never a bonded partner, and `RimeSiphon.onApplicable` (low priority) refuses a Dread mob's laying that would deepen a Withering Rime already on its target (a higher amplifier), the queen's and Syndrigossa's aside; a same-or-lower one renews it, taking it over):
   - `MobEffectEvent.Added` records who laid each victim's rime. Every place we apply it passes a source, and the last to lay it owns it.
   - Each withering tick of a `DreadQueen`'s that takes health heals her by difficulty, within 32 blocks.
   - A withering hit inside the victim's `invulnerableTime` after a bigger hit takes nothing and feeds nothing.
