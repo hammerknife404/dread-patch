@@ -896,27 +896,28 @@ def main():
     # Ghouls, beasts and knights leap narrow gaps (0.97.3): a ghoul hit by a pig across a 2-wide, 5-deep trench cut
     # right across a pad gets over it within 15 s without ever dropping into it. (Probed by hand: ghoul, beast and knight
     # over 1 and 2 wide, none falling in; a 3-wide one they went round or a big beast walked over.)
-    rcon.run("fill 16 194 0 30 199 12 minecraft:stone")
-    rcon.run("fill 16 200 0 30 206 12 minecraft:air")
-    rcon.run("fill 22 194 0 23 199 12 minecraft:air")
-    rcon.run('summon iceandfire:dread_ghoul 18.5 200 6.5 {PersistenceRequired:1b,Tags:["smoke_leaper"]}')
-    rcon.run('summon minecraft:pig 28.5 200 6.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_leap_p"],active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
-    time.sleep(1.0)
-    rcon.run("damage @e[tag=smoke_leaper,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_leap_p,limit=1]")
-    leapt, lowest = False, 999.0
-    for _ in range(30):
-        time.sleep(0.5)
-        pos = re.findall(r"([-\d.]+)d", rcon.run("data get entity @e[tag=smoke_leaper,limit=1] Pos"))
-        if len(pos) < 3:
-            break
-        lowest = min(lowest, float(pos[1]))
-        if float(pos[0]) > 24.0 and float(pos[1]) >= 199.5:
-            leapt = True
-            break
-    record("a dread ghoul leaps a 2-wide trench (0.97.3)", leapt and lowest >= 199.5, f"across: {leapt}, lowest y {lowest}")
-    rcon.run("kill @e[tag=smoke_leaper]")
-    rcon.run("kill @e[tag=smoke_leap_p]")
-    rcon.run("fill 16 194 0 30 206 12 minecraft:air")
+    for leaper in ("dread_ghoul", "dread_scuttler"):
+        rcon.run("fill 16 194 0 30 199 12 minecraft:stone")
+        rcon.run("fill 16 200 0 30 206 12 minecraft:air")
+        rcon.run("fill 22 194 0 23 199 12 minecraft:air")
+        rcon.run(f'summon iceandfire:{leaper} 18.5 200 6.5 {{PersistenceRequired:1b,Tags:["smoke_leaper"]}}')
+        rcon.run('summon minecraft:pig 28.5 200 6.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_leap_p"],active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+        time.sleep(1.0)
+        rcon.run("damage @e[tag=smoke_leaper,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_leap_p,limit=1]")
+        leapt, lowest = False, 999.0
+        for _ in range(30):
+            time.sleep(0.5)
+            pos = re.findall(r"([-\d.]+)d", rcon.run("data get entity @e[tag=smoke_leaper,limit=1] Pos"))
+            if len(pos) < 3:
+                break
+            lowest = min(lowest, float(pos[1]))
+            if float(pos[0]) > 24.0 and float(pos[1]) >= 199.5:
+                leapt = True
+                break
+        record(f"a {leaper.replace('_', ' ')} leaps a 2-wide trench (0.97.3; scuttlers 0.97.4)", leapt and lowest >= 199.5, f"across: {leapt}, lowest y {lowest}")
+        rcon.run("kill @e[tag=smoke_leaper]")
+        rcon.run("kill @e[tag=smoke_leap_p]")
+        rcon.run("fill 16 194 0 30 206 12 minecraft:air")
 
     # Potions of Rimefrost and Withering Rime (0.95.0): each splash, its own zombie 10 apart (a splash reaches 4), the
     # strong Rimefrost at II, the long Withering Rime longer than 45 s left; a thrall splashed takes neither.
