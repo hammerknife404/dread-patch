@@ -14,8 +14,8 @@ This file holds the rules and the shape of the code. How each part works, what I
 
 ## Keep in step
 
-- **README:** it describes everything as a player sees it.
-- **Wiki (since 2026-11-22):** `docs/wiki/` (one page per README part, plus Home, `_Sidebar`, Commands and a Settings table of every server config value), mirrored to the GitHub wiki by `.github/workflows/wiki.yml` (the owner's shared copy, catspells-nosumagro's) on each push to `main` that touches it. Edit pages there, never on github.com (the sync overwrites the wiki). Keep it in step with the README, and add any new config value to Settings.
+- **README (since 2026-11-27, the owner: "cleanup the readme, its far too long as a single document"):** a short overview: one line for each wiki page, linked, plus trying her out, settings, building and credits. The detail goes on the wiki, not here; touch the README only when a new part (a new wiki page) or a headline feature arrives.
+- **Wiki (since 2026-11-22):** `docs/wiki/` (one page per part of the mod, plus Home, `_Sidebar`, Commands and a Settings table of every server config value), mirrored to the GitHub wiki by `.github/workflows/wiki.yml` (the owner's shared copy, catspells-nosumagro's) on each push to `main` that touches it. Edit pages there, never on github.com (the sync overwrites the wiki). It's the full player guide (what the README described in full until 2026-11-27): change its page with each user-visible change, and add any new config value to Settings.
 - **`docs/dev/`:** change a part's page with its code. A new decision of the owner's goes in `decisions.md`, with its version. Keep feature detail out of this file. These pages aren't in `docs/wiki/`, so they never reach the wiki.
 
 ## The notes (`docs/dev/`)
@@ -137,7 +137,7 @@ Design proposals: the owner's two chats with another assistant, `proposed_stuff_
 
 **PRs**
 - Into `main`, based on `main`. A PR based on another PR's branch merges into that branch, not `main` (#2 did).
-- Bump `mod_version` with user-visible changes; merging the bump releases it. Keep the README in step.
+- Bump `mod_version` with user-visible changes; merging the bump releases it. Keep the wiki in step (and the README's overview, for a new part).
 - **Before committing (the owner's checklist, pasted 2026-11-22 for the second drop, followed since):**
   - one branch for each group of work;
   - stage files by name (never `git add .` or `-A`; `compat_mods_testing_better_combat/`, `custom_mods/` and the `.mrpack`s stay untracked), after checking the diff for debug leftovers;
