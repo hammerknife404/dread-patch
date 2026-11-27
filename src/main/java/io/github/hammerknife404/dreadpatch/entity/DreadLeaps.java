@@ -19,11 +19,14 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * Ghouls, beasts and knights leap narrow gaps ({@link LeapRules}; 0.97.3): heading somewhere (its path's end, else its
+ * Ghouls, beasts, knights and (0.97.4, the owner: "add jumping to the scuttlers too") scuttlers leap narrow gaps
+ * ({@link LeapRules}; 0.97.3), and Dread Fish on land (0.97.4, the owner: "and to dread fish, but only on land, if their
+ * dolphin-like abilities already do this skip it": their own land lunge goes only at prey in reach, so not wandering or
+ * making for water): heading somewhere (its path's end, else its
  * target; so chasing, wandering and on patrol alike), one on the ground at a gap 1-2 blocks wide right ahead toward it,
  * deeper than a step, with ground past it at its own height or one lower and room to stand, leaps it, fast enough to land
  * just past the far edge. Landed, it plans its path afresh (the old one likely ran round the gap). Thralls (the owner: "to
- * slow to jump") and scuttlers (which climb) don't; nor one riding, in water, or within a second of its last leap.
+ * slow to jump") don't; nor one riding, in water, or within a second of its last leap.
  */
 public final class DreadLeaps {
     /** Game time each may next leap, and whether it's in the air from one. Server thread only. */
@@ -38,7 +41,8 @@ public final class DreadLeaps {
     }
 
     static boolean leaper(Object entity) {
-        return entity instanceof DreadGhoulEntity || entity instanceof DreadBeastEntity || entity instanceof DreadKnightEntity;
+        return entity instanceof DreadGhoulEntity || entity instanceof DreadBeastEntity || entity instanceof DreadKnightEntity
+                || entity instanceof com.iafenvoy.iceandfire.entity.DreadScuttlerEntity || entity instanceof DreadFish;
     }
 
     private static void onTick(EntityTickEvent.Post event) {
