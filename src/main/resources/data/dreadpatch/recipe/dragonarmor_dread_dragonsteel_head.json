@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "dreadpatch:dread_dragonsteel_block"
+    }
+  },
+  "pattern": [
+    "   ",
+    " ##",
+    "###"
+  ],
+  "result": {
+    "id": "dreadpatch:dragonarmor_dread_dragonsteel_head"
+  },
+  "show_notification": true
+}

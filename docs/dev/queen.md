@@ -5,6 +5,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 ## The queen
 
 **`entity/DreadQueen`**, our subclass:
+- **Never drowned or choked in a wall** (0.84.4, the owner: "dread queen and syndragossa are both immune to drowning or suffocation damage including being inside walls/blocks. Theyve suvived being burried afterall"): `isInvulnerableTo` refuses `DROWN` and `IN_WALL`, and she's in `#minecraft:can_breathe_under_water` (no air lost). Syndrigossa the same (`dragons.md`).
 - **Animation:** it ticks her animations.
 - **Rising** (`ANIMATION_SPAWN` ticks 0–29):
   - `isImmobile()` is true, so there's no AI step;

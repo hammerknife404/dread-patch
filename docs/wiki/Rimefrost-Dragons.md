@@ -11,7 +11,7 @@ What every Rimefrost dragon has:
 - **Shatter-Spine**, its charge: a core of bone and dread-glass that bursts 9 blocks above its target into 5 to 7 shards raining over the ground below. Each cuts everyone within a block and a half and leaves Withering Rime.
 - **In the air:** it takes off far more than other dragons (with a target on the ground it's up in about 3 seconds), favours strafing fly-bys, breathing as it passes, and looses Shatter-Spine every 10 seconds at whatever it's hunting. It can't hunt players in creative or spectator. Its breath is big cold dread-fire flames and soot clouds you can see from the ground, Shatter-Spine flies as a burr of dark ice spikes and bursts in a ring, and its wings keep beating while it breathes on a fly-by.
 - **Undead:** it never sleeps. Smite hits it harder, Healing hurts it and Harming heals it, and Poison, Regeneration and Wither don't take. Like ice dragons, it can't freeze or drown.
-- **Players:** it hunts them even when Ice and Fire's `neutralToPlayer` setting makes other wild dragons leave them alone.
+- **Players:** it hunts them even when Ice and Fire's `neutralToPlayer` setting makes other wild dragons leave them alone. A wild one hunts as the Dread do, too: every living thing but the Dread, hungry or not.
 - **Its corpse:** harvested like any dragon's, empty-handed, but it's Dread. It gives **Rimefrost Dragon Scales** (more the older it was) or dread shards (no flesh, and no blood for a bottle), a handful of dread shards and witherbones where a dragon's heart would be, no ice dragon egg, then dragon bones and an ice dragon skull.
 
 ## Syndrigossa

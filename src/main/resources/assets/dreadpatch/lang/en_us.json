@@ -256,5 +256,10 @@
   "subtitles.dreadpatch.entity.rime_eel.death": "Rime Eel dies",
   "subtitles.dreadpatch.entity.rime_eel.pulse": "Rime Eel's lure pulses",
   "subtitles.dreadpatch.entity.rime_eel.bite": "Rime Eel bites",
-  "subtitles.dreadpatch.entity.rime_eel.lunge": "Rime Eel lunges"
+  "subtitles.dreadpatch.entity.rime_eel.lunge": "Rime Eel lunges",
+  "block.dreadpatch.dread_dragonsteel_block": "Block of Dread Dragonsteel",
+  "item.dreadpatch.dragonarmor_dread_dragonsteel_head": "Dread Dragonsteel Dragon Armor",
+  "item.dreadpatch.dragonarmor_dread_dragonsteel_neck": "Dread Dragonsteel Dragon Armor",
+  "item.dreadpatch.dragonarmor_dread_dragonsteel_body": "Dread Dragonsteel Dragon Armor",
+  "item.dreadpatch.dragonarmor_dread_dragonsteel_tail": "Dread Dragonsteel Dragon Armor"
 }

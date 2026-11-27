@@ -161,6 +161,9 @@ public final class DreadRecolors {
             }
         }
         MADE.clear();
+        DRAGON_ARMOR.forEach(Minecraft.getInstance().getTextureManager()::release);
+        DRAGON_ARMOR.clear();
+        dragonArmorMade = false;
     }
 
     private static NativeImage read(ResourceLocation location) throws IOException {
@@ -172,6 +175,36 @@ public final class DreadRecolors {
             return NativeImage.read(in);
         }
     }
+
+    /**
+     * Dread dragonsteel dragon armour on a dragon (0.84.4; 0.84.0's blacksteel armour's way): Ice and Fire draws a
+     * dragon's armour from {@code iceandfire:textures/entity/dragon_armor/armor_<part>_<material>.png}, so ours is made
+     * under that name (from its ice dragonsteel's, recoloured as the rest of the steel) the first time a dragon is drawn,
+     * before its armour layer looks.
+     */
+    static void dragonArmor(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
+        if (dragonArmorMade || !(event.getEntity() instanceof com.iafenvoy.iceandfire.entity.DragonBaseEntity)) {
+            return;
+        }
+        dragonArmorMade = true;
+        for (com.iafenvoy.iceandfire.data.DragonArmorPart part : com.iafenvoy.iceandfire.data.DragonArmorPart.values()) {
+            String path = "textures/entity/dragon_armor/armor_" + part.getId() + "_";
+            ResourceLocation target = ResourceLocation.fromNamespaceAndPath("iceandfire",
+                    path + io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.DREAD_DRAGONSTEEL.name() + ".png");
+            try (NativeImage image = read(ResourceLocation.fromNamespaceAndPath("iceandfire", path + "dragon_steel_ice.png"))) {
+                recolor(image);
+                NativeImage copy = new NativeImage(image.getWidth(), image.getHeight(), false);
+                copy.copyFrom(image);
+                Minecraft.getInstance().getTextureManager().register(target, new DynamicTexture(copy));
+                DRAGON_ARMOR.add(target);
+            } catch (IOException | RuntimeException e) {
+                DreadPatch.LOGGER.warn("Couldn't make the dread dragonsteel dragon armour's {}", target, e);
+            }
+        }
+    }
+
+    private static final List<ResourceLocation> DRAGON_ARMOR = new java.util.ArrayList<>();
+    private static boolean dragonArmorMade;
 
     /** {@link DreadRecolor} over a {@link NativeImage}, which keeps its pixels ABGR, by {@code palette}. */
     static void recolor(NativeImage image, DreadRecolor.Palette palette) {

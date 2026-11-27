@@ -1022,7 +1022,82 @@ def main():
            f"eaten {eaten}, health {scuttler_hurt} -> {health(beast)}")
     rcon.run("kill @e[tag=smoke_beast]")
     rcon.run("kill @e[type=item]")
+    # Dread thralls are never empty-handed, and shoot a bow or crossbow (0.84.4, the owner: "make sure dread thralls
+    # can spawn with a bow or cross bow, and never without a weapon"). A summon with NBT skips Ice and Fire's own gear,
+    # so each of these joins empty-handed.
+    armed = []
+    for i in range(6):
+        rcon.run(f'summon iceandfire:dread_thrall {61.5 + i} 200 41.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_thrall","smoke_thrall{i}"]}}')
+    time.sleep(1.0)
+    for i in range(6):
+        m = re.search(r'"([a-z_]+:[a-z_]+)"', rcon.run(f"data get entity @e[tag=smoke_thrall{i},limit=1] HandItems[0].id"))
+        armed.append(m.group(1) if m else None)
+    record("a dread thrall that joins empty-handed is given a weapon", all(armed), f"main hands: {armed}")
+    rcon.run("kill @e[tag=smoke_thrall]")
+    for weapon in ("bow", "crossbow"):
+        rcon.run("kill @e[type=arrow]")
+        rcon.run('summon minecraft:cow 67.5 200 47.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_thrall_prey"]}')
+        rcon.run(f'summon iceandfire:dread_thrall 60.5 200 40.5 {{PersistenceRequired:1b,Tags:["smoke_thrall"],'
+                 f'HandItems:[{{id:"minecraft:{weapon}",count:1}},{{}}]}}')
+        shot = False
+        for _ in range(40):
+            time.sleep(0.25)
+            # An arrow that hits is gone at once: a hurt cow (10 health) counts as a shot too.
+            if "Test passed" in rcon.run("execute if entity @e[type=arrow]") or health("@e[tag=smoke_thrall_prey,limit=1]") < 10.0:
+                shot = True
+                break
+        record(f"a dread thrall with a {weapon} shoots at its prey", shot, "no arrow and no hurt cow within 10 s")
+        rcon.run("kill @e[tag=smoke_thrall]")
+        rcon.run("kill @e[tag=smoke_thrall_prey]")
+        rcon.run("kill @e[type=arrow]")
     rcon.run("forceload remove 60 40 68 48")
+    # A wild Rimefrost dragon hunts what the Dread do (0.84.4, the owner: "Rimefrost dragons are also hostile to the same
+    # things the dread mobs do"): a cow by it, hungry or not, but not a thrall.
+    rcon.run("forceload add 400 400 416 416")
+    rcon.run("fill 400 199 400 416 199 416 minecraft:stone")
+    rcon.run("fill 400 200 400 416 210 416 minecraft:air")
+    rcon.run('summon minecraft:cow 410.5 200 408.5 {PersistenceRequired:1b,Tags:["smoke_wild_prey"]}')
+    rcon.run('summon iceandfire:dread_thrall 406.5 200 412.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_wild_thrall"],'
+             'HandItems:[{id:"minecraft:stone_sword",count:1},{}]}')
+    thrall_health = health("@e[tag=smoke_wild_thrall,limit=1]")
+    rcon.run('summon dreadpatch:rimefrost_dragon 405.5 200 405.5 {PersistenceRequired:1b,Hunger:100,AgeTicks:600000,Tags:["smoke_wild_dragon"]}')
+    hunted = False
+    for _ in range(80):
+        time.sleep(0.25)
+        cow = health("@e[tag=smoke_wild_prey,limit=1]")
+        if cow < 10.0:  # hurt (a cow has 10), or gone (-1)
+            hunted = True
+            break
+    record("a wild Rimefrost dragon hunts a cow, fed or not", hunted, "the cow untouched 20 s on")
+    record("and leaves a dread thrall be", health("@e[tag=smoke_wild_thrall,limit=1]") == thrall_health,
+           f"thrall health {thrall_health} -> {health('@e[tag=smoke_wild_thrall,limit=1]')}")
+    rcon.run("kill @e[tag=smoke_wild_dragon]")
+    rcon.run("kill @e[tag=smoke_wild_prey]")
+    rcon.run("kill @e[tag=smoke_wild_thrall]")
+    rcon.run("kill @e[type=item]")
+    # The queen and Syndrigossa never drown or choke in a wall (0.84.4, the owner: "Theyve suvived being burried
+    # afterall"): a summoned one of each, NoAI, takes neither.
+    rcon.run('summon dreadpatch:dread_queen 404.5 200 404.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_buried"]}')
+    rcon.run('summon dreadpatch:syndrigossa 410.5 200 410.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_buried"]}')
+    time.sleep(0.5)
+    for who in ("dreadpatch:dread_queen", "dreadpatch:syndrigossa"):
+        for kind in ("minecraft:in_wall", "minecraft:drown"):
+            out = rcon.run(f"damage @e[tag=smoke_buried,type={who},limit=1] 5 {kind}")
+            record(f"{who.split(':')[1]} takes no {kind.split(':')[1]} damage", "Applied" not in out, out.strip())
+    rcon.run("kill @e[tag=smoke_buried]")
+    # Dread dragonsteel dragon armour (0.84.4, the owner: "Should also include a rimefrost dragonsteel dragon armor"):
+    # its four pieces and its block exist, and the block drops itself.
+    for piece in ("head", "neck", "body", "tail"):
+        check(f"dread dragonsteel dragon armour ({piece}) exists",
+              f'summon item 408.5 201 408.5 {{Item:{{id:"dreadpatch:dragonarmor_dread_dragonsteel_{piece}",count:1}},Tags:["smoke_dragon_armor"]}}',
+              "Summoned new")
+    rcon.run("kill @e[tag=smoke_dragon_armor]")
+    rcon.run("setblock 408 200 408 dreadpatch:dread_dragonsteel_block")
+    out = rcon.run("loot spawn 408 201 408 mine 408 200 408 minecraft:diamond_pickaxe")
+    record("a dread dragonsteel block drops itself to a diamond pickaxe", "Block of Dread Dragonsteel" in out or "dread_dragonsteel_block" in out, out.strip())
+    rcon.run("setblock 408 200 408 minecraft:air")
+    rcon.run("kill @e[type=item]")
+    rcon.run("forceload remove 400 400 416 416")
     # Only one in six has its lantern (0.76.0), and only that one pulses: this one's given it.
     rcon.run(f"data merge entity {eel} {{Lantern:1b,Frenzy:0}}")
     rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
@@ -1721,7 +1796,8 @@ def main():
     # A wild Rimefrost dragon's nest (0.84.0), one glacier chunk in 400 (160 until 0.84.2): placed by hand up on the glacier (somewhere flat
     # enough), a bowl of hoard piles and its dragon, wild, stage 2 or more, its home the nest. Its piles stay (0.84.1:
     # with Ice and Fire's griefing on, as in the dev runs, a big dragon broke the piles it stood in; hoards are now in
-    # its dragon_block_break_blacklist).
+    # its dragon_block_break_blacklist). A whole hoard, one pile a column (113 at the least, radius 6): until 0.84.4 its bed
+    # was mostly packed ice, which Ice and Fire's piles fall off, and 40 to 50 were left.
     nest = None
     for t in high[:6]:
         placed = rcon.run(dl + f"positioned {t[0]} 0 {t[2]} positioned over world_surface run place feature dreadpatch:rimefrost_nest ~ ~ ~")
@@ -1741,7 +1817,7 @@ def main():
                 piles += int(filled.group(1))
                 rcon.run(dl + f"run fill {area} {block}[layers=4] replace minecraft:glass")
         age = re.search(r"entity data: (\d+)", rcon.run(dl + f"run data get entity @e[type=dreadpatch:rimefrost_dragon,{near},limit=1] AgeTicks"))
-        record("a wild Rimefrost dragon nests on its hoard", "Test passed" in rcon.run(dragon) and piles >= 40
+        record("a wild Rimefrost dragon nests on its hoard", "Test passed" in rcon.run(dragon) and piles >= 100
                and "Test failed" in rcon.run(dragon[:-1] + ",nbt={TamedDragon:1b}]")
                and "Test passed" in rcon.run(dragon[:-1] + ",nbt={HasHomePosition:1b}]")
                and age is not None and int(age.group(1)) >= 25 * 24000, f"piles {piles}, age {age and age.group(1)} at {nest}")

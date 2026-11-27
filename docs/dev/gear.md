@@ -65,6 +65,13 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **The iron pile:** `dreadpatch:iron_pile` is Ice and Fire's `PileBlock` (its gold pile's eight layers, shape and sounds; a nugget in hand adds a layer); models child to its `goldpile_heightN` with our texture (recoloured as the atlas loads from its silver pile, `dread_recolor`'s `palette: iron`); loot two iron nuggets a layer; two iron nuggets make one; mineable with a pickaxe, as Ice and Fire's.
 - **Blacksteel, taken out** (0.84.2, the owner: "remove the blacksteel items, it assumes L_e_enderscataclysm is also installed. Enough dragon armors exists already"): 0.84.0 had a blacksteel pile and blacksteel dragon armour (Ice and Fire's `DragonArmorItem` of a material of ours, 6), from Cataclysm's blacksteel through our tags, recipes behind `mod_loaded`. All of it is gone: the items, the tags, the recipes, the palette, the armour's texture on a dragon. A world that had them loses them.
 
+## Dread dragonsteel dragon armour (`registry/DreadDragonArmor`, `tools/datagen/make_dread_dragonsteel.py`, `client/DreadRecolors.dragonArmor`; 0.84.4)
+
+- **The owner:** "Should also include a rimefrost dragonsteel dragon armor".
+- **The armour:** Ice and Fire's `DragonArmorItem`s (head, neck, body, tail) of our `DragonArmorMaterial("dread_dragonsteel", 10, false, true)`: protection 10, as its three dragonsteels' (iron 1.5, copper and gold 2, silver 3, diamond 5, netherite 7). Its names ours (`getDescriptionId`; Ice and Fire names its own by its id). Any of Ice and Fire's dragons wears it, a Rimefrost one or Syndrigossa among them.
+- **Made** as Ice and Fire's ice dragonsteel dragon armour, in its patterns, from blocks of dread dragonsteel: head 5, neck 5, body 8, tail 3. **The block** (`dread_dragonsteel_block`): nine ingots, back to nine; strength 10, resistance 1000, a diamond pickaxe's (`needs_diamond_tool`); drops itself.
+- **Its look:** the items' and the block's sprites are Ice and Fire's ice dragonsteel's through `dread_recolor` (atlas). On a dragon, Ice and Fire draws `iceandfire:textures/entity/dragon_armor/armor_<part>_<material name>.png`: the first time any dragon is drawn (`RenderLivingEvent.Pre`), `dragonArmor` registers a `DynamicTexture` under each of those names, its `armor_<part>_dragon_steel_ice.png` recoloured; released and remade on a resource reload. (0.84.0's blacksteel dragon armour, taken out in 0.84.2, was done the same way.)
+
 ## Armour trims (`client/TrimmedArmorModel`; 0.44.0)
 
 - **The owner:** "Enable trim support for the dread queens armor, dread scale and dread dragon steel armors." Ice and Fire's own armour isn't trimmable (no tag), so this is ours only.
