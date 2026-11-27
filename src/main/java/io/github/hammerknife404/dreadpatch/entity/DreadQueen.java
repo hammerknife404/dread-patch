@@ -23,6 +23,8 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -447,5 +449,15 @@ public class DreadQueen extends DreadQueenEntity {
         // Counts the animation along on both sides; on its first server tick it also tells clients
         // it started, and at its end it goes back to NO_ANIMATION.
         AnimationHandler.INSTANCE.updateAnimations(this);
+    }
+
+    /**
+     * Never drowned or choked in a wall (0.84.4, the owner: "dread queen and syndragossa are both immune to drowning or
+     * suffocation damage including being inside walls/blocks. Theyve suvived being burried afterall"); she breathes
+     * under water too ({@code #minecraft:can_breathe_under_water}).
+     */
+    @Override
+    public boolean isInvulnerableTo(DamageSource source) {
+        return source.is(DamageTypes.DROWN) || source.is(DamageTypes.IN_WALL) || super.isInvulnerableTo(source);
     }
 }

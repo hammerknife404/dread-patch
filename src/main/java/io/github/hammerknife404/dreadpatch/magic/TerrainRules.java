@@ -26,11 +26,12 @@ public final class TerrainRules {
     /** A grave patch on the plains: one chunk in this many; a dead tree in it at this chance. */
     public static final int GRAVE_PATCH_ONE_IN = 6;
     /**
-     * An ice dragon's skeleton (0.76.0): one chunk in this many ({@code placed_feature/dragon_skeleton}'s rarity), seven
-     * times Ice and Fire's own in the overworld's snow (its {@code generateSkeletonChance}, 1 in 750); and how old its dragon was,
+     * An ice dragon's skeleton (0.76.0): one chunk in this many ({@code placed_feature/dragon_skeleton}'s rarity): 600 since
+     * 0.84.0, with real Rimefrost dragons nesting there (100 before; Ice and Fire's own in the overworld's snow, its
+     * {@code generateSkeletonChance}, 1 in 750); and how old its dragon was,
      * {@code SKELETON_MIN_DAYS} and up to {@code SKELETON_DAYS} more, as Ice and Fire's.
      */
-    public static final int SKELETON_ONE_IN = 100;
+    public static final int SKELETON_ONE_IN = 600;
     /** The deeps' water (0.77.0): every open space from the world's floor up to this y (12 blocks over bedrock's bottom). */
     public static final int DEEP_WATER_TOP = -52;
     public static final int SKELETON_MIN_DAYS = 10;

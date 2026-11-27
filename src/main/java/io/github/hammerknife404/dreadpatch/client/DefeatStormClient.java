@@ -36,6 +36,10 @@ public final class DefeatStormClient {
 
     /** Its end, in game time (0: none). */
     private static long until;
+    /** The overworld's dread weather (0.89.0): on, and whether it reaches the hot lands; drawn as the Dreadlands' snow. */
+    private static boolean dreadWeather;
+    private static boolean dreadWeatherHot;
+    private static boolean dreadExposed;
     private static boolean exposed;
     private static float strength;
     private static float lastStrength;
@@ -47,12 +51,21 @@ public final class DefeatStormClient {
         gameBus.addListener(DefeatStormClient::onClientTick);
         gameBus.addListener(DefeatStormClient::onRenderFog);
         gameBus.addListener(DefeatStormClient::onFogColor);
-        gameBus.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> until = 0L);
+        gameBus.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
+            until = 0L;
+            dreadWeather = false;
+        });
     }
 
     /** From the server: it lasts until {@code end} (game time). */
     public static void set(long end) {
         until = end;
+    }
+
+    /** From the server: the overworld's dread weather on or off (0.89.0). */
+    public static void setDreadWeather(boolean on, boolean hot) {
+        dreadWeather = on;
+        dreadWeatherHot = hot;
     }
 
     /** Whether it reaches the camera now (no easing). */
@@ -74,7 +87,10 @@ public final class DefeatStormClient {
             return;
         }
         BlockPos eye = BlockPos.containing(camera.getEyePosition());
-        exposed = level.dimension() == Level.OVERWORLD && level.getGameTime() < until && level.canSeeSky(eye)
+        boolean sky = level.dimension() == Level.OVERWORLD && level.canSeeSky(eye);
+        dreadExposed = sky && dreadWeather && level.isRaining()
+                && io.github.hammerknife404.dreadpatch.world.DreadWeather.reaches(level, camera.blockPosition(), dreadWeatherHot);
+        exposed = dreadExposed || sky && level.getGameTime() < until
                 && (!DreadPatchConfig.defeatStormColdOnly() || Escalation.cold(level, camera.blockPosition()));
         strength = Mth.clamp(strength + (exposed ? FADE : -FADE), 0.0F, 1.0F);
         if (strength > 0.0F) {
@@ -116,7 +132,12 @@ public final class DefeatStormClient {
             return;
         }
         float far = event.getFarPlaneDistance();
-        event.setFarPlaneDistance(Math.min(far, Mth.lerp(amount, far, Math.min(FOG_FAR, far))));
+        // The dread weather closes in as the Dreadlands' snow does (thicker in thunder); her defeat's to 48.
+        ClientLevel level = Minecraft.getInstance().level;
+        float thunder = level == null ? 0.0F : level.getThunderLevel((float) event.getPartialTick());
+        float to = dreadExposed ? Mth.lerp(thunder, io.github.hammerknife404.dreadpatch.magic.StormRules.FOG_FAR_SNOW,
+                io.github.hammerknife404.dreadpatch.magic.StormRules.FOG_FAR) : FOG_FAR;
+        event.setFarPlaneDistance(Math.min(far, Mth.lerp(amount, far, Math.min(to, far))));
         event.setNearPlaneDistance(Math.min(event.getNearPlaneDistance(), Mth.lerp(amount, event.getNearPlaneDistance(), 0.0F)));
         event.setCanceled(true);
     }

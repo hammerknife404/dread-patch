@@ -1,15 +1,15 @@
 package io.github.hammerknife404.dreadpatch.magic;
 
 /**
- * Game-free: the Rime Eel (0.71.0, the owner's spec: "an elongated, serpentine dread-anglerfish ... scaling in size
+ * Game-free: the Dread Fish (0.71.0, the owner's spec: "an elongated, serpentine dread-anglerfish ... scaling in size
  * from a standard fish up to a squid (~0.6 to 1.4 blocks long) with HP scaling roughly from 10–18 and 4 natural armor
  * points"; its aura "every few seconds" for "a few seconds", its lure "remaining off far more often than on", a Frenzy
- * "doubling the eel's attack speed", a bite with "a low chance" of Withering Rime, food healing "roughly 0.25 to 1 HP
+ * "doubling the fish's attack speed", a bite with "a low chance" of Withering Rime, food healing "roughly 0.25 to 1 HP
  * per item"; spawning in dark water "(minimum 1x2 water blocks) at light level 6 or below"). Where the spec gave no
  * number, the number is ours.
  */
-public final class RimeEelRules {
-    /** Its model's length at scale 1, in blocks: curled at rest, about 2 across (tools/models/make_rime_eel.py prints it). */
+public final class DreadFishRules {
+    /** Its model's length at scale 1, in blocks: curled at rest, about 2 across (tools/models/make_dread_fish.py prints it). */
     public static final double MODEL_LENGTH = 2.0;
     /**
      * How big it comes, across its curl: 0.6 to 2.5 blocks (0.71.1, the owner: "up to about 2.5 on average with a rare
@@ -48,7 +48,7 @@ public final class RimeEelRules {
     public static final int AURA_EFFECT_TICKS = 80;
     public static final int FRENZY_TICKS = 80;
     /**
-     * A Glowing target sends it into a Frenzy (0.76.0, the owner: "Highlighted creatures also send rime eels into
+     * A Glowing target sends it into a Frenzy (0.76.0, the owner: "Highlighted creatures also send dread fish into
      * frenzies"), kept up this many ticks at a time while it glows.
      */
     public static final int GLOW_FRENZY_TICKS = 20;
@@ -64,14 +64,14 @@ public final class RimeEelRules {
     public static final float REACH_STEP = 0.08F;
     /**
      * Where its lantern's glass hangs reaching out and drawn in, in model pixels from its feet ({@code x} to its left, {@code y}
-     * up, {@code z} back), at scale 1: {@code tools/models/make_rime_eel.py} prints them.
+     * up, {@code z} back), at scale 1: {@code tools/models/make_dread_fish.py} prints them.
      */
     public static final double[] LANTERN_OUT = {9.0, 24.0 - 10.6, -15.1};
     public static final double[] LANTERN_IN = {9.0, 24.0 - 4.9, -11.6};
 
     /** On land, in combat: a lunge at a target 1.5-5 blocks off, then 2 s before the next (ours). */
     public static final double LUNGE_MIN = 1.5;
-    public static final double LUNGE_MAX = 5.0;
+    public static final double LUNGE_MAX = 7.0;  // 5 until 0.90.1, when its lunge became the leap
     public static final double LUNGE_SPEED = 0.7;
     public static final double LUNGE_LIFT = 0.3;
     public static final int LUNGE_TICKS = 40;
@@ -94,6 +94,12 @@ public final class RimeEelRules {
     public static final int SUN_CAP = 6;
     /** Each player's one-in-this chance every 10 s of one in dark water near them (on top of the cave and chasma rolls). */
     public static final int DARK_WATER_ONE_IN = 10;
+    /**
+     * In the Rime Chasma (0.84.1, the owner: "Rime fish can spawn naturally on the surface of chasmas, but prefer water"):
+     * each player's one-in-this chance every 10 s of one more there: in dark water near them if there's any, else out on
+     * the chasma's open floor.
+     */
+    public static final int CHASMA_SURFACE_ONE_IN = 20;
     /** Never past this many within 64 of the player. */
     public static final int CAP = 4;
     /** Where: 8-32 blocks off, within 16 up or down. */
@@ -101,7 +107,53 @@ public final class RimeEelRules {
     public static final int SEARCH_MAX = 32;
     public static final int SEARCH_DEPTH = 16;
 
-    private RimeEelRules() {
+    /**
+     * 0.86.0 (the owner: "Double aggro range on glowing/highlighted targets, swim slowly in a straight line while idle,
+     * and add a Sea Serpent-style water leap attack/feed (few blocks high, 3–8s cooldown)"): a Glowing target is noticed
+     * {@link #GLOW_RANGE_FACTOR} times as far off; idle, it cruised slowly in straight lines until 0.90.1 (now it swims
+     * as a dolphin, below); and from just under the surface (within
+     * {@link #LEAP_DEPTH}) it leaps at prey or food up to {@link #LEAP_MAX_HEIGHT} over the water and {@link #LEAP_REACH}
+     * off, every {@link #LEAP_MIN_COOLDOWN} to {@link #LEAP_MAX_COOLDOWN} ticks at most.
+     */
+    public static final double GLOW_RANGE_FACTOR = 2.0;
+    /** Idle, it swims as a dolphin does (0.90.1, the owner: "dread fish need to swim and mimic dolphins in the water"):
+     * at its full pace (0.5 until then, which crept), a new way every {@link #SWIM_INTERVAL} ticks or so, breaching now
+     * and then near the surface (one chance in {@link #BREACH_INTERVAL} a tick). */
+    public static final double CRUISE_SPEED = 1.0;
+    public static final int SWIM_INTERVAL = 10;
+    public static final int BREACH_INTERVAL = 40;
+    public static final double LEAP_REACH = 7.0;
+    public static final double LEAP_MAX_HEIGHT = 4.0;
+    public static final double LEAP_DEPTH = 2.0;
+    public static final int LEAP_MIN_COOLDOWN = 60;
+    public static final int LEAP_MAX_COOLDOWN = 160;
+    /** A mob's gravity, a tick, and its air drag (vanilla's). */
+    static final double GRAVITY = 0.08;
+    static final double DRAG = 0.98;
+
+    /** A leap's cooldown from a roll in [0, 1): 3 to 8 s. */
+    public static int leapCooldown(double roll) {
+        return LEAP_MIN_COOLDOWN + (int) (roll * (LEAP_MAX_COOLDOWN - LEAP_MIN_COOLDOWN + 1));
+    }
+
+    /**
+     * A leap's launch, to clear {@code height} blocks over its start (a block over its prey, at most
+     * {@link #LEAP_MAX_HEIGHT}) and come down {@code distance} blocks off: its upward speed and its speed across, a tick.
+     */
+    public static double[] leap(double distance, double height) {
+        double rise = Math.max(1.0, Math.min(LEAP_MAX_HEIGHT, height));
+        double up = Math.sqrt(2.0 * GRAVITY * rise) / Math.sqrt(DRAG);
+        double airborne = 2.0 * up / GRAVITY;
+        double across = Math.min(1.2, distance / Math.max(1.0, airborne));
+        return new double[] {up, across};
+    }
+
+    /** Whether something {@code dx} across and {@code dy} up is in a leap's reach from under the surface. */
+    public static boolean inLeapReach(double dx, double dy) {
+        return dx <= LEAP_REACH && dy >= -0.5 && dy <= LEAP_MAX_HEIGHT;
+    }
+
+    private DreadFishRules() {
     }
 
     /** Its {@code generic.scale}, from a roll in [0, 1): 0.6 to 2.5 blocks across. */
@@ -150,7 +202,7 @@ public final class RimeEelRules {
         return Math.round(2.0 * (HEALTH_MIN + (HEALTH_MAX - HEALTH_MIN) * growth(scale))) / 2.0;
     }
 
-    /** An eel's bite at its size: an alpha's {@link #ALPHA_BITE_FACTOR} times what the size's line gives, to the half. */
+    /** An fish's bite at its size: an alpha's {@link #ALPHA_BITE_FACTOR} times what the size's line gives, to the half. */
     public static double fullBite(double scale) {
         double bite = bite(scale);
         return alpha(scale) ? Math.round(2.0 * bite * ALPHA_BITE_FACTOR) / 2.0 : bite;
@@ -176,7 +228,7 @@ public final class RimeEelRules {
     }
 
     /**
-     * Whether its lure is lit at {@code tick}: erratic, by a hash of its own {@code seed} and the step, so each eel's
+     * Whether its lure is lit at {@code tick}: erratic, by a hash of its own {@code seed} and the step, so each fish's
      * flickers its own way, and the same on every client. Off far more often than on.
      */
     /** Whether a spawn, rolling {@code roll} in {@code [0, LANTERN_ONE_IN)}, has its lantern. */

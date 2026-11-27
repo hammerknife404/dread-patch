@@ -6,6 +6,7 @@ import com.iafenvoy.iceandfire.config.IafCommonConfig;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
 import com.iafenvoy.iceandfire.entity.ai.DragonAITargetNonTamedGoal;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
+import com.iafenvoy.iceandfire.entity.util.dragon.DragonUtils;
 import com.iafenvoy.iceandfire.entity.util.dragon.IafDragonAttacks;
 import com.iafenvoy.iceandfire.item.DragonEggItem;
 import com.iafenvoy.iceandfire.item.block.entity.DragonForgeInputBlockEntity;
@@ -209,15 +210,24 @@ public class RimefrostDragon extends IceDragonEntity implements IDreadMob {
 
     /**
      * It hunts players whatever Ice and Fire's {@code neutralToPlayer} says (the owner's pack sets
-     * it, so its wild dragons leave players be until struck): it's of the Dread. Ice and Fire's own
-     * wild-dragon targeting, for players only and without that setting; never a creative or spectator
-     * player, and a tame one ({@link DragonAITargetNonTamedGoal} stands down) follows its owner.
+     * it, so its wild dragons leave players be until struck): it's of the Dread. Since 0.84.4 (the owner: "Rimefrost
+     * dragons are also hostile to the same things the dread mobs do") a wild one hunts as Ice and Fire's dread mobs do
+     * ({@code DreadAITargetNonDreadGoal}): every living thing but the Dread, hungry or not, not only the prey an ice
+     * dragon eats when hungry. Never a creative or spectator player or a dragon's corpse, and a tame one
+     * ({@link DragonAITargetNonTamedGoal} stands down) follows its owner.
      */
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.targetSelector.addGoal(5, new DragonAITargetNonTamedGoal<>(this, Player.class, false,
-                entity -> entity instanceof Player player && !player.isCreative() && !player.isSpectator()));
+        this.targetSelector.addGoal(5, new DragonAITargetNonTamedGoal<>(this, LivingEntity.class, false, RimefrostDragon::dreadPrey));
+    }
+
+    /** What the Dread go for (Ice and Fire's dread mobs' {@code canHostilesTarget}, not of the Dread), but a spectator too. */
+    static boolean dreadPrey(LivingEntity entity) {
+        if (entity instanceof Player player && player.isSpectator()) {
+            return false;
+        }
+        return !(entity instanceof IDreadMob) && DragonUtils.canHostilesTarget(entity) && DragonUtils.isAlive(entity);
     }
 
     /** As Ice and Fire's ice dragon picks: bones from halfway through the harvest (when it's drawn as a skeleton). */

@@ -3,7 +3,7 @@ package io.github.hammerknife404.dreadpatch.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
-import io.github.hammerknife404.dreadpatch.entity.RimeEel;
+import io.github.hammerknife404.dreadpatch.entity.DreadFish;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -12,17 +12,17 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 
 /**
- * The Rime Eel (0.71.0), after the owner's picture: a big, boxy anglerfish head with its jaw hanging open on rows of
+ * The Dread Fish (0.71.0), after the owner's picture: a big, boxy anglerfish head with its jaw hanging open on rows of
  * fangs, a lure on a tall stalk reaching over its snout with a lantern hanging from it (on one in six), fanned fins
  * behind, a jagged dorsal fin; a thick, ribbed serpent's body of eight segments curling round behind it into a ring,
  * to a tail fin (0.76.0, the owner's picture again). Its geometry and
- * texture come from {@code tools/models/make_rime_eel.py} ({@link RimeEelGeometry}). At rest the body curls; moving, it
+ * texture come from {@code tools/models/make_dread_fish.py} ({@link DreadFishGeometry}). At rest the body curls; moving, it
  * straightens out behind (0.71.2); a wave runs down it on top of that, slight and slow in water, wider and quicker on land. Its jaw gapes wider to bite,
  * its lure sways, its fins beat. (The first model, a small angler the owner liked, is kept on the branch
  * {@code angler-model} for later.)
  */
-public class RimeEelModel extends EntityModel<RimeEel> {
-    public static final ModelLayerLocation LAYER = new ModelLayerLocation(DreadPatch.id("rime_eel"), "main");
+public class DreadFishModel extends EntityModel<DreadFish> {
+    public static final ModelLayerLocation LAYER = new ModelLayerLocation(DreadPatch.id("dread_fish"), "main");
 
     /** How much of its curl goes as it moves (all but a little), and where its head sits when it's straight. */
     static final float STRAIGHTENS = 0.9F;
@@ -46,7 +46,7 @@ public class RimeEelModel extends EntityModel<RimeEel> {
     private final ModelPart[] body = new ModelPart[SEGMENTS];
     private final ModelPart tailFin;
 
-    public RimeEelModel(ModelPart root) {
+    public DreadFishModel(ModelPart root) {
         super(RenderType::entityCutoutNoCull);
         this.root = root;
         this.head = root.getChild("head");
@@ -66,16 +66,16 @@ public class RimeEelModel extends EntityModel<RimeEel> {
     }
 
     public static LayerDefinition createBodyLayer() {
-        return RimeEelGeometry.create();
+        return DreadFishGeometry.create();
     }
 
     @Override
-    public void setupAnim(RimeEel eel, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+    public void setupAnim(DreadFish fish, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root.getAllParts().forEach(ModelPart::resetPose);
-        boolean water = eel.isInWater();
+        boolean water = fish.isInWater();
         float moving = Mth.clamp(limbSwingAmount * (water ? 4.0F : 2.0F), 0.0F, 1.0F);
         // Curled at rest; on the move its body straightens out behind it (0.71.2, the owner: "its tail is stuck in
-        // that pose"), the head drawn forward and over so the straight eel stays on its middle.
+        // that pose"), the head drawn forward and over so the straight fish stays on its middle.
         float curl = 1.0F - Mth.clamp(limbSwingAmount * 6.0F, 0.0F, 1.0F) * STRAIGHTENS;
         for (ModelPart part : this.body) {
             part.yRot *= curl;
@@ -84,7 +84,7 @@ public class RimeEelModel extends EntityModel<RimeEel> {
         this.body[1].xRot *= curl;
         this.head.x = Mth.lerp(curl, STRAIGHT_X, this.head.getInitialPose().x);
         this.head.z = Mth.lerp(curl, STRAIGHT_Z, this.head.getInitialPose().z);
-        // A wave down its segments, on top of its curl: an eel's in water, a serpent's on land.
+        // A wave down its segments, on top of its curl: an fish's in water, a serpent's on land.
         float rate = water ? 0.2F + 0.2F * moving : 0.3F + 0.4F * moving;
         float swing = water ? 0.08F + 0.14F * moving : 0.15F + 0.25F * moving;
         float time = ageInTicks * rate;
@@ -98,15 +98,15 @@ public class RimeEelModel extends EntityModel<RimeEel> {
         // Its jaw hangs open, breathing a little, and gapes to bite.
         float bite = Mth.sin(this.attackTime * Mth.PI);
         // An alpha's wind-up (0.80.0): rearing back, head up, its jaw gaping wide, before the snap; plain to read.
-        float rear = eel.rear(ageInTicks - eel.tickCount);
+        float rear = fish.rear(ageInTicks - fish.tickCount);
         this.head.xRot -= 0.45F * rear;
         this.head.y -= 2.0F * rear;
         this.jaw.xRot += 0.06F * Mth.sin(ageInTicks * 0.08F) + 0.5F * bite + 0.75F * rear;
         // Its lure (0.76.0): none at all without its lantern; reaching out as it hunts or swims about, drawn in over its
         // head while still; swaying. Its lantern hangs plumb under it, whatever the rest is doing, swinging a little
         // and trailing back as it moves.
-        this.stalk.visible = eel.hasLantern();
-        float drawnIn = 1.0F - eel.reach(ageInTicks - eel.tickCount);
+        this.stalk.visible = fish.hasLantern();
+        float drawnIn = 1.0F - fish.reach(ageInTicks - fish.tickCount);
         this.stalk.xRot += RETRACT_STALK * drawnIn + 0.06F * Mth.sin(ageInTicks * 0.09F) - 0.12F * bite;
         this.stalk.zRot += 0.05F * Mth.sin(ageInTicks * 0.07F);
         this.arm.xRot += RETRACT_ARM * drawnIn;

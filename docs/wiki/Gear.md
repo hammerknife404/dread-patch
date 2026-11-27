@@ -4,11 +4,12 @@
 
 Rimefrost dragons' scales make the Dread's answer to Ice and Fire's ice dragon gear, with Ice and Fire's ice sets' own numbers and models, recoloured soot, bone and cyan:
 
-- **Rimefrost Dragon Scales:** from a [Rimefrost dragon](Rimefrost-Dragons)'s corpse, from dread phantoms a player kills, or now and then from a [Rime Eel](Rime-Eels).
+- **Rimefrost Dragon Scales:** from a [Rimefrost dragon](Rimefrost-Dragons)'s corpse, from dread phantoms a player kills, or now and then from a [Dread Fish](Dread-Fish).
 - **Rimefrost Dragon Blood:** Rimefrost Dragon Scales and a glass bottle in the Rimefrost dragonforge (below), as Ice and Fire makes ice dragon blood.
 - **Dread Dragonsteel Ingot:** an iron ingot and Rimefrost Dragon Blood in the Rimefrost dragonforge.
 - **Rimefrost dragonscale armour,** crafted from the scales like Ice and Fire's dragonscale armour.
 - **Dread dragonsteel armour, sword, axe, pickaxe, shovel and hoe,** crafted from the ingots (the tools on witherbone handles) like Ice and Fire's dragonsteel. Where ice dragonsteel freezes what it hits, dread dragonsteel leaves 3 seconds of Withering Rime.
+- **Dread dragonsteel dragon armour** for a dragon's head, neck, body and tail, as strong as Ice and Fire's dragonsteel dragon armour (the strongest), crafted in the same shapes from Blocks of Dread Dragonsteel (nine ingots each). Any of Ice and Fire's dragons can wear it.
 - **Against dragon breath,** each piece of either armour takes off as much as Ice and Fire's dragon armour does (10% helmet and boots, 30% chestplate, 20% leggings: 70% for a full set), against Ice and Fire's dragons and Rimefrost dragons alike. Ice and Fire's own dragonscale and dragonsteel armour now guards against Rimefrost breath too.
 - **Against webs,** each piece of dread armour (Rimefrost dragonscale, dread dragonsteel or her regalia) takes an eighth of a web's hold off, half for a full set: cobwebs and the scuttlers' webs still slow you, just less. Powder snow and berry bushes hold as ever.
 
@@ -39,6 +40,8 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 - It carries three of her spells at level 3 (Withering Rime-Bolt, Rimefire Crown and Summon Court), on your spell wheel while you hold it, cast with right-click. Its tooltip lists them a line each; hold Shift for each one's details.
 - It gives +15% Ice Spell Power, +5% Rimefrost Spell Power and +10% Cooldown Reduction in the main hand.
 - **Permafrost Conduit:** Ice spells cost 20% less mana while you stand on snow or ice.
+
+**Ice and Fire's lich staff** (a Dread Lich's) carries a little of the Dread's magic too: Whiteout Dominion and Summon Dread Phantoms at level 1, on your spell wheel while it's in either hand, cast with Iron's cast key (right-click still looses its lich skull), and +5% Ice Spell Power, Rimefrost Spell Power and Summon Damage in the main hand.
 
 **Her sword** is unbreakable, with 11.5 attack damage at 1.6 speed and half a block more reach. She swings the same sword, so her own strikes leave Withering Rime and shatter too.
 

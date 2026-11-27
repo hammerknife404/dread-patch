@@ -931,29 +931,32 @@ def main():
     time.sleep(0.3)
     rcon.run("kill @e[type=item]")
 
-    # The Rime Eel (0.71.0), in a pool of its own off the platforms: sized as it spawns (0.6-1.4 long, 10-18
+    # The Dread Fish (0.71.0), in a pool of its own off the platforms: sized as it spawns (0.6-1.4 long, 10-18
     # health with it), 4 armour, undead and aquatic, of the Dread; it eats dropped food; in a fight its lure's
     # pulse lays Rimefrost or Whiteout on what's near and sends it into a Frenzy; its loot.
     rcon.run("forceload add 40 40 48 48")
     rcon.run("fill 40 196 40 48 199 48 minecraft:stone")
     rcon.run("fill 40 200 40 48 204 48 minecraft:air")
     rcon.run("fill 42 197 42 45 199 45 minecraft:water")
-    rcon.run("summon dreadpatch:rime_eel 43.5 197.5 43.5")
-    rcon.run("tag @e[type=dreadpatch:rime_eel,x=43.5,y=198,z=43.5,distance=..3] add smoke_eel")
-    eel = "@e[tag=smoke_eel,limit=1]"
-    check("a Rime Eel summons", "execute if entity " + eel, "Test passed, count: 1")
-    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.scale base get"))
+    rcon.run("summon dreadpatch:dread_fish 43.5 197.5 43.5")
+    rcon.run("tag @e[type=dreadpatch:dread_fish,x=43.5,y=198,z=43.5,distance=..3] add smoke_eel")
+    fish = "@e[tag=smoke_eel,limit=1]"
+    check("a Dread Fish summons", "execute if entity " + fish, "Test passed, count: 1")
+    # Renamed from the Rime Eel (0.86.0), its id too: the old id is an alias, so old ones (and commands) still load.
+    check("the old Rime Eel id still summons a Dread Fish", "summon dreadpatch:rime_eel 46.5 201 46.5 {Tags:[\"smoke_old_eel\"]}", "Summoned new Dread Fish")
+    rcon.run("kill @e[tag=smoke_old_eel]")
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {fish} minecraft:generic.scale base get"))
     scale = float(m.group(1)) if m else -1.0
     record("sized 0.6-4 blocks across", 0.6 - 1e-6 <= scale * 2.0 <= 4.0 + 1e-6, f"scale {scale}")
     expected = math.floor(2 * (10 + 8 * (max(0.6, min(4.0, scale * 2.0)) - 0.6) / 1.9) + 0.5) / 2  # Java's Math.round
-    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {eel} minecraft:generic.max_health get"))
+    m = re.search(r"is ([0-9.]+)", rcon.run(f"attribute {fish} minecraft:generic.max_health get"))
     record("its health with its size, 10-24.5", m is not None and abs(float(m.group(1)) - expected) < 0.01,
            f"{m.group(0) if m else 'none'}, expected {expected}")
-    check("4 armour", f"attribute {eel} minecraft:generic.armor get", "is 4.0")
+    check("4 armour", f"attribute {fish} minecraft:generic.armor get", "is 4.0")
     for tag in ("#minecraft:undead", "#minecraft:aquatic"):
-        check("the eel in " + tag, f"execute if entity @e[tag=smoke_eel,type={tag}]", "Test passed")
-    rcon.run(f"data merge entity {eel} {{Health:4.0f}}")
-    hurt = health(eel)
+        check("the fish in " + tag, f"execute if entity @e[tag=smoke_eel,type={tag}]", "Test passed")
+    rcon.run(f"data merge entity {fish} {{Health:4.0f}}")
+    hurt = health(fish)
     rcon.run('summon item 43.5 199.2 43.5 {Item:{id:"minecraft:rotten_flesh",count:3},PickupDelay:0s,Tags:["smoke_food"]}')
     rcon.run('summon item 40.5 201 40.5 {Item:{id:"minecraft:golden_apple",count:1},PickupDelay:0s,Tags:["smoke_food_refused"]}')
     ate = False
@@ -963,9 +966,9 @@ def main():
             ate = True
             break
     record("it eats dropped rotten flesh", ate, rcon.run("data get entity @e[tag=smoke_food,limit=1] Item.count").strip())
-    record("healing by it", health(eel) > hurt, f"health {hurt} -> {health(eel)}")
+    record("healing by it", health(fish) > hurt, f"health {hurt} -> {health(fish)}")
     check("but leaves a golden apple", "execute if entity @e[tag=smoke_food_refused]", "Test passed")
-    rcon.run('summon dreadpatch:rime_eel 47.5 200 47.5 {Tags:["smoke_eel_ashore"]}')
+    rcon.run('summon dreadpatch:dread_fish 47.5 200 47.5 {Tags:["smoke_eel_ashore"]}')
     back = False
     for _ in range(30):
         time.sleep(0.5)
@@ -975,7 +978,7 @@ def main():
     record("ashore, it makes for water", back, rcon.run("data get entity @e[tag=smoke_eel_ashore,limit=1] Pos").strip())
     rcon.run("kill @e[tag=smoke_eel_ashore]")
     rcon.run("kill @e[type=item]")
-    # The Dread eat what's dropped (0.83.0, the owner: "Extend the food eating behavior of the rime eel to the dread beasts
+    # The Dread eat what's dropped (0.83.0, the owner: "Extend the food eating behavior of the dread fish to the dread beasts
     # ... most organic dropped items, but only food heals"): a hurt dread beast on a closed pad eats a bone (organic, no
     # healing) and rotten flesh (food: it heals), and leaves a golden apple.
     rcon.run("forceload add 60 40 68 48")
@@ -1005,9 +1008,163 @@ def main():
     check("and it leaves a golden apple", "execute if entity @e[tag=smoke_beast_refused]", "Test passed")
     rcon.run("kill @e[tag=smoke_beast]")
     rcon.run("kill @e[type=item]")
+    # Scuttlers too (0.84.0, the owner: "extend the beast eating to scuttlers too"): one hurt on the same pad eats rotten
+    # flesh, healing by it.
+    rcon.run('summon iceandfire:dread_scuttler 64.5 200 44.5 {PersistenceRequired:1b,Tags:["smoke_beast"]}')
+    time.sleep(3.0)
+    rcon.run(f"data merge entity {beast} {{Health:4.0f}}")
+    scuttler_hurt = health(beast)
+    rcon.run('summon item 66.5 200.2 44.5 {Item:{id:"minecraft:rotten_flesh",count:1},PickupDelay:0s,Tags:["smoke_beast_food"]}')
+    eaten = False
+    for _ in range(80):
+        time.sleep(0.25)
+        if "Test failed" in rcon.run("execute if entity @e[tag=smoke_beast_food]"):
+            eaten = True
+            break
+    record("a dread scuttler eats dropped rotten flesh, healing by it", eaten and health(beast) > scuttler_hurt,
+           f"eaten {eaten}, health {scuttler_hurt} -> {health(beast)}")
+    rcon.run("kill @e[tag=smoke_beast]")
+    rcon.run("kill @e[type=item]")
+    # Dread thralls are never empty-handed, and shoot a bow or crossbow (0.84.4, the owner: "make sure dread thralls
+    # can spawn with a bow or cross bow, and never without a weapon"). A summon with NBT skips Ice and Fire's own gear,
+    # so each of these joins empty-handed.
+    armed = []
+    rcon.run("kill @e[type=item]")  # NoAI mobs still pick up loot: a beast's dropped bones were taken for weapons
+    for i in range(6):
+        rcon.run(f'summon iceandfire:dread_thrall {61.5 + i} 200 41.5 {{NoAI:1b,CanPickUpLoot:0b,PersistenceRequired:1b,Tags:["smoke_thrall","smoke_thrall{i}"]}}')
+    time.sleep(1.0)
+    for i in range(6):
+        m = re.search(r'"([a-z_]+:[a-z_]+)"', rcon.run(f"data get entity @e[tag=smoke_thrall{i},limit=1] HandItems[0].id"))
+        armed.append(m.group(1) if m else None)
+    # One in five stays unarmed (0.85.0); the rest get one of these.
+    record("a dread thrall that joins empty-handed is given a weapon, or (now and then) stays unarmed",
+           all(a in (None, "minecraft:bow", "minecraft:crossbow", "iceandfire:dread_sword") for a in armed) and any(armed),
+           f"main hands: {armed}")
+    rcon.run("kill @e[tag=smoke_thrall]")
+    for weapon in ("bow", "crossbow"):
+        rcon.run("kill @e[type=arrow]")
+        rcon.run('summon minecraft:cow 67.5 200 47.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_thrall_prey"]}')
+        rcon.run(f'summon iceandfire:dread_thrall 60.5 200 40.5 {{PersistenceRequired:1b,Tags:["smoke_thrall"],'
+                 f'HandItems:[{{id:"minecraft:{weapon}",count:1}},{{}}]}}')
+        shot = False
+        for _ in range(40):
+            time.sleep(0.25)
+            # An arrow that hits is gone at once: a hurt cow (10 health) counts as a shot too.
+            if "Test passed" in rcon.run("execute if entity @e[type=arrow]") or health("@e[tag=smoke_thrall_prey,limit=1]") < 10.0:
+                shot = True
+                break
+        record(f"a dread thrall with a {weapon} shoots at its prey", shot, "no arrow and no hurt cow within 10 s")
+        rcon.run("kill @e[tag=smoke_thrall]")
+        rcon.run("kill @e[tag=smoke_thrall_prey]")
+        rcon.run("kill @e[type=arrow]")
+    # 0.85.0: one whose arming was rolled stays unarmed (its claws); a knight's weapon reaches further under Better Mob
+    # Combat Reimagined (the dev runs load it); a whole dread beast eats too.
+    rcon.run('summon iceandfire:dread_thrall 62.5 200 42.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_claws"],NeoForgeData:{"dreadpatch:armed":1b}}')
+    time.sleep(0.5)
+    claws = rcon.run("data get entity @e[tag=smoke_claws,limit=1] HandItems[0]")
+    record("a dread thrall rolled unarmed stays unarmed", "{}" in claws or "id" not in claws, claws.strip())
+    rcon.run("kill @e[tag=smoke_claws]")
+    rcon.run('summon iceandfire:dread_knight 62.5 200 44.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_reach"],'
+             'HandItems:[{id:"minecraft:iron_sword",count:1},{}]}')
+    time.sleep(0.5)
+    reach = rcon.run("data get entity @e[tag=smoke_reach,limit=1] HandItems[0]")
+    record("a dread knight's weapon reaches further under Better Mob Combat", "knight_reach" in reach, reach.strip()[:300])
+    rcon.run("kill @e[tag=smoke_reach]")
+    rcon.run("kill @e[type=item]")
+    rcon.run('summon iceandfire:dread_beast 64.5 200 44.5 {PersistenceRequired:1b,Tags:["smoke_whole_beast"]}')
+    time.sleep(2.0)
+    rcon.run('summon item 66.5 200.2 44.5 {Item:{id:"minecraft:rotten_flesh",count:1},PickupDelay:0s,Tags:["smoke_whole_food"]}')
+    eaten = False
+    for _ in range(120):
+        time.sleep(0.25)
+        if "Test failed" in rcon.run("execute if entity @e[tag=smoke_whole_food]"):
+            eaten = True
+            break
+    record("a whole dread beast eats what's dropped too", eaten, "the rotten flesh still there 30 s on")
+    rcon.run("kill @e[tag=smoke_whole_beast]")
+    rcon.run("kill @e[type=item]")
+    # 0.87.0: Ice and Fire's lich staff carries Whiteout Dominion and Summon Dread Phantoms (its default components).
+    rcon.run('summon minecraft:armor_stand 62.5 200 46.5 {NoGravity:1b,Tags:["smoke_lich_staff"],HandItems:[{id:"iceandfire:lich_staff",count:1},{}]}')
+    check("the lich staff carries the Dread's spells",
+          "execute if items entity @e[tag=smoke_lich_staff,limit=1] weapon.mainhand iceandfire:lich_staff[irons_spellbooks:spell_container]",
+          "Test passed")
+    rcon.run("kill @e[tag=smoke_lich_staff]")
+    # 0.89.0: the overworld's dread weather starts and stops by command (it reaches only where its switches let it; with
+    # no player near, its snow, cold and rising aren't seen here).
+    rcon.run("dreadpatch config dread_weather_anywhere true")
+    check("a dread storm starts over the overworld", "dreadpatch dreadweather start", "dread storm over the overworld")
+    time.sleep(3.0)
+    check("and stops", "dreadpatch dreadweather stop", "dread storm is over")
+    rcon.run("dreadpatch config dread_weather_anywhere false")
+    rcon.run("weather clear")
+    # 0.88.0: the Dreadlands' village chests (Lootr's too) hold a dread key a fifth of the time; the overworld's don't.
+    # One roll at a time: @e reaches every dimension, and dropped items merge.
+    def key_rolls(dim, n):
+        pre = f"execute in {dim} positioned 0.5 250 0.5 run "
+        rcon.run(pre + "forceload add 0 0")
+        hits = 0
+        for _ in range(n):
+            rcon.run(pre + "kill @e[type=item,distance=..8]")
+            rcon.run(pre + "loot spawn ~ ~ ~ loot minecraft:chests/village/village_snowy_house")
+            hits += "Test passed" in rcon.run(pre + 'execute if entity @e[type=item,distance=..8,nbt={Item:{id:"iceandfire:dread_key"}}]')
+        rcon.run(pre + "kill @e[type=item,distance=..8]")
+        rcon.run(pre + "forceload remove 0 0")
+        return hits
+    keys = key_rolls("dreadpatch:dreadlands", 40)
+    record("a Dreadlands village chest now and then holds a dread key", keys > 0, f"{keys} in 40 chests")
+    plain = key_rolls("minecraft:overworld", 40)
+    record("but an overworld village chest never does", plain == 0, f"{plain} in 40 chests")
     rcon.run("forceload remove 60 40 68 48")
+    # A wild Rimefrost dragon hunts what the Dread do (0.84.4, the owner: "Rimefrost dragons are also hostile to the same
+    # things the dread mobs do"): a cow by it, hungry or not, but not a thrall.
+    rcon.run("forceload add 400 400 416 416")
+    rcon.run("fill 400 199 400 416 199 416 minecraft:stone")
+    rcon.run("fill 400 200 400 416 210 416 minecraft:air")
+    rcon.run('summon minecraft:cow 410.5 200 408.5 {PersistenceRequired:1b,Tags:["smoke_wild_prey"]}')
+    rcon.run('summon iceandfire:dread_thrall 406.5 200 412.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_wild_thrall"],'
+             'HandItems:[{id:"minecraft:stone_sword",count:1},{}]}')
+    time.sleep(0.5)
+    thrall_health = health("@e[tag=smoke_wild_thrall,limit=1]")
+    rcon.run('summon dreadpatch:rimefrost_dragon 405.5 200 405.5 {PersistenceRequired:1b,Hunger:100,AgeTicks:600000,Tags:["smoke_wild_dragon"]}')
+    hunted = False
+    for _ in range(80):
+        time.sleep(0.25)
+        cow = health("@e[tag=smoke_wild_prey,limit=1]")
+        if cow < 10.0:  # hurt (a cow has 10), or gone (-1)
+            hunted = True
+            break
+    record("a wild Rimefrost dragon hunts a cow, fed or not", hunted, "the cow untouched 20 s on")
+    record("and leaves a dread thrall be", health("@e[tag=smoke_wild_thrall,limit=1]") == thrall_health,
+           f"thrall health {thrall_health} -> {health('@e[tag=smoke_wild_thrall,limit=1]')}")
+    rcon.run("kill @e[tag=smoke_wild_dragon]")
+    rcon.run("kill @e[tag=smoke_wild_prey]")
+    rcon.run("kill @e[tag=smoke_wild_thrall]")
+    rcon.run("kill @e[type=item]")
+    # The queen and Syndrigossa never drown or choke in a wall (0.84.4, the owner: "Theyve suvived being burried
+    # afterall"): a summoned one of each, NoAI, takes neither.
+    rcon.run('summon dreadpatch:dread_queen 404.5 200 404.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_buried"]}')
+    rcon.run('summon dreadpatch:syndrigossa 410.5 200 410.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_buried"]}')
+    time.sleep(0.5)
+    for who in ("dreadpatch:dread_queen", "dreadpatch:syndrigossa"):
+        for kind in ("minecraft:in_wall", "minecraft:drown"):
+            out = rcon.run(f"damage @e[tag=smoke_buried,type={who},limit=1] 5 {kind}")
+            record(f"{who.split(':')[1]} takes no {kind.split(':')[1]} damage", "Applied" not in out, out.strip())
+    rcon.run("kill @e[tag=smoke_buried]")
+    # Dread dragonsteel dragon armour (0.84.4, the owner: "Should also include a rimefrost dragonsteel dragon armor"):
+    # its four pieces and its block exist, and the block drops itself.
+    for piece in ("head", "neck", "body", "tail"):
+        check(f"dread dragonsteel dragon armour ({piece}) exists",
+              f'summon item 408.5 201 408.5 {{Item:{{id:"dreadpatch:dragonarmor_dread_dragonsteel_{piece}",count:1}},Tags:["smoke_dragon_armor"]}}',
+              "Summoned new")
+    rcon.run("kill @e[tag=smoke_dragon_armor]")
+    rcon.run("setblock 408 200 408 dreadpatch:dread_dragonsteel_block")
+    out = rcon.run("loot spawn 408 201 408 mine 408 200 408 minecraft:diamond_pickaxe")
+    record("a dread dragonsteel block drops itself to a diamond pickaxe", "Block of Dread Dragonsteel" in out or "dread_dragonsteel_block" in out, out.strip())
+    rcon.run("setblock 408 200 408 minecraft:air")
+    rcon.run("kill @e[type=item]")
+    rcon.run("forceload remove 400 400 416 416")
     # Only one in six has its lantern (0.76.0), and only that one pulses: this one's given it.
-    rcon.run(f"data merge entity {eel} {{Lantern:1b,Frenzy:0}}")
+    rcon.run(f"data merge entity {fish} {{Lantern:1b,Frenzy:0}}")
     rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:resistance 120 4 true")
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:fire_resistance 120 0 true")
@@ -1017,18 +1174,18 @@ def main():
         time.sleep(0.25)
         if has_effect(prey, "dreadpatch:rimefrost") or has_effect(prey, "dreadpatch:whiteout"):
             pulsed = True
-            m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {eel} Frenzy"))
+            m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {fish} Frenzy"))
             frenzied = m is not None and int(m.group(1)) > 0
             break
     record("in a fight its lure's pulse lays Rimefrost or Whiteout", pulsed, "the zombie had neither 10 s on")
-    record("and sends it into a Frenzy", frenzied, rcon.run(f"data get entity {eel} Frenzy").strip())
-    record("and lights it up (0.75.1): Glowing on the zombie, none on the eel",
-           pulsed and has_effect(prey, "minecraft:glowing") and not has_effect(eel, "minecraft:glowing"), "glowing wrong")
+    record("and sends it into a Frenzy", frenzied, rcon.run(f"data get entity {fish} Frenzy").strip())
+    record("and lights it up (0.75.1): Glowing on the zombie, none on the fish",
+           pulsed and has_effect(prey, "minecraft:glowing") and not has_effect(fish, "minecraft:glowing"), "glowing wrong")
     rcon.run("kill @e[tag=smoke_eel_prey]")
     # Without its lantern (0.76.0, asked: "No pulse without it") it never pulses; but Glowing prey (the owner:
-    # "Highlighted creatures also send rime eels into frenzies") sends it into a Frenzy all the same.
-    rcon.run(f"data merge entity {eel} {{Lantern:0b,Frenzy:0}}")
-    rcon.run("effect clear " + eel)
+    # "Highlighted creatures also send dread fish into frenzies") sends it into a Frenzy all the same.
+    rcon.run(f"data merge entity {fish} {{Lantern:0b,Frenzy:0}}")
+    rcon.run("effect clear " + fish)
     rcon.run('summon minecraft:zombie 43.5 200 46.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_eel_prey"]}')
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:resistance 120 4 true")
     rcon.run("effect give @e[tag=smoke_eel_prey,limit=1] minecraft:fire_resistance 120 0 true")
@@ -1036,11 +1193,11 @@ def main():
     glow_frenzy = False
     for _ in range(24):
         time.sleep(0.25)
-        m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {eel} Frenzy"))
+        m = re.search(r"entity data: (\d+)", rcon.run(f"data get entity {fish} Frenzy"))
         if m and int(m.group(1)) > 0:
             glow_frenzy = True
             break
-    record("Glowing prey sends it into a Frenzy (0.76.0)", glow_frenzy, rcon.run(f"data get entity {eel} Frenzy").strip())
+    record("Glowing prey sends it into a Frenzy (0.76.0)", glow_frenzy, rcon.run(f"data get entity {fish} Frenzy").strip())
     time.sleep(6.0)
     record("without its lantern it never pulses (8 s)", not has_effect(prey, "dreadpatch:rimefrost") and not has_effect(prey, "dreadpatch:whiteout"),
            "the zombie took the pulse")
@@ -1049,15 +1206,15 @@ def main():
     # One spawn in six has its lantern (0.76.0, the owner: "Only about 10-25% spawn with the lantern"): of 36 summoned
     # without data (so each rolls), some have it and most don't. (All or none would be a 1 in 700 fluke.)
     for _ in range(36):
-        rcon.run("summon dreadpatch:rime_eel 44.5 202 44.5")
-    lanterned = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:rime_eel,nbt={Lantern:1b},x=44.5,y=202,z=44.5,distance=..4]"))
+        rcon.run("summon dreadpatch:dread_fish 44.5 202 44.5")
+    lanterned = re.search(r"count: (\d+)", rcon.run("execute if entity @e[type=dreadpatch:dread_fish,nbt={Lantern:1b},x=44.5,y=202,z=44.5,distance=..4]"))
     lanterned = int(lanterned.group(1)) if lanterned else 0
     record("about one in six spawns with its lantern", 0 < lanterned < 18, f"{lanterned} of 36")
-    rcon.run("kill @e[type=dreadpatch:rime_eel,x=44.5,y=202,z=44.5,distance=..4]")
+    rcon.run("kill @e[type=dreadpatch:dread_fish,x=44.5,y=202,z=44.5,distance=..4]")
     # An alpha (0.80.0, the owner: "A mix of heavy natural armor and slow easy to read attacks. Hit hrd and with
     # knockback."): summoned at an alpha's size (its build set as it loads), it has 14 armour, 4 toughness, knockback
     # 1.5, a bite 1.75 times its size's; and against a zombie it still lands its slow, wound-up bite.
-    rcon.run('summon dreadpatch:rime_eel 43.5 197.5 43.5 {Tags:["smoke_alpha"],attributes:[{id:"minecraft:generic.scale",base:1.6d}]}')
+    rcon.run('summon dreadpatch:dread_fish 43.5 197.5 43.5 {Tags:["smoke_alpha"],attributes:[{id:"minecraft:generic.scale",base:1.6d}]}')
     alpha = "@e[tag=smoke_alpha,limit=1]"
     attrs = {a: re.search(r"is ([0-9.]+)", rcon.run(f"attribute {alpha} minecraft:generic.{a} get")) for a in ("armor", "armor_toughness", "attack_knockback")}
     attrs = {a: float(m.group(1)) if m else -1.0 for a, m in attrs.items()}
@@ -1077,11 +1234,11 @@ def main():
     check("an alpha is a Rime Wyrm", "kill @e[tag=smoke_alpha]", "Rime Wyrm")
     rcon.run("kill @e[tag=smoke_alpha_prey]")
     for _ in range(10):
-        rcon.run("loot spawn 44.5 201 44.5 loot dreadpatch:entities/rime_eel")
+        rcon.run("loot spawn 44.5 201 44.5 loot dreadpatch:entities/dread_fish")
     time.sleep(0.2)
     record("its loot: bones and dread shards", count("minecraft:bone") > 0 and count("iceandfire:dread_shard") > 0,
            f"{count('minecraft:bone')} bones, {count('iceandfire:dread_shard')} dread shards over 10 rolls")
-    rcon.run("kill @e[type=dreadpatch:rime_eel]")
+    rcon.run("kill @e[type=dreadpatch:dread_fish]")
     rcon.run("kill @e[type=item]")
     rcon.run("fill 40 196 40 48 204 48 minecraft:air")
     rcon.run("forceload remove 40 40 48 48")
@@ -1302,7 +1459,7 @@ def main():
                        ("HandItems[1].id", "shield")):
         check(f"the risen guard wears its {item.replace('_', ' ')}", f"data get entity {guard_thrall} {path}", f'"minecraft:{item}"')
     check("and won't drop it", f"data get entity {guard_thrall} ArmorDropChances[2]", "0.0f")
-    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water a Rime Eel
+    # Risen Dread (0.63.0): a bat or a parrot rises as a miniature dread phantom of hers; a cod in water a Dread Fish
     # of hers (0.71.0), refusing Withering Rime.
     for kind, at in (("bat", "5.5 200 4.5"), ("parrot", "7.5 200 4.5")):
         rcon.run(f'summon minecraft:{kind} {at} {{NoAI:1b,Tags:["smoke_dead"]}}')
@@ -1316,15 +1473,16 @@ def main():
     rcon.run('summon minecraft:cod 6.5 200 12.5 {NoAI:1b,Tags:["smoke_dead"]}')
     rcon.run("kill @e[tag=smoke_dead]")
     time.sleep(0.5)
-    # 0.71.0: a water creature rises a Rime Eel of hers (0.63.0-0.70.0: itself, Dread).
-    eel = '@e[type=dreadpatch:rime_eel,limit=1,x=6.5,y=200,z=12.5,distance=..3]'
-    check("a cod killed in her storm rises a Rime Eel", "execute if entity " + eel, "Test passed")
-    check("hers", "data get entity " + eel + ' NeoForgeData."dreadpatch:risen_by"', "[I; 9, 9, 9, 9]")
+    # 0.71.0: a water creature rises a Dread Fish of hers (0.63.0-0.70.0: itself, Dread). It takes her target, and since
+    # 0.86.0 may leap 7 at it out of its hole before it's looked for: anywhere within 10.
+    fish = '@e[type=dreadpatch:dread_fish,limit=1,x=6.5,y=200,z=12.5,distance=..10]'
+    check("a cod killed in her storm rises a Dread Fish", "execute if entity " + fish, "Test passed")
+    check("hers", "data get entity " + fish + ' NeoForgeData."dreadpatch:risen_by"', "[I; 9, 9, 9, 9]")
     check("and no Dread cod", "execute if entity @e[type=minecraft:cod,x=6.5,y=200,z=12.5,distance=..3]", "Test failed")
-    rcon.run(f"effect give {eel} dreadpatch:withering_rime 10")
+    rcon.run(f"effect give {fish} dreadpatch:withering_rime 10")
     time.sleep(0.1)
-    record("the eel refuses Withering Rime, as the Dread do", not has_effect(eel, "dreadpatch:withering_rime"), "it took it")
-    rcon.run("kill @e[type=dreadpatch:rime_eel]")
+    record("the fish refuses Withering Rime, as the Dread do", not has_effect(fish, "dreadpatch:withering_rime"), "it took it")
+    rcon.run("kill @e[type=dreadpatch:dread_fish]")
     rcon.run("kill @e[type=minecraft:cod]")
     rcon.run("fill 6 200 12 6 201 12 minecraft:air")
     # Counted before and after (0.83.0: the chickens' risen beasts now wander over to eat what the dead dropped, and one
@@ -1641,7 +1799,8 @@ def main():
     check("the Sastrugi Wastes exist", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:sastrugi_wastes", "is at")
     check("the Rime Chasma exists", dl + "positioned 2000000 0 2000000 run locate biome dreadpatch:rime_chasma", "is at")
     # An ice dragon's skeleton lying out (0.76.0, the owner: "ice dragon skeleton corpses spawn in the dreadlands"), one
-    # chunk in 100: placed by hand on new ground (its rarity aside), it's Ice and Fire's ice dragon, dead, down to bones.
+    # chunk in 600 since 0.84.0 (100 before; the owner: "much more rare ... now that real rimefrost dragons will live
+    # here"): placed by hand on new ground (its rarity aside), it's Ice and Fire's ice dragon, dead, down to bones.
     sx, sz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
     rcon.run(dl + f"run forceload add {sx} {sz}")
     time.sleep(4.0)
@@ -1651,6 +1810,96 @@ def main():
     record("an ice dragon's skeleton lies in the Dreadlands", "Test passed" in rcon.run(bones)
            and "Test failed" in rcon.run(bones[:-1] + ",nbt={DeathStage:0}]"), f"place said: {placed.strip()}")
     rcon.run(dl + f"run kill @e[type=iceandfire:ice_dragon,x={sx - 8},y=-64,z={sz - 8},dx=32,dy=400,dz=32]")
+    # The Glacial Plains (0.84.0): the ice sheet to about y 200 over 40% of the land, sheer-walled; its top snow and ice,
+    # its body ice (blue-veined, stone buried in it). Found far out on new ground, its columns probed on a grid round
+    # where locate puts its edge (80 apart, a pause after each: each lone chunk needs its neighbours).
+    check("the Glacial Plains exist", dl + "positioned 1500000 0 -1500000 run locate biome dreadpatch:glacial_plains", "is at")
+
+    def surface_y(x, z):
+        rcon.run(dl + f'positioned {x} 0 {z} positioned over world_surface run summon minecraft:marker ~ ~ ~ {{Tags:["smoke_probe"]}}')
+        pos = re.search(r"\[[-0-9.]+d, ([-0-9.]+)d", rcon.run("data get entity @e[tag=smoke_probe,limit=1] Pos"))
+        rcon.run("kill @e[tag=smoke_probe]")
+        return int(float(pos.group(1))) - 1 if pos else None
+
+    def dl_block(x, y, z, block):
+        return "Test passed" in rcon.run(dl + f"if block {x} {y} {z} {block}")
+    gx0, gz0 = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
+    m = re.search(r"at \[(-?\d+), \S+, (-?\d+)\]", rcon.run(dl + f"positioned {gx0} 0 {gz0} run locate biome dreadpatch:glacial_plains"))
+    glacial_tops = []
+    if m:
+        lx, lz = int(m.group(1)), int(m.group(2))
+        # All loaded first, then measured once they're done (0.84.1: a lone chunk measured at once had its heightmap
+        # 1-6 blocks over its finished top, so the "top" was air).
+        points = [(lx + 80 * i, lz + 80 * j) for j in range(-3, 4) for i in range(-3, 4)]
+        for x, z in points:
+            rcon.run(dl + f"run forceload add {x} {z}")
+            time.sleep(0.6)
+        time.sleep(8.0)
+        for x, z in points:
+            if "Test passed" in rcon.run(dl + f"positioned {x} 100 {z} if biome ~ ~ ~ dreadpatch:glacial_plains"):
+                y = surface_y(x, z)
+                if y is not None:
+                    glacial_tops.append((x, y, z))
+    high = [t for t in glacial_tops if t[1] >= 170]
+    # Capped at 187 since 0.90.0 (spires on it reach higher: none past 235).
+    median = sorted(t[1] for t in glacial_tops)[len(glacial_tops) // 2] if glacial_tops else 0
+    record("the Glacial Plains stand up to about y 187", len(glacial_tops) >= 6 and len(high) >= len(glacial_tops) // 2
+           and median <= 188 and all(t[1] <= 235 for t in glacial_tops), f"median {median}, tops {[(t[0], t[1], t[2]) for t in glacial_tops]} from {m and m.group(0)}")
+    ice = "#minecraft:ice"
+    # A spire stands on the glacier now and then (its bricks, tiles, bones and torches): not the glacier's surface.
+    spire = ("iceandfire:dread_stone_bricks", "iceandfire:dread_stone_bricks_cracked", "iceandfire:dread_stone_bricks_chiseled",
+             "iceandfire:dread_stone_tile", "iceandfire:dragon_bone_block", "iceandfire:dread_torch")
+    high = [t for t in high if not any(dl_block(t[0], t[1], t[2], b) for b in spire)]
+    on_top = [t for t in high if any(dl_block(t[0], t[1], t[2], b) for b in
+                                     ("minecraft:snow_block", ice, "minecraft:snow", "iceandfire:dread_stone", "minecraft:stone"))]
+    # Under it: ice, its buried stone, or a cave in it (0.84.2's run: a snow block 30 under, a cave's floor in the ice,
+    # which the surface rule snows over as it does the top).
+    body = [t for t in high if any(dl_block(t[0], t[1] - 30, t[2], b) for b in
+                                   (ice, "iceandfire:dread_stone", "minecraft:stone", "minecraft:air", "minecraft:cave_air",
+                                    "minecraft:snow_block", "minecraft:snow", "minecraft:water"))]
+    # Most of its top: snow (mostly layers), sheets of ice, its buried stone and dreadstone breaking through (0.84.0's
+    # first runs: 22 of 24, then 34 of 43 with a spire's top among them).
+    record("the glacier's top is snow and ice, its body ice", len(high) > 0 and len(on_top) >= 0.8 * len(high) and len(body) == len(high),
+           f"top {len(on_top)}/{len(high)}, 30 under {len(body)}/{len(high)} at {high}")
+    # A wild Rimefrost dragon's nest (0.84.0), one glacier chunk in 400 (160 until 0.84.2): placed by hand up on the glacier (somewhere flat
+    # enough), a bowl of hoard piles and its dragon, wild, stage 2 or more, its home the nest. Its piles stay (0.84.1:
+    # with Ice and Fire's griefing on, as in the dev runs, a big dragon broke the piles it stood in; hoards are now in
+    # its dragon_block_break_blacklist). A whole hoard, one pile a column (113 at the least, radius 6): until 0.84.4 its bed
+    # was mostly packed ice, which Ice and Fire's piles fall off, and 40 to 50 were left.
+    nest = None
+    for t in high[:6]:
+        placed = rcon.run(dl + f"positioned {t[0]} 0 {t[2]} positioned over world_surface run place feature dreadpatch:rimefrost_nest ~ ~ ~")
+        if "laced" in placed and "ailed" not in placed:
+            nest = t
+            break
+    time.sleep(0.5)
+    if nest:
+        nx, ny, nz = nest
+        near = f"x={nx - 16},y={ny - 16},z={nz - 16},dx=32,dy=40,dz=32"
+        dragon = dl + f"if entity @e[type=dreadpatch:rimefrost_dragon,{near}]"
+        piles = 0
+        for block in ("iceandfire:gold_pile", "iceandfire:silver_pile", "iceandfire:copper_pile", "dreadpatch:iron_pile"):
+            area = f"{nx - 12} {ny - 8} {nz - 12} {nx + 12} {ny + 4} {nz + 12}"
+            filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {area} minecraft:glass replace {block}"))
+            if filled:
+                piles += int(filled.group(1))
+                rcon.run(dl + f"run fill {area} {block}[layers=4] replace minecraft:glass")
+        age = re.search(r"entity data: (\d+)", rcon.run(dl + f"run data get entity @e[type=dreadpatch:rimefrost_dragon,{near},limit=1] AgeTicks"))
+        record("a wild Rimefrost dragon nests on its hoard", "Test passed" in rcon.run(dragon) and piles >= 100
+               and "Test failed" in rcon.run(dragon[:-1] + ",nbt={TamedDragon:1b}]")
+               and "Test passed" in rcon.run(dragon[:-1] + ",nbt={HasHomePosition:1b}]")
+               and age is not None and int(age.group(1)) >= 25 * 24000, f"piles {piles}, age {age and age.group(1)} at {nest}")
+        rcon.run(dl + f"run kill @e[type=dreadpatch:rimefrost_dragon,{near}]")
+    else:
+        record("a wild Rimefrost dragon nests on its hoard", False, f"no nest would place on {high[:6]}")
+    rcon.run(dl + "run forceload remove all")
+    # The hoard's iron pile drops its nuggets (0.84.0), two a layer. (Its blacksteel pile and dragon armour were taken
+    # out in 0.84.2.)
+    rcon.run("setblock 30 199 30 minecraft:stone")
+    rcon.run("setblock 30 200 30 dreadpatch:iron_pile[layers=3]")
+    check("an iron pile drops two iron nuggets a layer", "loot spawn 30 202 30 mine 30 200 30 minecraft:diamond_pickaxe", "Dropped 6")
+    rcon.run("fill 30 199 30 30 200 30 minecraft:air")
+    rcon.run("kill @e[type=item]")
     # The deeps flooded (0.77.0, the owner: "Water should fill most of the open air spaces just above the worlds bedrock
     # layers"): over 3 x 3 chunks there, from just over bedrock's bottom to y -52, water and no open air. Counted by
     # swapping to glass and back: not sponge, which soaks up the water round it (the first run counted its own damage).
@@ -1713,7 +1962,10 @@ def main():
                                                          and coarse[q] is not None and 30 <= coarse[q] <= 31))
         # The biome reaches past the flat floor onto its slopes, so a point at 30 there can be slope: the best three are
         # each looked at closer (5 x 5, 8 apart), and the flattest kept.
-        mid, flattest = None, -1
+        # Only a point with some flat floor round it (0.84.0: the Glacial Plains cover 40% of the land, so fewer of the
+        # grid's points are in a chasma, and a slope's point was kept with no floor at all).
+        # At least 10 of its 25 (0.84.0's next run kept one with a few, the glacier over the rest).
+        mid, flattest = None, 9
         for cx, cz in ranked[:3]:
             rcon.run(dl + f"run forceload add {cx - 16} {cz - 16} {cx + 16} {cz + 16}")
             time.sleep(4.0)
@@ -1723,9 +1975,9 @@ def main():
                 mid, flattest = (cx, cz), flat
         return mid, lx, lz
 
-    # Some chasmas never quite flatten (the biome reaches past where the floor's mask saturates): up to three tried.
+    # Some chasmas never quite flatten (the biome reaches past where the floor's mask saturates): up to five tried (three before 0.84.0).
     m = mid = None
-    for _ in range(3):
+    for _ in range(5):
         cfx, cfz = random.choice((-1, 1)) * random.randrange(300_000, 900_000), random.choice((-1, 1)) * random.randrange(300_000, 900_000)
         mid, lx, lz = chasma_floor(cfx, cfz)
         m = lx is not None
@@ -1738,7 +1990,8 @@ def main():
             rcon.run(dl + f"run forceload add {mx - 32} {mz - 32} {mx + 32} {mz + 32}")
             time.sleep(8.0)
             tops = [top_block(x, z) for x in range(mx - 32, mx + 32, 2) for z in range(mz - 32, mz + 32, 2)]
-            tops = [t for t in tops if t is not None]
+            # The glacier's columns (0.84.0) are another biome over the chasma: left out.
+            tops = [t for t in tops if t is not None and t < 120]
             chasma_share = lambda test: sum(1 for t in tops if test(t)) / max(1, len(tops))
             record("most of the Rime Chasma is its flat floor at 30", chasma_share(lambda t: t == 30) >= 0.4,
                    f"{chasma_share(lambda t: t == 30):.0%} at 30; at {mx} {mz}")
@@ -2684,11 +2937,15 @@ def main():
     # counted together, none of either in 80 being 0.03%.) The one-source cap is on players, so it needs one.
     rcon.run('summon minecraft:zombie 24.5 221 12.5 {UUID:[I;73,73,73,9],NoAI:1b,PersistenceRequired:1b,Silent:1b,'
              'attributes:[{id:"minecraft:generic.max_health",base:1000d}],Health:1000f}')
-    dread_kinds = {"scuttler": "iceandfire:dread_scuttler", "knight": "iceandfire:dread_knight", "thrall": "iceandfire:dread_thrall"}
+    dread_kinds = {"scuttler": "iceandfire:dread_scuttler", "knight": "iceandfire:dread_knight", "thrall": "iceandfire:dread_thrall",
+                   "claws": "iceandfire:dread_thrall"}
+    # Since 0.85.0 an empty-handed thrall may stay unarmed and claw (30% each): the armed one holds a dread sword, the
+    # clawing one's arming is marked rolled with nothing in its hands.
+    dread_nbt = {"thrall": ',HandItems:[{id:"iceandfire:dread_sword",count:1},{}]', "claws": ',NeoForgeData:{"dreadpatch:armed":1b}'}
     tallies = {}
     for n, (kind, entity_type) in enumerate(dread_kinds.items()):
         uuid = f"00000049-0000-0049-0000-00490000000{n + 1}"
-        rcon.run(f'summon {entity_type} 28.5 221 12.5 {{UUID:[I;73,73,73,{n + 1}],NoAI:1b,PersistenceRequired:1b,Silent:1b}}')
+        rcon.run(f'summon {entity_type} 28.5 221 12.5 {{UUID:[I;73,73,73,{n + 1}],NoAI:1b,PersistenceRequired:1b,Silent:1b{dread_nbt.get(kind, "")}}}')
         tally = {"wr1": 0, "wr2": 0, "rf": 0, "rf_long": 0}
         for _ in range(80):
             time.sleep(0.55)
@@ -2711,6 +2968,8 @@ def main():
     record("a knight's hits leave Withering Rime now and then, and a 3 s Rimefrost sometimes",
            1 <= k["wr1"] <= 20 and k["wr2"] == 0 and 2 <= k["rf"] <= 26 and k["rf_long"] == k["rf"], str(k))
     record("a thrall's hits leave Withering Rime and Rimefrost rarely", 1 <= t["wr1"] + t["rf"] <= 24 and t["wr1"] <= 14 and t["rf"] <= 14, str(t))
+    c = tallies["claws"]
+    record("an unarmed thrall's claws leave each about a third of the time", 10 <= c["wr1"] <= 40 and 10 <= c["rf"] <= 40 and c["wr2"] == 0, str(c))
     rcon.run("kill 00000049-0000-0049-0000-004900000009")
     rcon.run("kill @e[type=item]")
     rcon.run("setblock 20 220 12 minecraft:jukebox")

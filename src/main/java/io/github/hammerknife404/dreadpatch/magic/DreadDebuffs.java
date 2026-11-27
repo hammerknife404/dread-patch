@@ -9,9 +9,12 @@ package io.github.hammerknife404.dreadpatch.magic;
  * <li>a dread knight: Withering Rime at a low {@link #KNIGHT_WITHERING}, and (0.73.1) 3 s of Rimefrost at
  * {@link #KNIGHT_RIMEFROST};</li>
  * <li>every other Dread mob: each at {@link #OTHER_CHANCE} (0.73.1, the owner: "5%"; 0.73.0 had the phantom's
- * odds), for the phantom's times.</li>
+ * odds), for the phantom's times;</li>
+ * <li>an unarmed dread thrall (0.85.0): each at {@link ThrallArms#CLAW_EFFECT_CHANCE}, for the phantom's times;</li>
  * </ul>
- * The queen, the Rimefrost dragons, the phantoms and the Rime Eel keep their own.
+ * The queen, the Rimefrost dragons, the phantoms and the Dread Fish keep their own, but (0.85.0, the owner: "Ensure all
+ * Dread and Rime-type mobs have at least a 5% chance to apply Rimefrost on hit") a melee hit of the queen's, a Rimefrost
+ * dragon's or a Dread Fish's, which lay none of their own, rolls {@link #RIMEFROST_FLOOR} for it ({@link #floor}).
  */
 public final class DreadDebuffs {
     public static final float SCUTTLER_WITHERING = 0.08F;
@@ -24,7 +27,10 @@ public final class DreadDebuffs {
     /** A scuttler's frost: 2 s. */
     public static final int SCUTTLER_RIMEFROST_TICKS = 40;
 
-    public enum Kind { SCUTTLER, KNIGHT, OTHER }
+    /** The least chance of Rimefrost any of the Dread's melee hits carries. */
+    public static final float RIMEFROST_FLOOR = 0.05F;
+
+    public enum Kind { SCUTTLER, KNIGHT, UNARMED_THRALL, OTHER }
 
     /** What lands: a duration of 0 is none. */
     public record Hit(int witheringTicks, int witheringAmplifier, int rimefrostTicks) {
@@ -41,9 +47,16 @@ public final class DreadDebuffs {
                     PhantomRules.rimefrost(rimefrostRoll) ? SCUTTLER_RIMEFROST_TICKS : 0);
             case KNIGHT -> new Hit(witheringRoll < KNIGHT_WITHERING ? PhantomRules.WITHERING_TICKS : 0, 0,
                     rimefrostRoll < KNIGHT_RIMEFROST ? KNIGHT_RIMEFROST_TICKS : 0);
+            case UNARMED_THRALL -> new Hit(witheringRoll < ThrallArms.CLAW_EFFECT_CHANCE ? PhantomRules.WITHERING_TICKS : 0, 0,
+                    rimefrostRoll < ThrallArms.CLAW_EFFECT_CHANCE ? PhantomRules.RIMEFROST_TICKS : 0);
             case OTHER -> new Hit(witheringRoll < OTHER_CHANCE ? PhantomRules.WITHERING_TICKS : 0, 0,
                     rimefrostRoll < OTHER_CHANCE ? PhantomRules.RIMEFROST_TICKS : 0);
         };
+    }
+
+    /** The floor's Rimefrost, for a Dread mob that lays none of its own on a melee hit: its duration, or 0 for none. */
+    public static int floor(float roll) {
+        return roll < RIMEFROST_FLOOR ? PhantomRules.RIMEFROST_TICKS : 0;
     }
 
     /**

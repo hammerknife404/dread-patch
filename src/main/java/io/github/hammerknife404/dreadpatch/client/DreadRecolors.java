@@ -56,11 +56,14 @@ public final class DreadRecolors {
     private DreadRecolors() {
     }
 
-    /** One recolouring: an Ice and Fire sprite in, ours out. */
-    record Entry(ResourceLocation from, ResourceLocation to) {
+    /** One recolouring: an Ice and Fire sprite in, ours out; by the Dread's palette unless it names another (0.84.0: iron). */
+    record Entry(ResourceLocation from, ResourceLocation to, DreadRecolor.Palette palette) {
+        static final Codec<DreadRecolor.Palette> PALETTE = Codec.STRING.xmap(name -> DreadRecolor.Palette.valueOf(name.toUpperCase(java.util.Locale.ROOT)),
+                palette -> palette.name().toLowerCase(java.util.Locale.ROOT));
         static final Codec<Entry> CODEC = RecordCodecBuilder.create(i -> i.group(
                 ResourceLocation.CODEC.fieldOf("from").forGetter(Entry::from),
-                ResourceLocation.CODEC.fieldOf("to").forGetter(Entry::to)).apply(i, Entry::new));
+                ResourceLocation.CODEC.fieldOf("to").forGetter(Entry::to),
+                PALETTE.optionalFieldOf("palette", DreadRecolor.Palette.DREAD).forGetter(Entry::palette)).apply(i, Entry::new));
     }
 
     /** {@code dreadpatch:dread_recolor}: each entry's sprite, recoloured, under its new name. */
@@ -77,7 +80,7 @@ public final class DreadRecolors {
                     continue;
                 }
                 output.add(entry.to(), loader -> loader.loadSprite(entry.to(), resource.get(), (id, size, image, metadata) -> {
-                    recolor(image);
+                    recolor(image, entry.palette());
                     return new SpriteContents(id, size, image, metadata);
                 }));
             }
@@ -158,6 +161,9 @@ public final class DreadRecolors {
             }
         }
         MADE.clear();
+        DRAGON_ARMOR.forEach(Minecraft.getInstance().getTextureManager()::release);
+        DRAGON_ARMOR.clear();
+        dragonArmorMade = false;
     }
 
     private static NativeImage read(ResourceLocation location) throws IOException {
@@ -170,15 +176,50 @@ public final class DreadRecolors {
         }
     }
 
-    /** {@link DreadRecolor} over a {@link NativeImage}, which keeps its pixels ABGR. */
-    static void recolor(NativeImage image) {
+    /**
+     * Dread dragonsteel dragon armour on a dragon (0.84.4; 0.84.0's blacksteel armour's way): Ice and Fire draws a
+     * dragon's armour from {@code iceandfire:textures/entity/dragon_armor/armor_<part>_<material>.png}, so ours is made
+     * under that name (from its ice dragonsteel's, recoloured as the rest of the steel) the first time a dragon is drawn,
+     * before its armour layer looks.
+     */
+    static void dragonArmor(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
+        if (dragonArmorMade || !(event.getEntity() instanceof com.iafenvoy.iceandfire.entity.DragonBaseEntity)) {
+            return;
+        }
+        dragonArmorMade = true;
+        for (com.iafenvoy.iceandfire.data.DragonArmorPart part : com.iafenvoy.iceandfire.data.DragonArmorPart.values()) {
+            String path = "textures/entity/dragon_armor/armor_" + part.getId() + "_";
+            ResourceLocation target = ResourceLocation.fromNamespaceAndPath("iceandfire",
+                    path + io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.DREAD_DRAGONSTEEL.name() + ".png");
+            try (NativeImage image = read(ResourceLocation.fromNamespaceAndPath("iceandfire", path + "dragon_steel_ice.png"))) {
+                recolor(image);
+                NativeImage copy = new NativeImage(image.getWidth(), image.getHeight(), false);
+                copy.copyFrom(image);
+                Minecraft.getInstance().getTextureManager().register(target, new DynamicTexture(copy));
+                DRAGON_ARMOR.add(target);
+            } catch (IOException | RuntimeException e) {
+                DreadPatch.LOGGER.warn("Couldn't make the dread dragonsteel dragon armour's {}", target, e);
+            }
+        }
+    }
+
+    private static final List<ResourceLocation> DRAGON_ARMOR = new java.util.ArrayList<>();
+    private static boolean dragonArmorMade;
+
+    /** {@link DreadRecolor} over a {@link NativeImage}, which keeps its pixels ABGR, by {@code palette}. */
+    static void recolor(NativeImage image, DreadRecolor.Palette palette) {
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 int abgr = image.getPixelRGBA(x, y);
                 int argb = abgr & 0xFF00FF00 | (abgr & 0xFF) << 16 | abgr >> 16 & 0xFF;
-                int out = DreadRecolor.recolor(argb);
+                int out = DreadRecolor.recolor(argb, palette);
                 image.setPixelRGBA(x, y, out & 0xFF00FF00 | (out & 0xFF) << 16 | out >> 16 & 0xFF);
             }
         }
+    }
+
+    /** {@link DreadRecolor} over a {@link NativeImage}, the Dread's palette. */
+    static void recolor(NativeImage image) {
+        recolor(image, DreadRecolor.Palette.DREAD);
     }
 }

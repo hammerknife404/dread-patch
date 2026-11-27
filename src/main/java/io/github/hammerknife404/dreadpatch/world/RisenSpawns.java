@@ -2,9 +2,9 @@ package io.github.hammerknife404.dreadpatch.world;
 
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
 import io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom;
-import io.github.hammerknife404.dreadpatch.entity.RimeEel;
+import io.github.hammerknife404.dreadpatch.entity.DreadFish;
 import io.github.hammerknife404.dreadpatch.entity.RisenDread;
-import io.github.hammerknife404.dreadpatch.magic.RimeEelRules;
+import io.github.hammerknife404.dreadpatch.magic.DreadFishRules;
 import io.github.hammerknife404.dreadpatch.magic.DreadlandsSpawning;
 import io.github.hammerknife404.dreadpatch.magic.RisenRules;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
@@ -42,10 +42,12 @@ import java.util.Random;
  * hunt players. In the Rime Chasma (0.68.0) a further one-in-{@code chasma_dread_water} of one in a pocket of water
  * sealed in its ice ({@link DreadTerrain.ChasmaPocket}), searched for column by column under the floor.
  * <p>
- * In the Dreadlands (0.71.0) their water holds Rime Eels instead ({@link RimeEel}): the underground water roll and
- * the chasma's give one, as does a further one-in-{@code dreadlands_rime_eels} in any dark water near
- * ({@link #darkWater}); each only in water two deep at light 6 or less ({@link #eelWater}), never past
- * {@link RimeEelRules#CAP} eels near. The risen cap doesn't count them.
+ * In the Dreadlands (0.71.0) their water holds Dread Fish instead ({@link DreadFish}): the underground water roll and
+ * the chasma's give one, as does a further one-in-{@code dreadlands_dread_fish} in any dark water near
+ * ({@link #darkWater}); each only in water two deep at light 6 or less ({@link #fishWater}), never past
+ * {@link DreadFishRules#CAP} fish near. The risen cap doesn't count them. And (0.84.1) in the Rime Chasma a further
+ * one-in-{@code chasma_surface_fish}: dark water near if there's any, else out on the chasma's floor ({@link #chasmaFloor}),
+ * from where it makes for water (its own {@code SeekWaterGoal}).
  */
 public final class RisenSpawns {
     private RisenSpawns() {
@@ -72,8 +74,10 @@ public final class RisenSpawns {
             boolean water = DreadlandsSpawning.comesUp(DreadPatchConfig.caveWaterOneIn(), roll);
             boolean pocket = dreadlands && level.getBiome(player.blockPosition()).is(Dreadlands.RIME_CHASMA)
                     && DreadlandsSpawning.comesUp(DreadPatchConfig.chasmaWaterOneIn(), roll);
-            boolean dark = dreadlands && DreadlandsSpawning.comesUp(DreadPatchConfig.darkWaterEelOneIn(), roll);
-            if (!phantom && !water && !pocket && !dark) {
+            boolean dark = dreadlands && DreadlandsSpawning.comesUp(DreadPatchConfig.darkWaterFishOneIn(), roll);
+            boolean surface = dreadlands && level.getBiome(player.blockPosition()).is(Dreadlands.RIME_CHASMA)
+                    && DreadlandsSpawning.comesUp(DreadPatchConfig.chasmaSurfaceFishOneIn(), roll);
+            if (!phantom && !water && !pocket && !dark && !surface) {
                 continue;
             }
             AABB near = player.getBoundingBox().inflate(DreadlandsSpawning.CAP_RANGE);
@@ -91,55 +95,82 @@ public final class RisenSpawns {
                 }
                 continue;
             }
-            // The Dreadlands' water holds Rime Eels (0.71.0), not the risen: in dark underground water, the chasma's pockets, any dark water.
-            if (level.getEntitiesOfClass(RimeEel.class, near).size() >= RimeEelRules.CAP) {
+            // The Dreadlands' water holds Dread Fish (0.71.0), not the risen: in dark underground water, the chasma's pockets, any dark water.
+            if (level.getEntitiesOfClass(DreadFish.class, near).size() >= DreadFishRules.CAP) {
                 continue;
             }
             BlockPos spot = null;
             if (water) {
                 spot = cave(level, player, random, true);
-                spot = spot != null && eelWater(level, spot) ? spot : null;
+                spot = spot != null && fishWater(level, spot) ? spot : null;
             }
             if (spot == null && pocket) {
                 spot = pocket(level, player, random);
             }
-            if (spot == null && dark) {
+            if (spot == null && (dark || surface)) {
                 spot = darkWater(level, player, random);
             }
-            RimeEel eel = spot == null ? null : ModRegistries.RIME_EEL.get().create(level);
-            if (eel != null) {
-                eel.moveTo(spot.getX() + 0.5, spot.getY() + 0.1, spot.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
-                EventHooks.finalizeMobSpawn(eel, level, level.getCurrentDifficultyAt(spot), MobSpawnType.NATURAL, null);
-                level.addFreshEntity(eel);
+            if (spot == null && surface) {
+                spot = chasmaFloor(level, player, random);
+            }
+            DreadFish fish = spot == null ? null : ModRegistries.DREAD_FISH.get().create(level);
+            if (fish != null) {
+                fish.moveTo(spot.getX() + 0.5, spot.getY() + 0.1, spot.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+                EventHooks.finalizeMobSpawn(fish, level, level.getCurrentDifficultyAt(spot), MobSpawnType.NATURAL, null);
+                level.addFreshEntity(fish);
             }
         }
     }
 
-    /** Water a Rime Eel takes: a source, with water over it (1×2 at least), light 6 or less (the Dreadlands' sun never past 6). */
-    static boolean eelWater(ServerLevel level, BlockPos pos) {
+    /** Water a Dread Fish takes: a source, with water over it (1×2 at least), light 6 or less (the Dreadlands' sun never past 6). */
+    static boolean fishWater(ServerLevel level, BlockPos pos) {
         return level.getFluidState(pos).isSourceOfType(net.minecraft.world.level.material.Fluids.WATER)
                 && level.getFluidState(pos.above()).is(FluidTags.WATER)
-                && RimeEelRules.darkEnough(level.getBrightness(LightLayer.BLOCK, pos), level.getBrightness(LightLayer.SKY, pos));
+                && DreadFishRules.darkEnough(level.getBrightness(LightLayer.BLOCK, pos), level.getBrightness(LightLayer.SKY, pos));
     }
 
-    /** Dark water near the player for a Rime Eel ({@link #eelWater}): columns 8-32 off searched within 16 up or down; null if none's found. */
+    /** Dark water near the player for a Dread Fish ({@link #fishWater}): columns 8-32 off searched within 16 up or down; null if none's found. */
     @Nullable
     static BlockPos darkWater(ServerLevel level, ServerPlayer player, RandomSource random) {
         for (int attempt = 0; attempt < 24; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
-            double distance = RimeEelRules.SEARCH_MIN + random.nextDouble() * (RimeEelRules.SEARCH_MAX - RimeEelRules.SEARCH_MIN);
+            double distance = DreadFishRules.SEARCH_MIN + random.nextDouble() * (DreadFishRules.SEARCH_MAX - DreadFishRules.SEARCH_MIN);
             int x = Mth.floor(player.getX() + Math.cos(angle) * distance);
             int z = Mth.floor(player.getZ() + Math.sin(angle) * distance);
             if (!level.hasChunk(x >> 4, z >> 4)) {
                 continue;
             }
-            int top = Math.min(player.getBlockY() + RimeEelRules.SEARCH_DEPTH, level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z));
-            int bottom = Math.max(level.getMinBuildHeight() + 1, player.getBlockY() - RimeEelRules.SEARCH_DEPTH);
+            int top = Math.min(player.getBlockY() + DreadFishRules.SEARCH_DEPTH, level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z));
+            int bottom = Math.max(level.getMinBuildHeight() + 1, player.getBlockY() - DreadFishRules.SEARCH_DEPTH);
             for (int y = top; y >= bottom; y--) {
                 BlockPos pos = new BlockPos(x, y, z);
-                if (eelWater(level, pos)) {
+                if (fishWater(level, pos)) {
                     return pos;
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Open floor in the Rime Chasma near the player for a Dread Fish (0.84.1): its top, solid, two clear blocks over it, in
+     * the chasma, at light 6 or less, 8-32 off; null if none's found.
+     */
+    @Nullable
+    static BlockPos chasmaFloor(ServerLevel level, ServerPlayer player, RandomSource random) {
+        for (int attempt = 0; attempt < 16; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            double distance = DreadFishRules.SEARCH_MIN + random.nextDouble() * (DreadFishRules.SEARCH_MAX - DreadFishRules.SEARCH_MIN);
+            int x = Mth.floor(player.getX() + Math.cos(angle) * distance);
+            int z = Mth.floor(player.getZ() + Math.sin(angle) * distance);
+            if (!level.hasChunk(x >> 4, z >> 4)) {
+                continue;
+            }
+            BlockPos pos = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z);
+            if (level.getBiome(pos).is(Dreadlands.RIME_CHASMA) && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), net.minecraft.core.Direction.UP)
+                    && level.isEmptyBlock(pos) && level.isEmptyBlock(pos.above())
+                    && DreadFishRules.darkEnough(level.getBrightness(LightLayer.BLOCK, pos), level.getBrightness(LightLayer.SKY, pos))) {
+                return pos;
             }
         }
         return null;

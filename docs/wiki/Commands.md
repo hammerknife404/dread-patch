@@ -11,6 +11,7 @@ For operators and the server console, under `/dreadpatch`:
 | `/dreadpatch dreadlands home [players]` | Sends players in the Dreadlands home again. |
 | `/dreadpatch dreadlands arrival [x z]` | Where a gate there (or where you stand) would set someone down in the Dreadlands, and how far that is from the nearest spire. Arrivals are random, so each try may differ. |
 | `/dreadpatch escalation [storm [seconds] \| reset]` | Whether a Dread Queen has been defeated in this world (so the Dread stir round the Mausoleums) and the defeat storm: on, waiting, or due; `storm` brings one now (30-60 s, or the seconds given), whatever the wait; `reset` forgets every defeat and the storm. |
+| `/dreadpatch dreadweather start\|stop` | A dread storm over the overworld now (it starts the rain), or its end. It reaches only where the `dread_weather` settings let it. |
 | `/dreadpatch config [setting [value]]` | Lists every Dread Patch setting, shows one, or sets one (saved to `config/dreadpatch-server.toml`, applied at once). |
 | `/dreadpatch patrol [pos]` | Raises a Dread patrol there (a dread knight leading 2 to 4 more). |
 | `/dreadpatch rise [count] [pos]` | Raises 1 to 8 of the Dread there (3 by default). |

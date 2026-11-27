@@ -152,36 +152,42 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("barrow_husk").toString()));
 
-    /** The dread phantom (0.45.0): vanilla's phantom's box and tracking. */
+    /**
+     * The dread phantom (0.45.0): vanilla's phantom's tracking; its box (0.85.0, the owner: "audit/fix hitboxes") 1.25
+     * across, vanilla's 0.9 covering only its body, so it reaches out over the wings' roots, where it's drawn widest.
+     */
     public static final DeferredHolder<EntityType<?>, EntityType<DreadPhantom>> DREAD_PHANTOM = ENTITY_TYPES.register("dread_phantom",
             () -> EntityType.Builder.<DreadPhantom>of(DreadPhantom::new, MobCategory.MONSTER)
-                    .sized(0.9F, 0.5F)
+                    .sized(1.25F, 0.5F)
                     .eyeHeight(0.175F)
                     .passengerAttachments(0.3375F)
                     .ridingOffset(-0.125F)
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("dread_phantom").toString()));
-    /** The miniature dread phantom (0.63.0): the dread phantom's box, which its scale of 0.5 halves. */
+    /**
+     * The miniature dread phantom (0.63.0): the dread phantom's box, which its scale of 0.5 halves; since 0.85.0 a little
+     * deeper (0.7 before its scale, 0.35 after), as halved it was a sliver a quarter of a block thick.
+     */
     public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>> MINIATURE_DREAD_PHANTOM =
             ENTITY_TYPES.register("miniature_dread_phantom",
                     () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom>of(
                                     io.github.hammerknife404.dreadpatch.entity.MiniatureDreadPhantom::new, MobCategory.MONSTER)
-                            .sized(0.9F, 0.5F)
+                            .sized(1.25F, 0.7F)
                             .eyeHeight(0.175F)
                             .clientTrackingRange(8)
                             .build(DreadPatch.id("miniature_dread_phantom").toString()));
 
     /**
-     * The Rime Eel (0.71.0): its box at scale 1, narrower than its model (curled 2 across, 1.45 tall to its lantern),
-     * as a dolphin's is, so it fits the water it lives in; its {@code generic.scale} (0.3-1.25, an alpha's to 2, rolled
-     * as it spawns) makes the box 0.27-1.1 across, an alpha's to 1.8.
+     * The Dread Fish (0.71.0): its box at scale 1 (0.86.0, the owner: "audit and fix hitboxes") 1.6 across and 1.0 tall,
+     * most of its curled model (2.1 across, 1.6 tall to its lantern; 0.9 x 0.6 until then, under half of it); its
+     * {@code generic.scale} (0.3-1.25, an alpha's to 2, rolled as it spawns) makes the box 0.48-2 across, an alpha's to 3.2.
      */
-    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.RimeEel>> RIME_EEL = ENTITY_TYPES.register("rime_eel",
-            () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.RimeEel>of(io.github.hammerknife404.dreadpatch.entity.RimeEel::new, MobCategory.MONSTER)
-                    .sized(0.9F, 0.6F)
-                    .eyeHeight(0.4F)
+    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.DreadFish>> DREAD_FISH = ENTITY_TYPES.register("dread_fish",
+            () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.DreadFish>of(io.github.hammerknife404.dreadpatch.entity.DreadFish::new, MobCategory.MONSTER)
+                    .sized(1.6F, 1.0F)
+                    .eyeHeight(0.6F)
                     .clientTrackingRange(8)
-                    .build(DreadPatch.id("rime_eel").toString()));
+                    .build(DreadPatch.id("dread_fish").toString()));
 
     /** Rimefire Blast's cone (0.51.0): Iron's Cone of Cold's size and tracking; it draws itself in particles. */
     public static final DeferredHolder<EntityType<?>, EntityType<RimefireBlastProjectile>> RIMEFIRE_BLAST_PROJECTILE = ENTITY_TYPES.register("rimefire_blast",
@@ -319,8 +325,8 @@ public final class ModRegistries {
             () -> new DeferredSpawnEggItem(MINIATURE_DREAD_PHANTOM, 0x3E465C, 0x9CF0FF, new Item.Properties()));
 
     /** Bone-pale, spotted with its lure's cyan. */
-    public static final DeferredItem<DeferredSpawnEggItem> RIME_EEL_SPAWN_EGG = ITEMS.register("rime_eel_spawn_egg",
-            () -> new DeferredSpawnEggItem(RIME_EEL, 0xC9D3E0, 0x00CBFF, new Item.Properties()));
+    public static final DeferredItem<DeferredSpawnEggItem> DREAD_FISH_SPAWN_EGG = ITEMS.register("dread_fish_spawn_egg",
+            () -> new DeferredSpawnEggItem(DREAD_FISH, 0xC9D3E0, 0x00CBFF, new Item.Properties()));
 
     /**
      * Syndrigossa's egg: only an ancient one (the boss) leaves it, from her corpse where a dragon's
@@ -348,14 +354,14 @@ public final class ModRegistries {
     public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_HURT = sound("entity.dread_phantom.hurt");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_DEATH = sound("entity.dread_phantom.death");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_PHANTOM_SWOOP = sound("entity.dread_phantom.swoop");
-    /** The Rime Eel's (0.71.0): vanilla's guardian, deeper; its pulse a conduit's strike over amethyst; its bite an axolotl's, its lunge a dolphin's. */
-    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_AMBIENT = sound("entity.rime_eel.ambient");
-    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_FLOP = sound("entity.rime_eel.flop");
-    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_HURT = sound("entity.rime_eel.hurt");
-    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_DEATH = sound("entity.rime_eel.death");
-    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_PULSE = sound("entity.rime_eel.pulse");
-    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_BITE = sound("entity.rime_eel.bite");
-    public static final DeferredHolder<SoundEvent, SoundEvent> RIME_EEL_LUNGE = sound("entity.rime_eel.lunge");
+    /** The Dread Fish's (0.71.0): vanilla's guardian, deeper; its pulse a conduit's strike over amethyst; its bite an axolotl's, its lunge a dolphin's. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_FISH_AMBIENT = sound("entity.dread_fish.ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_FISH_FLOP = sound("entity.dread_fish.flop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_FISH_HURT = sound("entity.dread_fish.hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_FISH_DEATH = sound("entity.dread_fish.death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_FISH_PULSE = sound("entity.dread_fish.pulse");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_FISH_BITE = sound("entity.dread_fish.bite");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DREAD_FISH_LUNGE = sound("entity.dread_fish.lunge");
     /** The Dreadlands' ambience (0.54.0): its loop and whispers a little louder than the soul sand valley's, ice cracking, rumbles below. */
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_LOOP = sound("ambient.dreadlands.loop");
     public static final DeferredHolder<SoundEvent, SoundEvent> DREADLANDS_ADDITIONS = sound("ambient.dreadlands.additions");
@@ -410,6 +416,10 @@ public final class ModRegistries {
     }
 
     public static void register(IEventBus modBus) {
+        // The Rime Eel was renamed the Dread Fish in 0.86.0 (the owner: "Rename Rime Eel to Dread Fish", its id too): the
+        // old ids resolve to the new, so eels and eggs saved before load as Dread Fish.
+        ENTITY_TYPES.addAlias(DreadPatch.id("rime_eel"), DreadPatch.id("dread_fish"));
+        ITEMS.addAlias(DreadPatch.id("rime_eel_spawn_egg"), DreadPatch.id("dread_fish_spawn_egg"));
         ENTITY_TYPES.register(modBus);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);

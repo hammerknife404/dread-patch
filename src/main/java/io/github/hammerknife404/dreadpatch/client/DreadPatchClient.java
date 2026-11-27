@@ -50,6 +50,7 @@ public final class DreadPatchClient {
         modBus.addListener(EntityRenderersEvent.AddLayers.class, ThrallArmorLayer::onAddLayers);
         NeoForge.EVENT_BUS.addListener(DreadPatchClient::onTooltip);
         NeoForge.EVENT_BUS.addListener(RenderLivingEvent.Pre.class, SaddleLayer::onRenderLiving);
+        NeoForge.EVENT_BUS.addListener(RenderLivingEvent.Pre.class, DreadRecolors::dragonArmor);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
         StaffTooltip.register(NeoForge.EVENT_BUS);
         // The server config in the mods list's Config button (0.50.0): NeoForge's own screen; every value is read
@@ -61,6 +62,7 @@ public final class DreadPatchClient {
         BossMusicClient.register(NeoForge.EVENT_BUS);
         DreadKnightCrouch.register(NeoForge.EVENT_BUS);
         DefeatStormClient.register(NeoForge.EVENT_BUS);
+        DreadWeatherAlert.register(modBus, NeoForge.EVENT_BUS);
         RisenDreadClient.register(NeoForge.EVENT_BUS);
         SoundFilters.register(NeoForge.EVENT_BUS);
         DreadlandsSky.register(modBus, NeoForge.EVENT_BUS);
@@ -156,7 +158,7 @@ public final class DreadPatchClient {
 
     private static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(DreadQueenModel.LAYER, DreadQueenModel::createBodyLayer);
-        event.registerLayerDefinition(RimeEelModel.LAYER, RimeEelModel::createBodyLayer);
+        event.registerLayerDefinition(DreadFishModel.LAYER, DreadFishModel::createBodyLayer);
     }
 
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -176,7 +178,7 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.DREAD_GATE.get(), NoopRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
         event.registerEntityRenderer(ModRegistries.MINIATURE_DREAD_PHANTOM.get(), DreadPhantomRenderer::new);
-        event.registerEntityRenderer(ModRegistries.RIME_EEL.get(), RimeEelRenderer::new);
+        event.registerEntityRenderer(ModRegistries.DREAD_FISH.get(), DreadFishRenderer::new);
         // Drawn by its particles, as Iron's draws Cone of Cold.
         event.registerEntityRenderer(ModRegistries.RIMEFIRE_BLAST_PROJECTILE.get(), NoopRenderer::new);
     }

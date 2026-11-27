@@ -29,6 +29,14 @@ import java.util.WeakHashMap;
  * else's feeds no one. (0.13.0 leeched a share of the victim's max health, up to 10 a tick, and she
  * cut through wardens.) Bonded to a Syndrigossa, she shares it with her dragon ({@link SoulTether}). Over several
  * targets (0.73.0) every one feeds her in full, unless the config caps how many or splits her heal among them.
+ * <p>Since 0.85.0 (the owner: "make the withering rime heal all dread and rimefrost type mobs") anyone of the Dread who
+ * lays it (a Rimefrost dragon's bite, a phantom's, an unarmed thrall's claws, any Dread mob's hit) is fed by it too:
+ * by difficulty (the owner: "scale it down to .25 .5 1hp per difficulty on withering rime that is not tagged otherwise"):
+ * {@link #dreadHeal} each tick it withers, while within {@link #RANGE}. Only the queen's is more, and only hers the
+ * config shares out. Only the one who laid it is fed (the owner: "only the mob that applies it is healed from its own
+ * application"), never a partner it's bonded to, and (the owner: "And can only apply 1 stack per target") a Dread mob's
+ * laying on someone already withering only renews it, never deepening it ({@link #onApplicable}; the queen's and
+ * Syndrigossa's own are hers as before).
  */
 public final class RimeSiphon {
     public static final double RANGE = 32.0;
@@ -36,11 +44,15 @@ public final class RimeSiphon {
     public static final float HEAL_EASY = 1.0F;
     public static final float HEAL_NORMAL = 2.0F;
     public static final float HEAL_HARD = 3.0F;
+    /** What each tick of another Dread mob's withering heals it, by difficulty. */
+    public static final float DREAD_HEAL_EASY = 0.25F;
+    public static final float DREAD_HEAL_NORMAL = 0.5F;
+    public static final float DREAD_HEAL_HARD = 1.0F;
 
     /** Server thread only: who laid each living thing's Withering Rime, and whether she was a queen. */
     private static final Map<LivingEntity, Layer> LAID_BY = new WeakHashMap<>();
 
-    private record Layer(UUID id, boolean queen) {
+    private record Layer(UUID id, boolean queen, boolean dread) {
     }
 
     private RimeSiphon() {
@@ -48,6 +60,22 @@ public final class RimeSiphon {
 
     static void register(IEventBus gameBus) {
         gameBus.addListener(RimeSiphon::onEffectAdded);
+        gameBus.addListener(net.neoforged.bus.api.EventPriority.LOW, RimeSiphon::onApplicable);
+    }
+
+    /** One stack a target: a Dread mob's Withering Rime over one already there renews it at most, never deeper. */
+    private static void onApplicable(MobEffectEvent.Applicable event) {
+        LivingEntity entity = event.getEntity();
+        Entity source = event.getEffectSource();
+        net.minecraft.world.effect.MobEffectInstance existing = entity.getEffect(ModRegistries.WITHERING_RIME);
+        if (entity.level().isClientSide || existing == null || !event.getEffectInstance().is(ModRegistries.WITHERING_RIME)
+                || source == null || !io.github.hammerknife404.dreadpatch.entity.RisenDread.dread(source) || DreadHits.overriding(source)
+                || event.getResult() == MobEffectEvent.Applicable.Result.DO_NOT_APPLY) {
+            return;
+        }
+        if (event.getEffectInstance().getAmplifier() > existing.getAmplifier()) {
+            event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
+        }
     }
 
     private static void onEffectAdded(MobEffectEvent.Added event) {
@@ -57,7 +85,8 @@ public final class RimeSiphon {
         }
         Entity source = event.getEffectSource();
         if (source != null) {
-            LAID_BY.put(entity, new Layer(source.getUUID(), source instanceof DreadQueen));
+            LAID_BY.put(entity, new Layer(source.getUUID(), source instanceof DreadQueen,
+                    io.github.hammerknife404.dreadpatch.entity.RisenDread.dread(source)));
         } else {
             LAID_BY.remove(entity);
         }
@@ -82,10 +111,27 @@ public final class RimeSiphon {
         };
     }
 
+    static float dreadHeal(Difficulty difficulty) {
+        return switch (difficulty) {
+            case HARD -> DREAD_HEAL_HARD;
+            case NORMAL -> DREAD_HEAL_NORMAL;
+            default -> DREAD_HEAL_EASY;
+        };
+    }
+
     /** Her withering has just taken health from {@code victim}: the queen who laid it, if near, is fed. */
     static void feed(LivingEntity victim) {
         Layer layer = LAID_BY.get(victim);
-        if (layer == null || !layer.queen() || !(victim.level() instanceof ServerLevel level)) {
+        if (layer == null || !(layer.queen() || layer.dread()) || !(victim.level() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!layer.queen()) {
+            // Any other of the Dread's: it's fed what its victim loses.
+            if (level.getEntity(layer.id()) instanceof LivingEntity dread && dread.isAlive() && dread.distanceToSqr(victim) <= RANGE * RANGE
+                    && dread.getHealth() < dread.getMaxHealth()) {
+                dread.heal(dreadHeal(level.getDifficulty()));
+                level.sendParticles(ParticleTypes.SNOWFLAKE, dread.getX(), dread.getY(0.6), dread.getZ(), 2, 0.3, 0.4, 0.3, 0.01);
+            }
             return;
         }
         if (level.getEntity(layer.id()) instanceof DreadQueen queen && queen.isAlive() && queen.distanceToSqr(victim) <= RANGE * RANGE) {

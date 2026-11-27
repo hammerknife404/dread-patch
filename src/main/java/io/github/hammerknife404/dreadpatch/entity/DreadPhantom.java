@@ -2,6 +2,7 @@ package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
 import io.github.hammerknife404.dreadpatch.magic.PhantomRules;
+import io.github.hammerknife404.dreadpatch.magic.DreadFishRules;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -88,7 +89,8 @@ public class DreadPhantom extends Phantom implements IDreadMob {
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new AttackStrategyGoal());
         this.goalSelector.addGoal(2, new DiveGoal());
-        this.goalSelector.addGoal(3, new CircleGoal());
+        this.goalSelector.addGoal(3, new FeedGoal());
+        this.goalSelector.addGoal(4, new CircleGoal());
         this.targetSelector.addGoal(1, new RevengeGoal(this));
         this.targetSelector.addGoal(2, new AvengeSummonerGoal());
         this.targetSelector.addGoal(3, new HuntPlayersGoal());
@@ -131,7 +133,21 @@ public class DreadPhantom extends Phantom implements IDreadMob {
 
     @Override
     public boolean canAttack(LivingEntity target) {
-        return !(target instanceof IDreadMob) && super.canAttack(target);
+        return !(target instanceof IDreadMob) && PhantomRules.withinDepth(depth(target)) && super.canAttack(target);
+    }
+
+    /** How many blocks of water are over {@code entity}'s eyes (0 out of water), counted up to one past the most it dives. */
+    static int depth(Entity entity) {
+        if (!entity.isUnderWater()) {
+            return 0;
+        }
+        BlockPos.MutableBlockPos at = BlockPos.containing(entity.getEyePosition()).mutable();
+        int depth = 0;
+        while (depth <= PhantomRules.MAX_DEPTH && entity.level().getFluidState(at).is(net.minecraft.tags.FluidTags.WATER)) {
+            depth++;
+            at.move(net.minecraft.core.Direction.UP);
+        }
+        return depth;
     }
 
     @Override
@@ -190,6 +206,14 @@ public class DreadPhantom extends Phantom implements IDreadMob {
     @Override
     public void tick() {
         super.tick();
+        if (this.isInWater()) {
+            // Water slows its flight (0.86.0).
+            this.setDeltaMovement(this.getDeltaMovement().scale(PhantomRules.WATER_DRAG));
+        }
+        if (!this.level().isClientSide && this.getTarget() != null && !PhantomRules.withinDepth(depth(this.getTarget()))) {
+            // Gone too deep: it gives up on it.
+            this.setTarget(null);
+        }
         if (this.level().isClientSide && this.tickCount % 3 == 0 && this.random.nextFloat() < 0.6F) {
             // A sparse Rimefrost trail, off its tail: snowflakes and soot, and now and then a cyan flame.
             float yaw = this.getYRot() * Mth.DEG_TO_RAD;
@@ -366,6 +390,61 @@ public class DreadPhantom extends Phantom implements IDreadMob {
 
         protected boolean touchingTarget() {
             return DreadPhantom.this.moveTarget.distanceToSqr(DreadPhantom.this.getX(), DreadPhantom.this.getY(), DreadPhantom.this.getZ()) < 4.0;
+        }
+    }
+
+    /**
+     * It eats too (0.86.0, the owner: "yes dread phantoms should eat too"): with nothing to fight, it swoops on the
+     * nearest thing the Dread eat ({@code DreadFeeding.eats}) lying within {@link #FEED_SEARCH} (no deeper under water
+     * than it dives, {@link PhantomRules#MAX_DEPTH}) and eats it as it passes, a mouthful at a time, as the Dread do; then
+     * back to circling.
+     */
+    static final double FEED_SEARCH = 16.0;
+
+    class FeedGoal extends FlightGoal {
+        private @Nullable net.minecraft.world.entity.item.ItemEntity food;
+        private int timer;
+
+        private boolean wanted(net.minecraft.world.entity.item.ItemEntity item) {
+            return item.isAlive() && !item.hasPickUpDelay() && DreadFeeding.eats(item.getItem()) && PhantomRules.withinDepth(depth(item));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (DreadPhantom.this.getTarget() != null || DreadPhantom.this.random.nextInt(10) != 0) {
+                return false;
+            }
+            this.food = DreadPhantom.this.level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                            DreadPhantom.this.getBoundingBox().inflate(FEED_SEARCH), this::wanted)
+                    .stream().min(java.util.Comparator.comparingDouble(DreadPhantom.this::distanceToSqr)).orElse(null);
+            return this.food != null;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return this.food != null && this.wanted(this.food) && DreadPhantom.this.getTarget() == null && this.timer < 200;
+        }
+
+        @Override
+        public void start() {
+            this.timer = 0;
+        }
+
+        @Override
+        public void stop() {
+            this.food = null;
+        }
+
+        @Override
+        public void tick() {
+            this.timer++;
+            if (this.food == null) {
+                return;
+            }
+            DreadPhantom.this.moveTarget = this.food.position().add(0.0, 0.3, 0.0);
+            if (this.timer % DreadFishRules.EAT_TICKS == 0 && DreadPhantom.this.getBoundingBox().inflate(0.3).intersects(this.food.getBoundingBox())) {
+                DreadFeeding.eat(DreadPhantom.this, this.food);
+            }
         }
     }
 
