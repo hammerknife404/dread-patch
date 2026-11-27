@@ -3,7 +3,7 @@ package io.github.hammerknife404.dreadpatch.entity;
 import com.iafenvoy.iceandfire.entity.DreadBeastEntity;
 import com.iafenvoy.iceandfire.entity.DreadScuttlerEntity;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
-import io.github.hammerknife404.dreadpatch.magic.RimeEelRules;
+import io.github.hammerknife404.dreadpatch.magic.DreadFishRules;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
@@ -25,17 +25,18 @@ import java.util.Comparator;
 import java.util.EnumSet;
 
 /**
- * The Dread eating what's dropped (0.83.0, the owner: "Extend the food eating behavior of the rime eel to the dread
+ * The Dread eating what's dropped (0.83.0, the owner: "Extend the food eating behavior of the dread fish to the dread
  * beasts. Plan for a list or method that allows the dread to consume most organic dropped items, but only food heals").
  * What they eat is {@link #EATS} ({@code #dreadpatch:dread_eats}: most organic things: food, seeds and crops, eggs,
  * mushrooms, meat and fish, bones, leather and hide, feathers, string, wool, slime, ink, spider eyes, saplings, leaves,
  * flowers) or anything edible, but never {@link #REFUSES} ({@code #dreadpatch:dread_refuses}: golden apples and carrots);
- * a pack can add to either. Only food heals ({@link RimeEelRules#heal}: an eighth of its nutrition, 0.25 to 1); the rest is
- * just eaten. Rime Eels (since 0.71.0, their own list until 0.83.0), Ice and Fire's Dread Beasts and (0.84.0, the owner:
+ * a pack can add to either. Only food heals ({@link DreadFishRules#heal}: an eighth of its nutrition, 0.25 to 1); the rest is
+ * just eaten. Dread Fish (since 0.71.0, their own list until 0.83.0), Ice and Fire's Dread Beasts and (0.84.0, the owner:
  * "extend the beast eating to scuttlers too") its Dread Scuttlers eat, with nothing to fight: the nearest such item in
  * reach of their search, one at a time.
  * <p>Fed or not (0.85.0, the owner: "Enable eating trait by default even at full health/hunger (lower AI priority if
- * uninjured)"): a beast or scuttler eats whatever its health, but a hurt one puts eating before wandering
+ * uninjured)"): a beast or scuttler eats whatever its health (and since 0.86.0 dread phantoms swoop on it: their own
+ * {@code DreadPhantom.FeedGoal}), but a hurt one puts eating before wandering
  * ({@link #HURT_PRIORITY}) and a whole one after it ({@link #WHOLE_PRIORITY}), so it eats only when idle.
  */
 public final class DreadFeeding {
@@ -85,7 +86,7 @@ public final class DreadFeeding {
             item.setItem(stack);
         }
         if (food != null) {
-            mob.heal(RimeEelRules.heal(food.nutrition()));
+            mob.heal(DreadFishRules.heal(food.nutrition()));
         }
         mob.playSound(SoundEvents.GENERIC_EAT, 0.6F, mob.getVoicePitch());
         if (mob.level() instanceof ServerLevel level) {
@@ -176,7 +177,7 @@ public final class DreadFeeding {
             this.mob.getLookControl().setLookAt(this.food);
             if (this.inReach(this.food)) {
                 this.mob.getNavigation().stop();
-                if (this.timer % RimeEelRules.EAT_TICKS == 0 && this.wanted(this.food)) {
+                if (this.timer % DreadFishRules.EAT_TICKS == 0 && this.wanted(this.food)) {
                     eat(this.mob, this.food);
                 }
             } else if (this.timer % 10 == 1) {

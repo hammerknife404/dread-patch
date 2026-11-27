@@ -36,6 +36,19 @@ public final class PhantomRules {
     public static final int NORMAL = 2;
     public static final int HARD = 3;
 
+    /**
+     * Into water (0.86.0, the owner: "Dread phantoms are slowed by water some, but only persue up to about 8 blocks down
+     * to attack or feed"): in water its flight keeps {@link #WATER_DRAG} of its speed a tick, and it goes after nothing
+     * more than {@link #MAX_DEPTH} blocks under the surface.
+     */
+    public static final double WATER_DRAG = 0.8;
+    public static final int MAX_DEPTH = 8;
+
+    /** Whether something {@code depth} blocks under water (0 out of it) is still in a dread phantom's reach. */
+    public static boolean withinDepth(int depth) {
+        return depth <= MAX_DEPTH;
+    }
+
     private PhantomRules() {
     }
 
