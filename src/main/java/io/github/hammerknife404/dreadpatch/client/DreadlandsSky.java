@@ -29,7 +29,7 @@ import java.util.Optional;
  * <li>The lightmap: the sky's share of every light level over {@link #MAX_SKY} is cut to what level 6 gives, so by
  * day the open ground looks no brighter than sky light 6 (block light, torches, still shows as itself). How things
  * are drawn only: mobs, spawning and melting still see vanilla's sky light.</li>
- * <li>The sun: while the camera's in the Dreadlands, vanilla's sun texture is swapped for a dim pale cyan copy of
+ * <li>The sun: while the camera's in the Dreadlands, vanilla's sun texture is swapped for a pale cyan copy of
  * itself ({@link #SUN_BRIGHTNESS} of its light; the sun is drawn additively, so darker is dimmer), and put back on
  * leaving or a resource reload.</li>
  * <li>The moon (0.78.0, the owner: "Need to adjust the moons color and intensity accordingly now"): its phases the same
@@ -39,7 +39,7 @@ import java.util.Optional;
  */
 public final class DreadlandsSky extends DimensionSpecialEffects.OverworldEffects {
     public static final int MAX_SKY = 6;
-    static final float SUN_BRIGHTNESS = 0.42F;
+    static final float SUN_BRIGHTNESS = 0.80F;  // 0.42 until 0.84.3 (the owner: "increase the suns brightness up to 80%")
     static final float MOON_BRIGHTNESS = 0.55F;
     /** Pale cyan, as her dread fire is cyan. */
     private static final float[] SUN_TINT = {0.62F, 0.93F, 1.0F};
