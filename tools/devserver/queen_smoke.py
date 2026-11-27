@@ -2187,6 +2187,13 @@ def main():
             record("water's sealed in its ice", water > 0, f"{water} water blocks at 14-28")
             heaved = chasma_share(lambda t: 33 <= t <= 40)
             record("slabs are heaved up at its cracks", heaved > 0, f"{heaved:.1%} of columns at 33-40")
+            # Pools in its plates (0.97.0): placed by hand on a 5 x 5 grid 16 apart, some take (a plate ridged all round;
+            # 11 of 64 by hand on the dev server; none at all about one run in 100); their water lies at 29-30, never over.
+            pools = sum("Placed" in rcon.run(dl + f"run place feature dreadpatch:hex_pool {x} 31 {z}")
+                        for x in range(mx - 32, mx + 33, 16) for z in range(mz - 32, mz + 33, 16))
+            record("pools fill some of its plates (0.97.0)", pools > 0 and chasma_count("minecraft:water", 30, 30) > 0,
+                   f"{pools} of 25 placed")
+            record("and hold their water", chasma_count("minecraft:water", 31, 31) == 0, "water over the floor at 31")
             # The world's floor (0.69.0, the owner: bedrock "at least 1 layer thick throughout the entire dimension"):
             # no cave, crack or trench opens it, here where they're thickest.
             bedrock = chasma_count("minecraft:bedrock", -64, -64)

@@ -45,6 +45,8 @@ public final class DreadTerrain {
     public static final DeferredHolder<Feature<?>, GravePatch> GRAVE_PATCH = FEATURES.register("grave_patch", GravePatch::new);
     public static final DeferredHolder<Feature<?>, ChasmaPocket> CHASMA_POCKET = FEATURES.register("chasma_pocket", ChasmaPocket::new);
     public static final DeferredHolder<Feature<?>, HeavedSlabs> HEAVED_SLABS = FEATURES.register("heaved_slabs", HeavedSlabs::new);
+    /** A pool in a chasma plate (0.97.0). */
+    public static final DeferredHolder<Feature<?>, HexPool> HEX_POOL = FEATURES.register("hex_pool", HexPool::new);
     public static final DeferredHolder<Feature<?>, DragonSkeleton> DRAGON_SKELETON = FEATURES.register("dragon_skeleton", DragonSkeleton::new);
     public static final DeferredHolder<Feature<?>, DeepWater> DEEP_WATER = FEATURES.register("deep_water", DeepWater::new);
     /** A wild Rimefrost dragon's nest on the Glacial Plains (0.84.0). */
@@ -399,6 +401,75 @@ public final class DreadTerrain {
             for (int i = 0; i < TerrainRules.LIP_DROP; i++) {
                 if (!level.getBlockState(pos.below(i)).isAir()) {
                     return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * A pool in a Rime Chasma plate (0.97.0, {@link io.github.hammerknife404.dreadpatch.magic.PoolRules}): the plate round the
+     * origin, if ridges close it all round, its top turned to water and its middle two deep; part frozen already at its
+     * edges and a little in the open (vanilla's freezing in the chasma's cold carries on from the edges in); one in
+     * {@code FISH_ONE_IN} with a Dread Fish in its deep water. Only where every block under the water is whole and solid.
+     */
+    public static final class HexPool extends Feature<NoneFeatureConfiguration> {
+        HexPool() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            RandomSource random = context.random();
+            int top = TerrainRules.CHASMA_TOP;
+            BlockPos origin = new BlockPos(context.origin().getX(), top, context.origin().getZ());
+            java.util.Set<Long> cells = io.github.hammerknife404.dreadpatch.magic.PoolRules.fill((dx, dz) -> {
+                BlockPos at = origin.offset(dx, 0, dz);
+                if (!solid(level, at)) {
+                    return io.github.hammerknife404.dreadpatch.magic.PoolRules.Column.CRACK;
+                }
+                return level.getBlockState(at.above()).isAir() ? io.github.hammerknife404.dreadpatch.magic.PoolRules.Column.FLOOR
+                        : io.github.hammerknife404.dreadpatch.magic.PoolRules.Column.RIDGE;
+            });
+            if (cells == null) {
+                return false;
+            }
+            // Under every column, solid: under its top (and its second layer, where it's deep).
+            for (long cell : cells) {
+                int x = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
+                int z = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
+                boolean deep = io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, x, z);
+                if (!solid(level, origin.offset(x, -1, z)) || deep && !solid(level, origin.offset(x, -2, z))) {
+                    return false;
+                }
+            }
+            BlockState water = Blocks.WATER.defaultBlockState();
+            BlockState ice = Blocks.ICE.defaultBlockState();
+            BlockPos deepest = null;
+            int nearest = Integer.MAX_VALUE;
+            for (long cell : cells) {
+                int x = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
+                int z = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
+                BlockPos at = origin.offset(x, 0, z);
+                boolean edge = io.github.hammerknife404.dreadpatch.magic.PoolRules.edge(cells, x, z);
+                float frozen = edge ? io.github.hammerknife404.dreadpatch.magic.PoolRules.EDGE_ICE : io.github.hammerknife404.dreadpatch.magic.PoolRules.OPEN_ICE;
+                level.setBlock(at, random.nextFloat() < frozen ? ice : water, Block.UPDATE_CLIENTS);
+                if (io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, x, z)) {
+                    level.setBlock(at.below(), water, Block.UPDATE_CLIENTS);
+                    if (x * x + z * z < nearest) {
+                        nearest = x * x + z * z;
+                        deepest = at.below();
+                    }
+                }
+            }
+            if (deepest != null && random.nextInt(io.github.hammerknife404.dreadpatch.magic.PoolRules.FISH_ONE_IN) == 0) {
+                io.github.hammerknife404.dreadpatch.entity.DreadFish fish = io.github.hammerknife404.dreadpatch.registry.ModRegistries.DREAD_FISH.get().create(level.getLevel());
+                if (fish != null) {
+                    fish.moveTo(deepest.getX() + 0.5, deepest.getY(), deepest.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+                    net.neoforged.neoforge.event.EventHooks.finalizeMobSpawn(fish, level, level.getCurrentDifficultyAt(deepest),
+                            net.minecraft.world.entity.MobSpawnType.CHUNK_GENERATION, null);
+                    level.addFreshEntityWithPassengers(fish);
                 }
             }
             return true;
