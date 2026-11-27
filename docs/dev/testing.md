@@ -82,6 +82,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 - **The Dread Gate:** summoned in its frame, which it finds as the key would.
 
 **What it learned**
+- **NoAI mobs still pick up loot** (2026-11-27): `canPickUpLoot` runs in `aiStep`, which NoAI doesn't stop, so thralls summoned to read their hands took a dread beast's bones dropped earlier; summon such mobs with `CanPickUpLoot:0b`. And a risen Dread Fish takes her target and may leap 7 out of its hole (0.86.0) before it's looked for: look within 10.
 - **Measure a column once its chunk is done** (0.84.1): a lone chunk forceloaded and measured at once (`positioned over world_surface`) gave a top 1-6 blocks over its finished one, so the check found air there; the glacier check now loads every point, waits 8 s, then measures, as the chasma's does.
 - **The Glacial Plains cut the others up** (0.84.0): 40% of the land under the glacier leaves fewer chasma points on a coarse grid round where `locate` finds one (its edge), so searches that hunt a biome's middle need more tries. Probing tops on a grid (11 × 11, 48 apart, the biome at each) showed the chasma's floor still at 30-31 inside it, the glacier's top at 194-198, its cliff standing about 145 blocks over the wastes beside it, one probe apart.
 - **It catches crashes** (0.83.0): a Dread Beast eating an item another had just emptied drew crumbs from an empty stack, which throws and crashed the server's tick; the run stopped with "RCON connection closed". Read `run/crash-reports/` when a run stops early.
