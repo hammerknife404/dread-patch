@@ -3127,7 +3127,7 @@ def main():
 
     # Dread lights at most 6 (0.64.0): a dread lantern and a Dread Gate's face, each alone in a stone box, light it to 6;
     # Ice and Fire's dread torch is 5 of its own.
-    for block, level in (("iceandfire:dread_torch", 5), ("dreadpatch:dread_lantern", 6), ("dreadpatch:dread_gate", 6)):
+    for block, level in (("iceandfire:dread_torch", 5), ("dreadpatch:dread_lantern", 6), ("dreadpatch:dread_gate", 6), ("dreadpatch:dread_campfire", 6)):
         rcon.run("fill 25 229 11 27 231 13 minecraft:stone")
         rcon.run(f"setblock 26 230 12 {block}")
         time.sleep(0.5)
@@ -3135,6 +3135,28 @@ def main():
                                                      f'{{condition:"minecraft:location_check",predicate:{{light:{{light:{{min:{lo},max:{hi}}}}}}}}}')
         record(f"{block.split(':')[1]} lights to {level}, no more than 6", lit(level, level), f"not {level} (more than 6: {lit(7, 15)})")
     rcon.run("fill 25 229 11 27 231 13 minecraft:air")
+    # The Dread Campfire (0.98.4): food laid on a lit one is gone in under 6 s, ash dropped in its place; something on it
+    # burns as in rimefire, chilled and hurt (a pig, penned on it: NoAI mobs never move, so never touch it).
+    rcon.run("fill 24 228 10 30 233 16 minecraft:stone")
+    rcon.run("fill 25 229 11 29 232 15 minecraft:air")
+    rcon.run("setblock 27 229 13 dreadpatch:dread_campfire[lit=true,facing=north]")
+    rcon.run('data merge block 27 229 13 {Items:[{Slot:0b,id:"minecraft:beef",count:1},{Slot:2b,id:"minecraft:bread",count:1}]}')
+    laid = "beef" in rcon.run("data get block 27 229 13 Items")
+    time.sleep(6.0)
+    left = rcon.run("data get block 27 229 13 Items")
+    ash = "Test passed" in rcon.run('execute if entity @e[type=item,x=24,y=228,z=10,dx=6,dy=5,dz=6,nbt={Item:{id:"iceandfire:ash"}}]')
+    record("food on a Dread Campfire sublimates to ash (0.98.4)", laid and "beef" not in left and "bread" not in left and ash, f"laid {laid}, left {left.strip()}, ash {ash}")
+    rcon.run("kill @e[type=item]")
+    rcon.run("fill 26 229 12 28 230 14 minecraft:glass")
+    rcon.run("fill 27 229 13 27 230 13 minecraft:air")
+    rcon.run("setblock 27 229 13 dreadpatch:dread_campfire[lit=true,facing=north]")
+    rcon.run('summon minecraft:pig 27.5 229 13.5 {PersistenceRequired:1b,Tags:["smoke_campfire_pig"]}')
+    time.sleep(3.0)
+    burned = health("@e[tag=smoke_campfire_pig,limit=1]") < 10.0 and has_effect("@e[tag=smoke_campfire_pig,limit=1]", "dreadpatch:rimefrost")
+    record("a Dread Campfire chills and burns what's on it", burned, "the pig unhurt or unchilled")
+    rcon.run("kill @e[tag=smoke_campfire_pig]")
+    rcon.run("fill 24 228 10 30 233 16 minecraft:air")
+    rcon.run("kill @e[type=item]")
     # The dread lantern on a wall (0.92.0): it hangs on a stone wall's side, lights to 6, and drops when its wall goes.
     rcon.run("fill 25 229 11 27 231 13 minecraft:stone")
     rcon.run("setblock 26 230 12 minecraft:air")

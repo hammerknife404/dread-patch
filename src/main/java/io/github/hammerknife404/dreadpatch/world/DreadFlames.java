@@ -1,5 +1,14 @@
 package io.github.hammerknife404.dreadpatch.world;
 
+import io.github.hammerknife404.dreadpatch.magic.CampfireRules;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.CampfireBlockEntity;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.iafenvoy.iceandfire.registry.IafBlocks;
 import io.github.hammerknife404.dreadpatch.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
@@ -24,7 +33,8 @@ import java.util.Map;
  * lanterns. Same with Torches."): a lantern or torch placed there turns, a step every 30-45 s
  * (0.58.0, the owner; server config {@code flame_fade_min_seconds}/{@code _max_seconds}), to its soul kind and then to the Dread's: the dread lantern
  * (ours) or Ice and Fire's dread torch, hanging, standing or on its wall as it was, with a puff of smoke and
- * a fizz. Pending steps are kept in {@link DreadlandsData}, so a restart doesn't stop them. Abandoned
+ * a fizz. Campfires too since 0.98.4 (the owner's handoff), more slowly ({@link CampfireRules}): campfire, soul campfire,
+ * Dread Campfire, their food carried over. Pending steps are kept in {@link DreadlandsData}, so a restart doesn't stop them. Abandoned
  * villages' lanterns and torches are the Dread's from the start ({@link #dread}).
  */
 public final class DreadFlames {
@@ -48,6 +58,9 @@ public final class DreadFlames {
         if (state.is(Blocks.WALL_TORCH)) {
             return shaped(state, Blocks.SOUL_WALL_TORCH.defaultBlockState());
         }
+        if (state.is(Blocks.CAMPFIRE)) {
+            return shaped(state, Blocks.SOUL_CAMPFIRE.defaultBlockState());
+        }
         return dread(state);
     }
 
@@ -62,6 +75,9 @@ public final class DreadFlames {
         }
         if (state.is(Blocks.WALL_TORCH) || state.is(Blocks.SOUL_WALL_TORCH)) {
             return shaped(state, IafBlocks.DREAD_TORCH_WALL.get().defaultBlockState());
+        }
+        if (state.is(Blocks.CAMPFIRE) || state.is(Blocks.SOUL_CAMPFIRE)) {
+            return shaped(state, io.github.hammerknife404.dreadpatch.registry.DreadCampfire.BLOCK.get().defaultBlockState());
         }
         return null;
     }
@@ -88,17 +104,54 @@ public final class DreadFlames {
     }
 
     static void schedule(ServerLevel level, BlockPos pos) {
-        long due = level.getGameTime() + step(level);
+        long due = level.getGameTime() + step(level, level.getBlockState(pos));
         DreadlandsData data = DreadlandsData.get(level.getServer());
         data.fading().put(pos.asLong(), due);
         data.setDirty();
     }
 
-    /** Ticks to a flame's next step: the config's seconds. */
-    private static int step(ServerLevel level) {
+    /** Ticks to a flame's next step: the config's seconds, a campfire's {@link CampfireRules#STEP_TIMES} as long (0.98.4). */
+    private static int step(ServerLevel level, BlockState state) {
         int min = io.github.hammerknife404.dreadpatch.DreadPatchConfig.flameFadeMinTicks();
         int max = io.github.hammerknife404.dreadpatch.DreadPatchConfig.flameFadeMaxTicks();
-        return min + level.getRandom().nextInt(max - min + 1);
+        return CampfireRules.step(min + level.getRandom().nextInt(max - min + 1), state.is(BlockTags.CAMPFIRES));
+    }
+
+    /**
+     * Turns the flame at {@code pos} to {@code next}. A campfire's food goes with it (0.98.4): taken off first, so nothing
+     * drops as the block changes, then laid on the new one; a Dread Campfire's to go to ash.
+     */
+    private static void turn(ServerLevel level, BlockPos pos, BlockState next) {
+        List<ItemStack> food = new ArrayList<>();
+        if (level.getBlockEntity(pos) instanceof CampfireBlockEntity campfire) {
+            for (int i = 0; i < campfire.getItems().size(); i++) {
+                if (!campfire.getItems().get(i).isEmpty()) {
+                    food.add(campfire.getItems().get(i));
+                    campfire.getItems().set(i, ItemStack.EMPTY);
+                }
+            }
+        }
+        level.setBlock(pos, next, Block.UPDATE_ALL);
+        if (food.isEmpty()) {
+            return;
+        }
+        BlockEntity after = level.getBlockEntity(pos);
+        for (ItemStack stack : food) {
+            if (after instanceof CampfireBlockEntity campfire) {
+                int free = campfire.getItems().indexOf(ItemStack.EMPTY);
+                if (free >= 0) {
+                    campfire.getItems().set(free, stack);
+                    continue;
+                }
+            } else if (after instanceof io.github.hammerknife404.dreadpatch.block.DreadCampfireBlockEntity dread && dread.place(stack)) {
+                continue;
+            }
+            Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 0.6, pos.getZ() + 0.5, stack);
+        }
+        if (after != null) {
+            after.setChanged();
+            level.sendBlockUpdated(pos, next, next, Block.UPDATE_ALL);
+        }
     }
 
     private static void onLevelTick(LevelTickEvent.Post event) {
@@ -122,7 +175,7 @@ public final class DreadFlames {
             if (next == null) {
                 it.remove();
             } else {
-                level.setBlock(pos, next, Block.UPDATE_ALL);
+                turn(level, pos, next);
                 if (DreadCold.isDreadLight(next)) {
                     DreadCold.track(level, pos);
                 }
@@ -131,7 +184,7 @@ public final class DreadFlames {
                 if (next(next) == null) {
                     it.remove();
                 } else {
-                    entry.setValue(now + step(level));
+                    entry.setValue(now + step(level, next));
                 }
             }
             changed = true;
