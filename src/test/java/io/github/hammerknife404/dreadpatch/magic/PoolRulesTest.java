@@ -32,6 +32,10 @@ class PoolRulesTest {
         assertEquals(85, cells.size());
         assertTrue(PoolRules.deep(cells, 0, 0));
         assertFalse(PoolRules.deep(cells, 6, 0));
+        // Shelving to 4 in its middle (a diamond of 6: rings of 3 round the middle fit), 1 at the edge.
+        assertEquals(4, PoolRules.depth(cells, 0, 0));
+        assertEquals(3, PoolRules.depth(cells, 1, 0));
+        assertEquals(1, PoolRules.depth(cells, 6, 0));
         assertTrue(PoolRules.edge(cells, 6, 0));
         assertFalse(PoolRules.edge(cells, 0, 0));
     }

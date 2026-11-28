@@ -122,6 +122,28 @@ public final class PoolRules {
     }
 
     /** Whether a column of the pool is two deep: all eight round it in it too. */
+    /**
+     * How deep a column of the pool is (0.98.10, the owner: "The dread fish pools can be up to 4 blocks deep, so its
+     * possible to freeze over the player lol"): 1 at its edge, one more for each ring round it wholly in the pool, up to
+     * {@link #MAX_DEPTH}, so it shelves down from the edges to its middle.
+     */
+    public static int depth(Set<Long> cells, int x, int z) {
+        int depth = 1;
+        for (int ring = 1; depth < MAX_DEPTH; ring++) {
+            for (int dx = -ring; dx <= ring; dx++) {
+                for (int dz = -ring; dz <= ring; dz++) {
+                    if (!cells.contains(pack(x + dx, z + dz))) {
+                        return depth;
+                    }
+                }
+            }
+            depth++;
+        }
+        return depth;
+    }
+
+    public static final int MAX_DEPTH = 4;
+
     public static boolean deep(Set<Long> cells, int x, int z) {
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {

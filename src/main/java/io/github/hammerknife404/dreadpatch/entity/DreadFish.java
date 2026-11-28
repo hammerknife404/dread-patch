@@ -306,7 +306,7 @@ public class DreadFish extends Monster implements IDreadMob {
         double dx = this.getX() - this.xo;
         double dy = this.getY() - this.yo;
         double dz = this.getZ() - this.zo;
-        this.straight = DreadFishRules.straightToward(this.straight, Math.sqrt(dx * dx + dy * dy + dz * dz), !this.onGround() && !this.isInWater());
+        this.straight = DreadFishRules.straightToward(this.straight, Math.sqrt(dx * dx + dy * dy + dz * dz), !this.isInWater());
         this.rearO = this.rear;
         this.rear = this.winding() ? Math.min(1.0F, this.rear + 1.0F / 6.0F) : Math.max(0.0F, this.rear - 0.34F);
         if (this.level().isClientSide()) {
