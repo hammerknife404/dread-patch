@@ -1,6 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.entity.DragonBaseEntity;
+import com.iafenvoy.iceandfire.entity.DreadKnightEntity;
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
@@ -23,7 +24,8 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
  * {@code dread_break_doors} and {@code dread_break_doors_from}). Since 0.98.0 (the owner's handoff: "Give all Dread
  * mobs wooden door breaking as a server config option, plus a separate Hard-difficulty config toggle for breaking iron
  * doors") every walking one of the Dread ({@link RisenDread#dread}: liches and the queen too; not dragons, horses or
- * anything that flies or swims), and iron doors on Hard ({@code dread_break_iron_doors}), twice as slowly.
+ * anything that flies or swims), and iron doors on Hard ({@code dread_break_iron_doors}), twice as slowly: Dread Knights
+ * alone (0.98.1, the owner: "Only Dread Knights can break iron level doors").
  * <p>Each gets vanilla's {@link BreakDoorGoal}, at a zombie's priority, its difficulty test the config's (read each time;
  * vanilla's goal also asks for mob griefing), and {@link IronDoorGoal} beside it. As a zombie's, their pathfinding goes
  * through wooden doors only while they may break them, and through iron ones likewise (vanilla never paths through a
@@ -52,7 +54,9 @@ public final class DreadDoors {
         if (!event.getLevel().isClientSide() && breaker(event.getEntity())) {
             Mob mob = (Mob) event.getEntity();
             mob.goalSelector.addGoal(1, new BreakDoorGoal(mob, DreadPatchConfig::dreadBreakDoors));
-            mob.goalSelector.addGoal(1, new IronDoorGoal(mob));
+            if (mob instanceof DreadKnightEntity) {
+                mob.goalSelector.addGoal(1, new IronDoorGoal(mob));
+            }
             update(mob);
         }
     }
@@ -65,7 +69,7 @@ public final class DreadDoors {
 
     private static void update(Mob mob) {
         ((GroundPathNavigation) mob.getNavigation()).setCanOpenDoors(DreadPatchConfig.dreadBreakDoors(mob.level().getDifficulty()));
-        boolean iron = DreadPatchConfig.dreadBreakIronDoors(mob.level().getDifficulty());
+        boolean iron = mob instanceof DreadKnightEntity && DreadPatchConfig.dreadBreakIronDoors(mob.level().getDifficulty());
         mob.setPathfindingMalus(PathType.DOOR_IRON_CLOSED, iron ? 0.0F : -1.0F);
     }
 

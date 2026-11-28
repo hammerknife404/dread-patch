@@ -96,16 +96,41 @@ public final class DreadRegalia {
         return stack.getItem() instanceof DreadArmorItem armor && armor.kind() == DreadArmorItem.Kind.QUEEN;
     }
 
+    /**
+     * Unbreakable, and (0.98.1, the owner, asked about the handoff's "Add 1 socket to each piece of Dread Queen Regalia":
+     * "Iron's imbue slot") a spell container of {@link RegaliaBonuses#IMBUED_SPELLS}, as Iron's own imbuable chestplates
+     * have: a scroll imbues it at the Arcane Anvil, and worn, its spell is in the wearer's spell wheel. Default components,
+     * so stacks already made have them too (a stack keeps one it's been given, so an imbued piece keeps its spell).
+     */
     private static void onModifyDefaultComponents(ModifyDefaultComponentsEvent event) {
-        DreadGear.regalia().forEach(piece -> event.modify(piece.get(), components -> components.set(DataComponents.UNBREAKABLE, new Unbreakable(true))));
+        DreadGear.regalia().forEach(piece -> event.modify(piece.get(), components -> components
+                .set(DataComponents.UNBREAKABLE, new Unbreakable(true))
+                .set(io.redspace.ironsspellbooks.registries.ComponentRegistry.SPELL_CONTAINER.get(),
+                        io.redspace.ironsspellbooks.api.spells.ISpellContainer.create(RegaliaBonuses.IMBUED_SPELLS, true, true))));
     }
 
-    /** +150 max mana, in the piece's own slot. */
+    /** +150 max mana, and its mage buffs ({@link RegaliaBonuses}), in the piece's own slot. */
     private static void onAttributes(ItemAttributeModifierEvent event) {
         if (event.getItemStack().getItem() instanceof DreadArmorItem armor && armor.kind() == DreadArmorItem.Kind.QUEEN) {
             ArmorItem.Type type = armor.getType();
-            event.addModifier(AttributeRegistry.MAX_MANA, new AttributeModifier(DreadPatch.id("dread_queen_" + type.getName() + "_mana"),
-                    RegaliaBonuses.MANA_PER_PIECE, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.bySlot(type.getSlot()));
+            EquipmentSlotGroup slot = EquipmentSlotGroup.bySlot(type.getSlot());
+            String name = "dread_queen_" + type.getName();
+            event.addModifier(AttributeRegistry.MAX_MANA, new AttributeModifier(DreadPatch.id(name + "_mana"),
+                    RegaliaBonuses.MANA_PER_PIECE, AttributeModifier.Operation.ADD_VALUE), slot);
+            event.addModifier(ModRegistries.RIMEFROST_SPELL_POWER, new AttributeModifier(DreadPatch.id(name + "_rimefrost_power"),
+                    RegaliaBonuses.RIMEFROST_POWER_PER_PIECE, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), slot);
+            switch (type) {
+                case HELMET -> event.addModifier(AttributeRegistry.COOLDOWN_REDUCTION, new AttributeModifier(DreadPatch.id(name + "_cooldown"),
+                        RegaliaBonuses.CROWN_COOLDOWN_REDUCTION, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), slot);
+                case CHESTPLATE -> event.addModifier(AttributeRegistry.SPELL_POWER, new AttributeModifier(DreadPatch.id(name + "_spell_power"),
+                        RegaliaBonuses.BODICE_SPELL_POWER, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), slot);
+                case LEGGINGS -> event.addModifier(AttributeRegistry.MANA_REGEN, new AttributeModifier(DreadPatch.id(name + "_mana_regen"),
+                        RegaliaBonuses.ROBE_MANA_REGEN, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), slot);
+                case BOOTS -> event.addModifier(AttributeRegistry.CASTING_MOVESPEED, new AttributeModifier(DreadPatch.id(name + "_casting_speed"),
+                        RegaliaBonuses.GREAVES_CASTING_MOVESPEED, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), slot);
+                default -> {
+                }
+            }
         }
     }
 

@@ -160,7 +160,7 @@ public final class DreadPatchConfig {
                 .define("dread_break_doors", true);
         BREAK_DOORS_FROM = builder.comment("The least difficulty they break doors at: HARD as zombies, NORMAL or EASY for more.")
                 .defineEnum("dread_break_doors_from", net.minecraft.world.Difficulty.HARD);
-        BREAK_IRON_DOORS = builder.comment("Whether they also break iron doors (more slowly), on Hard only, where mob griefing is on.",
+        BREAK_IRON_DOORS = builder.comment("Whether Dread Knights (only they) also break iron doors (more slowly), on Hard only, where mob griefing is on.",
                 "Apart from dread_break_doors: either can be on without the other.")
                 .define("dread_break_iron_doors", true);
         builder.pop();

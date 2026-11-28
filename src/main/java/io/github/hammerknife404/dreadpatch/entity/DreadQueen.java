@@ -1,5 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import io.github.hammerknife404.dreadpatch.magic.QueenSmoke;
+
 import io.github.hammerknife404.dreadpatch.spell.CreateRimefrostDragonSpell;
 import io.github.hammerknife404.dreadpatch.magic.RimefrostRaising;
 import com.iafenvoy.iceandfire.entity.IceDragonEntity;
@@ -433,6 +435,9 @@ public class DreadQueen extends DreadQueenEntity {
                 }
             }
         }
+        if (this.level().isClientSide && this.isAlive() && !this.isRising() && !this.isInvisible()) {
+            this.smoke();
+        }
         if (this.level() instanceof ServerLevel level) {
             // Before the animation's first tick goes out, so a queen rising with her dragon never shows her rise.
             if (this.withDragon) {
@@ -449,6 +454,24 @@ public class DreadQueen extends DreadQueenEntity {
         // Counts the animation along on both sides; on its first server tick it also tells clients
         // it started, and at its end it goes back to NO_ANIMATION.
         AnimationHandler.INSTANCE.updateAnimations(this);
+    }
+
+    /** Faint smoke drifting up from her eyes and her crown's top ({@link QueenSmoke}; client side). */
+    private void smoke() {
+        for (int side = -1; side <= 1; side += 2) {
+            if (this.random.nextInt(QueenSmoke.EYE_ONE_IN) == 0) {
+                this.puff(side * QueenSmoke.EYE_APART, QueenSmoke.EYE_UP, QueenSmoke.EYE_FORWARD);
+            }
+        }
+        if (this.random.nextInt(QueenSmoke.CROWN_ONE_IN) == 0) {
+            this.puff((this.random.nextDouble() - 0.5) * 0.3, QueenSmoke.CROWN_UP, (this.random.nextDouble() - 0.5) * 0.3);
+        }
+    }
+
+    private void puff(double right, double up, double forward) {
+        double[] at = QueenSmoke.headPoint(this.yHeadRot, this.getXRot(), right, up, forward);
+        this.level().addParticle(ModRegistries.RIME_SMOKE_SMALL.get(), this.getX() + at[0], this.getY() + at[1], this.getZ() + at[2],
+                this.random.nextGaussian() * 0.003, 0.012 + this.random.nextDouble() * 0.01, this.random.nextGaussian() * 0.003);
     }
 
     /**

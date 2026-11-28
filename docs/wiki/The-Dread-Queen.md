@@ -39,6 +39,8 @@ Her abilities:
 
 ## Riding Syndrigossa
 
+Faint smoke drifts from her eyes and the top of her crown.
+
 Spawned as the boss, she rises riding an ancient Syndrigossa. In the saddle she casts her bolt and crowns while her dragon flies and fights, her court rises on the ground below, and the two hunt the same prey.
 
 - **Soul Tether:** while they're within 28 blocks of each other, everything her Withering Rime and the dragon's breath heal is shared between them half and half. Pull them apart and each keeps only its own.
@@ -59,6 +61,8 @@ Her own armour, to wear, and what she wears herself: the **Crown**, **Bodice**, 
 
 - **Strength:** as dread dragonsteel's armour, and like the dragonscale and dragonsteel sets it takes 70% off dragon breath as a full set. It never breaks.
 - **Each piece:** +150 max mana, 5% off the mana Ice and Rimefrost spells cost, 5% more Rimefrost damage dealt, and 5% less Rimefrost damage taken (Rimefrost spells, the Rimefrost dragons' breath and Shatter-Spine, Whiteout's cold, and Withering Rime's withering, counted as dealt by whoever laid the rime). The whole set: a fifth more dealt, a fifth less taken.
+- **Mage buffs:** each piece adds 5% Rimefrost spell power (a fifth more for the set) and one of its own: the crown 10% cooldown reduction, the bodice (winged too) 5% spell power, the robes 15% mana regeneration, the greaves 10% movement while casting.
+- **An imbue slot:** each piece holds one spell, imbued from a scroll at Iron's Arcane Anvil like a sword. Worn, its spell is on your spell wheel.
 - **The whole set:** you can't freeze (powder snow, Withering Rime's chill and freezing damage don't touch you), the Dreadlands' weather slows you a step less (a heavy snowstorm as plain snow, plain snow not at all), and the Dread leave you be: they won't come for you unless you hurt them first, and then only that one, for half a minute. The queen herself, Syndrigossa and anything they command still do.
 - **Her crown's sight:** the Dreadlands' storm fog doesn't close in on whoever wears her crown (snow or heavy snowstorm), and in any whiteout, the weather or a Whiteout Dominion's, they see 75% further, and a Whiteout Dominion's driven snow is that much thinner to them.
 - **Collecting it:** each queen you kill drops a piece you don't have yet, so four kills complete the set. Looting gives a 10% chance a level of a second missing piece. Once you have the set, she drops a random piece one time in four (5% more a Looting level).

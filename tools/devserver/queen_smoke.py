@@ -860,9 +860,9 @@ def main():
         rcon.run("fill 16 199 0 28 203 6 minecraft:air")
         rcon.run("kill @e[type=item]")
     set_config("dread_break_doors", "true")
-    # And iron doors on Hard (0.98.0, dread_break_iron_doors), twice as slowly: the same, an iron door, within 45 s (27 s
-    # by hand); switched off, it stands.
-    for on in (True, False):
+    # And iron doors on Hard (0.98.0, dread_break_iron_doors), twice as slowly, Dread Knights' alone (0.98.1): the same
+    # with an iron door, a knight breaks it within 45 s (a thrall did in 27 s by hand); switched off, or a thrall, it stands.
+    for on, breaker in ((True, "dread_knight"), (False, "dread_knight"), (True, "dread_thrall")):
         set_config("dread_break_iron_doors", "true" if on else "false")
         rcon.run("difficulty hard")
         rcon.run("fill 16 199 0 28 203 6 minecraft:stone")
@@ -871,7 +871,7 @@ def main():
         rcon.run("setblock 22 201 3 minecraft:iron_door[half=upper,facing=east]")
         rcon.run('summon minecraft:villager 26.5 200 3.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_door_v"],'
                  'active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
-        rcon.run('summon iceandfire:dread_thrall 18.5 200 3.5 {PersistenceRequired:1b,Tags:["smoke_door_t"],HandItems:[{id:"iceandfire:dread_sword",count:1},{}]}')
+        rcon.run(f'summon iceandfire:{breaker} 18.5 200 3.5 {{PersistenceRequired:1b,Tags:["smoke_door_t"],HandItems:[{{id:"iceandfire:dread_sword",count:1}},{{}}]}}')
         time.sleep(1.0)
         rcon.run("damage @e[tag=smoke_door_t,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_door_v,limit=1]")
         broke = False
@@ -880,8 +880,10 @@ def main():
             if "Test failed" in rcon.run("execute if block 22 200 3 minecraft:iron_door"):
                 broke = True
                 break
-        if on:
-            record("on Hard a dread thrall breaks an iron door in its way (0.98.0)", broke, "the door stood 45 s")
+        if breaker == "dread_thrall":
+            record("a dread thrall doesn't break an iron door (0.98.1)", not broke, "the door was broken")
+        elif on:
+            record("on Hard a dread knight breaks an iron door in its way (0.98.0)", broke, "the door stood 45 s")
         else:
             record("with dread_break_iron_doors off, it doesn't", not broke, "the door was broken")
         rcon.run("kill @e[tag=smoke_door_t]")
@@ -2807,6 +2809,14 @@ def main():
     record("her regalia gives +150 max mana a piece", queen_mana is not None and steel_mana is not None and queen_mana - steel_mana == 600.0,
            f"regalia {queen_mana}, dread dragonsteel {steel_mana}")
     check("her regalia is indestructible", "execute if items entity @e[tag=smoke_regalia,limit=1] armor.* *[minecraft:unbreakable]", "count: 4")
+    # Its imbue slot and mage buffs (0.98.1): each piece a spell container (Iron's Arcane Anvil imbues it), and worn whole
+    # +10% cooldowns (crown), +5% spell power (bodice), +15% mana regeneration (robe), +10% casting speed (greaves) and
+    # +20% Rimefrost spell power (5% each). (Probed by hand: all, with the winged bodice too.)
+    check("each piece of her regalia holds an imbued spell (0.98.1)", "execute if items entity @e[tag=smoke_regalia,limit=1] armor.* *[irons_spellbooks:spell_container]", "count: 4")
+    for attribute, expect in (("irons_spellbooks:cooldown_reduction", 1.1), ("irons_spellbooks:spell_power", 1.05), ("irons_spellbooks:mana_regen", 1.15),
+                              ("irons_spellbooks:casting_movespeed", 1.1), ("dreadpatch:rimefrost_spell_power", 1.2)):
+        value = worn("smoke_regalia", attribute)
+        record(f"her regalia's {attribute.split(':')[1]} is {expect} (0.98.1)", value is not None and abs(value - expect) < 1e-6, f"{value}")
     for tag in ("smoke_regalia", "smoke_steel"):
         rcon.run(f"data merge entity @e[tag={tag},limit=1] {{TicksFrozen:140}}")
     time.sleep(0.3)
