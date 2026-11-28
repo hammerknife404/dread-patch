@@ -472,16 +472,16 @@ public final class DreadTerrain {
             if (cells == null) {
                 return false;
             }
-            // Every column solid down through its depth and under it (0.98.10: up to 4 deep; so never into a water pocket).
-            for (long cell : cells) {
-                int x = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
-                int z = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
-                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, x, z);
-                for (int d = 1; d <= depth; d++) {
-                    if (!solid(level, origin.offset(x, -d, z))) {
-                        return false;
-                    }
+            // Each column as deep as the solid ground under it allows (0.98.13), so never into a water pocket; none under one at all, no pool.
+            java.util.Map<Long, Integer> depths = io.github.hammerknife404.dreadpatch.magic.PoolRules.depths(cells, cell -> {
+                int d = 0;
+                while (d < io.github.hammerknife404.dreadpatch.magic.PoolRules.MAX_DEPTH && solid(level, origin.offset(io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell), -(d + 1), io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell)))) {
+                    d++;
                 }
+                return d;
+            });
+            if (depths.containsValue(0)) {
+                return false;
             }
             BlockState water = Blocks.WATER.defaultBlockState();
             BlockState ice = Blocks.ICE.defaultBlockState();
@@ -494,7 +494,7 @@ public final class DreadTerrain {
                 boolean edge = io.github.hammerknife404.dreadpatch.magic.PoolRules.edge(cells, x, z);
                 float frozen = edge ? io.github.hammerknife404.dreadpatch.magic.PoolRules.EDGE_ICE : io.github.hammerknife404.dreadpatch.magic.PoolRules.OPEN_ICE;
                 level.setBlock(at, random.nextFloat() < frozen ? ice : water, Block.UPDATE_CLIENTS);
-                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, x, z);
+                int depth = depths.get(cell);
                 for (int d = 1; d < depth; d++) {
                     level.setBlock(at.below(d), water, Block.UPDATE_CLIENTS);
                 }
@@ -599,11 +599,8 @@ public final class DreadTerrain {
             for (long cell : cells) {
                 int dx = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
                 int dz = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
-                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, dx, dz);
-                for (int d = 1; d <= depth; d++) {
-                    if (!solid(level, new BlockPos(ox + dx, floor - d, oz + dz))) {
-                        return false;
-                    }
+                if (!solid(level, new BlockPos(ox + dx, floor - 1, oz + dz))) {
+                    return false;
                 }
                 for (int[] side : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
                     if (!cells.contains(io.github.hammerknife404.dreadpatch.magic.PoolRules.pack(dx + side[0], dz + side[1]))
@@ -611,6 +608,20 @@ public final class DreadTerrain {
                         return false;
                     }
                 }
+            }
+            // Each column as deep as the solid ground under it allows (0.98.13).
+            final int pondFloor = floor;
+            final int px = ox;
+            final int pz = oz;
+            java.util.Map<Long, Integer> depths = io.github.hammerknife404.dreadpatch.magic.PoolRules.depths(cells, cell -> {
+                int d = 0;
+                while (d < io.github.hammerknife404.dreadpatch.magic.PoolRules.MAX_DEPTH && solid(level, new BlockPos(px + io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell), pondFloor - (d + 1), pz + io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell)))) {
+                    d++;
+                }
+                return d;
+            });
+            if (depths.containsValue(0)) {
+                return false;
             }
             BlockState water = Blocks.WATER.defaultBlockState();
             BlockState ice = Blocks.ICE.defaultBlockState();
@@ -633,7 +644,7 @@ public final class DreadTerrain {
                 if (!level.getBlockState(at.above()).isAir() && !solid(level, at.above())) {
                     level.setBlock(at.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
                 }
-                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, dx, dz);
+                int depth = depths.get(cell);
                 for (int d = 1; d < depth; d++) {
                     level.setBlock(at.below(d), water, Block.UPDATE_CLIENTS);
                 }
