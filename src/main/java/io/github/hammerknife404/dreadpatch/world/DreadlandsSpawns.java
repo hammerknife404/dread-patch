@@ -146,6 +146,11 @@ public final class DreadlandsSpawns {
             if (!level.noCollision(spider)) {
                 spider.moveTo(at.x, at.y, at.z, spider.getYRot(), 0.0F);
             }
+            if (!level.noCollision(spider)) {
+                // Nowhere clear for it here (0.98.13, a review: it was raised inside the ground).
+                spider.discard();
+                continue;
+            }
             EventHooks.finalizeMobSpawn(spider, level, level.getCurrentDifficultyAt(spider.blockPosition()), MobSpawnType.NATURAL, null);
             level.addFreshEntityWithPassengers(spider);
         }

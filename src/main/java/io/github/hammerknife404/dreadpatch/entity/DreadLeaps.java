@@ -79,7 +79,7 @@ public final class DreadLeaps {
         Vec3 to = null;
         if (!mob.getNavigation().isDone() && mob.getNavigation().getTargetPos() != null) {
             to = Vec3.atBottomCenterOf(mob.getNavigation().getTargetPos());
-        } else if (!(mob instanceof DreadQueen)) {
+        } else if (!keepsAway(mob)) {
             LivingEntity target = mob.getTarget();
             if (target != null && target.isAlive()) {
                 to = target.position();
@@ -90,6 +90,15 @@ public final class DreadLeaps {
         }
         Vec3 flat = new Vec3(to.x - mob.getX(), 0.0, to.z - mob.getZ());
         return flat.lengthSqr() < 9.0 ? null : flat.normalize();
+    }
+
+    /**
+     * Whether it keeps its distance from its target, so never leaps toward it: the queen, a lich, a thrall with a bow or
+     * crossbow (0.98.13, a review: liches and bowmen leapt a ravine at the player they were standing off from).
+     */
+    static boolean keepsAway(Mob mob) {
+        return mob instanceof DreadQueen || mob instanceof com.iafenvoy.iceandfire.entity.DreadLichEntity
+                || mob instanceof com.iafenvoy.iceandfire.entity.DreadThrallEntity && ThrallWeapons.ranged(mob.getMainHandItem());
     }
 
     /** Its leap over the gap right ahead along {@code toward}, or null if there's none it leaps. */
@@ -112,6 +121,11 @@ public final class DreadLeaps {
                 if (!LeapRules.leaps(gap)) {
                     return null;
                 }
+                // Never into lava or fire (0.98.13, a review: lava has no collision shape, so a lava pool read as landing).
+                BlockPos landing = ground ? cell : cell.below();
+                if (hazard(level, landing)) {
+                    return null;
+                }
                 double drop = ground ? 0.0 : 1.0;
                 double speed = LeapRules.speedFor(start + gap + LeapRules.MARGIN, drop);
                 return new Vec3(toward.x * speed, LeapRules.RISE, toward.z * speed);
@@ -130,7 +144,11 @@ public final class DreadLeaps {
         Level level = mob.level();
         int feet = Mth.floor(mob.getY() + 0.01);
         for (double d = 1.0; d <= distance + 0.01; d += 1.0) {
-            if (!clear(level, BlockPos.containing(mob.getX() + toward.x * d, feet, mob.getZ() + toward.z * d), mob)) {
+            BlockPos at = BlockPos.containing(mob.getX() + toward.x * d, feet, mob.getZ() + toward.z * d);
+            // Room for its rise too, and no drop of more than a block on the way (0.98.13, a review: under a low ceiling
+            // she bumped it and fell short, maybe into a gap the hop never looked at).
+            if (!clear(level, at, mob) || !clear(level, at.above(Mth.ceil(mob.getBbHeight())), mob, 1)
+                    || !solid(level, at.below()) && !solid(level, at.below(2))) {
                 return null;
             }
         }
@@ -163,9 +181,19 @@ public final class DreadLeaps {
         FLYING.put(mob, true);
     }
 
+    /** Lava or fire at {@code pos}: no place to land. */
+    private static boolean hazard(Level level, BlockPos pos) {
+        return level.getFluidState(pos).is(net.minecraft.tags.FluidTags.LAVA) || level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FIRE)
+                || level.getFluidState(pos.below()).is(net.minecraft.tags.FluidTags.LAVA);
+    }
+
     /** Room for it to pass at {@code cell}: its height free of anything solid. */
     private static boolean clear(Level level, BlockPos cell, Mob mob) {
-        int height = Mth.ceil(mob.getBbHeight());
+        return clear(level, cell, mob, Mth.ceil(mob.getBbHeight()));
+    }
+
+    /** {@code height} blocks from {@code cell} up free of anything solid. */
+    private static boolean clear(Level level, BlockPos cell, Mob mob, int height) {
         for (int y = 0; y < height; y++) {
             if (!level.getBlockState(cell.above(y)).getCollisionShape(level, cell.above(y)).isEmpty()) {
                 return false;

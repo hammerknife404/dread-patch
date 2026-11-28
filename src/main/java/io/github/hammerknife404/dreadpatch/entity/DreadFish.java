@@ -192,6 +192,8 @@ public class DreadFish extends Monster implements IDreadMob {
             public void clientTick() {
                 DreadFish fish = DreadFish.this;
                 fish.yBodyRot = Mth.approachDegrees(fish.yBodyRot, fish.getYRot(), DreadFishRules.BODY_TURN);
+                // Its head kept within reach of its body, as vanilla's control did (the model turns its head by the difference).
+                fish.yHeadRot = Mth.rotateIfNecessary(fish.yHeadRot, fish.yBodyRot, 75.0F);
             }
         };
     }
@@ -921,8 +923,12 @@ public class DreadFish extends Monster implements IDreadMob {
             // Turning toward it, at most a little a tick (0.98.11: it was set at once, up to half round).
             this.fish.setYRot(Mth.approachDegrees(this.fish.getYRot(), (float) (Mth.atan2(way.z, way.x) * Mth.RAD_TO_DEG) - 90.0F, DreadFishRules.SEEK_TURN));
             Vec3 motion = this.fish.getDeltaMovement();
-            double push = DreadFishRules.LAND_SPEED * 0.5;
-            this.fish.setDeltaMovement(way.x * push, motion.y, way.z * push);
+            // Pushed the way it faces, harder the nearer it faces the water (0.98.13, a review: pushed straight at the water
+            // while it turned, it slid sideways or backwards).
+            float yaw = this.fish.getYRot() * Mth.DEG_TO_RAD;
+            Vec3 facing = new Vec3(-Mth.sin(yaw), 0.0, Mth.cos(yaw));
+            double push = DreadFishRules.LAND_SPEED * 0.5 * Math.max(0.0, facing.dot(way));
+            this.fish.setDeltaMovement(facing.x * push, motion.y, facing.z * push);
         }
 
         @Override

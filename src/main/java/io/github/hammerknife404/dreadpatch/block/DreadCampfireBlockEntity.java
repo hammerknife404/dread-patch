@@ -77,7 +77,8 @@ public class DreadCampfireBlockEntity extends BlockEntity {
         }
         if (changed) {
             campfire.changed();
-        } else {
+        } else if (campfire.items.stream().anyMatch(stack -> !stack.isEmpty())) {
+            // Its food's time saved (0.98.13: not every tick with nothing on it, dirtying its chunk).
             campfire.setChanged();
         }
     }

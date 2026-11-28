@@ -123,7 +123,11 @@ public final class DreadFlames {
      */
     private static void turn(ServerLevel level, BlockPos pos, BlockState next) {
         List<ItemStack> food = new ArrayList<>();
+        // A campfire's whole state, its cooking times too (0.98.13, a review: copied as bare items onto a soul campfire,
+        // their cooking time was 0 and they came off cooked the next tick).
+        net.minecraft.nbt.CompoundTag saved = null;
         if (level.getBlockEntity(pos) instanceof CampfireBlockEntity campfire) {
+            saved = campfire.saveWithoutMetadata(level.registryAccess());
             for (int i = 0; i < campfire.getItems().size(); i++) {
                 if (!campfire.getItems().get(i).isEmpty()) {
                     food.add(campfire.getItems().get(i));
@@ -136,6 +140,12 @@ public final class DreadFlames {
             return;
         }
         BlockEntity after = level.getBlockEntity(pos);
+        if (after instanceof CampfireBlockEntity campfire && saved != null) {
+            campfire.loadWithComponents(saved, level.registryAccess());
+            campfire.setChanged();
+            level.sendBlockUpdated(pos, next, next, Block.UPDATE_ALL);
+            return;
+        }
         for (ItemStack stack : food) {
             if (after instanceof CampfireBlockEntity campfire) {
                 int free = campfire.getItems().indexOf(ItemStack.EMPTY);
