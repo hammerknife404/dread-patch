@@ -255,6 +255,67 @@ public final class DreadFishRules {
         return straight + Math.max(-CURL_STEP, Math.min(STRAIGHTEN_STEP, target - straight));
     }
 
+    /**
+     * Its drawing's states, eased (0.98.11, the owner: "Really dig into the dread fish animation. It seems to be a conflict
+     * of idle animation states and maybe a cool down timer between state switching"). Found: its body's wave was
+     * {@code sin(age * rate)}, the rate changing with how straight it was and whether it was in water, so every change
+     * jumped the wave's phase by the fish's whole age times the change (an old fish's by tens of radians a frame: the
+     * twitching, worst as it changed states); in water or not, and whether its pitch showed, switched at once; and its
+     * pitch snapped where its goals set it straight to 0. Now its wave and fins run on phases that only advance, at the
+     * rate of the moment; in water or not ({@link #WET_STEP}) and its pitch's weight ({@link #PITCH_WEIGHT_STEP}) ease
+     * over a few ticks; and the pitch it's drawn at follows its own at {@link #PITCH_FOLLOW} a tick.
+     */
+    public static final float WET_STEP = 0.15F;
+    public static final float PITCH_WEIGHT_STEP = 0.15F;
+    public static final float PITCH_FOLLOW = 0.3F;
+    /**
+     * Its drawn pitch from its own movement (0.98.11; a review found its server pitch fought over by its swimming move
+     * and look controls, a nod whenever a look goal started or stopped): the angle it went, past {@link #PITCH_MIN_SPEED}
+     * a tick, at most {@link #PITCH_MAX} degrees, else level.
+     */
+    public static final double PITCH_MIN_SPEED = 0.05;
+    public static final float PITCH_MAX = 45.0F;
+    /** Its body's yaw turns toward its heading at most this a tick (degrees), moving or still: vanilla's snapped it on the move. */
+    public static final float BODY_TURN = 12.0F;
+    /** Turning on its own (seeking water) at most this a tick (degrees). */
+    public static final float SEEK_TURN = 15.0F;
+    /** Seeking water: given up within a lunge of its prey, taken up again only past {@link #SEEK_AGAIN}, and not for {@link #SEEK_REST} after. */
+    public static final double SEEK_AGAIN = 10.0;
+    public static final int SEEK_REST = 40;
+
+    /** The pitch (degrees, nose down positive) it's drawn at going {@code dy} down and {@code horizontal} across in a tick. */
+    public static float movementPitch(double dy, double horizontal) {
+        if (Math.sqrt(dy * dy + horizontal * horizontal) < PITCH_MIN_SPEED) {
+            return 0.0F;
+        }
+        float pitch = (float) Math.toDegrees(Math.atan2(-dy, horizontal));
+        return Math.max(-PITCH_MAX, Math.min(PITCH_MAX, pitch));
+    }
+
+    /** Its body's wave's rate (radians a tick): {@code wet} 0 on land to 1 in water, {@code straight} 0 curled to 1 straight. */
+    public static float waveRate(float wet, float straight) {
+        return lerp(wet, 0.2F + 0.25F * straight, 0.15F + 0.2F * straight);
+    }
+
+    /** Its body's wave's swing (radians a segment). */
+    public static float waveSwing(float wet, float straight) {
+        return lerp(wet, 0.1F + 0.14F * straight, 0.06F + 0.1F * straight);
+    }
+
+    /** Its fins' rate (radians a tick). */
+    public static float finRate(float wet) {
+        return lerp(wet, 0.5F, 0.25F);
+    }
+
+    /** {@code value} a step of at most {@code step} toward {@code target}. */
+    public static float approach(float value, float target, float step) {
+        return value + Math.max(-step, Math.min(step, target - value));
+    }
+
+    private static float lerp(float t, float from, float to) {
+        return from + (to - from) * t;
+    }
+
     /** Its lure's reach next tick: a step toward out (searching) or in. */
     public static float reachToward(float reach, boolean searching) {
         return searching ? Math.min(1.0F, reach + REACH_STEP) : Math.max(0.0F, reach - REACH_STEP);

@@ -112,6 +112,21 @@ public class DreadFish extends Monster implements IDreadMob {
     /** How straight its body is (0 curled, 1 straight; {@link DreadFishRules#straightToward}), this tick and last; for drawing. */
     private float straight;
     private float straightO;
+    /** Its drawing's eased states (0.98.11, {@link DreadFishRules#WET_STEP}), this tick and last; on a client. */
+    private float wet;
+    private float wetO;
+    private float wave;
+    private float waveO;
+    private float fins;
+    private float finsO;
+    private float pitch;
+    private float pitchO;
+    private float pitchWeight;
+    private float pitchWeightO;
+    /** Not yet drawn a tick (its eased states set as they are on its first). */
+    private boolean firstDrawn = true;
+    /** Game time it may seek water again (0.98.11). */
+    long seekAgain;
 
     public DreadFish(EntityType<? extends DreadFish> type, Level level) {
         super(type, level);
@@ -141,9 +156,44 @@ public class DreadFish extends Monster implements IDreadMob {
         return Mth.lerp(partialTick, this.reachO, this.reach);
     }
 
+    /** How much it's drawn as in water (0 on land, 1 in it), eased. */
+    public float wet(float partialTick) {
+        return Mth.lerp(partialTick, this.wetO, this.wet);
+    }
+
+    /** Its body's wave's phase and its fins', only ever advancing. */
+    public float wave(float partialTick) {
+        return Mth.lerp(partialTick, this.waveO, this.wave);
+    }
+
+    public float fins(float partialTick) {
+        return Mth.lerp(partialTick, this.finsO, this.fins);
+    }
+
+    /** The pitch it's drawn at (degrees), following its own, and how much of it shows (in water or the air), eased. */
+    public float drawnPitch(float partialTick) {
+        return Mth.lerp(partialTick, this.pitchO, this.pitch) * Mth.lerp(partialTick, this.pitchWeightO, this.pitchWeight);
+    }
+
     /** How straight its body is drawn, between last tick's and this one's. */
     public float straight(float partialTick) {
         return Mth.lerp(partialTick, this.straightO, this.straight);
+    }
+
+    /**
+     * Its body turns toward its heading at most {@link DreadFishRules#BODY_TURN} a tick, moving or still (0.98.11): vanilla's
+     * set it straight to its heading the moment it moved and let it lag 75 behind at rest, and its head is the root of its
+     * whole chained body, so every start and stop swung the whole fish round in a frame.
+     */
+    @Override
+    protected net.minecraft.world.entity.ai.control.BodyRotationControl createBodyControl() {
+        return new net.minecraft.world.entity.ai.control.BodyRotationControl(this) {
+            @Override
+            public void clientTick() {
+                DreadFish fish = DreadFish.this;
+                fish.yBodyRot = Mth.approachDegrees(fish.yBodyRot, fish.getYRot(), DreadFishRules.BODY_TURN);
+            }
+        };
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -298,18 +348,49 @@ public class DreadFish extends Monster implements IDreadMob {
     @Override
     public void aiStep() {
         super.aiStep();
-        // Its lure reaches out while it hunts or swims about, and draws in while it's still.
-        this.reachO = this.reach;
-        this.reach = DreadFishRules.reachToward(this.reach, this.isAggressive() || this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4);
-        // Its body by how fast it really went this tick, up and down too (on a client, where it was drawn).
-        this.straightO = this.straight;
         double dx = this.getX() - this.xo;
         double dy = this.getY() - this.yo;
         double dz = this.getZ() - this.zo;
-        this.straight = DreadFishRules.straightToward(this.straight, Math.sqrt(dx * dx + dy * dy + dz * dz), !this.isInWater());
+        // Its lure reaches out while it hunts or swims about, and draws in while it's still: by how far it really went
+        // (0.98.11; a client's motion comes in now and then and decays between, so its lure wobbled in and out).
+        this.reachO = this.reach;
+        this.reach = DreadFishRules.reachToward(this.reach, this.isAggressive() || dx * dx + dz * dz > 1.0E-4);
+        if (this.level().isClientSide() && this.firstDrawn) {
+            // Its first tick drawn: its states as they are, not eased in from nothing (0.98.11).
+            this.firstDrawn = false;
+            this.wet = this.wetO = this.isInWater() ? 1.0F : 0.0F;
+            this.pitchWeight = this.pitchWeightO = this.wet;
+            this.straight = this.straightO = this.isInWater() ? 0.0F : 1.0F;
+        }
+        // Its body by how fast it really went this tick, up and down too (on a client, where it was drawn); out of water by
+        // its eased wetness there (0.98.11: the raw flag flickered at the water's edge, ratcheting it straight).
+        this.straightO = this.straight;
+        boolean dry = this.level().isClientSide() ? this.wet < 0.5F : !this.isInWater();
+        this.straight = DreadFishRules.straightToward(this.straight, Math.sqrt(dx * dx + dy * dy + dz * dz), dry);
         this.rearO = this.rear;
         this.rear = this.winding() ? Math.min(1.0F, this.rear + 1.0F / 6.0F) : Math.max(0.0F, this.rear - 0.34F);
         if (this.level().isClientSide()) {
+            // Its drawing's states, eased; its wave and fins advanced at the rate of the moment (0.98.11).
+            this.wetO = this.wet;
+            this.wet = DreadFishRules.approach(this.wet, this.isInWater() ? 1.0F : 0.0F, DreadFishRules.WET_STEP);
+            this.waveO = this.wave;
+            this.wave += DreadFishRules.waveRate(this.wet, this.straight);
+            this.finsO = this.fins;
+            this.fins += DreadFishRules.finRate(this.wet);
+            // Kept small (a whole number of turns off each, each on its own), so floats keep their precision.
+            float turns = Mth.TWO_PI * 100.0F;
+            if (this.wave > 1000.0F) {
+                this.wave -= turns;
+                this.waveO -= turns;
+            }
+            if (this.fins > 1000.0F) {
+                this.fins -= turns;
+                this.finsO -= turns;
+            }
+            this.pitchO = this.pitch;
+            this.pitch += (DreadFishRules.movementPitch(dy, Math.sqrt(dx * dx + dz * dz)) - this.pitch) * DreadFishRules.PITCH_FOLLOW;
+            this.pitchWeightO = this.pitchWeight;
+            this.pitchWeight = DreadFishRules.approach(this.pitchWeight, this.isInWater() || !this.onGround() ? 1.0F : 0.0F, DreadFishRules.PITCH_WEIGHT_STEP);
             if (this.lureLit() && this.random.nextFloat() < 0.35F) {
                 Vec3 lantern = this.lantern();
                 this.level().addParticle(this.random.nextInt(3) == 0 ? ParticleTypes.SNOWFLAKE : ParticleTypes.GLOW,
@@ -509,7 +590,8 @@ public class DreadFish extends Monster implements IDreadMob {
 
         BreachGoal(DreadFish fish) {
             this.fish = fish;
-            this.setFlags(EnumSet.of(Flag.MOVE, Flag.JUMP));
+            // Its look too (0.98.11): the look control otherwise set its pitch against the arc's every tick.
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.JUMP, Flag.LOOK));
         }
 
         @Override
@@ -776,7 +858,8 @@ public class DreadFish extends Monster implements IDreadMob {
         @Override
         public boolean canUse() {
             // Now and then, not every check (vanilla checks a goal every other tick, so a tick count's step could miss them all).
-            if (this.fish.isInWater() || this.fish.getRandom().nextInt(5) != 0 || this.preyAtHand()) {
+            if (this.fish.isInWater() || this.fish.getRandom().nextInt(5) != 0 || this.preyNear(DreadFishRules.SEEK_AGAIN)
+                    || this.fish.level().getGameTime() < this.fish.seekAgain) {
                 return false;
             }
             Level level = this.fish.level();
@@ -799,8 +882,17 @@ public class DreadFish extends Monster implements IDreadMob {
          * to it. Water and prey keep their one priority (0.71.0) past that.
          */
         private boolean preyAtHand() {
+            return this.preyNear(DreadFishRules.LUNGE_MAX);
+        }
+
+        /**
+         * Its prey within {@code reach} (0.98.11): it gives up seeking water within a lunge, but takes it up again only past
+         * {@link DreadFishRules#SEEK_AGAIN} and {@link DreadFishRules#SEEK_REST} after (a review found it turning to water and
+         * back by its prey near 7 blocks, over and over).
+         */
+        private boolean preyNear(double reach) {
             LivingEntity target = this.fish.getTarget();
-            return target != null && target.isAlive() && prey(target) && this.fish.distanceTo(target) <= DreadFishRules.LUNGE_MAX;
+            return target != null && target.isAlive() && prey(target) && this.fish.distanceTo(target) <= reach;
         }
 
         @Override
@@ -826,8 +918,8 @@ public class DreadFish extends Monster implements IDreadMob {
                 return;
             }
             Vec3 way = to.normalize();
-            this.fish.setYRot((float) (Mth.atan2(way.z, way.x) * Mth.RAD_TO_DEG) - 90.0F);
-            this.fish.yBodyRot = this.fish.getYRot();
+            // Turning toward it, at most a little a tick (0.98.11: it was set at once, up to half round).
+            this.fish.setYRot(Mth.approachDegrees(this.fish.getYRot(), (float) (Mth.atan2(way.z, way.x) * Mth.RAD_TO_DEG) - 90.0F, DreadFishRules.SEEK_TURN));
             Vec3 motion = this.fish.getDeltaMovement();
             double push = DreadFishRules.LAND_SPEED * 0.5;
             this.fish.setDeltaMovement(way.x * push, motion.y, way.z * push);
@@ -837,6 +929,7 @@ public class DreadFish extends Monster implements IDreadMob {
         public void stop() {
             this.water = null;
             this.fish.getNavigation().stop();
+            this.fish.seekAgain = this.fish.level().getGameTime() + DreadFishRules.SEEK_REST;
         }
     }
 

@@ -166,4 +166,52 @@ class DreadFishRulesTest {
         org.junit.jupiter.api.Assertions.assertFalse(DreadFishRules.inLeapReach(9.0, 2.0));
         org.junit.jupiter.api.Assertions.assertFalse(DreadFishRules.inLeapReach(3.0, 6.0));
     }
+
+    @Test
+    void itsWaveNeverJumpsAsItChangesState() {
+        // An old fish (age 100,000 ticks) going from curled on land to straight in water over 20 ticks: the old way,
+        // sin(age * rate), moved its phase by age * the rate's change, tens of radians a tick; the phase now moves only
+        // by the rate of the moment.
+        float wave = 0.0F;
+        float wet = 0.0F;
+        float straight = 0.0F;
+        float oldWay = 0.0F;
+        float worstOld = 0.0F;
+        for (int tick = 0; tick < 20; tick++) {
+            float before = wave;
+            wet = DreadFishRules.approach(wet, 1.0F, DreadFishRules.WET_STEP);
+            straight = DreadFishRules.straightToward(straight, 0.2, false);
+            wave += DreadFishRules.waveRate(wet, straight);
+            org.junit.jupiter.api.Assertions.assertTrue(wave - before > 0.0F && wave - before < 0.5F, "step " + (wave - before));
+            float old = 100_000.0F * DreadFishRules.waveRate(wet, straight);
+            worstOld = Math.max(worstOld, Math.abs(old - oldWay));
+            oldWay = old;
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(worstOld > 100.0F, "the old way's jump " + worstOld);
+    }
+
+    @Test
+    void itsStatesEaseOverTicks() {
+        // In water or not takes several ticks either way; its swing and rate move smoothly between land's and water's.
+        float wet = 0.0F;
+        int ticks = 0;
+        while (wet < 1.0F) {
+            wet = DreadFishRules.approach(wet, 1.0F, DreadFishRules.WET_STEP);
+            ticks++;
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(ticks >= 5, "ticks " + ticks);
+        float land = DreadFishRules.waveSwing(0.0F, 0.5F);
+        float half = DreadFishRules.waveSwing(0.5F, 0.5F);
+        float water = DreadFishRules.waveSwing(1.0F, 0.5F);
+        org.junit.jupiter.api.Assertions.assertTrue(land > half && half > water);
+    }
+
+    @Test
+    void itsPitchIsTheWayItWentLevelWhenStill() {
+        // Diving (down 0.3, across 0.3 a tick): nose down 45; climbing steeply: nose up, held to 45; barely moving: level.
+        org.junit.jupiter.api.Assertions.assertEquals(45.0F, DreadFishRules.movementPitch(-0.3, 0.3), 1.0E-3F);
+        org.junit.jupiter.api.Assertions.assertEquals(-DreadFishRules.PITCH_MAX, DreadFishRules.movementPitch(0.8, 0.1), 1.0E-3F);
+        org.junit.jupiter.api.Assertions.assertEquals(0.0F, DreadFishRules.movementPitch(0.01, 0.01));
+        org.junit.jupiter.api.Assertions.assertEquals(0.0F, DreadFishRules.movementPitch(0.0, 0.4), 1.0E-3F);
+    }
 }
