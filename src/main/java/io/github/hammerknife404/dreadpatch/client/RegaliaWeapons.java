@@ -40,6 +40,14 @@ public final class RegaliaWeapons {
     /** Her regalia's pieces, whose icons switch too (0.98.10). */
     private static final String[] PIECES = {"crown", "bodice", "winged_bodice", "robe", "greaves"};
 
+    /**
+     * Whether a baked model is the missing model (0.98.13, a review): each model that fails bakes as its own copy of it, so
+     * comparing with the missing model's instance never matched; its particle sprite gives it away.
+     */
+    private static boolean missing(BakedModel model) {
+        return model.getParticleIcon().contents().name().equals(net.minecraft.client.renderer.texture.MissingTextureAtlasSprite.getLocation());
+    }
+
     private static ModelResourceLocation classicIcon(String piece) {
         return ModelResourceLocation.standalone(DreadPatch.id("item/dread_queen_" + piece + "_classic"));
     }
@@ -49,12 +57,11 @@ public final class RegaliaWeapons {
         swap(event, "dread_queen_staff", STAFF);
         // The regalia's icons (0.98.10, the owner: "classic icons not applying to inventory icons"): its classic ones
         // (as drawn until 0.81.0, from make_icons.py) while the classic armour is on; the redrawn ones, with their trims, off.
-        BakedModel missing = event.getModels().get(net.minecraft.client.resources.model.ModelBakery.MISSING_MODEL_VARIANT);
         for (String piece : PIECES) {
             ModelResourceLocation item = ModelResourceLocation.inventory(DreadPatch.id("dread_queen_" + piece));
             BakedModel redrawn = event.getModels().get(item);
             BakedModel classic = event.getModels().get(classicIcon(piece));
-            if (redrawn == null || classic == null || classic == missing) {
+            if (redrawn == null || classic == null || missing(classic)) {
                 LOGGER.warn("Couldn't give the regalia's {} its classic icon", piece);
                 continue;
             }
@@ -67,8 +74,7 @@ public final class RegaliaWeapons {
         ModelResourceLocation theirs = ModelResourceLocation.inventory(ResourceLocation.fromNamespaceAndPath("iceandfire", item));
         // A model that failed to load bakes as the missing model: keep Ice and Fire's then (0.81.0's staff was drawn
         // as the purple-and-black missing model).
-        if (model == null || model == event.getModels().get(net.minecraft.client.resources.model.ModelBakery.MISSING_MODEL_VARIANT)
-                || !event.getModels().containsKey(theirs)) {
+        if (model == null || missing(model) || !event.getModels().containsKey(theirs)) {
             LOGGER.warn("Couldn't put the regalia's {} in place of Ice and Fire's", item);
             return;
         }

@@ -26,7 +26,8 @@ import java.util.Set;
  * tries it on a fine grid; it's made only where the {@code near} set's placement puts one of its structures
  * {@code min_chunks}-{@code max_chunks} chunks off (by the same seed, as the world places them), in a biome that set's
  * structure takes, and then {@code chance} of the time. The structure it builds ({@code structure}) builds itself, as
- * its own type does; this only chooses where.
+ * its own type does; this only chooses where. (Ice and Fire's graveyard rolls its own {@code generateGraveYardChance}
+ * too, 0.5 by default, so the graveyards' {@code chance} is 1: theirs alone.)
  */
 public class NearStructure extends Structure {
     public static final MapCodec<NearStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -34,8 +35,8 @@ public class NearStructure extends Structure {
             Structure.CODEC.fieldOf("structure").forGetter(s -> s.structure),
             ResourceKey.codec(Registries.STRUCTURE_SET).fieldOf("near").forGetter(s -> s.near),
             TagKey.codec(Registries.BIOME).fieldOf("near_biomes").forGetter(s -> s.nearBiomes),
-            Codec.INT.fieldOf("min_chunks").forGetter(s -> s.minChunks),
-            Codec.INT.fieldOf("max_chunks").forGetter(s -> s.maxChunks),
+            Codec.intRange(0, 32).fieldOf("min_chunks").forGetter(s -> s.minChunks),
+            Codec.intRange(1, 32).fieldOf("max_chunks").forGetter(s -> s.maxChunks),
             Codec.floatRange(0.0F, 1.0F).fieldOf("chance").forGetter(s -> s.chance)
     ).apply(i, NearStructure::new));
 
@@ -73,8 +74,9 @@ public class NearStructure extends Structure {
         }
         ChunkPos here = context.chunkPos();
         Set<ChunkPos> candidates = new HashSet<>();
-        for (int dx = -this.maxChunks; dx <= this.maxChunks; dx += this.maxChunks) {
-            for (int dz = -this.maxChunks; dz <= this.maxChunks; dz += this.maxChunks) {
+        // Every chunk in range asked for its region's spot: every region the range reaches covered, whatever its spacing.
+        for (int dx = -this.maxChunks; dx <= this.maxChunks; dx++) {
+            for (int dz = -this.maxChunks; dz <= this.maxChunks; dz++) {
                 candidates.add(placement.getPotentialStructureChunk(context.seed(), here.x + dx, here.z + dz));
             }
         }

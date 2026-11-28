@@ -620,10 +620,10 @@ public final class DreadTerrain {
                 int dx = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
                 int dz = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
                 BlockPos at = new BlockPos(ox + dx, floor, oz + dz);
-                // A cut bank: the ground over the water dug away.
-                for (int y = floor + 1; y <= floor + io.github.hammerknife404.dreadpatch.magic.PoolRules.POND_BANK; y++) {
+                // A cut bank: the ground over the water dug away, and the snow over it with it (0.98.13: it was left floating).
+                for (int y = floor + 1; y <= floor + io.github.hammerknife404.dreadpatch.magic.PoolRules.POND_BANK + 1; y++) {
                     BlockPos over = at.atY(y);
-                    if (solid(level, over)) {
+                    if (!level.getBlockState(over).isAir() && level.getFluidState(over).isEmpty()) {
                         level.setBlock(over, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
                     }
                 }

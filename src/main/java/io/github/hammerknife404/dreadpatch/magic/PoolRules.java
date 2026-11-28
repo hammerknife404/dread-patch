@@ -40,8 +40,12 @@ public final class PoolRules {
     public static final int HOLE_DEPTH = 2;
     public static final int HOLE_RIM = 12;
     public static final int HOLE_SIDES = 5;
-    /** How far (blocks) it walks downhill from its spot to a hole's bottom first. */
-    public static final int HOLE_WALK = 8;
+    /**
+     * How far (blocks) it walks downhill from its spot to a hole's bottom first: with {@link #HOLE_RIM} out from there,
+     * within the 16 round its chunk a feature may read (0.98.13, a review: 8 and 12 read two chunks off, where the ground
+     * may not be made yet, so its ponds hung on the order chunks were made).
+     */
+    public static final int HOLE_WALK = 4;
     /** Ground in its pond up to this much over the water is dug away (a cut bank), higher stays. */
     public static final int POND_BANK = 2;
     public static final int HOLE_LOW = 55;

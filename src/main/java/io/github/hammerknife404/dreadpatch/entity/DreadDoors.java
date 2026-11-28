@@ -67,9 +67,18 @@ public final class DreadDoors {
         }
     }
 
+    /**
+     * Its pathing through doors as its breaking allows: by difficulty, config and mob griefing (0.98.13, a review: with
+     * griefing off they planned through doors they'd never break, and pushed at them forever). Only the Dread's own: a
+     * risen villager or guard keeps its own door opening.
+     */
     private static void update(Mob mob) {
-        ((GroundPathNavigation) mob.getNavigation()).setCanOpenDoors(DreadPatchConfig.dreadBreakDoors(mob.level().getDifficulty()));
-        boolean iron = mob instanceof DreadKnightEntity && DreadPatchConfig.dreadBreakIronDoors(mob.level().getDifficulty());
+        if (!(mob instanceof com.iafenvoy.iceandfire.entity.util.IDreadMob)) {
+            return;
+        }
+        boolean griefing = net.neoforged.neoforge.event.EventHooks.canEntityGrief(mob.level(), mob);
+        ((GroundPathNavigation) mob.getNavigation()).setCanOpenDoors(griefing && DreadPatchConfig.dreadBreakDoors(mob.level().getDifficulty()));
+        boolean iron = griefing && mob instanceof DreadKnightEntity && DreadPatchConfig.dreadBreakIronDoors(mob.level().getDifficulty());
         mob.setPathfindingMalus(PathType.DOOR_IRON_CLOSED, iron ? 0.0F : -1.0F);
     }
 

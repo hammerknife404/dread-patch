@@ -16,6 +16,8 @@ public final class SkullRules {
     public static final double RANGE = 24.0;
     public static final double TURN = 0.35;
     public static final double CLOSE = 3.0;
+    /** The least of its heading kept across, not up or down (0.98.13): Ice and Fire's skull goes under 0.1 a tick across. */
+    public static final double MIN_ACROSS = 0.15;
     /** Its speed (blocks a tick), how wide the volley fans out (degrees each side), and how long a skull flies (ticks). */
     public static final double SPEED = 1.2;
     public static final float FAN = 20.0F;

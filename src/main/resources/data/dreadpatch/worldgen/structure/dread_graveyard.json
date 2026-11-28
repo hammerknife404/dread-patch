@@ -7,7 +7,7 @@
   "structure": "iceandfire:graveyard",
   "near": "dreadpatch:dread_villages",
   "near_biomes": "dreadpatch:has_structure/dread_village",
-  "min_chunks": 2,
-  "max_chunks": 5,
-  "chance": 0.6
+  "min_chunks": 6,
+  "max_chunks": 8,
+  "chance": 1.0
 }

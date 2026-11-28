@@ -172,7 +172,7 @@ public final class ThrallWeapons {
     }
 
     /** Whether it holds a bow or a crossbow in its main hand. */
-    static boolean ranged(ItemStack stack) {
+    public static boolean ranged(ItemStack stack) {
         return stack.getItem() instanceof BowItem || stack.getItem() instanceof CrossbowItem;
     }
 

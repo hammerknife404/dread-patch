@@ -70,13 +70,39 @@ public class LichSkull extends DreadLichSkullEntity {
             Vec3 toward = this.seek.getBoundingBox().getCenter().subtract(this.position());
             double turn = SkullRules.turn(toward.length());
             Vec3 heading = this.getDeltaMovement().normalize().scale(1.0 - turn).add(toward.normalize().scale(turn));
-            this.setDeltaMovement(heading.normalize().scale(SkullRules.SPEED));
+            this.setDeltaMovement(level(heading.normalize()).scale(SkullRules.SPEED));
         }
+    }
+
+    /**
+     * A heading kept off the straight up and down (0.98.13, a review): Ice and Fire's skull discards itself, unhit, once
+     * its speed across falls under 0.1 a tick, so a skull steered at a foe almost straight below or above vanished.
+     */
+    static Vec3 level(Vec3 heading) {
+        double across = Math.sqrt(heading.x * heading.x + heading.z * heading.z);
+        if (across >= SkullRules.MIN_ACROSS || across < 1.0E-6) {
+            return across < 1.0E-6 ? new Vec3(SkullRules.MIN_ACROSS, Math.signum(heading.y) * Math.sqrt(1.0 - SkullRules.MIN_ACROSS * SkullRules.MIN_ACROSS), 0.0) : heading;
+        }
+        double scale = SkullRules.MIN_ACROSS / across;
+        double up = Math.signum(heading.y) * Math.sqrt(1.0 - SkullRules.MIN_ACROSS * SkullRules.MIN_ACROSS);
+        return new Vec3(heading.x * scale, up, heading.z * scale);
     }
 
     @Override
     protected boolean canHitEntity(Entity target) {
         LivingEntity caster = this.caster();
+        // Not its caster's mount, nor anything they ride with, nor their pets, nor a part of one (0.98.13, a review: with
+        // no owner, vanilla's own checks for these were gone, and a skull cast from horseback struck the horse).
+        Entity whole = target instanceof net.neoforged.neoforge.entity.PartEntity<?> part ? part.getParent() : target;
+        if (caster != null && (caster.isPassengerOfSameVehicle(whole)
+                || whole instanceof net.minecraft.world.entity.OwnableEntity owned && caster.equals(owned.getOwner())
+                || whole instanceof com.iafenvoy.iceandfire.entity.MultipartPartEntity iafPart && iafPart.getParent() != null
+                && (caster.isPassengerOfSameVehicle(iafPart.getParent()) || iafPart.getParent() instanceof net.minecraft.world.entity.OwnableEntity o && caster.equals(o.getOwner())))) {
+            return false;
+        }
+        if (!target.canBeHitByProjectile()) {
+            return false;
+        }
         if (target == caster || caster == null && this.casterId != null && this.casterId.equals(target.getUUID())) {
             return false;
         }
