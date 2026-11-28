@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:item/handheld",
+  "loader": "neoforge:separate_transforms",
+  "base": {
+    "textures": {
+      "book": "dreadpatch:item/spell_book_models/dread_sovereigns_tome",
+      "particle": "dreadpatch:item/spell_book_models/dread_sovereigns_tome"
+    },
+    "parent": "irons_spellbooks:item/template_spell_book_model"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "item/generated",
+      "textures": {
+        "layer0": "dreadpatch:item/dread_sovereigns_tome"
+      }
+    },
+    "head": {
+      "textures": {
+        "book": "dreadpatch:item/spell_book_models/dread_sovereigns_tome",
+        "particle": "dreadpatch:item/spell_book_models/dread_sovereigns_tome"
+      },
+      "parent": "irons_spellbooks:item/template_spell_book_model_open"
+    }
+  }
+}

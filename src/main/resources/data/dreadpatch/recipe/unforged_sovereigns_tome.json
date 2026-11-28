@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "dreadpatch:dread_dragonsteel_ingot"
+  },
+  "base": {
+    "item": "dreadpatch:rimebound_tome"
+  },
+  "addition": {
+    "item": "dreadpatch:rimefrost_dragon_scale"
+  },
+  "result": {
+    "id": "dreadpatch:unforged_sovereigns_tome",
+    "count": 1
+  }
+}

@@ -201,7 +201,11 @@ public class RimefrostForgeBlockEntity extends BaseContainerBlockEntity implemen
     private void make(DragonForgeRecipe recipe) {
         ItemStack result = recipe.getResultItem();
         ItemStack out = this.items.get(OUTPUT);
-        if (out.isEmpty()) {
+        ItemStack input = this.items.get(INPUT);
+        if (out.isEmpty() && input.has(io.redspace.ironsspellbooks.registries.ComponentRegistry.SPELL_CONTAINER.get())) {
+            // A spellbook forged (0.98.3, the Dread Sovereign's Tome) keeps what it held: its spells and anything else of it.
+            this.items.set(OUTPUT, input.transmuteCopy(result.getItem(), result.getCount()));
+        } else if (out.isEmpty()) {
             this.items.set(OUTPUT, result.copy());
         } else {
             out.grow(result.getCount());
