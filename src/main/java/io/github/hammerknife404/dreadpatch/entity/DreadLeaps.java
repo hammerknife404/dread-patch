@@ -153,8 +153,11 @@ public final class DreadLeaps {
     /** Leaps {@code mob} with {@code velocity}, facing {@code facing}: as a gap leap, its path planned afresh on landing. */
     static void launch(Mob mob, Vec3 velocity, Vec3 facing) {
         mob.setDeltaMovement(velocity);
-        mob.setYRot((float) (Mth.atan2(facing.z, facing.x) * Mth.RAD_TO_DEG) - 90.0F);
-        mob.yBodyRot = mob.getYRot();
+        // A Dread Fish isn't turned at once (0.98.11: its whole chained body swung round); it turns as it flies.
+        if (!(mob instanceof DreadFish)) {
+            mob.setYRot((float) (Mth.atan2(facing.z, facing.x) * Mth.RAD_TO_DEG) - 90.0F);
+            mob.yBodyRot = mob.getYRot();
+        }
         mob.hasImpulse = true;
         NEXT.put(mob, mob.level().getGameTime() + LeapRules.COOLDOWN);
         FLYING.put(mob, true);

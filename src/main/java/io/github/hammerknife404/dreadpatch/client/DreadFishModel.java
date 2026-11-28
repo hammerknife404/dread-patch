@@ -72,7 +72,9 @@ public class DreadFishModel extends EntityModel<DreadFish> {
     @Override
     public void setupAnim(DreadFish fish, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root.getAllParts().forEach(ModelPart::resetPose);
-        boolean water = fish.isInWater();
+        float partial = ageInTicks - fish.tickCount;
+        // In water or not, eased (0.98.11; it switched at once, and its wave with it).
+        float wet = fish.wet(partial);
         // Curled at rest; on the move its body straightens out behind it (0.71.2, the owner: "its tail is stuck in
         // that pose"), the head drawn forward and over so the straight fish stays on its middle. By its own eased
         // straightness (0.92.1), not vanilla's limb swing, which left it curling mid-swim and twitching.
@@ -87,9 +89,10 @@ public class DreadFishModel extends EntityModel<DreadFish> {
         this.head.z = Mth.lerp(curl, STRAIGHT_Z, this.head.getInitialPose().z);
         // A wave down its segments, on top of its curl: a fish's in water, a serpent's on land. Calmer since 0.92.1: chained
         // down eight segments, land's 0.4 a segment at over two beats a second thrashed.
-        float rate = water ? 0.15F + 0.2F * moving : 0.2F + 0.25F * moving;
-        float swing = water ? 0.06F + 0.1F * moving : 0.1F + 0.14F * moving;
-        float time = ageInTicks * rate;
+        // Its phase only advances, at the rate of the moment (0.98.11): it was its age times a rate that changed with its
+        // state, so each change jumped the wave by the age times the change, the fish twitching between poses.
+        float swing = io.github.hammerknife404.dreadpatch.magic.DreadFishRules.waveSwing(wet, moving);
+        float time = fish.wave(partial);
         for (int i = 0; i < this.body.length; i++) {
             this.body[i].yRot += swing * (i == 0 ? 0.5F : 1.0F) * Mth.sin(time - i * 0.8F);
         }
@@ -97,7 +100,8 @@ public class DreadFishModel extends EntityModel<DreadFish> {
         // Its head looks where it's going, a little; and bobs. Pitched as it swims, and in the air too (0.92.1): a breach's
         // or a leap's arc went flat the moment it left the water, and snapped back as it fell in.
         this.head.yRot += netHeadYaw * Mth.DEG_TO_RAD * 0.3F;
-        this.head.xRot += (water || !fish.onGround() ? headPitch * Mth.DEG_TO_RAD * 0.5F : 0.0F) + 0.03F * Mth.sin(ageInTicks * 0.1F);
+        // Its own pitch, followed and weighed in (0.98.11): its goals set it straight to 0 and landing took it off at once.
+        this.head.xRot += fish.drawnPitch(partial) * Mth.DEG_TO_RAD * 0.5F + 0.03F * Mth.sin(ageInTicks * 0.1F);
         // Its jaw hangs open, breathing a little, and gapes to bite.
         float bite = Mth.sin(this.attackTime * Mth.PI);
         // An alpha's wind-up (0.80.0): rearing back, head up, its jaw gaping wide, before the snap; plain to read.
@@ -116,7 +120,7 @@ public class DreadFishModel extends EntityModel<DreadFish> {
         this.lantern.xRot = -(this.head.xRot + this.stalk.xRot + this.arm.xRot + this.hook.xRot)
                 + 0.12F * Mth.sin(ageInTicks * 0.13F + 1.0F) + 0.35F * moving;
         this.lantern.zRot = -this.stalk.zRot + 0.1F * Mth.sin(ageInTicks * 0.11F);
-        float fin = 0.2F * Mth.sin(ageInTicks * (water ? 0.25F : 0.5F));
+        float fin = 0.2F * Mth.sin(fish.fins(partial));
         this.leftFin.yRot += fin;
         this.rightFin.yRot -= fin;
     }
