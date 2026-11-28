@@ -411,6 +411,12 @@ def main():
     (DATA / "worldgen/placed_feature/grave_patch.json").write_text(json.dumps({"feature": "dreadpatch:grave_patch", "placement": [
         {"type": "minecraft:rarity_filter", "chance": 6}, {"type": "minecraft:in_square"},
         {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
+    # Pools (0.97.0 the chasma's plates, step 9, one chunk in 6; 0.98.6 the wastes' holes, step 10 after the snow, every chunk).
+    for name, chance in (("hex_pool", 6), ("hole_pool", 1)):
+        (DATA / f"worldgen/configured_feature/{name}.json").write_text(json.dumps({"type": f"dreadpatch:{name}", "config": {}}, indent=2) + "\n")
+        (DATA / f"worldgen/placed_feature/{name}.json").write_text(json.dumps({"feature": f"dreadpatch:{name}", "placement": [
+            {"type": "minecraft:rarity_filter", "chance": chance}, {"type": "minecraft:in_square"},
+            {"type": "minecraft:heightmap", "heightmap": "WORLD_SURFACE_WG"}, {"type": "minecraft:biome"}]}, indent=2) + "\n")
     plains = json.loads((DATA / "worldgen/biome/dreadlands.json").read_text())
     underground = ["dreadpatch:dreadstone_blobs", "dreadpatch:packed_ice_blobs", "dreadpatch:crusted_lava_pocket"]
     glacial = ["dreadpatch:glacier_dreadstone", "dreadpatch:glacier_stone"]
@@ -435,8 +441,13 @@ def main():
             # Step 2, local modifications: water sealed in its ice; step 9: slabs heaved up at its cracks' lips. No
             # snow laid at step 10, which would bury its clear ice (blue ice takes snow; packed ice doesn't).
             steps[2] = steps[2] + ["dreadpatch:chasma_pocket"]
-            steps[9] = steps[9] + ["dreadpatch:heaved_slabs"]
+            steps[9] = steps[9] + ["dreadpatch:hex_pool", "dreadpatch:heaved_slabs"]
             steps[10] = [f for f in steps[10] if f != "minecraft:freeze_top_layer"]
+        if name == "sastrugi_wastes":
+            # After its snow, so a hole's pool is left open water.
+            while len(steps) < 11:
+                steps.append([])
+            steps[10] = [f for f in steps[10] if f != "dreadpatch:hole_pool"] + ["dreadpatch:hole_pool"]
         biome["features"] = steps
         (DATA / f"worldgen/biome/{name}.json").write_text(json.dumps(biome, indent=2) + "\n")
 

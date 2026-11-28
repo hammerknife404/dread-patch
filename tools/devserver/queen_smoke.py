@@ -2403,6 +2403,30 @@ def main():
             record("pools fill some of its plates (0.97.0)", pools > 0 and chasma_count("minecraft:water", 30, 30) > 0,
                    f"{pools} of 25 placed")
             record("and hold their water", chasma_count("minecraft:water", 31, 31) == 0, "water over the floor at 31")
+            # Pools in the Sastrugi Wastes' holes (0.98.6): a dip built in the open air over the chasma (stone to 68, a
+            # 15 by 15 floor at 65 dug in it: wider, its rim's diagonals, 8 out, would be floor too); the feature placed in it digs a pond into the floor, water and ice at 65 (and
+            # 64), none over it. (Probed by hand on the dev world's wastes: 5 of 1,024 spots placed one.)
+            hx, hz = mx + 96, mz
+            hbox = f"{hx - 20} 60 {hz - 20} {hx + 20} 70 {hz + 20}"
+            rcon.run(dl + f"run forceload add {hx - 20} {hz - 20} {hx + 20} {hz + 20}")
+            rcon.run(dl + f"run fill {hx - 20} 60 {hz - 20} {hx + 20} 68 {hz + 20} minecraft:stone")
+            rcon.run(dl + f"run fill {hx - 7} 66 {hz - 7} {hx + 7} 68 {hz + 7} minecraft:air")
+            hole = "Placed" in rcon.run(dl + f"run place feature dreadpatch:hole_pool {hx} 70 {hz}")
+            def hole_count(block, y0, y1):
+                m = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {hx - 20} {y0} {hz - 20} {hx + 20} {y1} {hz + 20} minecraft:glass replace {block}"))
+                rcon.run(dl + f"run fill {hx - 20} {y0} {hz - 20} {hx + 20} {y1} {hz + 20} {block} replace minecraft:glass")
+                return int(m.group(1)) if m else 0
+            pond = hole_count("minecraft:water", 64, 65) + hole_count("minecraft:ice", 65, 65)
+            record("a pond is dug into a wastes hole's floor (0.98.6)", hole and pond >= 12 and hole_count("minecraft:water", 66, 70) == 0,
+                   f"placed {hole}, {pond} water and ice at 64-65")
+            rcon.run(dl + f"run kill @e[type=dreadpatch:dread_fish,x={hx - 20},y=60,z={hz - 20},dx=40,dy=10,dz=40]")
+            rcon.run(dl + f"run fill {hbox} minecraft:air")
+            # The Dreadlands' biomes are cold ones (0.98.6, the owner: "make sure the dreadlands biomes register for most if
+            # not all 'cold' type biomes"): the chasma here is #c:is_cold, snowy and icy, so Iron's ice spider dens come
+            # there too; and Iron's ice spider patrols are kept out.
+            for tag in ("c:is_cold", "c:is_snowy", "c:is_icy"):
+                check(f"the Dreadlands' biomes are #{tag} (0.98.6)", dl + f"if biome {mx} 31 {mz} #{tag}", "Test passed")
+            check("Iron's ice spider dens come in the Dreadlands (0.98.6)", dl + "run locate structure irons_spellbooks:ice_spider_den", "The nearest")
             # The world's floor (0.69.0, the owner: bedrock "at least 1 layer thick throughout the entire dimension"):
             # no cave, crack or trench opens it, here where they're thickest.
             bedrock = chasma_count("minecraft:bedrock", -64, -64)

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [],
+  "remove": [
+    "dreadpatch:dreadlands",
+    "dreadpatch:sastrugi_wastes",
+    "dreadpatch:rime_chasma",
+    "dreadpatch:glacial_plains"
+  ]
+}

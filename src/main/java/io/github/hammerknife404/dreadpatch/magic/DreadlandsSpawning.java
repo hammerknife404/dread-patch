@@ -48,6 +48,14 @@ public final class DreadlandsSpawning {
     public static final int UNDEAD_ONE_IN = 16;
     public static final int UNDEAD_CAP = 4;
     /**
+     * Iron's ice spiders near the Dreadlands' villages (0.98.6, the owner: "Frost spiders can also sometimes spawn near
+     * villages too"): within {@link #VILLAGE_REACH} of a village's middle, on the same roll, one in {@link #ICE_SPIDER_ONE_IN}
+     * a player of 1-2, never past {@link #ICE_SPIDER_CAP} within 64.
+     */
+    public static final int ICE_SPIDER_ONE_IN = 20;
+    public static final int ICE_SPIDER_CAP = 2;
+    public static final double VILLAGE_REACH = 96.0;
+    /**
      * An abandoned village's Dread Lich (0.70.0, the owner: "Ice and Fire's Liches Should sometimes spawn in dread
      * villages"; ours: one village in this many, at its heart as it's made).
      */
