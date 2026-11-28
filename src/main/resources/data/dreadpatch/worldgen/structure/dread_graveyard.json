@@ -1,0 +1,13 @@
+{
+  "type": "dreadpatch:near_structure",
+  "biomes": "#dreadpatch:has_structure/dread_graveyard",
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin",
+  "spawn_overrides": {},
+  "structure": "iceandfire:graveyard",
+  "near": "dreadpatch:dread_villages",
+  "near_biomes": "dreadpatch:has_structure/dread_village",
+  "min_chunks": 2,
+  "max_chunks": 5,
+  "chance": 0.6
+}

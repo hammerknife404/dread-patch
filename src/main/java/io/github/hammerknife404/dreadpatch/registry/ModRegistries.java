@@ -108,6 +108,8 @@ public final class ModRegistries {
 
     /** The Dreadlands' spires (0.46.0): a structure of ours, one piece drawn from its shape. */
     public static final DeferredHolder<StructureType<?>, StructureType<SpireStructure>> SPIRE = STRUCTURE_TYPES.register("spire", () -> () -> SpireStructure.CODEC);
+    /** A structure placed only near another set's (0.98.12: Ice and Fire's graveyards near the villages). */
+    public static final DeferredHolder<StructureType<?>, StructureType<io.github.hammerknife404.dreadpatch.world.NearStructure>> NEAR_STRUCTURE = STRUCTURE_TYPES.register("near_structure", () -> () -> io.github.hammerknife404.dreadpatch.world.NearStructure.CODEC);
     /** The Dreadlands' abandoned villages (0.53.0): vanilla's snowy zombie village, turned Dread. */
     public static final DeferredHolder<StructureType<?>, StructureType<DreadVillageStructure>> DREAD_VILLAGE = STRUCTURE_TYPES.register("dread_village",
             () -> () -> DreadVillageStructure.CODEC);

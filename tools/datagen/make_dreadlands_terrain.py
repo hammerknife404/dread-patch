@@ -406,6 +406,9 @@ def main():
     # The deeps flooded (0.77.0): once a chunk, the feature covers the chunk itself.
     (DATA / "worldgen/configured_feature/deep_water.json").write_text(json.dumps({"type": "dreadpatch:deep_water", "config": {}}, indent=2) + "\n")
     (DATA / "worldgen/placed_feature/deep_water.json").write_text(json.dumps({"feature": "dreadpatch:deep_water", "placement": []}, indent=2) + "\n")
+    # The bedrock covered (0.98.12): once a chunk, before the deeps are flooded.
+    (DATA / "worldgen/configured_feature/floor_cover.json").write_text(json.dumps({"type": "dreadpatch:floor_cover", "config": {}}, indent=2) + "\n")
+    (DATA / "worldgen/placed_feature/floor_cover.json").write_text(json.dumps({"feature": "dreadpatch:floor_cover", "placement": []}, indent=2) + "\n")
     # The plains' grave patches (0.67.0): graveyard soil, wither roses, now and then a dead dreadwood tree.
     (DATA / "worldgen/configured_feature/grave_patch.json").write_text(json.dumps({"type": "dreadpatch:grave_patch", "config": {}}, indent=2) + "\n")
     (DATA / "worldgen/placed_feature/grave_patch.json").write_text(json.dumps({"feature": "dreadpatch:grave_patch", "placement": [
@@ -429,6 +432,8 @@ def main():
         steps[6] = [f for f in steps[6] if f not in underground + glacial] + underground + (glacial if name == "glacial_plains" else [])
         while len(steps) < 10:
             steps.append([])
+        # Step 0, raw generation: the bedrock covered (0.98.12), every biome.
+        steps[0] = [f for f in steps[0] if f != "dreadpatch:floor_cover"] + ["dreadpatch:floor_cover"]
         # Step 1, lakes: the deeps flooded (0.77.0), every biome.
         steps[1] = [f for f in steps[1] if f != "dreadpatch:deep_water"] + ["dreadpatch:deep_water"]
         # Step 4, surface structures: an ice dragon's bones now and then (0.76.0), every biome.

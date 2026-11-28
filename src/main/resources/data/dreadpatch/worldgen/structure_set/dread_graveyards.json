@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "dreadpatch:dread_graveyard",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 8,
+    "separation": 3,
+    "salt": 1093847262
+  }
+}
