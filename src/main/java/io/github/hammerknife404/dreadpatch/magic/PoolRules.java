@@ -148,6 +148,39 @@ public final class PoolRules {
 
     public static final int MAX_DEPTH = 4;
 
+    /**
+     * Each column's depth as deep as the ground under it allows (0.98.13: one column without solid ground four down refused
+     * the whole pool, and the chasma's floor is shot through with water pockets, so 25 plates in the smoke test got none):
+     * at most its {@link #depth}, at most {@code solidUnder} (how many blocks under its top are whole and solid, from the
+     * first down), and never more than one deeper than a neighbour in the pool (so each side of its water is the solid
+     * ground under that neighbour's). Columns with no solid under them at all give 0; any 0 means no pool.
+     */
+    public static java.util.Map<Long, Integer> depths(Set<Long> cells, java.util.function.ToIntFunction<Long> solidUnder) {
+        java.util.Map<Long, Integer> depths = new java.util.HashMap<>();
+        for (long cell : cells) {
+            depths.put(cell, Math.min(depth(cells, x(cell), z(cell)), Math.max(0, solidUnder.applyAsInt(cell))));
+        }
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            for (long cell : cells) {
+                int here = depths.get(cell);
+                for (int[] step : steps) {
+                    Integer next = depths.get(pack(x(cell) + step[0], z(cell) + step[1]));
+                    if (next != null && here > next + 1) {
+                        here = next + 1;
+                    }
+                }
+                if (here != depths.get(cell)) {
+                    depths.put(cell, here);
+                    changed = true;
+                }
+            }
+        }
+        return depths;
+    }
+
     public static boolean deep(Set<Long> cells, int x, int z) {
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {

@@ -84,4 +84,25 @@ class PoolRulesTest {
         assertFalse(PoolRules.inPond(4, 0, 4, ragged));
         assertTrue(PoolRules.inPond(2, 0, 4, ragged));
     }
+
+    @Test
+    void itShelvesShallowerOverAPocket() {
+        Set<Long> cells = PoolRules.fill(plate(6, false));
+        // Solid 4 down everywhere but over a pocket at (1, 0), with only 1 solid under it.
+        java.util.Map<Long, Integer> depths = PoolRules.depths(cells, cell -> PoolRules.x(cell) == 1 && PoolRules.z(cell) == 0 ? 1 : 4);
+        assertEquals(1, depths.get(PoolRules.pack(1, 0)));
+        // Its neighbours no more than one deeper, the middle 2 then, not 4.
+        assertEquals(2, depths.get(PoolRules.pack(0, 0)));
+        assertEquals(2, depths.get(PoolRules.pack(2, 0)));
+        // Far from it, the full 4 is kept where the plate allows.
+        assertEquals(3, depths.get(PoolRules.pack(-2, 0)));
+        for (long cell : cells) {
+            for (int[] s : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                Integer n = depths.get(PoolRules.pack(PoolRules.x(cell) + s[0], PoolRules.z(cell) + s[1]));
+                if (n != null) {
+                    assertTrue(depths.get(cell) <= n + 1);
+                }
+            }
+        }
+    }
 }

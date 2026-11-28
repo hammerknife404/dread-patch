@@ -983,6 +983,8 @@ def main():
     rcon.run("kill @e[tag=smoke_hop_v]")
     clear_court()
     rcon.run("fill 0 199 0 32 210 32 minecraft:air")
+    # The court's pad put back (0.98.13: clearing it took the pad from under every check after, two dozen failing).
+    rcon.run("fill 1 199 1 15 199 14 minecraft:stone")
 
     # Potions of Rimefrost and Withering Rime (0.95.0): each splash, its own zombie 10 apart (a splash reaches 4), the
     # strong Rimefrost at II, the long Withering Rime longer than 45 s left; a thrall splashed takes neither.
@@ -1627,6 +1629,9 @@ def main():
     n = beasts_of_caster()
     record("their time up, the beasts go", n == 0, f"{n} still standing")
     clear_court()
+    # Its own chunks loaded (they're past the pad's, where nothing would tick).
+    rcon.run("forceload add 30 30 54 50")
+    time.sleep(2.0)
     rcon.run("fill 30 199 30 54 204 40 minecraft:stone")
     rcon.run("fill 32 200 32 38 202 38 minecraft:air")
     rcon.run("fill 40 200 34 50 202 36 minecraft:air")
@@ -1668,6 +1673,7 @@ def main():
     rcon.run("kill @e[tag=smoke_skull_v]")
     rcon.run("kill @e[type=dreadpatch:lich_skull]")
     rcon.run("fill 30 199 30 54 206 50 minecraft:air")
+    rcon.run("forceload remove 30 30 54 50")
     rcon.run("kill @e[tag=smoke_caster]")
 
     # A Dread Lich calls them too (its countdown set short): 1-2, answering to it, at the golem it fights.
@@ -3163,7 +3169,8 @@ def main():
     made = False
     for _ in range(30):
         time.sleep(0.5)
-        if re.search(r'Slot: 2b, id: "dreadpatch:dread_sovereigns_tome"', forge_items(8, 241, 7)):
+        # Its components come between its slot and its id in the block's data, so the id is looked for on its own.
+        if "dreadpatch:dread_sovereigns_tome" in forge_items(8, 241, 7):
             made = True
             break
     out = forge_items(8, 241, 7)
