@@ -58,4 +58,26 @@ class PoolRulesTest {
             assertEquals(p[1], PoolRules.z(packed));
         }
     }
+
+    @Test
+    void aHolesBottomNotACaveOrFlat() {
+        // Seen in the dev world: a dip at 69, five sides 72 or more at 12 out.
+        int[] walls = {70, 70, 69, 74, 73, 73, 73, 74};
+        assertTrue(PoolRules.inHole(69, walls));
+        // Flat round it: no hole.
+        assertFalse(PoolRules.inHole(70, new int[]{71, 70, 72, 70, 71, 71, 70, 70}));
+        // Deep in a cave's mouth: not its pond.
+        assertFalse(PoolRules.inHole(40, walls));
+    }
+
+    @Test
+    void aPondIsRaggedRound() {
+        double[] smooth = new double[8];
+        assertTrue(PoolRules.inPond(0, 0, 4, smooth));
+        assertTrue(PoolRules.inPond(4, 0, 4, smooth));
+        assertFalse(PoolRules.inPond(4, 1, 4, smooth));
+        double[] ragged = {1, 1, 1, 1, 1, 1, 1, 1};
+        assertFalse(PoolRules.inPond(4, 0, 4, ragged));
+        assertTrue(PoolRules.inPond(2, 0, 4, ragged));
+    }
 }

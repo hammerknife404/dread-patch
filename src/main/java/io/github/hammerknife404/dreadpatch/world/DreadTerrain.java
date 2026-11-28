@@ -47,6 +47,7 @@ public final class DreadTerrain {
     public static final DeferredHolder<Feature<?>, HeavedSlabs> HEAVED_SLABS = FEATURES.register("heaved_slabs", HeavedSlabs::new);
     /** A pool in a chasma plate (0.97.0). */
     public static final DeferredHolder<Feature<?>, HexPool> HEX_POOL = FEATURES.register("hex_pool", HexPool::new);
+    public static final DeferredHolder<Feature<?>, HolePool> HOLE_POOL = FEATURES.register("hole_pool", HolePool::new);
     public static final DeferredHolder<Feature<?>, DragonSkeleton> DRAGON_SKELETON = FEATURES.register("dragon_skeleton", DragonSkeleton::new);
     public static final DeferredHolder<Feature<?>, DeepWater> DEEP_WATER = FEATURES.register("deep_water", DeepWater::new);
     /** A wild Rimefrost dragon's nest on the Glacial Plains (0.84.0). */
@@ -473,6 +474,161 @@ public final class DreadTerrain {
                 }
             }
             return true;
+        }
+    }
+
+    /**
+     * A pool at the bottom of a Sastrugi Wastes hole ({@link io.github.hammerknife404.dreadpatch.magic.PoolRules}, 0.98.6):
+     * downhill from its origin to a hole's bottom, if it's one, a ragged pond dug into the floor: its columns those of it
+     * whose ground is at most {@code POND_BANK} over the floor (dug down to it; higher stays a bank), water in their top block and the one under where all eight
+     * round are in it; only where every block round its water is whole and solid. Frozen at its edges as a plate's pool,
+     * a snow layer over it cleared, a Dread Fish one time in three. After {@code freeze_top_layer}, so its water's left
+     * open to freeze in from the edges.
+     */
+    public static final class HolePool extends Feature<NoneFeatureConfiguration> {
+        static final int SCAN_FROM = 110;
+        static final int SCAN_TO = 40;
+
+        HolePool() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            RandomSource random = context.random();
+            int startX = context.origin().getX();
+            int startZ = context.origin().getZ();
+            int ox = startX;
+            int oz = startZ;
+            int floor = ground(level, ox, oz);
+            int walk = io.github.hammerknife404.dreadpatch.magic.PoolRules.HOLE_WALK;
+            for (boolean moved = floor != Integer.MIN_VALUE; moved; ) {
+                moved = false;
+                for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}}) {
+                    int nx = ox + step[0];
+                    int nz = oz + step[1];
+                    if (Math.abs(nx - startX) > walk || Math.abs(nz - startZ) > walk) {
+                        continue;
+                    }
+                    int g = ground(level, nx, nz);
+                    if (g != Integer.MIN_VALUE && g < floor) {
+                        ox = nx;
+                        oz = nz;
+                        floor = g;
+                        moved = true;
+                        break;
+                    }
+                }
+            }
+            int reach = io.github.hammerknife404.dreadpatch.magic.PoolRules.HOLE_RIM;
+            int[] rim = new int[8];
+            for (int k = 0; k < 8; k++) {
+                double angle = k * Math.PI / 4.0;
+                rim[k] = ground(level, ox + (int) Math.round(Math.cos(angle) * reach), oz + (int) Math.round(Math.sin(angle) * reach));
+            }
+            if (floor == Integer.MIN_VALUE || !io.github.hammerknife404.dreadpatch.magic.PoolRules.inHole(floor, rim)) {
+                return false;
+            }
+            int radius = io.github.hammerknife404.dreadpatch.magic.PoolRules.POND_MIN
+                    + random.nextInt(io.github.hammerknife404.dreadpatch.magic.PoolRules.POND_MAX - io.github.hammerknife404.dreadpatch.magic.PoolRules.POND_MIN + 1);
+            double[] ragged = new double[8];
+            for (int k = 0; k < 8; k++) {
+                ragged[k] = random.nextDouble();
+            }
+            java.util.Set<Long> cells = new java.util.HashSet<>();
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (!io.github.hammerknife404.dreadpatch.magic.PoolRules.inPond(dx, dz, radius, ragged)) {
+                        continue;
+                    }
+                    int top = ground(level, ox + dx, oz + dz);
+                    if (top == Integer.MIN_VALUE || top < floor) {
+                        // Lower ground in it, or water: it'd drain.
+                        return false;
+                    }
+                    if (top <= floor + io.github.hammerknife404.dreadpatch.magic.PoolRules.POND_BANK) {
+                        cells.add(io.github.hammerknife404.dreadpatch.magic.PoolRules.pack(dx, dz));
+                    }
+                }
+            }
+            if (cells.size() < io.github.hammerknife404.dreadpatch.magic.PoolRules.HOLE_MIN_CELLS) {
+                return false;
+            }
+            // Round every water block, solid: its sides out of the pond at the floor, and under it.
+            for (long cell : cells) {
+                int dx = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
+                int dz = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
+                boolean deep = io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, dx, dz);
+                if (!solid(level, new BlockPos(ox + dx, floor - (deep ? 2 : 1), oz + dz))) {
+                    return false;
+                }
+                for (int[] side : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                    if (!cells.contains(io.github.hammerknife404.dreadpatch.magic.PoolRules.pack(dx + side[0], dz + side[1]))
+                            && !solid(level, new BlockPos(ox + dx + side[0], floor, oz + dz + side[1]))) {
+                        return false;
+                    }
+                }
+            }
+            BlockState water = Blocks.WATER.defaultBlockState();
+            BlockState ice = Blocks.ICE.defaultBlockState();
+            BlockPos deepest = null;
+            int nearest = Integer.MAX_VALUE;
+            for (long cell : cells) {
+                int dx = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
+                int dz = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
+                BlockPos at = new BlockPos(ox + dx, floor, oz + dz);
+                // A cut bank: the ground over the water dug away.
+                for (int y = floor + 1; y <= floor + io.github.hammerknife404.dreadpatch.magic.PoolRules.POND_BANK; y++) {
+                    BlockPos over = at.atY(y);
+                    if (solid(level, over)) {
+                        level.setBlock(over, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+                    }
+                }
+                boolean edge = io.github.hammerknife404.dreadpatch.magic.PoolRules.edge(cells, dx, dz);
+                float frozen = edge ? io.github.hammerknife404.dreadpatch.magic.PoolRules.EDGE_ICE : io.github.hammerknife404.dreadpatch.magic.PoolRules.OPEN_ICE;
+                level.setBlock(at, random.nextFloat() < frozen ? ice : water, Block.UPDATE_CLIENTS);
+                if (!level.getBlockState(at.above()).isAir() && !solid(level, at.above())) {
+                    level.setBlock(at.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+                }
+                if (io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, dx, dz)) {
+                    level.setBlock(at.below(), water, Block.UPDATE_CLIENTS);
+                    if (dx * dx + dz * dz < nearest) {
+                        nearest = dx * dx + dz * dz;
+                        deepest = at.below();
+                    }
+                }
+            }
+            if (deepest != null && random.nextInt(io.github.hammerknife404.dreadpatch.magic.PoolRules.FISH_ONE_IN) == 0) {
+                io.github.hammerknife404.dreadpatch.entity.DreadFish fish = io.github.hammerknife404.dreadpatch.registry.ModRegistries.DREAD_FISH.get().create(level.getLevel());
+                if (fish != null) {
+                    fish.moveTo(deepest.getX() + 0.5, deepest.getY(), deepest.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+                    net.neoforged.neoforge.event.EventHooks.finalizeMobSpawn(fish, level, level.getCurrentDifficultyAt(deepest),
+                            net.minecraft.world.entity.MobSpawnType.CHUNK_GENERATION, null);
+                    level.addFreshEntityWithPassengers(fish);
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Its ground's top at a column: the highest whole solid block down from {@link #SCAN_FROM} (over the wastes' ground,
+         * 68-78; a heightmap of a chunk being made isn't kept once it's made, so a {@code place feature} read it wrong);
+         * past water already there, none.
+         */
+        private static int ground(WorldGenLevel level, int x, int z) {
+            int y = SCAN_FROM;
+            int floor = SCAN_TO;
+            for (; y > floor; y--) {
+                BlockPos at = new BlockPos(x, y, z);
+                if (!level.getFluidState(at).isEmpty()) {
+                    return Integer.MIN_VALUE;
+                }
+                if (solid(level, at)) {
+                    return y;
+                }
+            }
+            return Integer.MIN_VALUE;
         }
     }
 

@@ -26,6 +26,52 @@ public final class PoolRules {
     /** At its edge (by a ridge) a column starts frozen this often, and in the open this often: freezing from the edges. */
     public static final float EDGE_ICE = 0.35F;
     public static final float OPEN_ICE = 0.04F;
+    /**
+     * Pools at the bottom of the Sastrugi Wastes' holes (0.98.6, the owner: "The same kind of freezing shallow rime chasma
+     * pools can also spawn at the bottom of sastrugi holes. These can also spawn dread fish"). The holes are gentle dips
+     * (2-4 blocks over 10-20, the dev world's), too open for a ridge to close a pool in, so one is dug into the bottom
+     * instead: downhill from its spot ({@link #HOLE_WALK}), where the ground is a hole's bottom ({@link #inHole}: of eight spots {@link #HOLE_RIM} out, at least {@link #HOLE_SIDES} are
+     * {@link #HOLE_DEPTH} or more higher; and between {@link #HOLE_LOW} and {@link #HOLE_HIGH}, so not a cave's mouth), a
+     * ragged round pond {@link #POND_MIN}-{@link #POND_MAX} in radius ({@link #inPond}) one block into it, a second under
+     * every column with all eight round it in it, as a plate's pool. Every chunk of the wastes tries ({@link #HOLE_CHUNK_ONE_IN}): most spots aren't in a hole, so about one chunk in 200 gets one (5 of 1,024 tried in the dev world).
+     */
+    public static final int HOLE_CHUNK_ONE_IN = 1;
+    public static final int HOLE_MIN_CELLS = 12;
+    public static final int HOLE_DEPTH = 2;
+    public static final int HOLE_RIM = 12;
+    public static final int HOLE_SIDES = 5;
+    /** How far (blocks) it walks downhill from its spot to a hole's bottom first. */
+    public static final int HOLE_WALK = 8;
+    /** Ground in its pond up to this much over the water is dug away (a cut bank), higher stays. */
+    public static final int POND_BANK = 2;
+    public static final int HOLE_LOW = 55;
+    public static final int HOLE_HIGH = 80;
+    public static final int POND_MIN = 3;
+    public static final int POND_MAX = 6;
+    /** How much its edge may come in from its radius (in each of 8 sectors). */
+    public static final double POND_RAGGED = 1.5;
+
+    /** Whether ground at {@code bottom}, with the ground at eight spots round it {@code rim}, is a hole's bottom. */
+    public static boolean inHole(int bottom, int[] rim) {
+        if (bottom < HOLE_LOW || bottom > HOLE_HIGH) {
+            return false;
+        }
+        int higher = 0;
+        for (int top : rim) {
+            if (top >= bottom + HOLE_DEPTH) {
+                higher++;
+            }
+        }
+        return higher >= HOLE_SIDES;
+    }
+
+    /** Whether {@code (dx, dz)} is in a pond of {@code radius}, its edge in each of 8 sectors in by {@code ragged[sector]} (0-1 of {@link #POND_RAGGED}). */
+    public static boolean inPond(int dx, int dz, int radius, double[] ragged) {
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        int sector = (int) Math.floor((Math.atan2(dz, dx) + Math.PI) / (Math.PI / 4.0)) & 7;
+        return distance <= radius - ragged[sector] * POND_RAGGED;
+    }
+
     /** One pool in this many starts with a Dread Fish in it. */
     public static final int FISH_ONE_IN = 3;
 
@@ -40,6 +86,11 @@ public final class PoolRules {
 
     /** The pool's columns (packed offsets, {@link #pack}), or null where there's none to fill. */
     public static Set<Long> fill(Columns columns) {
+        return fill(columns, MIN_CELLS);
+    }
+
+    /** As {@link #fill(Columns)}, with its least size {@code minCells}. */
+    public static Set<Long> fill(Columns columns, int minCells) {
         if (columns.at(0, 0) != Column.FLOOR) {
             return null;
         }
@@ -67,7 +118,7 @@ public final class PoolRules {
                 open.add(new int[]{x, z});
             }
         }
-        return cells.size() < MIN_CELLS ? null : cells;
+        return cells.size() < minCells ? null : cells;
     }
 
     /** Whether a column of the pool is two deep: all eight round it in it too. */

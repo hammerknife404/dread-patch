@@ -75,6 +75,9 @@ public final class DreadlandsSpawns {
             if (dread && DreadlandsSpawning.comesUp(DreadPatchConfig.undeadOneIn(), roll)) {
                 raiseUndead(level, player, roll, random);
             }
+            if (dread && DreadlandsSpawning.comesUp(DreadPatchConfig.iceSpiderOneIn(), roll) && Dreadlands.nearVillage(level, player.blockPosition())) {
+                raiseIceSpiders(level, player, roll, random);
+            }
             if (patrols && DreadlandsSpawning.comesUp(DreadPatchConfig.patrolOneIn(), roll)
                     && !DreadPatrols.patrolNear(level, player.position(), PATROL_SPACING)) {
                 Vec3 at = ground(level, player, DreadlandsSpawning.PATROL_MIN_DISTANCE, DreadlandsSpawning.PATROL_MAX_DISTANCE, random);
@@ -117,6 +120,34 @@ public final class DreadlandsSpawns {
             }
             EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.NATURAL, null);
             level.addFreshEntityWithPassengers(mob);
+        }
+    }
+
+    /** Iron's ice spider, if Iron's has it. */
+    static final net.minecraft.resources.ResourceLocation ICE_SPIDER = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ice_spider");
+
+    /** 1-2 of Iron's ice spiders near a village (0.98.6), on the ground near the player; never past the cap of them. */
+    private static void raiseIceSpiders(ServerLevel level, ServerPlayer player, Random roll, RandomSource random) {
+        EntityType<?> type = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(ICE_SPIDER);
+        if (!net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(ICE_SPIDER)) {
+            return;
+        }
+        int standing = level.getEntities(type, player.getBoundingBox().inflate(DreadlandsSpawning.CAP_RANGE), entity -> true).size();
+        int count = Math.min(DreadPatchConfig.iceSpiderCap() - standing, 1 + roll.nextInt(2));
+        Vec3 at = count > 0 ? ground(level, player, DreadlandsSpawning.MIN_DISTANCE, DreadlandsSpawning.MAX_DISTANCE, random) : null;
+        if (at == null) {
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            if (!(type.create(level) instanceof net.minecraft.world.entity.Mob spider)) {
+                return;
+            }
+            spider.moveTo(at.x + random.nextInt(5) - 2, at.y, at.z + random.nextInt(5) - 2, random.nextFloat() * 360.0F, 0.0F);
+            if (!level.noCollision(spider)) {
+                spider.moveTo(at.x, at.y, at.z, spider.getYRot(), 0.0F);
+            }
+            EventHooks.finalizeMobSpawn(spider, level, level.getCurrentDifficultyAt(spider.blockPosition()), MobSpawnType.NATURAL, null);
+            level.addFreshEntityWithPassengers(spider);
         }
     }
 

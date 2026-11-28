@@ -61,6 +61,8 @@ public final class Dreadlands {
     static final int PHANTOM_CAP = 4;
     /** How far (in chunks) to look for a spire a player is near. */
     static final int SPIRE_NEAR_CHUNKS = 7;
+    public static final TagKey<Structure> VILLAGES = TagKey.create(Registries.STRUCTURE, DreadPatch.id("dread_villages"));
+    static final int VILLAGE_NEAR_CHUNKS = 7;
 
     /** Where someone arrives, facing the spire. */
     public record Arrival(Vec3 pos, float yaw) {
@@ -175,6 +177,17 @@ public final class Dreadlands {
     }
 
     /** Whether {@code pos} is within {@link DreadlandsSpawning#SPIRE_REACH} of a spire's middle. */
+    /** Whether {@code pos} is within {@link DreadlandsSpawning#VILLAGE_REACH} of a village's middle (0.98.6). */
+    public static boolean nearVillage(ServerLevel level, BlockPos pos) {
+        BlockPos village = level.findNearestMapStructure(VILLAGES, pos, VILLAGE_NEAR_CHUNKS, false);
+        if (village == null) {
+            return false;
+        }
+        double dx = (village.getX() & ~15) + 8.5 - pos.getX();
+        double dz = (village.getZ() & ~15) + 8.5 - pos.getZ();
+        return dx * dx + dz * dz <= DreadlandsSpawning.VILLAGE_REACH * DreadlandsSpawning.VILLAGE_REACH;
+    }
+
     public static boolean nearSpire(ServerLevel level, BlockPos pos) {
         BlockPos spire = level.findNearestMapStructure(SPIRES, pos, SPIRE_NEAR_CHUNKS, false);
         if (spire == null) {

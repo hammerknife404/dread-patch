@@ -212,6 +212,8 @@
   "dreadpatch.configuration.dread_light_freeze_minutes": "Minutes a dread light takes to freeze water to blue ice",
   "dreadpatch.configuration.undead_spawns": "Stray undead rising (one in)",
   "dreadpatch.configuration.undead_cap": "Most stray undead near a player",
+  "dreadpatch.configuration.ice_spider_spawns": "Ice spiders near villages (one in)",
+  "dreadpatch.configuration.ice_spider_cap": "Most ice spiders near a player",
   "dreadpatch.configuration.village_liches": "Abandoned villages with a Dread Lich (one in)",
   "dreadpatch.configuration.phantoms": "Dread phantoms (one in)",
   "dreadpatch.configuration.phantoms_near_spires": "Dread phantoms near spires (one in)",

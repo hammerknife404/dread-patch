@@ -29,6 +29,8 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.IntValue PATROLS;
     private static final ModConfigSpec.IntValue UNDEAD;
     private static final ModConfigSpec.IntValue UNDEAD_CAP;
+    private static final ModConfigSpec.IntValue ICE_SPIDERS;
+    private static final ModConfigSpec.IntValue ICE_SPIDER_CAP;
     private static final ModConfigSpec.IntValue VILLAGE_LICHES;
     private static final ModConfigSpec.IntValue MAUSOLEUM_DREAD;
     private static final ModConfigSpec.IntValue CAVE_PHANTOMS;
@@ -85,6 +87,11 @@ public final class DreadPatchConfig {
                 .defineInRange("undead_spawns", DreadlandsSpawning.UNDEAD_ONE_IN, 0, 10000);
         UNDEAD_CAP = builder.comment("No more of them rise while this many of vanilla's undead are within 64 blocks of the player.")
                 .defineInRange("undead_cap", DreadlandsSpawning.UNDEAD_CAP, 0, 100);
+        ICE_SPIDERS = builder.comment("Iron's ice spiders near the Dreadlands' villages: each player within 96 blocks of one has a one-in-this chance",
+                "every 10 s of 1-2 rising 24-48 blocks off. 0: never.")
+                .defineInRange("ice_spider_spawns", DreadlandsSpawning.ICE_SPIDER_ONE_IN, 0, 10000);
+        ICE_SPIDER_CAP = builder.comment("No more of them rise while this many ice spiders are within 64 blocks of the player.")
+                .defineInRange("ice_spider_cap", DreadlandsSpawning.ICE_SPIDER_CAP, 0, 100);
         VILLAGE_LICHES = builder.comment("One abandoned village in this many has a Dread Lich at its heart, from when it's made (villages already made",
                 "keep what they had). 0: none.").defineInRange("village_liches", DreadlandsSpawning.VILLAGE_LICH_ONE_IN, 0, 10000);
         PHANTOMS = builder.comment("Dread phantoms coming down on a player under the open sky: a one-in-this chance every 30 s. 0: never.")
@@ -198,6 +205,14 @@ public final class DreadPatchConfig {
 
     public static int undeadOneIn() {
         return SPEC.isLoaded() ? UNDEAD.get() : DreadlandsSpawning.UNDEAD_ONE_IN;
+    }
+
+    public static int iceSpiderOneIn() {
+        return SPEC.isLoaded() ? ICE_SPIDERS.get() : DreadlandsSpawning.ICE_SPIDER_ONE_IN;
+    }
+
+    public static int iceSpiderCap() {
+        return SPEC.isLoaded() ? ICE_SPIDER_CAP.get() : DreadlandsSpawning.ICE_SPIDER_CAP;
     }
 
     public static int undeadCap() {
