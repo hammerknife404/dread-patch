@@ -35,8 +35,19 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 - **What it makes:**
   - **Rimefrost Dragon Blood:** Rimefrost Dragon Scales and a glass bottle (37.5 seconds of breath).
   - **Dread Dragonsteel Ingot:** an iron ingot and Rimefrost Dragon Blood (50 seconds of breath).
+  - **Dread Sovereign's Tome:** the Unforged Sovereign's Tome and Rimefrost Dragon Blood (75 seconds of breath); its spells come with it ([below](#rimefrost-spellbooks)).
   - Packs can add their own: any Ice and Fire `iceandfire:dragonforge` recipe with `"dragonType": "rimefrost"`.
 - **JEI:** with JEI installed, its recipes have a page of their own.
+
+## Rimefrost spellbooks
+
+Two spellbooks for Rimefrost casters, worn in Iron's spellbook slot. Each holds 12 spells, and each step keeps the spells inscribed in the book before it.
+
+- **Rimebound Tome:** Iron's Ice Spell Book at a smithing table, with a dread shard as the template and a dreadwood log as the addition. +5% Ice spell power (the Ice book's 10% halved), +15% Rimefrost spell power, +200 max mana.
+- **Unforged Sovereign's Tome:** the Rimebound Tome at a smithing table, with a Dread Dragonsteel Ingot as the template and a Rimefrost Dragon Scale as the addition. Not a spellbook yet: forge it.
+- **Dread Sovereign's Tome:** the Unforged Sovereign's Tome forged in the Rimefrost dragonforge with Rimefrost Dragon Blood. +30% Rimefrost spell power, +10% Rimefrost resistance, +300 max mana, and no Ice bonus.
+
+Rimefrost spells are Ice spells too, so Ice spell power adds to them as well.
 
 ## Her staff and sword
 

@@ -63,6 +63,7 @@ public final class DreadPatch {
         DreadForge.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.DreadPotions.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Hoard.register(modBus);
+        io.github.hammerknife404.dreadpatch.registry.DreadTomes.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
         io.github.hammerknife404.dreadpatch.world.DreadTerrain.register(modBus);
@@ -183,6 +184,7 @@ public final class DreadPatch {
             event.accept(DreadGear.DREAD_DRAGONSTEEL_AXE.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_SHOVEL.get());
             event.accept(DreadGear.DREAD_DRAGONSTEEL_HOE.get());
+            io.github.hammerknife404.dreadpatch.registry.DreadTomes.items().forEach(item -> event.accept(item.get()));
             event.accept(ModRegistries.MUSIC_DISC_ENTOMBED_IN_RIMEFROST.get());
             event.accept(ModRegistries.MUSIC_DISC_BENEATH_THE_PERMAFROST.get());
         }

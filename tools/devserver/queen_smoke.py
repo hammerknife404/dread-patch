@@ -3087,6 +3087,22 @@ def main():
             break
     out = forge_items(8, 241, 7)
     record("it makes Rimefrost dragon blood (scale and bottle used)", made and "glass_bottle" not in out and "rimefrost_dragon_scale" not in out, out.strip())
+    # The Dread Sovereign's Tome (0.98.3): the unforged tome holding a spell, with Rimefrost blood, comes out the tome
+    # with its spell still in it (its cook, 1500, set near its end as the blood's was).
+    rcon.run("item replace block 8 241 7 container.2 with minecraft:air")
+    rcon.run('item replace block 8 241 7 container.0 with dreadpatch:unforged_sovereigns_tome[irons_spellbooks:spell_container='
+             '{maxSpells:12,spellWheel:1b,mustEquip:1b,data:[{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:0b}]}]')
+    rcon.run("item replace block 8 241 7 container.1 with dreadpatch:rimefrost_dragon_blood")
+    time.sleep(1.0)
+    rcon.run("data merge block 8 241 7 {CookTime:1450.0d}")
+    made = False
+    for _ in range(30):
+        time.sleep(0.5)
+        if re.search(r'Slot: 2b, id: "dreadpatch:dread_sovereigns_tome"', forge_items(8, 241, 7)):
+            made = True
+            break
+    out = forge_items(8, 241, 7)
+    record("it forges the Dread Sovereign's Tome, keeping its spell (0.98.3)", made and "withering_rime_bolt" in out and "unforged" not in out, out.strip())
     rcon.run("kill @e[tag=smoke_forge_dragon]")
     # Only the new forge: Ice and Fire's ice dragonforge, lit by a tame ice dragon, no longer makes
     # Rimefrost blood of our scale; it makes what it makes of anything it has no recipe for, dragon ice.

@@ -163,6 +163,27 @@
         {
           "from": "iceandfire:item/dragonarmor_dragonsteel_ice_tail",
           "to": "dreadpatch:item/dragonarmor_dread_dragonsteel_tail"
+        },
+        {
+          "from": "irons_spellbooks:item/ice_spell_book",
+          "to": "dreadpatch:item/rimebound_tome"
+        },
+        {
+          "from": "irons_spellbooks:item/spell_book_models/ice_spell_book",
+          "to": "dreadpatch:item/spell_book_models/rimebound_tome"
+        },
+        {
+          "from": "irons_spellbooks:item/dragonskin_spell_book",
+          "to": "dreadpatch:item/dread_sovereigns_tome"
+        },
+        {
+          "from": "irons_spellbooks:item/spell_book_models/dragonskin_spell_book",
+          "to": "dreadpatch:item/spell_book_models/dread_sovereigns_tome"
+        },
+        {
+          "from": "irons_spellbooks:item/iron_spell_book",
+          "to": "dreadpatch:item/unforged_sovereigns_tome",
+          "palette": "iron"
         }
       ]
     }

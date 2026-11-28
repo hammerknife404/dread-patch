@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "iceandfire:dread_shard"
+  },
+  "base": {
+    "item": "irons_spellbooks:ice_spell_book"
+  },
+  "addition": {
+    "item": "iceandfire:dreadwood_log"
+  },
+  "result": {
+    "id": "dreadpatch:rimebound_tome",
+    "count": 1
+  }
+}
