@@ -43,4 +43,14 @@ class SummonRulesTest {
         assertEquals(0, SummonRules.toSummon(2, true));
         assertEquals(0, SummonRules.toSummon(5, false));
     }
+
+    @Test
+    void beastsAreTwoAtFirstAndSmallEnoughForAHole() {
+        org.junit.jupiter.api.Assertions.assertEquals(2, SummonRules.beastCount(1));
+        org.junit.jupiter.api.Assertions.assertEquals(6, SummonRules.beastCount(5));
+        org.junit.jupiter.api.Assertions.assertEquals(6, SummonRules.beastCount(9));
+        // Ice and Fire's beast box, 1.2 by 0.9 at size 1, scaled.
+        org.junit.jupiter.api.Assertions.assertTrue(1.2F * SummonRules.BEAST_SPELL_SIZE < 1.0F);
+        org.junit.jupiter.api.Assertions.assertTrue(0.9F * SummonRules.BEAST_SPELL_SIZE < 1.0F);
+    }
 }

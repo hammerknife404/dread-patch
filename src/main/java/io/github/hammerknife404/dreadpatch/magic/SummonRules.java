@@ -16,6 +16,15 @@ public final class SummonRules {
     /** The spell's fish last a minute, as the phantoms' spell's. */
     public static final int FISH_SPELL_SECONDS = 60;
     public static final int FISH_SPELL_MAX_LEVEL = 5;
+    /**
+     * Summon Dread Beast (0.98.2, the owner's handoff: "Add Summon Dread Beast spell: Rank 1 summons 2 Dread Beasts capable
+     * of entering 1x1 spaces"): one more beast than its level (2 at 1, 6 at 5), each {@link #BEAST_SPELL_SIZE} of a wild
+     * one's middling size (Ice and Fire's box, 1.2 wide and 0.9 tall at size 1, scales with it: 0.9 by 0.675, so through a
+     * 1 by 1 hole), a summoned court's for {@link #BEAST_SPELL_SECONDS}.
+     */
+    public static final int BEAST_SPELL_SECONDS = 60;
+    public static final int BEAST_SPELL_MAX_LEVEL = 5;
+    public static final float BEAST_SPELL_SIZE = 0.75F;
     /** Where a summoned fish rises: water this far round (across, and up or down) first, else the ground. */
     public static final int WATER_REACH = 6;
     public static final int WATER_DEPTH = 3;
@@ -45,6 +54,11 @@ public final class SummonRules {
     /** How many fish the spell summons at {@code spellLevel}: one a level, 1 to 5. */
     public static int fishCount(int spellLevel) {
         return Math.max(1, Math.min(FISH_SPELL_MAX_LEVEL, spellLevel));
+    }
+
+    /** How many beasts Summon Dread Beast raises at {@code spellLevel}: 2 at its first, one more each level. */
+    public static int beastCount(int spellLevel) {
+        return Math.max(1, Math.min(BEAST_SPELL_MAX_LEVEL, spellLevel)) + 1;
     }
 
     /** A countdown in {@code [min, max]}, from a roll in [0, 1). */

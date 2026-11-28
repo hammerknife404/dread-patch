@@ -410,6 +410,8 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.SublimateSpell> SUBLIMATE_SPELL = SPELLS.register("sublimate", io.github.hammerknife404.dreadpatch.spell.SublimateSpell::new);
     public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.SummonDreadFishSpell> SUMMON_DREAD_FISH_SPELL = SPELLS.register("summon_dread_fish", io.github.hammerknife404.dreadpatch.spell.SummonDreadFishSpell::new);
 
+    public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.SummonDreadBeastSpell> SUMMON_DREAD_BEAST_SPELL = SPELLS.register("summon_dread_beast", io.github.hammerknife404.dreadpatch.spell.SummonDreadBeastSpell::new);
+
     private ModRegistries() {
     }
 
