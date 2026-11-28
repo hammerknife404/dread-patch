@@ -138,6 +138,13 @@ public final class ModRegistries {
                     .clientTrackingRange(8)
                     .build(DreadPatch.id("withering_rime_bolt").toString()));
 
+    /** Lich Skull's skulls (0.98.5): Ice and Fire's lich skull's size. */
+    public static final DeferredHolder<EntityType<?>, EntityType<io.github.hammerknife404.dreadpatch.entity.LichSkull>> LICH_SKULL = ENTITY_TYPES.register("lich_skull",
+            () -> EntityType.Builder.<io.github.hammerknife404.dreadpatch.entity.LichSkull>of(io.github.hammerknife404.dreadpatch.entity.LichSkull::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(8)
+                    .build(DreadPatch.id("lich_skull").toString()));
+
     /** As wide as its ring, so its spikes aren't culled while the centre is off screen. */
     public static final DeferredHolder<EntityType<?>, EntityType<RimefireCrown>> RIMEFIRE_CROWN = ENTITY_TYPES.register("rimefire_crown",
             () -> EntityType.Builder.<RimefireCrown>of(RimefireCrown::new, MobCategory.MISC)
@@ -410,6 +417,7 @@ public final class ModRegistries {
     public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.SublimateSpell> SUBLIMATE_SPELL = SPELLS.register("sublimate", io.github.hammerknife404.dreadpatch.spell.SublimateSpell::new);
     public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.SummonDreadFishSpell> SUMMON_DREAD_FISH_SPELL = SPELLS.register("summon_dread_fish", io.github.hammerknife404.dreadpatch.spell.SummonDreadFishSpell::new);
 
+    public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.LichSkullSpell> LICH_SKULL_SPELL = SPELLS.register("lich_skull", io.github.hammerknife404.dreadpatch.spell.LichSkullSpell::new);
     public static final DeferredHolder<AbstractSpell, io.github.hammerknife404.dreadpatch.spell.SummonDreadBeastSpell> SUMMON_DREAD_BEAST_SPELL = SPELLS.register("summon_dread_beast", io.github.hammerknife404.dreadpatch.spell.SummonDreadBeastSpell::new);
 
     private ModRegistries() {

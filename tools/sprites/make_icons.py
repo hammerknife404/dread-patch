@@ -491,6 +491,36 @@ def summon_dread_beast():
     return im
 
 
+def lich_skull():
+    """Three of the Dread Lich's skulls streaking up and right out of the dark, bone-pale with her cyan in their eye
+    sockets, soul-blue trails behind them: the volley fanning out to its different foes."""
+    im = dread_background(16, 131)
+    palette = {"B": BONE_LIGHT, "b": BONE, "d": BONE_DIM, "c": DREAD_CYAN, "t": DEEP, "i": INDIGO, "h": (0x2B, 0x32, 0x47)}
+    art = [
+        "...........bBB..",
+        "..........bBBBb.",
+        ".........tbcBcb.",
+        "........tt.bhb..",
+        "...bBB.tt.......",
+        "..bBBBbt........",
+        ".tbcBcb.....bBB.",
+        "tt.bhb.....bBBBb",
+        "t........ttbcBcb",
+        "...bBB..tt..bhb.",
+        "..bBBBbtt.......",
+        ".tbcBcbt........",
+        "tt.bhb..........",
+        "ii..............",
+        "i...............",
+        "................",
+    ]
+    for y, row in enumerate(art):
+        for x, ch in enumerate(row):
+            if ch in palette:
+                im.putpixel((x, y), rgba(palette[ch]))
+    return im
+
+
 def rimefire_blast():
     """A cone of cold dread fire pouring up and right from a bone-white hand at the lower left: white-hot
     at the hand, her cyan through the middle, deep blue and soot at its ragged edge."""
@@ -829,6 +859,7 @@ def main():
         "gui/spell_icons/summon_dread_phantoms.png": summon_dread_phantoms(),
         "gui/spell_icons/summon_dread_fish.png": summon_dread_fish(),
         "gui/spell_icons/summon_dread_beast.png": summon_dread_beast(),
+        "gui/spell_icons/lich_skull.png": lich_skull(),
         "mob_effect/rimefrost.png": rimefrost_effect(),
         "gui/spell_icons/rimefire_blast.png": rimefire_blast(),
         "gui/spell_icons/sublimate.png": sublimate(),

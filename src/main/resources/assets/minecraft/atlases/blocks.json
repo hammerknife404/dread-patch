@@ -181,11 +181,6 @@
           "to": "dreadpatch:item/spell_book_models/dread_sovereigns_tome"
         },
         {
-          "from": "irons_spellbooks:item/iron_spell_book",
-          "to": "dreadpatch:item/unforged_sovereigns_tome",
-          "palette": "iron"
-        },
-        {
           "from": "minecraft:block/soul_campfire_fire",
           "to": "dreadpatch:block/dread_campfire_fire"
         },

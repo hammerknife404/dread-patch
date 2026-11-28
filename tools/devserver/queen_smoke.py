@@ -94,7 +94,7 @@ def main():
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
                   "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms",
-                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate", "dreadpatch:summon_dread_fish", "dreadpatch:summon_dread_beast"}
+                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate", "dreadpatch:summon_dread_fish", "dreadpatch:summon_dread_beast", "dreadpatch:lich_skull"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -1355,6 +1355,9 @@ def main():
     check("the lich staff carries the Dread's spells",
           "execute if items entity @e[tag=smoke_lich_staff,limit=1] weapon.mainhand iceandfire:lich_staff[irons_spellbooks:spell_container]",
           "Test passed")
+    check("and casts on right-click, its skull a spell (0.98.5)",
+          "execute if items entity @e[tag=smoke_lich_staff,limit=1] weapon.mainhand iceandfire:lich_staff[irons_spellbooks:casting_implement]",
+          "Test passed")
     rcon.run("kill @e[tag=smoke_lich_staff]")
     # 0.89.0: the overworld's dread weather starts and stops by command (it reaches only where its switches let it; with
     # no player near, its snow, cold and rising aren't seen here).
@@ -1646,6 +1649,25 @@ def main():
     rcon.run("kill @e[tag=smoke_hole_h]")
     rcon.run("fill 30 199 30 54 204 40 minecraft:air")
     rcon.run("kill @e[type=item]")
+
+    # Lich Skull (0.98.5): cast at 5 by a villager facing three husks spread across in front of it, every husk is struck
+    # (5 skulls, the three different targets first), and no skull is left flying after 3 s. (Probed by hand: all three hit.)
+    rcon.run("fill 30 199 30 54 199 50 minecraft:stone")
+    rcon.run("fill 30 200 30 54 206 50 minecraft:air")
+    rcon.run('summon minecraft:villager 42.5 200 32.5 {NoAI:1b,PersistenceRequired:1b,UUID:[I;985,985,985,985],Tags:["smoke_skull_v"],Rotation:[0f,0f],'
+             'active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+    for i, x in enumerate((36.5, 42.5, 48.5)):
+        rcon.run(f'summon minecraft:husk {x} 200 44.5 {{NoAI:1b,PersistenceRequired:1b,Tags:["smoke_skull_h","smoke_skull_h{i}"]}}')
+    time.sleep(1.0)
+    rcon.run("cast @e[tag=smoke_skull_v,limit=1] dreadpatch:lich_skull 5")
+    time.sleep(3.0)
+    struck = [health(f"@e[tag=smoke_skull_h{i},limit=1]") < 20.0 for i in range(3)]
+    record("Lich Skull at 5 strikes three different foes (0.98.5)", all(struck), f"struck {struck}")
+    record("and its skulls are spent", "Test failed" in rcon.run("execute if entity @e[type=dreadpatch:lich_skull]"), "skulls still flying")
+    rcon.run("kill @e[tag=smoke_skull_h]")
+    rcon.run("kill @e[tag=smoke_skull_v]")
+    rcon.run("kill @e[type=dreadpatch:lich_skull]")
+    rcon.run("fill 30 199 30 54 206 50 minecraft:air")
     rcon.run("kill @e[tag=smoke_caster]")
 
     # A Dread Lich calls them too (its countdown set short): 1-2, answering to it, at the golem it fights.
@@ -3087,10 +3109,11 @@ def main():
             break
     out = forge_items(8, 241, 7)
     record("it makes Rimefrost dragon blood (scale and bottle used)", made and "glass_bottle" not in out and "rimefrost_dragon_scale" not in out, out.strip())
-    # The Dread Sovereign's Tome (0.98.3): the unforged tome holding a spell, with Rimefrost blood, comes out the tome
-    # with its spell still in it (its cook, 1500, set near its end as the blood's was).
+    # The Dread Sovereign's Tome (0.98.3; straight from the Rimebound since 0.98.5): the Rimebound Tome holding a spell,
+    # with Rimefrost blood, comes out the Sovereign's with its spell still in it (its cook, 1500, set near its end as the
+    # blood's was).
     rcon.run("item replace block 8 241 7 container.2 with minecraft:air")
-    rcon.run('item replace block 8 241 7 container.0 with dreadpatch:unforged_sovereigns_tome[irons_spellbooks:spell_container='
+    rcon.run('item replace block 8 241 7 container.0 with dreadpatch:rimebound_tome[irons_spellbooks:spell_container='
              '{maxSpells:12,spellWheel:1b,mustEquip:1b,data:[{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:0b}]}]')
     rcon.run("item replace block 8 241 7 container.1 with dreadpatch:rimefrost_dragon_blood")
     time.sleep(1.0)
@@ -3102,7 +3125,7 @@ def main():
             made = True
             break
     out = forge_items(8, 241, 7)
-    record("it forges the Dread Sovereign's Tome, keeping its spell (0.98.3)", made and "withering_rime_bolt" in out and "unforged" not in out, out.strip())
+    record("it forges the Dread Sovereign's Tome, keeping its spell (0.98.3)", made and "withering_rime_bolt" in out and "rimebound" not in out, out.strip())
     rcon.run("kill @e[tag=smoke_forge_dragon]")
     # Only the new forge: Ice and Fire's ice dragonforge, lit by a tame ice dragon, no longer makes
     # Rimefrost blood of our scale; it makes what it makes of anything it has no recipe for, dragon ice.
@@ -3154,6 +3177,9 @@ def main():
     time.sleep(3.0)
     burned = health("@e[tag=smoke_campfire_pig,limit=1]") < 10.0 and has_effect("@e[tag=smoke_campfire_pig,limit=1]", "dreadpatch:rimefrost")
     record("a Dread Campfire chills and burns what's on it", burned, "the pig unhurt or unchilled")
+    # It burns until put out (0.98.5): not a campfire to anything going by #minecraft:campfires (rain rules among them),
+    # and her dread fire passes it by.
+    record("a Dread Campfire is out of #minecraft:campfires (0.98.5)", "Test failed" in rcon.run("execute if block 27 229 13 #minecraft:campfires"), "it's in the tag")
     rcon.run("kill @e[tag=smoke_campfire_pig]")
     rcon.run("fill 24 228 10 30 233 16 minecraft:air")
     rcon.run("kill @e[type=item]")

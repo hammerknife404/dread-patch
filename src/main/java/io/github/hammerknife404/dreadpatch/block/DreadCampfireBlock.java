@@ -47,8 +47,11 @@ import org.jetbrains.annotations.Nullable;
  * Dreadlands fades to, after a soul campfire (the owner's handoff). A campfire's shape, facing, lit and waterlogged; lit,
  * a dread light (6, its flames her cyan) and cold ({@code DreadCold}), and burning as rimefire does: the Dread healed,
  * anything else chilled and hurt. Food set on it (right-click, as on a campfire; any food) doesn't cook: lit, it
- * sublimates to ash ({@link DreadCampfireBlockEntity}). In {@code #minecraft:campfires}, so flint and steel lights it.
- * Water puts it out.
+ * sublimates to ash ({@link DreadCampfireBlockEntity}). It burns until it's put out (0.98.5, the owner: "Dread Campfires
+ * burn until put out and are immune to rain"): water in it, or a shovel, and nothing else. So it's kept out of
+ * {@code #minecraft:campfires}, which other mods' rules (rain putting campfires out among them) go by, and our own dread
+ * fire passes it by; flint and steel or a fire charge relight it and a shovel douses it, handled here (vanilla's tools test for its
+ * own campfires), by NeoForge's item abilities.
  */
 public class DreadCampfireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
     public static final MapCodec<DreadCampfireBlock> CODEC = simpleCodec(DreadCampfireBlock::new);
@@ -124,6 +127,30 @@ public class DreadCampfireBlock extends BaseEntityBlock implements SimpleWaterlo
     /** Food goes on it as on a campfire: one at a time, in its first free place. */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (stack.canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHOVEL_DOUSE) && state.getValue(LIT)) {
+            if (!level.isClientSide) {
+                level.levelEvent(null, 1009, pos, 0);
+                level.setBlock(pos, state.setValue(LIT, false), Block.UPDATE_ALL_IMMEDIATE);
+                level.gameEvent(player, net.minecraft.world.level.gameevent.GameEvent.BLOCK_CHANGE, pos);
+                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (stack.canPerformAction(net.neoforged.neoforge.common.ItemAbilities.FIRESTARTER_LIGHT) && !state.getValue(LIT) && !state.getValue(WATERLOGGED)) {
+            if (!level.isClientSide) {
+                boolean charge = stack.is(net.minecraft.world.item.Items.FIRE_CHARGE);
+                level.playSound(null, pos, charge ? SoundEvents.FIRECHARGE_USE : SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F,
+                        level.getRandom().nextFloat() * 0.4F + 0.8F);
+                level.setBlock(pos, state.setValue(LIT, true), Block.UPDATE_ALL_IMMEDIATE);
+                level.gameEvent(player, net.minecraft.world.level.gameevent.GameEvent.BLOCK_CHANGE, pos);
+                if (charge) {
+                    stack.consume(1, player);
+                } else {
+                    stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+                }
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (!stack.has(DataComponents.FOOD) || !(level.getBlockEntity(pos) instanceof DreadCampfireBlockEntity campfire)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
