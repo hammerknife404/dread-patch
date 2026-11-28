@@ -1,6 +1,5 @@
 package io.github.hammerknife404.dreadpatch.client;
 
-import net.minecraft.client.renderer.block.model.ItemOverrides;
 
 import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
@@ -16,8 +15,8 @@ import org.slf4j.Logger;
  * ({@code models/item/dread_queen_sword_regalia.json}, {@code _staff_regalia}, from {@code tools/models/make_regalia.py})
  * put in place of Ice and Fire's for its two items once models are baked, in hand (hers too), on the ground and as icons.
  * Ice and Fire's files are left as they are: nothing of theirs is shipped or overwritten, and its items stay its own.
- * Since 0.98.7 its own are the classic look, by default ({@link DreadPatchClientConfig}): both are kept, and an item
- * override picks one as each stack is drawn.
+ * Since 0.98.7 its own are the classic look, by default ({@link DreadPatchClientConfig}): both are kept, under a
+ * {@link Switch} that is whichever is chosen at every call.
  */
 public final class RegaliaWeapons {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -52,21 +51,90 @@ public final class RegaliaWeapons {
         }
         BakedModel classic = event.getModels().get(theirs);
         java.util.function.BooleanSupplier useClassic = item.equals("dread_queen_sword") ? DreadPatchClientConfig::classicSword : DreadPatchClientConfig::classicStaff;
-        // Both kept (0.98.7): which is drawn is the client config's, chosen as each stack is drawn, so a change shows at once.
-        ItemOverrides choose = new ItemOverrides(null, null, java.util.List.of()) {
-            @Override
-            public BakedModel resolve(BakedModel self, net.minecraft.world.item.ItemStack stack, @org.jetbrains.annotations.Nullable net.minecraft.client.multiplayer.ClientLevel level,
-                                      @org.jetbrains.annotations.Nullable net.minecraft.world.entity.LivingEntity entity, int seed) {
-                BakedModel shown = useClassic.getAsBoolean() ? classic : model;
-                BakedModel resolved = shown.getOverrides().resolve(shown, stack, level, entity, seed);
-                return resolved != null ? resolved : shown;
-            }
-        };
-        event.getModels().put(theirs, new net.neoforged.neoforge.client.model.BakedModelWrapper<>(classic) {
-            @Override
-            public ItemOverrides getOverrides() {
-                return choose;
-            }
-        });
+        // Both kept (0.98.7): which is drawn is the client config's, chosen at every call, so a change shows at once.
+        event.getModels().put(theirs, new Switch(classic, model, useClassic));
+    }
+
+    /**
+     * A model that is whichever of two the client config chooses (0.98.7), asked each time. Until 0.98.8's dev client this
+     * was an {@code ItemOverrides} with no baker, which NeoForge's patched constructor can't take: model baking failed and
+     * the game wouldn't load.
+     */
+    static final class Switch extends net.neoforged.neoforge.client.model.BakedModelWrapper<BakedModel> {
+        private final BakedModel redrawn;
+        private final java.util.function.BooleanSupplier useClassic;
+
+        Switch(BakedModel classic, BakedModel redrawn, java.util.function.BooleanSupplier useClassic) {
+            super(classic);
+            this.redrawn = redrawn;
+            this.useClassic = useClassic;
+        }
+
+        private BakedModel shown() {
+            return this.useClassic.getAsBoolean() ? this.originalModel : this.redrawn;
+        }
+
+        @Override
+        public java.util.List<net.minecraft.client.renderer.block.model.BakedQuad> getQuads(@org.jetbrains.annotations.Nullable net.minecraft.world.level.block.state.BlockState state,
+                @org.jetbrains.annotations.Nullable net.minecraft.core.Direction side, net.minecraft.util.RandomSource rand) {
+            return this.shown().getQuads(state, side, rand);
+        }
+
+        @Override
+        public java.util.List<net.minecraft.client.renderer.block.model.BakedQuad> getQuads(@org.jetbrains.annotations.Nullable net.minecraft.world.level.block.state.BlockState state,
+                @org.jetbrains.annotations.Nullable net.minecraft.core.Direction side, net.minecraft.util.RandomSource rand,
+                net.neoforged.neoforge.client.model.data.ModelData data, @org.jetbrains.annotations.Nullable net.minecraft.client.renderer.RenderType renderType) {
+            return this.shown().getQuads(state, side, rand, data, renderType);
+        }
+
+        @Override
+        public boolean useAmbientOcclusion() {
+            return this.shown().useAmbientOcclusion();
+        }
+
+        @Override
+        public boolean isGui3d() {
+            return this.shown().isGui3d();
+        }
+
+        @Override
+        public boolean usesBlockLight() {
+            return this.shown().usesBlockLight();
+        }
+
+        @Override
+        public boolean isCustomRenderer() {
+            return this.shown().isCustomRenderer();
+        }
+
+        @Override
+        public net.minecraft.client.renderer.texture.TextureAtlasSprite getParticleIcon() {
+            return this.shown().getParticleIcon();
+        }
+
+        @Override
+        public net.minecraft.client.renderer.block.model.ItemTransforms getTransforms() {
+            return this.shown().getTransforms();
+        }
+
+        @Override
+        public net.minecraft.client.renderer.block.model.ItemOverrides getOverrides() {
+            return this.shown().getOverrides();
+        }
+
+        @Override
+        public BakedModel applyTransform(net.minecraft.world.item.ItemDisplayContext context, com.mojang.blaze3d.vertex.PoseStack poseStack, boolean leftHand) {
+            return this.shown().applyTransform(context, poseStack, leftHand);
+        }
+
+        @Override
+        public java.util.List<net.minecraft.client.renderer.RenderType> getRenderTypes(net.minecraft.world.item.ItemStack stack, boolean fabulous) {
+            return this.shown().getRenderTypes(stack, fabulous);
+        }
+
+        @Override
+        public java.util.List<BakedModel> getRenderPasses(net.minecraft.world.item.ItemStack stack, boolean fabulous) {
+            return this.shown().getRenderPasses(stack, fabulous);
+        }
     }
 }
