@@ -2,6 +2,8 @@ package io.github.hammerknife404.dreadpatch.entity;
 
 import com.iafenvoy.iceandfire.entity.DreadMobEntity;
 import com.iafenvoy.iceandfire.entity.util.IDreadMob;
+import com.iafenvoy.iceandfire.entity.DreadBeastEntity;
+import com.iafenvoy.iceandfire.registry.IafEntities;
 import com.iafenvoy.iceandfire.registry.IafSounds;
 import io.github.hammerknife404.dreadpatch.DreadPatchConfig;
 import io.github.hammerknife404.dreadpatch.magic.CourtRules;
@@ -81,6 +83,8 @@ public final class SummonedCourt {
     public static final String UNBOUND_KEY = "dreadpatch:court_unbound";
     /** A Dread Fish of Summon Court's (0.95.0), not of Summon Dread Fish's: each spell dismisses only its own. */
     public static final String COURT_FISH_KEY = "dreadpatch:court_fish";
+    /** On a beast of Summon Dread Beast's (0.98.2): its own, so Summon Court's recast leaves it, and its own recast only it. */
+    public static final String BEAST_SPELL_KEY = "dreadpatch:beast_spell";
 
     private static final ParticleOptions CHARCOAL = new DustParticleOptions(new Vector3f(0.078F, 0.086F, 0.114F), 1.6F);
 
@@ -145,7 +149,7 @@ public final class SummonedCourt {
      * {@link CourtRules#summonSeconds}, after dismissing the court they raised before. How many rose.
      */
     public static int raise(ServerLevel level, LivingEntity caster, int spellLevel) {
-        dismiss(level, caster, DreadMobEntity.class);
+        dismiss(level, caster, DreadMobEntity.class, entity -> !entity.getPersistentData().getBoolean(BEAST_SPELL_KEY));
         dismiss(level, caster, DreadFish.class, true);
         long expires = level.getGameTime() + CourtRules.summonSeconds(spellLevel) * 20L;
         Vec3 center = caster.position();
@@ -201,6 +205,48 @@ public final class SummonedCourt {
         }
         if (raised > 0) {
             caster.swing(InteractionHand.MAIN_HAND);
+        }
+        return raised;
+    }
+
+    /**
+     * Summon Dread Beast (0.98.2): {@link SummonRules#beastCount} small beasts ({@link SummonRules#BEAST_SPELL_SIZE}) rise
+     * round {@code caster} for {@link SummonRules#BEAST_SPELL_SECONDS}, after dismissing the ones this spell raised for
+     * them before (not their Summon Court's). Through NeoForge as her court rises, then sized. How many rose.
+     */
+    public static int raiseBeastSpell(ServerLevel level, LivingEntity caster, int spellLevel) {
+        dismiss(level, caster, DreadBeastEntity.class, entity -> entity.getPersistentData().getBoolean(BEAST_SPELL_KEY));
+        long expires = level.getGameTime() + SummonRules.BEAST_SPELL_SECONDS * 20L;
+        int raised = 0;
+        for (int i = 0; i < SummonRules.beastCount(spellLevel); i++) {
+            DreadBeastEntity beast = IafEntities.DREAD_BEAST.get().create(level);
+            if (beast == null) {
+                continue;
+            }
+            beast.setSize(SummonRules.BEAST_SPELL_SIZE);
+            beast.refreshDimensions();
+            Vec3 spot = DreadCourt.findSpot(level, caster.position(), caster.getRandom(), beast);
+            if (spot == null) {
+                continue;
+            }
+            beast.moveTo(spot.x, spot.y, spot.z, caster.getYRot(), 0.0F);
+            EventHooks.finalizeMobSpawn(beast, level, level.getCurrentDifficultyAt(beast.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+            // Ice and Fire's spawn sizes it at random: ours, after.
+            beast.setSize(SummonRules.BEAST_SPELL_SIZE);
+            beast.refreshDimensions();
+            beast.setCommanderId(caster.getUUID());
+            beast.getPersistentData().putLong(EXPIRES_KEY, expires);
+            beast.getPersistentData().putBoolean(BEAST_SPELL_KEY, true);
+            beast.setPersistenceRequired();
+            if (level.addFreshEntity(beast)) {
+                MagicManager.spawnParticles(level, CHARCOAL, spot.x, spot.y + 0.2, spot.z, 20, 0.4, 0.1, 0.4, 0.02, false);
+                MagicManager.spawnParticles(level, ParticleTypes.SOUL, spot.x, spot.y + 0.4, spot.z, 6, 0.3, 0.3, 0.3, 0.02, false);
+                raised++;
+            }
+        }
+        if (raised > 0) {
+            caster.swing(InteractionHand.MAIN_HAND);
+            level.playSound(null, caster.getX(), caster.getY(), caster.getZ(), IafSounds.DREAD_LICH_SUMMON.get(), SoundSource.PLAYERS, 1.2F, 1.1F);
         }
         return raised;
     }
@@ -293,15 +339,19 @@ public final class SummonedCourt {
 
     /** Sends back every court member of {@code kind} {@code caster} raised in this level. */
     static void dismiss(ServerLevel level, Entity caster, Class<? extends Mob> kind) {
-        dismiss(level, caster, kind, null);
+        dismiss(level, caster, kind, (Boolean) null);
     }
 
     /** As {@link #dismiss}, only Summon Court's fish ({@code courtFish} true) or only the others (false); {@code null}, all. */
     static void dismiss(ServerLevel level, Entity caster, Class<? extends Mob> kind, @Nullable Boolean courtFish) {
+        dismiss(level, caster, kind, entity -> courtFish == null || entity.getPersistentData().getBoolean(COURT_FISH_KEY) == courtFish);
+    }
+
+    /** As {@link #dismiss}, only those {@code which} takes. */
+    static void dismiss(ServerLevel level, Entity caster, Class<? extends Mob> kind, java.util.function.Predicate<Entity> which) {
         List<Mob> members = new ArrayList<>();
         for (Entity entity : level.getAllEntities()) {
-            if (kind.isInstance(entity) && serves(entity, caster)
-                    && (courtFish == null || entity.getPersistentData().getBoolean(COURT_FISH_KEY) == courtFish)) {
+            if (kind.isInstance(entity) && serves(entity, caster) && which.test(entity)) {
                 members.add((Mob) entity);
             }
         }

@@ -94,7 +94,7 @@ def main():
     SPELL_SCROLL = "irons_spellbooks:scroll[irons_spellbooks:spell_container]"
     HER_SPELLS = {"dreadpatch:withering_rime_bolt", "dreadpatch:rimefire_crown", "dreadpatch:barrow_step", "dreadpatch:whiteout_dominion",
                   "dreadpatch:summon_court", "dreadpatch:create_rimefrost_dragon", "dreadpatch:summon_dread_phantoms",
-                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate", "dreadpatch:summon_dread_fish"}
+                  "dreadpatch:rimefire_blast", "dreadpatch:sublimate", "dreadpatch:summon_dread_fish", "dreadpatch:summon_dread_beast"}
     # Her staff as an Iron's staff: three of her spells locked in at level 3, and right-click casting.
     STAFF_WITH_SPELLS = ('iceandfire:dread_queen_staff[irons_spellbooks:spell_container={maxSpells:3,spellWheel:1b,mustEquip:0b,data:['
                          '{id:"dreadpatch:withering_rime_bolt",index:0,level:3,locked:1b},{id:"dreadpatch:rimefire_crown",index:1,level:3,locked:1b},'
@@ -1596,6 +1596,55 @@ def main():
     time.sleep(1.5)
     n = fish_of_caster()
     record("their time up, the fish go", n == 0, f"{n} still standing")
+    rcon.run("kill @e[type=item]")
+
+    # Summon Dread Beast (0.98.2), the same villager: 2 at 1, answering to it; a recast at 5 leaves 6; its Summon Court
+    # leaves them (and theirs it); their time up, they go. Then one out through a 1 by 1 hole: raised in a sealed room
+    # by a villager a husk outside hurts, within 30 s (probed by hand: out every time, in 5-20 s).
+    def beasts_of_caster():
+        m = re.search(r"count: (\d+)", rcon.run('execute if entity @e[type=iceandfire:dread_beast,nbt={NeoForgeData:{"dreadpatch:beast_spell":1b}}]'))
+        return int(m.group(1)) if m else 0
+
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_dread_beast 1")
+    time.sleep(0.5)
+    n = beasts_of_caster()
+    record("Summon Dread Beast at 1 summons 2 (0.98.2)", n == 2, f"{n} summoned")
+    owner = rcon.run('data get entity @e[type=iceandfire:dread_beast,limit=1,nbt={NeoForgeData:{"dreadpatch:beast_spell":1b}}] CommanderUUID')
+    record("they answer to their caster", "7, 7, 7, 7" in owner, owner.strip())
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_dread_beast 5")
+    time.sleep(0.5)
+    n = beasts_of_caster()
+    record("a new cast at 5 replaces them with 6", n == 6, f"{n} standing")
+    rcon.run("cast @e[tag=smoke_caster,limit=1] dreadpatch:summon_court 1")
+    time.sleep(0.5)
+    n = beasts_of_caster()
+    record("Summon Court leaves Summon Dread Beast's beasts", n == 6, f"{n} standing")
+    rcon.run('execute as @e[type=iceandfire:dread_beast,nbt={NeoForgeData:{"dreadpatch:beast_spell":1b}}] run data merge entity @s {NeoForgeData:{"dreadpatch:court_expires":0L}}')
+    time.sleep(1.5)
+    n = beasts_of_caster()
+    record("their time up, the beasts go", n == 0, f"{n} still standing")
+    clear_court()
+    rcon.run("fill 30 199 30 54 204 40 minecraft:stone")
+    rcon.run("fill 32 200 32 38 202 38 minecraft:air")
+    rcon.run("fill 40 200 34 50 202 36 minecraft:air")
+    rcon.run("setblock 39 200 35 minecraft:air")
+    rcon.run('summon minecraft:villager 34.5 200 34.5 {NoAI:1b,PersistenceRequired:1b,UUID:[I;982,982,982,982],Tags:["smoke_hole_v"],active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+    time.sleep(1.0)
+    rcon.run("cast @e[tag=smoke_hole_v,limit=1] dreadpatch:summon_dread_beast 1")
+    rcon.run('summon minecraft:husk 48.5 200 35.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_hole_h"]}')
+    time.sleep(0.5)
+    rcon.run("damage @e[tag=smoke_hole_v,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_hole_h,limit=1]")
+    out = False
+    for _ in range(60):
+        time.sleep(0.5)
+        if "Test passed" in rcon.run("execute if entity @e[type=iceandfire:dread_beast,x=40,y=199,z=33,dx=11,dy=4,dz=4]"):
+            out = True
+            break
+    record("a beast of it gets through a 1 by 1 hole (0.98.2)", out, "none out of the sealed room in 30 s")
+    rcon.run("kill @e[type=iceandfire:dread_beast]")
+    rcon.run("kill @e[tag=smoke_hole_v]")
+    rcon.run("kill @e[tag=smoke_hole_h]")
+    rcon.run("fill 30 199 30 54 204 40 minecraft:air")
     rcon.run("kill @e[type=item]")
     rcon.run("kill @e[tag=smoke_caster]")
 

@@ -458,6 +458,39 @@ def summon_dread_fish():
     return im
 
 
+def summon_dread_beast():
+    """A small dread beast clawing up out of the cold ground: its bone-pale wolfish head and shoulders side on, jaws
+    open, her cyan in its eye, a forepaw over the broken earth, soot rising round it."""
+    im = dread_background(16, 113)
+    palette = {
+        "B": BONE_LIGHT, "b": BONE, "d": BONE_DIM, "h": (0x2B, 0x32, 0x47), "c": DREAD_CYAN,
+        "W": ICE_DIM, "w": DEEP, "i": INDIGO, "s": (0x3A, 0x3F, 0x4C),
+    }
+    art = [
+        "................",
+        "..s.......s.....",
+        "......d.d.......",
+        ".....dBdBd......",
+        "....bBBBBBb.....",
+        "...bBcBBBBBbb...",
+        "..bBBBBBBBBBBb..",
+        ".bBBh.hBBBBBBBb.",
+        ".bh.....bBBBBBd.",
+        ".bB.b.b.bBBBBd..",
+        "..ddd..bBBBBd...",
+        "......bBBdBBd...",
+        ".....bBd..dBb...",
+        "WWwwbBdWwwwdBdWW",
+        "wwiwwddwwWwwddww",
+        "iwwiwwwiwwWwwiww",
+    ]
+    for y, row in enumerate(art):
+        for x, ch in enumerate(row):
+            if ch in palette:
+                im.putpixel((x, y), rgba(palette[ch]))
+    return im
+
+
 def rimefire_blast():
     """A cone of cold dread fire pouring up and right from a bone-white hand at the lower left: white-hot
     at the hand, her cyan through the middle, deep blue and soot at its ragged edge."""
@@ -795,6 +828,7 @@ def main():
         "mob_effect/whiteout.png": whiteout_effect(),
         "gui/spell_icons/summon_dread_phantoms.png": summon_dread_phantoms(),
         "gui/spell_icons/summon_dread_fish.png": summon_dread_fish(),
+        "gui/spell_icons/summon_dread_beast.png": summon_dread_beast(),
         "mob_effect/rimefrost.png": rimefrost_effect(),
         "gui/spell_icons/rimefire_blast.png": rimefire_blast(),
         "gui/spell_icons/sublimate.png": sublimate(),
