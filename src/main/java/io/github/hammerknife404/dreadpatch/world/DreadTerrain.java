@@ -436,19 +436,21 @@ public final class DreadTerrain {
             if (cells == null) {
                 return false;
             }
-            // Under every column, solid: under its top (and its second layer, where it's deep).
+            // Every column solid down through its depth and under it (0.98.10: up to 4 deep; so never into a water pocket).
             for (long cell : cells) {
                 int x = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
                 int z = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
-                boolean deep = io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, x, z);
-                if (!solid(level, origin.offset(x, -1, z)) || deep && !solid(level, origin.offset(x, -2, z))) {
-                    return false;
+                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, x, z);
+                for (int d = 1; d <= depth; d++) {
+                    if (!solid(level, origin.offset(x, -d, z))) {
+                        return false;
+                    }
                 }
             }
             BlockState water = Blocks.WATER.defaultBlockState();
             BlockState ice = Blocks.ICE.defaultBlockState();
             BlockPos deepest = null;
-            int nearest = Integer.MAX_VALUE;
+            int nearest = Integer.MIN_VALUE;
             for (long cell : cells) {
                 int x = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
                 int z = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
@@ -456,12 +458,14 @@ public final class DreadTerrain {
                 boolean edge = io.github.hammerknife404.dreadpatch.magic.PoolRules.edge(cells, x, z);
                 float frozen = edge ? io.github.hammerknife404.dreadpatch.magic.PoolRules.EDGE_ICE : io.github.hammerknife404.dreadpatch.magic.PoolRules.OPEN_ICE;
                 level.setBlock(at, random.nextFloat() < frozen ? ice : water, Block.UPDATE_CLIENTS);
-                if (io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, x, z)) {
-                    level.setBlock(at.below(), water, Block.UPDATE_CLIENTS);
-                    if (x * x + z * z < nearest) {
-                        nearest = x * x + z * z;
-                        deepest = at.below();
-                    }
+                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, x, z);
+                for (int d = 1; d < depth; d++) {
+                    level.setBlock(at.below(d), water, Block.UPDATE_CLIENTS);
+                }
+                int score = depth * 1000 - (x * x + z * z);
+                if (depth > 1 && score > nearest) {
+                    nearest = score;
+                    deepest = at.below(depth - 1);
                 }
             }
             if (deepest != null && random.nextInt(io.github.hammerknife404.dreadpatch.magic.PoolRules.FISH_ONE_IN) == 0) {
@@ -559,9 +563,11 @@ public final class DreadTerrain {
             for (long cell : cells) {
                 int dx = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
                 int dz = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
-                boolean deep = io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, dx, dz);
-                if (!solid(level, new BlockPos(ox + dx, floor - (deep ? 2 : 1), oz + dz))) {
-                    return false;
+                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, dx, dz);
+                for (int d = 1; d <= depth; d++) {
+                    if (!solid(level, new BlockPos(ox + dx, floor - d, oz + dz))) {
+                        return false;
+                    }
                 }
                 for (int[] side : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
                     if (!cells.contains(io.github.hammerknife404.dreadpatch.magic.PoolRules.pack(dx + side[0], dz + side[1]))
@@ -573,7 +579,7 @@ public final class DreadTerrain {
             BlockState water = Blocks.WATER.defaultBlockState();
             BlockState ice = Blocks.ICE.defaultBlockState();
             BlockPos deepest = null;
-            int nearest = Integer.MAX_VALUE;
+            int nearest = Integer.MIN_VALUE;
             for (long cell : cells) {
                 int dx = io.github.hammerknife404.dreadpatch.magic.PoolRules.x(cell);
                 int dz = io.github.hammerknife404.dreadpatch.magic.PoolRules.z(cell);
@@ -591,12 +597,14 @@ public final class DreadTerrain {
                 if (!level.getBlockState(at.above()).isAir() && !solid(level, at.above())) {
                     level.setBlock(at.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
                 }
-                if (io.github.hammerknife404.dreadpatch.magic.PoolRules.deep(cells, dx, dz)) {
-                    level.setBlock(at.below(), water, Block.UPDATE_CLIENTS);
-                    if (dx * dx + dz * dz < nearest) {
-                        nearest = dx * dx + dz * dz;
-                        deepest = at.below();
-                    }
+                int depth = io.github.hammerknife404.dreadpatch.magic.PoolRules.depth(cells, dx, dz);
+                for (int d = 1; d < depth; d++) {
+                    level.setBlock(at.below(d), water, Block.UPDATE_CLIENTS);
+                }
+                int score = depth * 1000 - (dx * dx + dz * dz);
+                if (depth > 1 && score > nearest) {
+                    nearest = score;
+                    deepest = at.below(depth - 1);
                 }
             }
             if (deepest != null && random.nextInt(io.github.hammerknife404.dreadpatch.magic.PoolRules.FISH_ONE_IN) == 0) {

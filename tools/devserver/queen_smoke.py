@@ -2397,7 +2397,7 @@ def main():
             heaved = chasma_share(lambda t: 33 <= t <= 40)
             record("slabs are heaved up at its cracks", heaved > 0, f"{heaved:.1%} of columns at 33-40")
             # Pools in its plates (0.97.0): placed by hand on a 5 x 5 grid 16 apart, some take (a plate ridged all round;
-            # 11 of 64 by hand on the dev server; none at all about one run in 100); their water lies at 29-30, never over.
+            # 11 of 64 by hand on the dev server; none at all about one run in 100); their water lies at 27-30 (up to 4 deep since 0.98.10), never over.
             pools = sum("Placed" in rcon.run(dl + f"run place feature dreadpatch:hex_pool {x} 31 {z}")
                         for x in range(mx - 32, mx + 33, 16) for z in range(mz - 32, mz + 33, 16))
             record("pools fill some of its plates (0.97.0)", pools > 0 and chasma_count("minecraft:water", 30, 30) > 0,
@@ -2405,7 +2405,7 @@ def main():
             record("and hold their water", chasma_count("minecraft:water", 31, 31) == 0, "water over the floor at 31")
             # Pools in the Sastrugi Wastes' holes (0.98.6): a dip built in the open air over the chasma (stone to 68, a
             # 15 by 15 floor at 65 dug in it: wider, its rim's diagonals, 8 out, would be floor too); the feature placed in it digs a pond into the floor, water and ice at 65 (and
-            # 64), none over it. (Probed by hand on the dev world's wastes: 5 of 1,024 spots placed one.)
+            # down to 62 in its middle since 0.98.10), none over it. (Probed by hand on the dev world's wastes: 5 of 1,024 spots placed one.)
             hx, hz = mx + 96, mz
             hbox = f"{hx - 20} 60 {hz - 20} {hx + 20} 70 {hz + 20}"
             rcon.run(dl + f"run forceload add {hx - 20} {hz - 20} {hx + 20} {hz + 20}")
@@ -2416,9 +2416,9 @@ def main():
                 m = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {hx - 20} {y0} {hz - 20} {hx + 20} {y1} {hz + 20} minecraft:glass replace {block}"))
                 rcon.run(dl + f"run fill {hx - 20} {y0} {hz - 20} {hx + 20} {y1} {hz + 20} {block} replace minecraft:glass")
                 return int(m.group(1)) if m else 0
-            pond = hole_count("minecraft:water", 64, 65) + hole_count("minecraft:ice", 65, 65)
+            pond = hole_count("minecraft:water", 62, 65) + hole_count("minecraft:ice", 65, 65)
             record("a pond is dug into a wastes hole's floor (0.98.6)", hole and pond >= 12 and hole_count("minecraft:water", 66, 70) == 0,
-                   f"placed {hole}, {pond} water and ice at 64-65")
+                   f"placed {hole}, {pond} water and ice at 62-65")
             rcon.run(dl + f"run kill @e[type=dreadpatch:dread_fish,x={hx - 20},y=60,z={hz - 20},dx=40,dy=10,dz=40]")
             rcon.run(dl + f"run fill {hbox} minecraft:air")
             # The Dreadlands' biomes are cold ones (0.98.6, the owner: "make sure the dreadlands biomes register for most if

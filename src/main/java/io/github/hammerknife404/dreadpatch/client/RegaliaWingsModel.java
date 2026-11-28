@@ -56,8 +56,15 @@ public final class RegaliaWingsModel extends Model {
     public void setupAnim(LivingEntity entity, float limbSwing, float limbSwingAmount, float time) {
         this.root.getAllParts().forEach(ModelPart::resetPose);
         State state = this.states.computeIfAbsent(entity, e -> new State(time));
-        float step = Mth.clamp((time - state.time) * EASE, 0.0F, 1.0F);
-        state.time = time;
+        // Its clock only goes forward (0.98.10, the owner: in the inventory the wings looked doubled and lagged; not in F5):
+        // the inventory draws its wearer at a partial tick of 1 while the world behind draws it at the real one, so each
+        // frame the clock ran back and forth, the flap's phase jittering between two poses and the easing never settling.
+        // A drawing behind the clock now takes the state as it is.
+        boolean ahead = time > state.time;
+        float step = ahead ? Mth.clamp((time - state.time) * EASE, 0.0F, 1.0F) : 0.0F;
+        if (ahead) {
+            state.time = time;
+        }
         boolean beating = entity instanceof Player player && player.getAbilities().flying;
         boolean gliding = entity.isFallFlying();
         boolean falling = !gliding && !beating && !entity.onGround() && entity.getDeltaMovement().y < -0.35;
@@ -68,8 +75,10 @@ public final class RegaliaWingsModel extends Model {
         state.walk += ((walking ? 1.0F : 0.0F) - state.walk) * step;
         state.sprint += ((walking && entity.isSprinting() ? 1.0F : 0.0F) - state.sprint) * step;
         // Banking: how fast the wearer's body turns, as a roll, eased.
-        float turn = Mth.wrapDegrees(entity.yBodyRot - state.lastYaw);
-        state.lastYaw = entity.yBodyRot;
+        float turn = ahead ? Mth.wrapDegrees(entity.yBodyRot - state.lastYaw) : 0.0F;
+        if (ahead) {
+            state.lastYaw = entity.yBodyRot;
+        }
         state.bank += (Mth.clamp(turn * 0.05F, -0.45F, 0.45F) * state.glide - state.bank) * step;
 
         float breathe = Mth.sin(time * 0.1F);
@@ -103,8 +112,10 @@ public final class RegaliaWingsModel extends Model {
         // when gliding and the player is cresting up and slowing down").
         float open = Math.max(climb, slow);
         float flap = 0.75F * Math.max(slow, 0.7F * climb) * state.glide;
-        state.flapPhase += (time - state.flapTime) * (0.3F + 0.25F * flap);
-        state.flapTime = time;
+        if (time > state.flapTime) {
+            state.flapPhase += (time - state.flapTime) * (0.3F + 0.25F * flap);
+            state.flapTime = time;
+        }
         float beatGlide = flap * Mth.sin(state.flapPhase);
         // The stroke (0.82.4, the owner: "less up and down to the grownd but to the players body", asked: both): it sweeps
         // the wings back toward the wearer's back and out again (a y turn on the body), a little lift with it; all of it

@@ -811,6 +811,129 @@ def queen_greaves():
     ])
 
 
+# The regalia's classic icons (0.98.10; as drawn until 0.81.0): her outfit's colours as Ice and Fire's texture of her has
+# them, shown while the client's classic_regalia_armor is on.
+REGALIA_CLASSIC = {
+    ".": None,
+    "O": (0x0B, 0x0C, 0x10),  # outline
+    "S": (0xDF, 0xE6, 0xF2), "s": (0xA0, 0xAB, 0xBF), "d": (0x6B, 0x73, 0x80),  # her silver
+    "I": (0x7F, 0xB2, 0xEE), "i": (0xC9, 0xE3, 0xFF),  # her crown's ice
+    "C": (0x00, 0xF4, 0xFF),  # her pendant's gem
+    "K": (0x15, 0x17, 0x1B), "k": (0x29, 0x2C, 0x33), "m": (0x3A, 0x3E, 0x47), "g": (0x5A, 0x60, 0x6C),  # her black, banded
+    "B": (0x3F, 0x71, 0x93), "b": (0x2D, 0x51, 0x6C), "c": (0x2C, 0x58, 0x75), "n": (0x1D, 0x37, 0x4C),  # her blues
+}
+
+
+def mirrored_icon_classic(left_half):
+    """A 16x16 item icon from its left half (8 columns a row, 16 rows), mirrored, in REGALIA_CLASSIC's colours."""
+    assert len(left_half) == 16 and all(len(row) == 8 for row in left_half), left_half
+    im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y, row in enumerate(left_half):
+        for x, ch in enumerate(row + row[::-1]):
+            if REGALIA_CLASSIC[ch] is not None:
+                im.putpixel((x, y), rgba(REGALIA_CLASSIC[ch]))
+    return im
+
+
+def queen_crown_classic():
+    """Her crown: a silver band under spikes of ice, the tallest at its middle, her gem hung beneath."""
+    return mirrored_icon_classic([
+        "........",
+        "........",
+        "........",
+        ".......i",
+        "...i...I",
+        "...I..iI",
+        ".i.I..II",
+        ".IiIi.II",
+        ".IIIIiII",
+        "OSSSSSSS",
+        "OsSSSsSC",
+        "OddssssC",
+        ".OOdddds",
+        "......Od",
+        ".......O",
+        "........",
+    ])
+
+
+def queen_bodice_classic():
+    """Her bodice: black, her silver pauldrons at the shoulders, blue straps, a silver V of necklace down to her gem, a blue sash."""
+    return mirrored_icon_classic([
+        "........",
+        ".OOOO...",
+        "OSSSSO..",
+        "OSsssdOO",
+        "OsdddBsk",
+        ".OOOOBks",
+        "...OkBkC",
+        "...OKBkk",
+        "...OKBkk",
+        "...OKBkk",
+        "...ObBBB",
+        "...OKmkk",
+        "...OKmkk",
+        "...OKkmk",
+        "....OOOO",
+        "........",
+    ])
+
+
+def queen_robe_classic():
+    """Her robes: a silver girdle, then deep blue, flaring to a ragged hem."""
+    return mirrored_icon_classic([
+        "........",
+        "..OOOOOO",
+        "..OsSSSS",
+        "..ObBBBB",
+        "..ObBBcc",
+        "..ObBccO",
+        "..ObBcnO",
+        "..ObBcnO",
+        ".ObBccnO",
+        ".ObBccnO",
+        ".ObBcnnO",
+        "ObBBcnnO",
+        "ObBccnnO",
+        "OdnndnnO",
+        ".O.OO.O.",
+        "........",
+    ])
+
+
+def queen_greaves_classic():
+    """Her greaves: her legs' black wraps, banded in grey."""
+    return mirrored_icon_classic([
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "..OOOOO.",
+        "..OkgmO.",
+        "..OkkkO.",
+        "..OgggO.",
+        "..OkkmO.",
+        "OOOkkkO.",
+        "OgmkgmO.",
+        "OkkkkkO.",
+        "OOOOOOO.",
+        "........",
+    ])
+
+
+def queen_winged_bodice_classic():
+    """Her winged bodice, classic: the classic bodice over the redrawn winged icon's wings."""
+    im = queen_winged_bodice()
+    bodice = queen_bodice_classic()
+    # The classic bodice, a little smaller in the middle, over the wings.
+    small = bodice.resize((12, 12), Image.NEAREST)
+    im.paste(small, (2, 2), small)
+    return im
+
+
+
 
 def sublimate():
     """A sudden narrow cone of rime driving left to right from a point of cyan: solid ice shards near its
@@ -869,6 +992,11 @@ def main():
         "item/dread_queen_winged_bodice.png": queen_winged_bodice(),
         "item/dread_queen_robe.png": queen_robe(),
         "item/dread_queen_greaves.png": queen_greaves(),
+        "item/dread_queen_crown_classic.png": queen_crown_classic(),
+        "item/dread_queen_bodice_classic.png": queen_bodice_classic(),
+        "item/dread_queen_winged_bodice_classic.png": queen_winged_bodice_classic(),
+        "item/dread_queen_robe_classic.png": queen_robe_classic(),
+        "item/dread_queen_greaves_classic.png": queen_greaves_classic(),
         "block/dread_fire_0.png": dread_fire(31),
         "block/dread_fire_1.png": dread_fire(8),
         "block/dread_gate.png": dread_gate(17),
