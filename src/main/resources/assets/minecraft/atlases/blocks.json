@@ -184,6 +184,22 @@
           "from": "irons_spellbooks:item/iron_spell_book",
           "to": "dreadpatch:item/unforged_sovereigns_tome",
           "palette": "iron"
+        },
+        {
+          "from": "minecraft:block/soul_campfire_fire",
+          "to": "dreadpatch:block/dread_campfire_fire"
+        },
+        {
+          "from": "minecraft:block/soul_campfire_log_lit",
+          "to": "dreadpatch:block/dread_campfire_log_lit"
+        },
+        {
+          "from": "minecraft:block/campfire_log",
+          "to": "dreadpatch:block/dread_campfire_log"
+        },
+        {
+          "from": "minecraft:item/soul_campfire",
+          "to": "dreadpatch:item/dread_campfire"
         }
       ]
     }

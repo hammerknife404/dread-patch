@@ -64,6 +64,7 @@ public final class DreadPatch {
         io.github.hammerknife404.dreadpatch.registry.DreadPotions.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Hoard.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.DreadTomes.register(modBus);
+        io.github.hammerknife404.dreadpatch.registry.DreadCampfire.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.DreadDragonArmor.register(modBus);
         io.github.hammerknife404.dreadpatch.registry.Dreadwood.register(modBus);
         io.github.hammerknife404.dreadpatch.world.DreadTerrain.register(modBus);
@@ -162,6 +163,7 @@ public final class DreadPatch {
             event.accept(ModRegistries.DREAD_FISH_SPAWN_EGG.get());
         } else if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(ModRegistries.DREAD_LANTERN_ITEM.get());
+            event.accept(io.github.hammerknife404.dreadpatch.registry.DreadCampfire.ITEM.get());
             DreadForge.forgeItems().forEach(item -> event.accept(item.get()));
         } else if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(DreadForge.SCALE_BLOCK_ITEM.get());

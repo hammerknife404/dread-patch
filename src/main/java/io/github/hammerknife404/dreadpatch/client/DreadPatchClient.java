@@ -162,6 +162,7 @@ public final class DreadPatchClient {
     }
 
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(io.github.hammerknife404.dreadpatch.registry.DreadCampfire.BLOCK_ENTITY.get(), DreadCampfireRenderer::new);
         event.registerEntityRenderer(ModRegistries.DREAD_QUEEN.get(), DreadQueenRenderer::new);
         // Drawn entirely by its trail particles.
         event.registerEntityRenderer(ModRegistries.WITHERING_RIME_BOLT.get(), NoopRenderer::new);
