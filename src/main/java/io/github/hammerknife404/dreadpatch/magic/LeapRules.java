@@ -62,6 +62,37 @@ public final class LeapRules {
         return high;
     }
 
+    /**
+     * The queen's hops in a fight (0.98.0, the owner's handoff: "Give the Dread Queen active jumping in combat"): circling
+     * or giving ground at casting range, now and then she hops {@link #HOP_DISTANCE} aside, the way she's circling, and
+     * back from her target as much again when giving ground; one in {@link #HOP_ONE_IN} of her strafing ticks once
+     * {@link #HOP_MIN}-{@link #HOP_MAX} ticks have passed since the last.
+     */
+    public static final double HOP_DISTANCE = 3.0;
+    public static final int HOP_ONE_IN = 15;
+    public static final int HOP_MIN = 50;
+    public static final int HOP_MAX = 110;
+
+    /**
+     * Which way she hops, flat and of length 1: aside from {@code (toX, toZ)} (toward her target), to its left when
+     * {@code clockwise}, and back as much again when {@code back}.
+     */
+    public static double[] hop(double toX, double toZ, boolean clockwise, boolean back) {
+        double length = Math.sqrt(toX * toX + toZ * toZ);
+        if (length < 1.0E-6) {
+            return new double[]{0.0, 0.0};
+        }
+        double fx = toX / length;
+        double fz = toZ / length;
+        // Aside: the forward turned a quarter (left in Minecraft's x/z when clockwise).
+        double sx = clockwise ? fz : -fz;
+        double sz = clockwise ? -fx : fx;
+        double x = sx - (back ? fx : 0.0);
+        double z = sz - (back ? fz : 0.0);
+        double out = Math.sqrt(x * x + z * z);
+        return new double[]{x / out, z / out};
+    }
+
     /** Whether a gap {@code gap} blocks wide (counted from right ahead) is one it leaps. */
     public static boolean leaps(int gap) {
         return gap >= 1 && gap <= MAX_GAP;

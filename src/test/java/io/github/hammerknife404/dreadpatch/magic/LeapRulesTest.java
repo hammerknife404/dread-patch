@@ -32,4 +32,27 @@ class LeapRulesTest {
         assertTrue(LeapRules.leaps(2));
         assertFalse(LeapRules.leaps(3));
     }
+
+    @Test
+    void herHopsGoAsideAndBack() {
+        // Her target due +x: aside is along z, and back is toward -x; always of length 1.
+        double[] aside = LeapRules.hop(5.0, 0.0, true, false);
+        assertEquals(0.0, aside[0], 1.0E-9);
+        assertEquals(1.0, Math.abs(aside[1]), 1.0E-9);
+        double[] other = LeapRules.hop(5.0, 0.0, false, false);
+        assertEquals(-aside[1], other[1], 1.0E-9);
+        double[] back = LeapRules.hop(5.0, 0.0, true, true);
+        assertTrue(back[0] < 0.0);
+        assertEquals(1.0, Math.hypot(back[0], back[1]), 1.0E-9);
+        assertEquals(Math.signum(aside[1]), Math.signum(back[1]));
+        double[] none = LeapRules.hop(0.0, 0.0, true, true);
+        assertEquals(0.0, Math.hypot(none[0], none[1]), 1.0E-9);
+    }
+
+    @Test
+    void herHopIsAPounceToo() {
+        double speed = LeapRules.speedFor(LeapRules.HOP_DISTANCE, 0.0);
+        assertTrue(speed > 0.3 && speed < 0.8, "speed " + speed);
+        assertTrue(LeapRules.HOP_MIN < LeapRules.HOP_MAX);
+    }
 }

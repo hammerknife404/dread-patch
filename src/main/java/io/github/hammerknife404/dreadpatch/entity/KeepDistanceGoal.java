@@ -1,5 +1,7 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
+import io.github.hammerknife404.dreadpatch.magic.LeapRules;
+
 import io.github.hammerknife404.dreadpatch.magic.Spacing;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,6 +41,8 @@ final class KeepDistanceGoal extends Goal {
     private int fleeCooldown;
     private int fleeing;
     private int meleeCooldown;
+    /** Ticks until she may hop again ({@link LeapRules#hop}). */
+    private int hopCooldown = LeapRules.HOP_MIN;
 
     KeepDistanceGoal(DreadQueen queen) {
         this.queen = queen;
@@ -83,6 +87,9 @@ final class KeepDistanceGoal extends Goal {
         if (this.meleeCooldown > 0) {
             this.meleeCooldown--;
         }
+        if (this.hopCooldown > 0) {
+            this.hopCooldown--;
+        }
         boolean seen = this.queen.getSensing().hasLineOfSight(target);
         this.seeTime = seen ? Math.max(this.seeTime, 0) + 1 : Math.min(this.seeTime, 0) - 1;
         this.queen.getLookControl().setLookAt(target, 30.0F, 30.0F);
@@ -96,8 +103,14 @@ final class KeepDistanceGoal extends Goal {
         }
         switch (Spacing.move(this.queen.distanceTo(target), this.seeTime >= SIGHT_TICKS, this.fleeCooldown == 0)) {
             case FLEE -> this.flee(target);
-            case BACK_OFF -> this.strafe(target, BACK_OFF);
-            case CIRCLE -> this.strafe(target, CIRCLE);
+            case BACK_OFF -> {
+                this.strafe(target, BACK_OFF);
+                this.maybeHop(target, true);
+            }
+            case CIRCLE -> {
+                this.strafe(target, CIRCLE);
+                this.maybeHop(target, false);
+            }
             case APPROACH -> {
                 if (this.queen.tickCount % 5 == 0 || this.queen.getNavigation().isDone()) {
                     this.queen.getNavigation().moveTo(target, 1.0);
@@ -130,6 +143,30 @@ final class KeepDistanceGoal extends Goal {
         }
         this.queen.getMoveControl().strafe(forward, this.clockwise ? SIDEWAYS : -SIDEWAYS);
         this.queen.lookAt(target, 30.0F, 30.0F);
+    }
+
+    /**
+     * Now and then, circling or giving ground, she hops aside the way she's circling (and back, giving ground), where
+     * there's room and ground to land on (0.98.0, {@link LeapRules#hop}).
+     */
+    private void maybeHop(LivingEntity target, boolean back) {
+        if (this.hopCooldown > 0 || !this.queen.onGround() || this.queen.isInWater()
+                || this.queen.getRandom().nextInt(LeapRules.HOP_ONE_IN) != 0) {
+            return;
+        }
+        double[] way = LeapRules.hop(target.getX() - this.queen.getX(), target.getZ() - this.queen.getZ(), this.clockwise, back);
+        Vec3 toward = new Vec3(way[0], 0.0, way[1]);
+        if (toward.lengthSqr() < 0.5) {
+            return;
+        }
+        Vec3 leap = DreadLeaps.hop(this.queen, toward, LeapRules.HOP_DISTANCE);
+        if (leap == null) {
+            // Not that way: the other, next time.
+            this.clockwise = !this.clockwise;
+            return;
+        }
+        this.hopCooldown = LeapRules.HOP_MIN + this.queen.getRandom().nextInt(LeapRules.HOP_MAX - LeapRules.HOP_MIN + 1);
+        DreadLeaps.launch(this.queen, leap, target.position().subtract(this.queen.position()));
     }
 
     private void swingIfReached(LivingEntity target, boolean seen) {

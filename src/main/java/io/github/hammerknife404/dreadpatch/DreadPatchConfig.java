@@ -43,6 +43,7 @@ public final class DreadPatchConfig {
     private static final ModConfigSpec.BooleanValue DREAD_WEATHER_ANYWHERE;
     private static final ModConfigSpec.BooleanValue BREAK_DOORS;
     private static final ModConfigSpec.EnumValue<net.minecraft.world.Difficulty> BREAK_DOORS_FROM;
+    private static final ModConfigSpec.BooleanValue BREAK_IRON_DOORS;
     private static final ModConfigSpec.IntValue DREAD_WEATHER_ONE_IN;
     private static final ModConfigSpec.IntValue PHANTOMS;
     private static final ModConfigSpec.IntValue PHANTOMS_NEAR_SPIRES;
@@ -154,11 +155,14 @@ public final class DreadPatchConfig {
                 "and plain snow not at all.").define("regalia_eases_weather", true);
         builder.pop();
         builder.comment("The Dread breaking wooden doors, as zombies do.").push("doors");
-        BREAK_DOORS = builder.comment("Whether Ice and Fire's walking Dread (thralls, ghouls, knights, beasts, scuttlers; not liches) break wooden",
+        BREAK_DOORS = builder.comment("Whether the walking Dread (thralls, ghouls, knights, beasts, scuttlers, liches, the queen) break wooden",
                 "doors in their way, as zombies do, where mob griefing is on. Off: they never do, and don't path through doors.")
                 .define("dread_break_doors", true);
         BREAK_DOORS_FROM = builder.comment("The least difficulty they break doors at: HARD as zombies, NORMAL or EASY for more.")
                 .defineEnum("dread_break_doors_from", net.minecraft.world.Difficulty.HARD);
+        BREAK_IRON_DOORS = builder.comment("Whether they also break iron doors (more slowly), on Hard only, where mob griefing is on.",
+                "Apart from dread_break_doors: either can be on without the other.")
+                .define("dread_break_iron_doors", true);
         builder.pop();
         builder.comment("Other mods.").push("compat");
         INFECTION_MODS = builder.comment("Mods whose effects the Dread (and the Rimefrost dragons, the queen and the risen) never take, by mod id:",
@@ -241,6 +245,11 @@ public final class DreadPatchConfig {
         boolean on = !SPEC.isLoaded() || BREAK_DOORS.get();
         net.minecraft.world.Difficulty from = SPEC.isLoaded() ? BREAK_DOORS_FROM.get() : net.minecraft.world.Difficulty.HARD;
         return on && difficulty != net.minecraft.world.Difficulty.PEACEFUL && difficulty.getId() >= from.getId();
+    }
+
+    /** Iron doors: on Hard only, its own switch. */
+    public static boolean dreadBreakIronDoors(net.minecraft.world.Difficulty difficulty) {
+        return (!SPEC.isLoaded() || BREAK_IRON_DOORS.get()) && difficulty == net.minecraft.world.Difficulty.HARD;
     }
 
     public static boolean dreadWeatherAnywhere() {

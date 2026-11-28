@@ -860,6 +860,35 @@ def main():
         rcon.run("fill 16 199 0 28 203 6 minecraft:air")
         rcon.run("kill @e[type=item]")
     set_config("dread_break_doors", "true")
+    # And iron doors on Hard (0.98.0, dread_break_iron_doors), twice as slowly: the same, an iron door, within 45 s (27 s
+    # by hand); switched off, it stands.
+    for on in (True, False):
+        set_config("dread_break_iron_doors", "true" if on else "false")
+        rcon.run("difficulty hard")
+        rcon.run("fill 16 199 0 28 203 6 minecraft:stone")
+        rcon.run("fill 17 200 3 27 201 3 minecraft:air")
+        rcon.run("setblock 22 200 3 minecraft:iron_door[half=lower,facing=east]")
+        rcon.run("setblock 22 201 3 minecraft:iron_door[half=upper,facing=east]")
+        rcon.run('summon minecraft:villager 26.5 200 3.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_door_v"],'
+                 'active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+        rcon.run('summon iceandfire:dread_thrall 18.5 200 3.5 {PersistenceRequired:1b,Tags:["smoke_door_t"],HandItems:[{id:"iceandfire:dread_sword",count:1},{}]}')
+        time.sleep(1.0)
+        rcon.run("damage @e[tag=smoke_door_t,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_door_v,limit=1]")
+        broke = False
+        for _ in range(90):
+            time.sleep(0.5)
+            if "Test failed" in rcon.run("execute if block 22 200 3 minecraft:iron_door"):
+                broke = True
+                break
+        if on:
+            record("on Hard a dread thrall breaks an iron door in its way (0.98.0)", broke, "the door stood 45 s")
+        else:
+            record("with dread_break_iron_doors off, it doesn't", not broke, "the door was broken")
+        rcon.run("kill @e[tag=smoke_door_t]")
+        rcon.run("kill @e[tag=smoke_door_v]")
+        rcon.run("fill 16 199 0 28 203 6 minecraft:air")
+        rcon.run("kill @e[type=item]")
+    set_config("dread_break_iron_doors", "true")
     if difficulty_was:
         rcon.run("difficulty " + difficulty_was.group(1).lower())
 
@@ -906,11 +935,12 @@ def main():
     # Ghouls, beasts and knights leap narrow gaps (0.97.3): a ghoul hit by a pig across a 2-wide, 5-deep trench cut
     # right across a pad gets over it within 15 s without ever dropping into it. (Probed by hand: ghoul, beast and knight
     # over 1 and 2 wide, none falling in; a 3-wide one they went round or a big beast walked over.)
-    for leaper in ("dread_ghoul", "dread_scuttler"):
+    # Every walking one of the Dread since 0.98.0: a thrall (with a sword: a bowman shoots across instead) and a lich too.
+    for leaper in ("dread_ghoul", "dread_scuttler", "dread_thrall", "dread_lich"):
         rcon.run("fill 16 194 0 30 199 12 minecraft:stone")
         rcon.run("fill 16 200 0 30 206 12 minecraft:air")
         rcon.run("fill 22 194 0 23 199 12 minecraft:air")
-        rcon.run(f'summon iceandfire:{leaper} 18.5 200 6.5 {{PersistenceRequired:1b,Tags:["smoke_leaper"]}}')
+        rcon.run(f'summon iceandfire:{leaper} 18.5 200 6.5 {{PersistenceRequired:1b,HandItems:[{{id:"iceandfire:dread_sword",count:1}},{{}}],Tags:["smoke_leaper"]}}')
         rcon.run('summon minecraft:pig 28.5 200 6.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_leap_p"],active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
         time.sleep(1.0)
         rcon.run("damage @e[tag=smoke_leaper,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_leap_p,limit=1]")
@@ -924,10 +954,33 @@ def main():
             if float(pos[0]) > 24.0 and float(pos[1]) >= 199.5:
                 leapt = True
                 break
-        record(f"a {leaper.replace('_', ' ')} leaps a 2-wide trench (0.97.3; scuttlers 0.97.4)", leapt and lowest >= 199.5, f"across: {leapt}, lowest y {lowest}")
+        record(f"a {leaper.replace('_', ' ')} leaps a 2-wide trench (0.97.3; scuttlers 0.97.4; thralls and liches 0.98.0)", leapt and lowest >= 199.5, f"across: {leapt}, lowest y {lowest}")
         rcon.run("kill @e[tag=smoke_leaper]")
         rcon.run("kill @e[tag=smoke_leap_p]")
         rcon.run("fill 16 194 0 30 206 12 minecraft:air")
+
+    # She hops in a fight (0.98.0): on a flat pad, hit by a villager 12 off, within 30 s she's been off the ground by more
+    # than a step's 0.6 (probed by hand: 7 hops in 30 s, up to 1.7). Flat, so no step or gap of hers explains it.
+    rcon.run("fill 0 199 0 32 199 32 minecraft:stone")
+    rcon.run("fill 0 200 0 32 210 32 minecraft:air")
+    rcon.run('summon minecraft:villager 16.5 200 26.5 {NoAI:1b,PersistenceRequired:1b,Tags:["smoke_hop_v"],active_effects:[{id:"minecraft:resistance",amplifier:4b,duration:-1}]}')
+    rcon.run('summon dreadpatch:dread_queen 16.5 200 14.5 {UUID:[I;98,98,98,98],PersistenceRequired:1b,Tags:["smoke_hop_q"]}')
+    time.sleep(3.0)
+    rcon.run("damage @e[tag=smoke_hop_q,limit=1] 1 minecraft:mob_attack by @e[tag=smoke_hop_v,limit=1]")
+    top = 0.0
+    for _ in range(120):
+        time.sleep(0.25)
+        pos = re.findall(r"([-\d.]+)d", rcon.run("data get entity @e[tag=smoke_hop_q,limit=1] Pos"))
+        if len(pos) < 3:
+            break
+        top = max(top, float(pos[1]) - 200.0)
+        if top > 0.6:
+            break
+    record("the queen hops in a fight (0.98.0)", top > 0.6, f"highest {top:.2f} above the pad in 30 s")
+    rcon.run("kill @e[tag=smoke_hop_q]")
+    rcon.run("kill @e[tag=smoke_hop_v]")
+    clear_court()
+    rcon.run("fill 0 199 0 32 210 32 minecraft:air")
 
     # Potions of Rimefrost and Withering Rime (0.95.0): each splash, its own zombie 10 apart (a splash reaches 4), the
     # strong Rimefrost at II, the long Withering Rime longer than 45 s left; a thrall splashed takes neither.
