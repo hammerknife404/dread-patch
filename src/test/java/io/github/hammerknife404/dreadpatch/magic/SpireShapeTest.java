@@ -210,4 +210,50 @@ class SpireShapeTest {
         double cored = (double) withCore / forges;
         assertTrue(cored > 0.45 && cored < 0.75, "its core sometimes missing (the owner), mostly there: " + cored);
     }
+
+    @Test
+    void aRoostHasNothingElseAndOldSpiresNeverRoost() {
+        int roosts = 0;
+        int spidered = 0;
+        for (long seed = 0; seed < 2000; seed++) {
+            SpireShape old = SpireShape.roll(seed);
+            org.junit.jupiter.api.Assertions.assertFalse(old.roost);
+            org.junit.jupiter.api.Assertions.assertEquals(0, old.spiders().length);
+            SpireShape spire = SpireShape.roll(seed, true);
+            // Its shape and its old features unchanged unless it's now a roost.
+            org.junit.jupiter.api.Assertions.assertEquals(old.height, spire.height);
+            if (spire.roost) {
+                roosts++;
+                org.junit.jupiter.api.Assertions.assertFalse(spire.encounter || spire.chest || spire.lich || spire.forge);
+                org.junit.jupiter.api.Assertions.assertEquals(0, spire.spiders().length);
+            } else {
+                org.junit.jupiter.api.Assertions.assertEquals(old.encounter, spire.encounter);
+                org.junit.jupiter.api.Assertions.assertEquals(old.chest, spire.chest);
+                org.junit.jupiter.api.Assertions.assertEquals(old.forge, spire.forge);
+            }
+            if (spire.spiders().length > 0) {
+                spidered++;
+            }
+        }
+        // About 6% roosts and a third with spiders.
+        org.junit.jupiter.api.Assertions.assertTrue(roosts > 60 && roosts < 200, "roosts " + roosts);
+        org.junit.jupiter.api.Assertions.assertTrue(spidered > 400 && spidered < 900, "spidered " + spidered);
+    }
+
+    @Test
+    void itsSpidersStandOnItsLedgeOrSummit() {
+        for (long seed = 0; seed < 500; seed++) {
+            SpireShape spire = SpireShape.roll(seed, true);
+            for (int[] spot : spire.spiders()) {
+                int dx = spot[0];
+                int y = spot[1];
+                int dz = spot[2];
+                boolean onSummit = y == spire.height && spire.solid(dx, y - 1, dz);
+                boolean onLedge = spire.ledge(dx, y - 1, dz);
+                org.junit.jupiter.api.Assertions.assertTrue(onSummit || onLedge, "seed " + seed + " spot " + java.util.Arrays.toString(spot));
+                org.junit.jupiter.api.Assertions.assertFalse(spire.solid(dx, y, dz) || spire.ledge(dx, y, dz), "buried, seed " + seed);
+                org.junit.jupiter.api.Assertions.assertFalse(spire.encounter && onSummit, "on an encounter summit, seed " + seed);
+            }
+        }
+    }
 }

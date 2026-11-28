@@ -39,19 +39,26 @@ public class SpirePiece extends StructurePiece {
     private final BlockPos base;
     private final long seed;
     private final SpireShape shape;
+    /**
+     * Whether it may be a roost or keep ice spiders (0.98.8): spires made since, saved as {@code Roosts}. One made before
+     * keeps its old roll, so none already standing (half built, or with its encounter) turns into a roost.
+     */
+    private final boolean roosts;
 
     public SpirePiece(BlockPos base, long seed) {
-        super(ModRegistries.SPIRE_PIECE.get(), 0, box(base, SpireShape.roll(seed)));
+        super(ModRegistries.SPIRE_PIECE.get(), 0, box(base, SpireShape.roll(seed, true)));
         this.base = base;
         this.seed = seed;
-        this.shape = SpireShape.roll(seed);
+        this.roosts = true;
+        this.shape = SpireShape.roll(seed, true);
     }
 
     public SpirePiece(CompoundTag tag) {
         super(ModRegistries.SPIRE_PIECE.get(), tag);
         this.base = new BlockPos(tag.getInt("BaseX"), tag.getInt("BaseY"), tag.getInt("BaseZ"));
         this.seed = tag.getLong("Seed");
-        this.shape = SpireShape.roll(this.seed);
+        this.roosts = tag.getBoolean("Roosts");
+        this.shape = SpireShape.roll(this.seed, this.roosts);
     }
 
     private static BoundingBox box(BlockPos base, SpireShape shape) {
@@ -75,6 +82,7 @@ public class SpirePiece extends StructurePiece {
         tag.putInt("BaseY", this.base.getY());
         tag.putInt("BaseZ", this.base.getZ());
         tag.putLong("Seed", this.seed);
+        tag.putBoolean("Roosts", this.roosts);
     }
 
     @Override
@@ -121,6 +129,18 @@ public class SpirePiece extends StructurePiece {
                 }
             }
         }
+        if (this.shape.roost) {
+            BlockPos summit = this.base.above(this.shape.height);
+            if (area.isInside(summit)) {
+                this.raiseRoost(level, random, summit);
+            }
+        }
+        for (int[] spot : this.shape.spiders()) {
+            BlockPos pos = this.base.offset(spot[0], spot[1], spot[2]);
+            if (area.isInside(pos)) {
+                this.raiseSpider(level, pos);
+            }
+        }
         if (this.shape.chest) {
             int[] chest = this.shape.chestAt();
             BlockPos pos = this.base.offset(chest[0], chest[1], chest[2]);
@@ -129,6 +149,39 @@ public class SpirePiece extends StructurePiece {
                 this.raiseLich(level, pos.south().east());
             }
         }
+    }
+
+    /** Its roost's dragon (0.98.8), on the summit's middle: wild, stage 3-4, its home the summit, never aging, kept. */
+    private void raiseRoost(WorldGenLevel level, RandomSource random, BlockPos at) {
+        io.github.hammerknife404.dreadpatch.entity.RimefrostDragon dragon = ModRegistries.RIMEFROST_DRAGON.get().create(level.getLevel());
+        if (dragon == null) {
+            return;
+        }
+        dragon.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, random.nextInt(360), 0.0F);
+        dragon.setGender(random.nextBoolean());
+        dragon.growDragon(SpireShape.ROOST_MIN_DAYS + random.nextInt(SpireShape.ROOST_MAX_DAYS - SpireShape.ROOST_MIN_DAYS + 1));
+        dragon.setAgingDisabled(true);
+        java.util.List<com.iafenvoy.iceandfire.data.DragonColor> colours = dragon.dragonType.colors();
+        dragon.setVariant(colours.get(random.nextInt(colours.size())).getName());
+        dragon.homePos = new com.iafenvoy.iceandfire.entity.util.HomePosition(at, level.getLevel());
+        dragon.hasHomePosition = true;
+        dragon.setHunger(50);
+        dragon.setPersistenceRequired();
+        dragon.setHealth(dragon.getMaxHealth());
+        level.addFreshEntity(dragon);
+    }
+
+    /** One of its ice spiders (0.98.8), kept: risen as the world raises structures' mobs. */
+    private void raiseSpider(WorldGenLevel level, BlockPos at) {
+        net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ice_spider");
+        if (!net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(id)
+                || !(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(id).create(level.getLevel()) instanceof net.minecraft.world.entity.Mob spider)) {
+            return;
+        }
+        spider.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextInt(360), 0.0F);
+        net.neoforged.neoforge.event.EventHooks.finalizeMobSpawn(spider, level, level.getCurrentDifficultyAt(at), MobSpawnType.STRUCTURE, null);
+        spider.setPersistenceRequired();
+        level.addFreshEntityWithPassengers(spider);
     }
 
     /** Its summit's Dread Lich, by the chest, kept: risen as the world raises structures' mobs. */

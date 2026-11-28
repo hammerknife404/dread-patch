@@ -68,6 +68,25 @@ public final class SpireShape {
     static final double[] FORGE_KEPT = {0.8, 0.65, 0.35};
     static final double FORGE_INPUT_KEPT = 0.5;
     static final double FORGE_CORE_KEPT = 0.6;
+    /**
+     * A roost (0.98.8, the owner: "in rare instances, wild stage 3-4 rimefrost dragons can spawn roosting atop a dread
+     * spire. These will never include any other spire feature if a dragon roost spawn on a dread spire"): one spire in
+     * about 16 of those made since (older ones never: {@link #roll(long, boolean)}), a wild Rimefrost dragon on its summit
+     * and nothing else there, no encounter, chest, lich, forge or spiders.
+     */
+    public static final double ROOST_CHANCE = 0.06;
+    /** Its roosting dragon's age: stage 3-4 (Ice and Fire's: 25 days a stage, stage 3 from 50). */
+    public static final int ROOST_MIN_DAYS = 50;
+    public static final int ROOST_MAX_DAYS = 99;
+    /**
+     * Iron's ice spiders on it (0.98.8, the owner: "The giant ice spiders can also spawn atop or on the staircase of dread
+     * spires"): on {@link #SPIDER_CHANCE} of spires (not a roost), 1-{@link #MAX_SPIDERS}, placed as it's built, each on
+     * its summit ({@link #SPIDER_SUMMIT} of them; never an encounter spire's, where she comes) or on its ledge.
+     */
+    public static final double SPIDER_CHANCE = 0.35;
+    public static final int MAX_SPIDERS = 3;
+    public static final double SPIDER_SUMMIT = 0.4;
+
     /** Its dread torches, this far out from the middle along the diagonals. */
     static final int TORCH_OFFSET = 3;
 
@@ -79,6 +98,12 @@ public final class SpireShape {
     final double ledgeStart;
     /** Whether the Queen and Syndrigossa come to its summit. */
     public final boolean encounter;
+    /** Whether a Rimefrost dragon roosts on its summit (its only feature then). */
+    public final boolean roost;
+    /** Its ice spiders' spots, each {dx, y to stand at, dz} from its base. */
+    private final int[][] spiders;
+    /** A well-mixed seed for its spiders' count and spots. */
+    private final long featureRoll;
     /** How far its top flares out past its narrowest. */
     public final double flare;
     /** Its summit's radius: its narrowest plus its flare. */
@@ -95,21 +120,33 @@ public final class SpireShape {
     private final int[] spikeLength;
 
     public SpireShape(long seed, int height, double baseRadius, double topRadius) {
+        this(seed, height, baseRadius, topRadius, false);
+    }
+
+    /** {@code roosts}: whether it may be a roost (or keep spiders), as spires made since 0.98.8 may. */
+    public SpireShape(long seed, int height, double baseRadius, double topRadius, boolean roosts) {
         this.seed = seed;
         this.height = height;
         this.baseRadius = baseRadius;
         this.topRadius = topRadius;
         Random random = new Random(seed ^ 0x5B1BE5L);
         this.ledgeStart = random.nextDouble() * 2.0 * Math.PI;
-        this.encounter = hash(0, 0, 0, seed ^ 0xE4C0L) < ENCOUNTER_CHANCE;
+        // Its roost and spiders by a well-mixed roll of its seed: the spire's seeds come from the world's chunk random, and
+        // the hash below ran a roost on 10 of 46 spires placed in the dev world (5.6% on random seeds).
+        java.util.SplittableRandom features = new java.util.SplittableRandom(seed ^ 0x2005_5B1D_E5L);
+        double roostRoll = features.nextDouble();
+        double spiderRoll = features.nextDouble();
+        this.featureRoll = features.nextLong();
+        this.roost = roosts && roostRoll < ROOST_CHANCE;
+        this.encounter = !this.roost && hash(0, 0, 0, seed ^ 0xE4C0L) < ENCOUNTER_CHANCE;
         this.flare = 3.0 + hash(1, 0, 0, seed ^ 0xF1A5L);
         this.summitRadius = topRadius + this.flare;
-        this.chest = hash(2, 0, 0, seed ^ 0xC4E5L) < SUMMIT_CHEST_CHANCE;
+        this.chest = !this.roost && hash(2, 0, 0, seed ^ 0xC4E5L) < SUMMIT_CHEST_CHANCE;
         this.lich = this.chest && hash(3, 0, 0, seed ^ 0x1C4L) < LICH_CHANCE;
         // The crown: spikes round the rim, none where the ledge comes up onto it.
         double arrival = this.ledgeAngle(height - 1);
         // Its forge: on whichever of the four sides faces most away from where the ledge arrives.
-        this.forge = hash(4, 0, 0, seed ^ 0xF0E6L) < FORGE_CHANCE;
+        this.forge = !this.roost && hash(4, 0, 0, seed ^ 0xF0E6L) < FORGE_CHANCE;
         int side = Math.floorMod((int) Math.round(wrapPositive(arrival + Math.PI) / (Math.PI / 2.0)), 4);
         this.forgeX = side == 0 ? FORGE_OFFSET : side == 2 ? -FORGE_OFFSET : 0;
         this.forgeZ = side == 1 ? FORGE_OFFSET : side == 3 ? -FORGE_OFFSET : 0;
@@ -124,15 +161,61 @@ public final class SpireShape {
             this.spikeZ[i] = (int) Math.round(Math.sin(angle) * rim);
             this.spikeLength[i] = onLedge ? 0 : 3 + random.nextInt(MAX_SPIKE - 2);
         }
+        this.spiders = roosts && !this.roost && spiderRoll < SPIDER_CHANCE ? this.spiderSpots() : new int[0][];
     }
 
-    /** A spire from a seed: 64–100 tall, 11–14 wide at the base, a summit 6–8 across its radius. */
+    /** Where its 1-{@link #MAX_SPIDERS} ice spiders stand: on its summit (clear of its dais, chest and forge) or its ledge. */
+    private int[][] spiderSpots() {
+        java.util.SplittableRandom roll = new java.util.SplittableRandom(this.featureRoll);
+        int count = 1 + roll.nextInt(MAX_SPIDERS);
+        java.util.List<int[]> spots = new java.util.ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            double where = roll.nextDouble();
+            double angle = 2.0 * Math.PI * roll.nextDouble();
+            double outRoll = roll.nextDouble();
+            double upRoll = roll.nextDouble();
+            if (!this.encounter && where < SPIDER_SUMMIT) {
+                double out = 2.0 + (this.summitRadius - 4.0) * outRoll;
+                int dx = (int) Math.round(Math.cos(angle) * out);
+                int dz = (int) Math.round(Math.sin(angle) * out);
+                boolean byForge = this.forge && Math.abs(dx - this.forgeX) <= 2 && Math.abs(dz - this.forgeZ) <= 2;
+                boolean byChest = this.chest && Math.abs(dx) <= 1 && Math.abs(dz) <= 3;
+                if (!byForge && !byChest) {
+                    spots.add(new int[]{dx, this.height, dz});
+                }
+                continue;
+            }
+            // On the ledge: somewhere between a quarter of the way up and near the top, where it runs at that height.
+            int y = (int) (this.height * (0.25 + 0.6 * upRoll));
+            double run = this.ledgeAngle(y);
+            double out = this.radius(y) + 1.0;
+            int dx = (int) Math.round(Math.cos(run) * out);
+            int dz = (int) Math.round(Math.sin(run) * out);
+            int top = this.ledgeTop(dx, dz, y, -2, 2);
+            if (top != Integer.MIN_VALUE && this.ledge(dx, top, dz) && !this.ledge(dx, top + 1, dz) && !this.solid(dx, top + 1, dz)) {
+                spots.add(new int[]{dx, top + 1, dz});
+            }
+        }
+        return spots.toArray(new int[0][]);
+    }
+
+    /** Its ice spiders' spots ({dx, y to stand at, dz} from its base); none on older spires or a roost. */
+    public int[][] spiders() {
+        return this.spiders;
+    }
+
+    /** A spire from a seed: 64–100 tall, 11–14 wide at the base, a summit 6–8 across its radius. As made before 0.98.8. */
     public static SpireShape roll(long seed) {
+        return roll(seed, false);
+    }
+
+    /** The same, and {@code roosts}: whether it may be a roost or keep spiders (0.98.8: spires made since, as their pieces save). */
+    public static SpireShape roll(long seed, boolean roosts) {
         Random random = new Random(seed);
         int height = MIN_HEIGHT + random.nextInt(MAX_HEIGHT - MIN_HEIGHT + 1);
         double base = 11.0 + random.nextDouble() * 3.0;
         double top = 6.0 + random.nextDouble() * 2.0;
-        return new SpireShape(seed, height, base, top);
+        return new SpireShape(seed, height, base, top, roosts);
     }
 
     /** How far from its centre anything of it reaches. */
