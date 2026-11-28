@@ -50,6 +50,7 @@ public final class DreadTerrain {
     public static final DeferredHolder<Feature<?>, HolePool> HOLE_POOL = FEATURES.register("hole_pool", HolePool::new);
     public static final DeferredHolder<Feature<?>, DragonSkeleton> DRAGON_SKELETON = FEATURES.register("dragon_skeleton", DragonSkeleton::new);
     public static final DeferredHolder<Feature<?>, DeepWater> DEEP_WATER = FEATURES.register("deep_water", DeepWater::new);
+    public static final DeferredHolder<Feature<?>, FloorCover> FLOOR_COVER = FEATURES.register("floor_cover", FloorCover::new);
     /** A wild Rimefrost dragon's nest on the Glacial Plains (0.84.0). */
     public static final DeferredHolder<Feature<?>, RimefrostNests.Nest> RIMEFROST_NEST = FEATURES.register("rimefrost_nest", RimefrostNests.Nest::new);
 
@@ -177,6 +178,41 @@ public final class DreadTerrain {
                 }
             }
             return placed;
+        }
+    }
+
+    /**
+     * The bedrock covered (0.98.12, the owner, a picture of a cave floor of bare bedrock: "the bedrock should not be visible,
+     * dreadstone and ice should make up the top few levels above bedrock"): in each chunk, before the deeps are flooded, the
+     * {@link #COVER} layers over the world's floor made dreadstone, packed ice one block in {@link #ICE_ONE_IN}; the caves
+     * that ran down to the bedrock now end on them.
+     */
+    public static final class FloorCover extends Feature<NoneFeatureConfiguration> {
+        static final int COVER = 4;
+        static final int ICE_ONE_IN = 4;
+
+        FloorCover() {
+            super(NoneFeatureConfiguration.CODEC);
+        }
+
+        @Override
+        public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+            WorldGenLevel level = context.level();
+            RandomSource random = context.random();
+            BlockState dreadstone = com.iafenvoy.iceandfire.registry.IafBlocks.DREAD_STONE.get().defaultBlockState();
+            BlockState ice = Blocks.PACKED_ICE.defaultBlockState();
+            BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+            int x0 = context.origin().getX() & ~15;
+            int z0 = context.origin().getZ() & ~15;
+            int floor = level.getMinBuildHeight();
+            for (int x = x0; x < x0 + 16; x++) {
+                for (int z = z0; z < z0 + 16; z++) {
+                    for (int y = floor + 1; y <= floor + COVER; y++) {
+                        level.setBlock(at.set(x, y, z), random.nextInt(ICE_ONE_IN) == 0 ? ice : dreadstone, Block.UPDATE_CLIENTS);
+                    }
+                }
+            }
+            return true;
         }
     }
 

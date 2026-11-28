@@ -32,7 +32,9 @@
   "spawn_costs": {},
   "carvers": {},
   "features": [
-    [],
+    [
+      "dreadpatch:floor_cover"
+    ],
     [
       "dreadpatch:deep_water"
     ],

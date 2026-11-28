@@ -2426,11 +2426,29 @@ def main():
             # there too; and Iron's ice spider patrols are kept out.
             for tag in ("c:is_cold", "c:is_snowy", "c:is_icy"):
                 check(f"the Dreadlands' biomes are #{tag} (0.98.6)", dl + f"if biome {mx} 31 {mz} #{tag}", "Test passed")
-            check("Iron's ice spider dens come in the Dreadlands (0.98.6)", dl + "run locate structure irons_spellbooks:ice_spider_den", "The nearest")
+            # Iron's ice spider dens taken out again (0.98.12, the owner: "Remove ice cave spiders from generating"); Ice and
+            # Fire's graveyards near the villages instead.
+            check("Iron's ice spider dens don't come in the Dreadlands (0.98.12)", dl + "run locate structure irons_spellbooks:ice_spider_den", "Could not find")
+            check("Ice and Fire's graveyards come near its villages (0.98.12)", dl + "run locate structure dreadpatch:dread_graveyard", "The nearest")
             # The world's floor (0.69.0, the owner: bedrock "at least 1 layer thick throughout the entire dimension"):
             # no cave, crack or trench opens it, here where they're thickest.
             bedrock = chasma_count("minecraft:bedrock", -64, -64)
             record("the Dreadlands' floor is bedrock throughout", bedrock == 64 * 64, f"{bedrock} of {64 * 64} at -64")
+            # Covered (0.98.12, the owner: "the bedrock should not be visible, dreadstone and ice should make up the top few
+            # levels above bedrock"): the four layers over it dreadstone and packed ice throughout.
+            # Counted by swapping to glass and back (a sponge, chasma_count's marker, would soak up the flooded deeps over it).
+            def glass_count(block, y0, y1):
+                total = 0
+                for x in range(mx - 32, mx + 32, 32):
+                    for z in range(mz - 32, mz + 32, 32):
+                        box = f"{x} {y0} {z} {x + 31} {y1} {z + 31}"
+                        filled = re.search(r"filled (\d+)", rcon.run(dl + f"run fill {box} minecraft:glass replace {block}"))
+                        if filled and int(filled.group(1)):
+                            rcon.run(dl + f"run fill {box} {block} replace minecraft:glass")
+                            total += int(filled.group(1))
+                return total
+            covered = sum(glass_count(block, -63, -60) for block in ("iceandfire:dread_stone", "minecraft:packed_ice"))
+            record("its bedrock is covered by dreadstone and ice (0.98.12)", covered == 4 * 64 * 64, f"{covered} of {4 * 64 * 64} at -63 to -60")
             rcon.run(dl + "run forceload remove all")
     else:
         record("the Rime Chasma is found far out", False, "locate found none")
