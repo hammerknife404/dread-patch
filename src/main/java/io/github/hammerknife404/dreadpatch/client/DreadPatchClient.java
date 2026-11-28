@@ -53,6 +53,7 @@ public final class DreadPatchClient {
         NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.client.event.ClientTickEvent.Post.class, DreadRecolors::dragonArmor);
         WhiteoutClient.register(NeoForge.EVENT_BUS);
         StaffTooltip.register(NeoForge.EVENT_BUS);
+        RegaliaTooltip.register(NeoForge.EVENT_BUS);
         // The server config in the mods list's Config button (0.50.0): NeoForge's own screen; every value is read
         // where it's used, so a change applies at once.
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
@@ -166,6 +167,8 @@ public final class DreadPatchClient {
         event.registerEntityRenderer(ModRegistries.DREAD_QUEEN.get(), DreadQueenRenderer::new);
         // Drawn entirely by its trail particles.
         event.registerEntityRenderer(ModRegistries.WITHERING_RIME_BOLT.get(), NoopRenderer::new);
+        // Ice and Fire's own skull, as it draws its lich's.
+        event.registerEntityRenderer(ModRegistries.LICH_SKULL.get(), com.iafenvoy.iceandfire.render.entity.DreadLichSkullEntityRenderer::new);
         event.registerEntityRenderer(ModRegistries.SCUTTLER_WEB.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         event.registerEntityRenderer(ModRegistries.RIMEFIRE_CROWN.get(), RimefireCrownRenderer::new);
         event.registerEntityRenderer(ModRegistries.SOVEREIGNS_ECLIPSE.get(), context -> new RimefireCrownRenderer(context, RimefireCrownRenderer.ECLIPSE));

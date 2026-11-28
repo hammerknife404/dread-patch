@@ -35,7 +35,7 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 - **What it makes:**
   - **Rimefrost Dragon Blood:** Rimefrost Dragon Scales and a glass bottle (37.5 seconds of breath).
   - **Dread Dragonsteel Ingot:** an iron ingot and Rimefrost Dragon Blood (50 seconds of breath).
-  - **Dread Sovereign's Tome:** the Unforged Sovereign's Tome and Rimefrost Dragon Blood (75 seconds of breath); its spells come with it ([below](#rimefrost-spellbooks)).
+  - **Dread Sovereign's Tome:** the Rimebound Tome and a Rimefrost Dragon Scale or Rimefrost Dragon Blood (75 seconds of breath); its spells come with it ([below](#rimefrost-spellbooks)).
   - Packs can add their own: any Ice and Fire `iceandfire:dragonforge` recipe with `"dragonType": "rimefrost"`.
 - **JEI:** with JEI installed, its recipes have a page of their own.
 
@@ -44,8 +44,7 @@ Dread dragonsteel is forged in the Rimefrost dragonforge, and only there: Ice an
 Two spellbooks for Rimefrost casters, worn in Iron's spellbook slot. Each holds 12 spells, and each step keeps the spells inscribed in the book before it.
 
 - **Rimebound Tome:** Iron's Ice Spell Book at a smithing table, with a dread shard as the template and a dreadwood log as the addition. +5% Ice spell power (the Ice book's 10% halved), +15% Rimefrost spell power, +200 max mana.
-- **Unforged Sovereign's Tome:** the Rimebound Tome at a smithing table, with a Dread Dragonsteel Ingot as the template and a Rimefrost Dragon Scale as the addition. Not a spellbook yet: forge it.
-- **Dread Sovereign's Tome:** the Unforged Sovereign's Tome forged in the Rimefrost dragonforge with Rimefrost Dragon Blood. +30% Rimefrost spell power, +10% Rimefrost resistance, +300 max mana, and no Ice bonus.
+- **Dread Sovereign's Tome:** the Rimebound Tome forged in the Rimefrost dragonforge, with a Rimefrost Dragon Scale or Rimefrost Dragon Blood in the blood slot. +30% Rimefrost spell power, +10% Rimefrost resistance, +300 max mana, and no Ice bonus.
 
 Rimefrost spells are Ice spells too, so Ice spell power adds to them as well.
 
@@ -59,7 +58,7 @@ Rimefrost spells are Ice spells too, so Ice spell power adds to them as well.
 - It gives +15% Ice Spell Power, +5% Rimefrost Spell Power and +10% Cooldown Reduction in the main hand.
 - **Permafrost Conduit:** Ice spells cost 20% less mana while you stand on snow or ice.
 
-**Ice and Fire's lich staff** (a Dread Lich's) carries a little of the Dread's magic too: Whiteout Dominion and Summon Dread Phantoms at level 1, on your spell wheel while it's in either hand, cast with Iron's cast key (right-click still looses its lich skull), and +5% Ice Spell Power, Rimefrost Spell Power and Summon Damage in the main hand.
+**Ice and Fire's lich staff** (a Dread Lich's) carries a little of the Dread's magic too: Lich Skull, Whiteout Dominion and Summon Dread Phantoms at level 1, on your spell wheel while it's in either hand. Right-click casts the selected spell, as an Iron's staff does (its skull is the Lich Skull spell now), and +5% Ice Spell Power, Rimefrost Spell Power and Summon Damage in the main hand.
 
 **Her sword** is unbreakable, with 11.5 attack damage at 1.6 speed and half a block more reach. She swings the same sword, so her own strikes leave Withering Rime and shatter too.
 

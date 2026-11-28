@@ -158,7 +158,9 @@ public class RimefireCrown extends Entity implements TraceableEntity {
         BlockState state = level.getBlockState(pos);
         if (state.is(BlockTags.FIRE)) {
             level.removeBlock(pos, false);
-        } else if (state.hasProperty(CampfireBlock.LIT) && state.getValue(CampfireBlock.LIT)) {
+        } else if (state.hasProperty(CampfireBlock.LIT) && state.getValue(CampfireBlock.LIT)
+                && !(state.getBlock() instanceof io.github.hammerknife404.dreadpatch.block.DreadCampfireBlock)) {
+            // Not a Dread Campfire (0.98.5): dread fire is its own, and it burns until put out.
             level.setBlockAndUpdate(pos, state.setValue(CampfireBlock.LIT, false));
         }
     }

@@ -3,7 +3,7 @@
   "dragonType": "rimefrost",
   "cookTime": 1500,
   "input": {
-    "item": "dreadpatch:unforged_sovereigns_tome"
+    "item": "dreadpatch:rimebound_tome"
   },
   "blood": {
     "item": "dreadpatch:rimefrost_dragon_blood"

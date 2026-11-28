@@ -1,0 +1,14 @@
+{
+  "type": "iceandfire:dragonforge",
+  "dragonType": "rimefrost",
+  "cookTime": 1500,
+  "input": {
+    "item": "dreadpatch:rimebound_tome"
+  },
+  "blood": {
+    "item": "dreadpatch:rimefrost_dragon_scale"
+  },
+  "result": {
+    "id": "dreadpatch:dread_sovereigns_tome"
+  }
+}
