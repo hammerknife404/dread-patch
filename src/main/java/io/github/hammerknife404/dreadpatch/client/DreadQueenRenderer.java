@@ -23,6 +23,14 @@ public final class DreadQueenRenderer extends HumanoidMobRenderer<DreadQueen, Dr
         });
     }
 
+    /** Her classic look (her own outfit) or the redrawn regalia over her, as the client's config has it (0.98.7). */
+    @Override
+    public void render(DreadQueen queen, float yaw, float partialTick, com.mojang.blaze3d.vertex.PoseStack poseStack,
+                       net.minecraft.client.renderer.MultiBufferSource buffers, int light) {
+        this.getModel().showOutfit(DreadPatchClientConfig.classicArmor());
+        super.render(queen, yaw, partialTick, poseStack, buffers, light);
+    }
+
     @Override
     public ResourceLocation getTextureLocation(DreadQueen entity) {
         return TEXTURE;
@@ -41,7 +49,7 @@ public final class DreadQueenRenderer extends HumanoidMobRenderer<DreadQueen, Dr
         @Override
         public void render(com.mojang.blaze3d.vertex.PoseStack poseStack, net.minecraft.client.renderer.MultiBufferSource buffers, int light, DreadQueen queen,
                            float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch) {
-            if (queen.isInvisible()) {
+            if (queen.isInvisible() || DreadPatchClientConfig.classicArmor()) {
                 return;
             }
             var buffer = buffers.getBuffer(RenderType.armorCutoutNoCull(QueenArmorModels.TEXTURE));

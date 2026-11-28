@@ -107,3 +107,14 @@ Other mods.
 | Option | Default | What it does |
 |---|---|---|
 | `infection_mods` | `["spore", "flesh_that_hates"]` | Mods (by mod id) whose effects the Dread, the Rimefrost dragons, the queen and the risen never take: infection and body-conversion mods, so they're never infected or converted. |
+
+## Client settings: `[regalia]`
+
+How the Dread Queen's regalia looks, on you, on her and in hand. Each player's own, in `config/dreadpatch-client.toml` or the same **Config** screen; changes show at once.
+
+| Option | Default | What it does |
+|---|---|---|
+| `classic_regalia_armor` | `true` | The regalia's armour in its classic look: her own outfit in Ice and Fire's texture, bust and all, as she wears it. Off: the redrawn dark steel and cyan regalia. |
+| `classic_regalia_sword` | `true` | Her sword as Ice and Fire draws it. Off: the redrawn glowing blade. |
+| `classic_regalia_staff` | `true` | Her staff as Ice and Fire draws it. Off: the redrawn glowing staff. |
+| `regalia_wings` | `DRAGON` | The winged bodice's wings: `DRAGON`, its ice-bone dragon wings; `ELYTRA`, a vanilla elytra's. |

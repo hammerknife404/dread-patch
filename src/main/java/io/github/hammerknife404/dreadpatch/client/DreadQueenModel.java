@@ -34,12 +34,21 @@ public final class DreadQueenModel<T extends LivingEntity> extends HumanoidModel
 
     public DreadQueenModel(ModelPart root) {
         super(root);
-        // Since 0.81.0 she wears her regalia as players do (DreadQueenRenderer's layer, the owner's pictures): her own
-        // outfit's boxes, Ice and Fire's look, are kept but not drawn.
-        for (ModelPart outfit : new ModelPart[]{this.head.getChild("headware"), this.body.getChild("chestplate"), this.body.getChild("cloak"),
+        this.outfit = new ModelPart[]{this.head.getChild("headware"), this.body.getChild("chestplate"), this.body.getChild("cloak"),
                 this.rightArm.getChild("right_sleeve"), this.leftArm.getChild("left_sleeve"), this.rightLeg.getChild("right_robe"),
-                this.leftLeg.getChild("left_robe")}) {
-            outfit.visible = false;
+                this.leftLeg.getChild("left_robe")};
+    }
+
+    /** Her own outfit's boxes, Ice and Fire's look. */
+    private final ModelPart[] outfit;
+
+    /**
+     * Whether her own outfit shows: the classic look (0.98.7, by default; {@link DreadPatchClientConfig}). From 0.81.0
+     * to 0.98.6 always hidden: she wore her redrawn regalia as players do (DreadQueenRenderer's layer).
+     */
+    public void showOutfit(boolean shown) {
+        for (ModelPart part : this.outfit) {
+            part.visible = shown;
         }
     }
 
