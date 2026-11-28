@@ -96,7 +96,7 @@ The Dread breaking wooden doors, as zombies do.
 |---|---|---|
 | `dread_break_doors` | `true` | Whether the walking Dread (thralls, ghouls, knights, beasts, scuttlers, liches, the queen) break wooden doors in their way, as zombies do, where mob griefing is on. Off: they never do, and don't path through doors. |
 | `dread_break_doors_from` | `HARD` | The least difficulty they break doors at: `HARD` as zombies, `NORMAL` or `EASY` for more. |
-| `dread_break_iron_doors` | `true` | Whether they also break iron doors (more slowly), on Hard only, where mob griefing is on. Apart from `dread_break_doors`: either can be on without the other. |
+| `dread_break_iron_doors` | `true` | Whether Dread Knights (only they) also break iron doors (more slowly), on Hard only, where mob griefing is on. Apart from `dread_break_doors`: either can be on without the other. |
 
 ## `[compat]`
 

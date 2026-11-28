@@ -25,6 +25,8 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
 
 **Registration** (`registry/ModRegistries`): `dread_queen` (0.6 × 1.95, tracking range 10) and the spawn eggs.
 
+**Smoke (0.98.1,** the handoff: "Add subtle, small smoke particles drifting from the Dread Queen's eyes and the top of her crown"**):** client side in her `aiStep` (`smoke`, `magic/QueenSmoke`, unit-tested): `rime_smoke_small` (which rises by itself) from each eye one tick in 9 and from her crown's top one in 5, placed on her head (neck 1.5 up; eyes 3.5/16 up, 2/16 apart, 4.3/16 forward; crown 12/16 up) as it turns (`yHeadRot`) and tips (`getXRot`). Not while rising or invisible.
+
 **Movement** (`entity/KeepDistanceGoal`, `magic/Spacing`):
 - **Models:** after Iron's `WizardAttackGoal` and Ice and Fire's `DreadLichAIStrifeGoal`. Neither works for her: one needs an `IMagicEntity`, the other a `DreadLichEntity`.
 - **By distance:**

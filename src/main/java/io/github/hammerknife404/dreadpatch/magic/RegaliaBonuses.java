@@ -13,6 +13,19 @@ public final class RegaliaBonuses {
     public static final double MANA_PER_PIECE = 150.0;
     public static final float MANA_COST_PER_PIECE = 0.05F;
     public static final float RIMEFROST_DAMAGE_PER_PIECE = 0.05F;
+    /**
+     * Each piece's mage buffs (0.98.1, the owner's handoff: "Add additional per-piece mage buffs to each regalia piece
+     * (such as Rimefrost Spell Power, Cooldown Reduction, and Mana Regen)"), Iron's multipliers on their base: every piece
+     * Rimefrost spell power, and one of its own: the crown cooldowns, the bodice (winged too) spell power, the robe mana
+     * regeneration, the greaves moving while casting. The full set: +20% Rimefrost spell power.
+     */
+    public static final double RIMEFROST_POWER_PER_PIECE = 0.05;
+    public static final double CROWN_COOLDOWN_REDUCTION = 0.10;
+    public static final double BODICE_SPELL_POWER = 0.05;
+    public static final double ROBE_MANA_REGEN = 0.15;
+    public static final double GREAVES_CASTING_MOVESPEED = 0.10;
+    /** Each piece holds one spell, imbued at Iron's Arcane Anvil (the owner, asked about the handoff's sockets). */
+    public static final int IMBUED_SPELLS = 1;
 
     private RegaliaBonuses() {
     }

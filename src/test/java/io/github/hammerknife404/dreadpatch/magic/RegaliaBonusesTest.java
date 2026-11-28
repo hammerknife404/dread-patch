@@ -26,4 +26,14 @@ class RegaliaBonusesTest {
         assertTrue(RegaliaBonuses.fullSet(4));
         assertFalse(RegaliaBonuses.fullSet(3));
     }
+
+    @Test
+    void theFullSetIsAFifthMoreRimefrostPowerAndEachPieceHasItsOwn() {
+        assertEquals(0.20, RegaliaBonuses.RIMEFROST_POWER_PER_PIECE * RegaliaBonuses.PIECES, 1.0E-9);
+        for (double own : new double[]{RegaliaBonuses.CROWN_COOLDOWN_REDUCTION, RegaliaBonuses.BODICE_SPELL_POWER,
+                RegaliaBonuses.ROBE_MANA_REGEN, RegaliaBonuses.GREAVES_CASTING_MOVESPEED}) {
+            org.junit.jupiter.api.Assertions.assertTrue(own > 0.0 && own <= 0.15, "buff " + own);
+        }
+        assertEquals(1, RegaliaBonuses.IMBUED_SPELLS);
+    }
 }
