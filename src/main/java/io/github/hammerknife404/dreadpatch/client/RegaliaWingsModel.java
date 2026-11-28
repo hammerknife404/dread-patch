@@ -76,7 +76,11 @@ public final class RegaliaWingsModel extends Model {
         // Each state: the root's x, y, z turns and the hand's fold (a y turn).
         // Idle (0.82.2, the owner: "fold/collapse in more, like a dragons wings when sitting"): the arm bones tucked down
         // the back, the wrists up at the shoulders, the hands folded down behind, the membranes draped; breathing.
-        float[] idle = {0.1F + 0.03F * breathe, 1.1F, 0.1F + 0.02F * breathe, -2.0F + 0.05F * breathe};
+        // 0.98.7 (the owner: "Allow the regalia wings a small amount of idle animation when the player is not gliding"):
+        // the breathing deeper, and now and then (about every 9 s, for about a second) a resettle, a small shrug and refold.
+        float settle = idleSettle(time);
+        float[] idle = {0.1F + 0.06F * breathe + 0.06F * settle, 1.1F - 0.12F * settle, 0.1F + 0.05F * breathe + 0.1F * settle,
+                -2.0F + 0.1F * breathe + 0.35F * settle};
         float bob = Mth.sin(limbSwing * 0.6662F) * Math.min(1.0F, limbSwingAmount);
         // Walking: half folded, bobbing with the steps; sprinting, flaring open.
         float[] walk = {0.15F + 0.06F * bob, 1.0F - 0.4F * state.sprint, 0.0F + 0.2F * state.sprint, -1.7F + 0.9F * state.sprint};
@@ -134,6 +138,12 @@ public final class RegaliaWingsModel extends Model {
             this.arms[i].zRot += 0.25F * lift * m;
             this.hands[i].zRot -= 0.25F * lift * m;
         }
+    }
+
+    /** The idle resettle's strength at {@code time} (ticks): 0 most of the time, rising to 1 for about a second every 9 or so. */
+    static float idleSettle(float time) {
+        float wave = Mth.sin(time * 0.035F);
+        return wave <= 0.0F ? 0.0F : (float) Math.pow(wave, 12.0);
     }
 
     @Override

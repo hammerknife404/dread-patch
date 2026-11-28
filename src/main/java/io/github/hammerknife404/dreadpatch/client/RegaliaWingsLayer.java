@@ -38,11 +38,15 @@ public final class RegaliaWingsLayer<T extends LivingEntity, M extends HumanoidM
     static final ResourceLocation TEXTURE = DreadPatch.id("textures/entity/regalia_wings.png");
     static final ResourceLocation GLOW = DreadPatch.id("textures/entity/regalia_wings_glow.png");
 
-    private final RegaliaWingsModel wings;
+    private static final ResourceLocation ELYTRA = ResourceLocation.withDefaultNamespace("textures/entity/elytra.png");
 
-    public RegaliaWingsLayer(RenderLayerParent<T, M> parent, RegaliaWingsModel wings) {
+    private final RegaliaWingsModel wings;
+    private final IdleElytra<T> elytra;
+
+    public RegaliaWingsLayer(RenderLayerParent<T, M> parent, RegaliaWingsModel wings, IdleElytra<T> elytra) {
         super(parent);
         this.wings = wings;
+        this.elytra = elytra;
     }
 
     /** Whether it wears the winged bodice. */
@@ -54,6 +58,18 @@ public final class RegaliaWingsLayer<T extends LivingEntity, M extends HumanoidM
     public void render(PoseStack poseStack, MultiBufferSource buffers, int light, T entity, float limbSwing, float limbSwingAmount,
                        float partialTick, float ageInTicks, float netHeadYaw, float headPitch) {
         if (!winged(entity) || entity.isInvisible()) {
+            return;
+        }
+        if (DreadPatchClientConfig.wings() == DreadPatchClientConfig.Wings.ELYTRA) {
+            // A vanilla elytra's wings (0.98.7, the client config), as vanilla's ElytraLayer draws them.
+            poseStack.pushPose();
+            poseStack.translate(0.0F, 0.0F, 0.125F);
+            this.getParentModel().copyPropertiesTo(this.elytra);
+            this.elytra.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+            this.elytra.idle(entity, ageInTicks);
+            this.elytra.renderToBuffer(poseStack, net.minecraft.client.renderer.entity.ItemRenderer.getArmorFoilBuffer(buffers,
+                    RenderType.armorCutoutNoCull(ELYTRA), entity.getItemBySlot(EquipmentSlot.CHEST).hasFoil()), light, OverlayTexture.NO_OVERLAY);
+            poseStack.popPose();
             return;
         }
         poseStack.pushPose();
@@ -68,16 +84,17 @@ public final class RegaliaWingsLayer<T extends LivingEntity, M extends HumanoidM
     @SuppressWarnings({"unchecked", "rawtypes"})
     static void onAddLayers(EntityRenderersEvent.AddLayers event) {
         RegaliaWingsModel model = new RegaliaWingsModel(event.getEntityModels().bakeLayer(RegaliaWingsModel.LAYER));
+        net.minecraft.client.model.geom.ModelPart elytra = event.getEntityModels().bakeLayer(net.minecraft.client.model.geom.ModelLayers.ELYTRA);
         for (var skin : event.getSkins()) {
             if (event.getSkin(skin) instanceof LivingEntityRenderer renderer && renderer.getModel() instanceof PlayerModel) {
-                renderer.addLayer(new RegaliaWingsLayer(renderer, model));
+                renderer.addLayer(new RegaliaWingsLayer(renderer, model, new IdleElytra(elytra)));
                 hideCape(renderer);
             }
         }
         for (EntityType<?> type : event.getEntityTypes()) {
             EntityRenderer<?> found = event.getRenderer(type);
             if (found instanceof LivingEntityRenderer renderer && renderer.getModel() instanceof HumanoidModel) {
-                renderer.addLayer(new RegaliaWingsLayer(renderer, model));
+                renderer.addLayer(new RegaliaWingsLayer(renderer, model, new IdleElytra(elytra)));
             }
         }
     }
@@ -141,6 +158,30 @@ public final class RegaliaWingsLayer<T extends LivingEntity, M extends HumanoidM
                 minecraft.level.addParticle(net.minecraft.core.particles.ParticleTypes.SNOWFLAKE,
                         player.getX() + rx * 0.9 * side - Math.sin(yaw) * 0.3, player.getY() + 1.2 + random.nextDouble() * 0.6,
                         player.getZ() + rz * 0.9 * side + Math.cos(yaw) * 0.3, 0.0, -0.02, 0.0);
+            }
+        }
+    }
+
+    /**
+     * A vanilla elytra's wings (0.98.7) with the same small idle the dragon wings have: not gliding, a slow sway and now
+     * and then a resettle ({@link RegaliaWingsModel#idleSettle}), on the wings vanilla poses.
+     */
+    static final class IdleElytra<T extends LivingEntity> extends net.minecraft.client.model.ElytraModel<T> {
+        IdleElytra(net.minecraft.client.model.geom.ModelPart root) {
+            super(root);
+        }
+
+        void idle(T entity, float time) {
+            if (entity.isFallFlying()) {
+                return;
+            }
+            float sway = 0.04F * net.minecraft.util.Mth.sin(time * 0.1F) + 0.12F * RegaliaWingsModel.idleSettle(time);
+            int i = 0;
+            for (net.minecraft.client.model.geom.ModelPart wing : this.bodyParts()) {
+                // Vanilla's order: the left wing, then the right; each opens outward from the back.
+                float side = i++ == 0 ? 1.0F : -1.0F;
+                wing.zRot += sway * side;
+                wing.yRot += 0.5F * sway * side;
             }
         }
     }

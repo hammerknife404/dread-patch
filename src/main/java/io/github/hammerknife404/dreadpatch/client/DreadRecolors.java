@@ -118,7 +118,7 @@ public final class DreadRecolors {
     /** An armour layer, recoloured from Ice and Fire's: made the first time it's drawn; Ice and Fire's own if it can't be. */
     static ResourceLocation armorTexture(DreadArmorItem.Kind kind, boolean inner) {
         if (kind == DreadArmorItem.Kind.QUEEN) {
-            return QueenArmorModels.TEXTURE;
+            return QueenArmorModels.texture();
         }
         String key = "armor/" + kind.name().toLowerCase() + "_layer_" + (inner ? 2 : 1);
         return recolored(key, ResourceLocation.fromNamespaceAndPath("iceandfire", "textures/models/armor/" + kind.iceAndFireTexture + "_layer_" + (inner ? 2 : 1) + ".png"));

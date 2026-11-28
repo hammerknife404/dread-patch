@@ -1,5 +1,7 @@
 package io.github.hammerknife404.dreadpatch.client;
 
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+
 import com.mojang.logging.LogUtils;
 import io.github.hammerknife404.dreadpatch.DreadPatch;
 import net.minecraft.client.resources.model.BakedModel;
@@ -14,6 +16,8 @@ import org.slf4j.Logger;
  * ({@code models/item/dread_queen_sword_regalia.json}, {@code _staff_regalia}, from {@code tools/models/make_regalia.py})
  * put in place of Ice and Fire's for its two items once models are baked, in hand (hers too), on the ground and as icons.
  * Ice and Fire's files are left as they are: nothing of theirs is shipped or overwritten, and its items stay its own.
+ * Since 0.98.7 its own are the classic look, by default ({@link DreadPatchClientConfig}): both are kept, and an item
+ * override picks one as each stack is drawn.
  */
 public final class RegaliaWeapons {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -46,6 +50,23 @@ public final class RegaliaWeapons {
             LOGGER.warn("Couldn't put the regalia's {} in place of Ice and Fire's", item);
             return;
         }
-        event.getModels().put(theirs, model);
+        BakedModel classic = event.getModels().get(theirs);
+        java.util.function.BooleanSupplier useClassic = item.equals("dread_queen_sword") ? DreadPatchClientConfig::classicSword : DreadPatchClientConfig::classicStaff;
+        // Both kept (0.98.7): which is drawn is the client config's, chosen as each stack is drawn, so a change shows at once.
+        ItemOverrides choose = new ItemOverrides(null, null, java.util.List.of()) {
+            @Override
+            public BakedModel resolve(BakedModel self, net.minecraft.world.item.ItemStack stack, @org.jetbrains.annotations.Nullable net.minecraft.client.multiplayer.ClientLevel level,
+                                      @org.jetbrains.annotations.Nullable net.minecraft.world.entity.LivingEntity entity, int seed) {
+                BakedModel shown = useClassic.getAsBoolean() ? classic : model;
+                BakedModel resolved = shown.getOverrides().resolve(shown, stack, level, entity, seed);
+                return resolved != null ? resolved : shown;
+            }
+        };
+        event.getModels().put(theirs, new net.neoforged.neoforge.client.model.BakedModelWrapper<>(classic) {
+            @Override
+            public ItemOverrides getOverrides() {
+                return choose;
+            }
+        });
     }
 }

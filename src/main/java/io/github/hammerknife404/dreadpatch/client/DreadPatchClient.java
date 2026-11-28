@@ -56,6 +56,7 @@ public final class DreadPatchClient {
         RegaliaTooltip.register(NeoForge.EVENT_BUS);
         // The server config in the mods list's Config button (0.50.0): NeoForge's own screen; every value is read
         // where it's used, so a change applies at once.
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT, DreadPatchClientConfig.SPEC);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         DreadlandsClient.register(NeoForge.EVENT_BUS);
         DreadlandsAmbience.register(NeoForge.EVENT_BUS);
