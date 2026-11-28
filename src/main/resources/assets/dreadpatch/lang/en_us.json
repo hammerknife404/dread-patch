@@ -293,6 +293,7 @@
   "dreadpatch.configuration.doors": "Doors",
   "dreadpatch.configuration.dread_break_doors": "The Dread break wooden doors",
   "dreadpatch.configuration.dread_break_doors_from": "From difficulty",
+  "dreadpatch.configuration.dread_break_iron_doors": "The Dread break iron doors (Hard)",
   "commands.dreadpatch.dreadweather.started": "A dread storm over the overworld (it rains); it reaches only where the dread_weather switches let it",
   "commands.dreadpatch.dreadweather.stopped": "The dread storm is over; its snow melts"
 }

@@ -1,14 +1,13 @@
 package io.github.hammerknife404.dreadpatch.entity;
 
-import com.iafenvoy.iceandfire.entity.DreadBeastEntity;
-import com.iafenvoy.iceandfire.entity.DreadGhoulEntity;
-import com.iafenvoy.iceandfire.entity.DreadKnightEntity;
+import com.iafenvoy.iceandfire.entity.DragonBaseEntity;
 import io.github.hammerknife404.dreadpatch.magic.LeapRules;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -25,8 +24,12 @@ import java.util.WeakHashMap;
  * making for water): heading somewhere (its path's end, else its
  * target; so chasing, wandering and on patrol alike), one on the ground at a gap 1-2 blocks wide right ahead toward it,
  * deeper than a step, with ground past it at its own height or one lower and room to stand, leaps it, fast enough to land
- * just past the far edge. Landed, it plans its path afresh (the old one likely ran round the gap). Thralls (the owner: "to
- * slow to jump") don't; nor one riding, in water, or within a second of its last leap.
+ * just past the far edge. Landed, it plans its path afresh (the old one likely ran round the gap). Not one riding, in water,
+ * or within a second of its last leap. Thralls didn't (the owner: "to slow to jump") until 0.98.0, when every walking one
+ * of the Dread does (the owner's handoff: "Give all Dread mobs the ability to jump over terrain and low obstacles", then,
+ * asked about thralls: "All Dread leap"): thralls, liches, Dread horses, the queen (but her only toward her path's end,
+ * never across a gap toward the target she keeps her distance from), the risen that walk; not dragons, nor what flies.
+ * Her hops in a fight ({@link #hop}) are {@code KeepDistanceGoal}'s.
  */
 public final class DreadLeaps {
     /** Game time each may next leap, and whether it's in the air from one. Server thread only. */
@@ -41,8 +44,8 @@ public final class DreadLeaps {
     }
 
     static boolean leaper(Object entity) {
-        return entity instanceof DreadGhoulEntity || entity instanceof DreadBeastEntity || entity instanceof DreadKnightEntity
-                || entity instanceof com.iafenvoy.iceandfire.entity.DreadScuttlerEntity || entity instanceof DreadFish;
+        return entity instanceof DreadFish || entity instanceof Mob mob && RisenDread.dread(mob) && !(mob instanceof DragonBaseEntity)
+                && mob.getNavigation() instanceof GroundPathNavigation;
     }
 
     private static void onTick(EntityTickEvent.Post event) {
@@ -66,12 +69,7 @@ public final class DreadLeaps {
         }
         Vec3 leap = leap(mob, toward);
         if (leap != null) {
-            mob.setDeltaMovement(leap);
-            mob.setYRot((float) (Mth.atan2(toward.z, toward.x) * Mth.RAD_TO_DEG) - 90.0F);
-            mob.yBodyRot = mob.getYRot();
-            mob.hasImpulse = true;
-            NEXT.put(mob, now + LeapRules.COOLDOWN);
-            FLYING.put(mob, true);
+            launch(mob, leap, toward);
         }
     }
 
@@ -81,7 +79,7 @@ public final class DreadLeaps {
         Vec3 to = null;
         if (!mob.getNavigation().isDone() && mob.getNavigation().getTargetPos() != null) {
             to = Vec3.atBottomCenterOf(mob.getNavigation().getTargetPos());
-        } else {
+        } else if (!(mob instanceof DreadQueen)) {
             LivingEntity target = mob.getTarget();
             if (target != null && target.isAlive()) {
                 to = target.position();
@@ -121,6 +119,45 @@ public final class DreadLeaps {
             gap++;
         }
         return null;
+    }
+
+    /**
+     * The queen's hop {@code distance} along {@code toward} (flat, length 1; {@link LeapRules#hop}), if there's room the
+     * whole way (her height free at each block) and ground to land on at her height or one lower: its velocity, else null.
+     */
+    @Nullable
+    static Vec3 hop(Mob mob, Vec3 toward, double distance) {
+        Level level = mob.level();
+        int feet = Mth.floor(mob.getY() + 0.01);
+        for (double d = 1.0; d <= distance + 0.01; d += 1.0) {
+            if (!clear(level, BlockPos.containing(mob.getX() + toward.x * d, feet, mob.getZ() + toward.z * d), mob)) {
+                return null;
+            }
+        }
+        BlockPos land = BlockPos.containing(mob.getX() + toward.x * distance, feet, mob.getZ() + toward.z * distance);
+        double drop;
+        if (solid(level, land.below())) {
+            drop = 0.0;
+        } else if (solid(level, land.below(2))) {
+            drop = 1.0;
+        } else {
+            return null;
+        }
+        if (!level.getFluidState(land).isEmpty() || !level.getFluidState(land.below((int) drop)).isEmpty()) {
+            return null;
+        }
+        double speed = LeapRules.speedFor(distance, drop);
+        return new Vec3(toward.x * speed, LeapRules.RISE, toward.z * speed);
+    }
+
+    /** Leaps {@code mob} with {@code velocity}, facing {@code facing}: as a gap leap, its path planned afresh on landing. */
+    static void launch(Mob mob, Vec3 velocity, Vec3 facing) {
+        mob.setDeltaMovement(velocity);
+        mob.setYRot((float) (Mth.atan2(facing.z, facing.x) * Mth.RAD_TO_DEG) - 90.0F);
+        mob.yBodyRot = mob.getYRot();
+        mob.hasImpulse = true;
+        NEXT.put(mob, mob.level().getGameTime() + LeapRules.COOLDOWN);
+        FLYING.put(mob, true);
     }
 
     /** Room for it to pass at {@code cell}: its height free of anything solid. */

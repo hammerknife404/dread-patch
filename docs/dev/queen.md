@@ -31,6 +31,7 @@ Part of the notes for agents working here: [CLAUDE.md](../../CLAUDE.md) has the 
   - out of sight, or past 16: she closes in;
   - 9–16: she circles;
   - under 9: she gives ground;
+  - circling or giving ground, she hops (0.98.0, the owner's handoff: "Give the Dread Queen active jumping in combat"; `KeepDistanceGoal.maybeHop`, `LeapRules.hop`): one strafing tick in 15, 50-110 ticks after the last, 3 blocks aside the way she's circling (and back as much again, giving ground), 0.5 up, at `LeapRules.speedFor`, facing her target. Only where her height's clear the whole way and there's ground at her height or one lower, not fluid; else she turns to circle the other way. Probed: 7 hops in 30 s, up to 1.7 high. She leaps gaps too (`DreadLeaps`), but only toward her path's end, never toward her target;
   - under 5: she breaks away, once every 3 s. That's Barrow-Step if it's off its 12 s cooldown, else on foot (`DefaultRandomPos.getPosAway`).
 - **Barrow-Step's spot is her own search** (`DreadQueen.barrowStep`):
   - 16 tries, 10–15 blocks away, within ±45°, then ±90°;
